@@ -26,8 +26,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // q_shared.h -- included first by ALL program modules.
 // A user mod should never modify this file
 
-#define PRODUCT_NAME            "ioq3"
-#define PRODUCT_VERSION         "1.35"
+#define PRODUCT_NAME            "OpenMoHAA"
+#define PRODUCT_VERSION         "0.1"
 
 #ifdef SVN_VERSION
 # define Q3_VERSION PRODUCT_NAME " " SVN_VERSION
@@ -35,11 +35,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 # define Q3_VERSION PRODUCT_NAME " " PRODUCT_VERSION
 #endif
 
-#define CLIENT_WINDOW_TITLE     "ioquake3"
-#define CLIENT_WINDOW_MIN_TITLE "ioq3"
+#define CLIENT_WINDOW_TITLE     "OpenMoHAA"
+#define CLIENT_WINDOW_MIN_TITLE "OpenMoHAA"
 // 1.32 released 7-10-2002
 
-#define BASEGAME              "baseq3"
+#define BASEGAME              "main"
 
 #define MAX_TEAMNAME 32
 
