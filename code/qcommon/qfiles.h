@@ -433,6 +433,154 @@ typedef struct {
 	int			ofsEnd;				// end of file
 } mdrHeader_t;
 
+/*
+==============================================================================
+
+SKD file format
+
+==============================================================================
+*/
+
+#define SKD_IDENT			(('D'<<24)+('M'<<16)+('K'<<8)+'S')
+#define SKD_VERSION			5
+#define	SKD_MAX_BONES		128
+#define SKD_SURFACE_IDENT	((' '<<24)+('L'<<16)+('K'<<8)+'S')
+
+typedef struct {
+	int			boneIndex;
+} skdHitbox_t;
+
+typedef struct {
+	int			boneIndex;		// these are indexes into the boneReferences,
+	float		boneWeight;		// not the global per-frame bone list
+	vec3_t		offset;
+} skdWeight_t;
+
+typedef struct {
+	int			index;
+	float		f1;
+	float		f2;
+	float		f3;
+} skdMorph_t;
+
+typedef struct {
+	vec3_t		normal;
+	vec2_t		texCoords;
+	int			numWeights;
+	int			numMorphs;
+	/*skdWeight_t	weights[1];		// variable sized
+	skdMorph_t	morphs[1];*/
+} skdVertex_t;
+
+typedef struct {
+	int			indexes[3];
+} skdTriangle_t;
+
+typedef struct {
+	int			ident;
+
+	char		name[MAX_QPATH];	// polyset name
+
+	int			numTriangles;
+	int			numVerts;
+	int			staticSurfProcessed;
+	int			ofsTriangles;
+	int			ofsVerts;
+	int			ofsCollapse;
+
+	int			ofsEnd;				// next surface follows
+
+	int			ofsCollapseIndex;
+} skdSurface_t;
+
+typedef enum {
+	JT_24BYTES1,
+	JT_POSROT_SKC,
+	JT_40BYTES1,
+	JT_24BYTES2,
+	JT_24BYTES3,
+	JT_40BYTES2,
+	JT_28BYTES
+} skdJointType_t;
+
+typedef struct {
+	char		name[32];
+	char		parent[32];
+	int			jointType;
+	int			ofsValues;
+	int			ofsChannels;
+	int			ofsRefs;
+	int			ofsEnd;
+} skdBone_t;
+
+typedef struct {
+	int			ident;
+	int			version;
+
+	char		name[MAX_QPATH];	// model name
+
+	int			numSurfaces;
+	int			numBones;
+	int			ofsBones;		// char	name[ MAX_QPATH ]
+	int			ofsSurfaces;			// skdFrame_t[numFrames]
+
+	// each level of detail has completely separate sets of surfaces
+	int			numLODs;
+	int			ofsLODs;
+
+	int			ofsEnd;				// end of file
+	int			lodIndex[8];
+	int			numBoxes;
+	int			ofsBoxes;
+	int			numMorphTargets;
+	int			ofsMorphTargets;
+} skdHeader_t;
+
+/*
+==============================================================================
+
+SKC file format
+
+==============================================================================
+*/
+
+#define SKC_IDENT			(('N'<<24)+('A'<<16)+('K'<<8)+'S')
+#define SKC_VERSION			13
+#define SKC_MAX_CHANNEL_CHARS	32
+
+typedef struct {
+	float		floatVal[4];
+} skcBone_t;
+
+typedef struct {
+	vec3_t		bounds[2];			// bounds of all surfaces of all LOD's for this frame
+	float		radius;				// dist from localOrigin to corner
+	vec3_t		delta;
+	/*int			i1;
+	int			ofsBones;*/
+	float		unknown;
+	int			numChannels;
+} skcFrame_t;
+
+typedef struct {
+	int			ident;
+	int			version;
+
+	int			type;
+
+	int			ofsEnd;
+
+	float		frameTime;
+
+	int			i3;
+	int			i4;
+	int			i5;
+	int			i6;
+	int			numChannels;
+	int			ofsChannels;
+	int			numFrames;
+} skcHeader_t;
+
 #endif
 
 /*
@@ -444,10 +592,10 @@ typedef struct {
 */
 
 
-#define BSP_IDENT	(('P'<<24)+('S'<<16)+('B'<<8)+'I')
-		// little-endian "IBSP"
+#define BSP_IDENT	(('5'<<24)+('1'<<16)+('0'<<8)+'2')
+		// little-endian "2015"
 
-#define BSP_VERSION			46
+#define BSP_VERSION			19	// vanilla Allied Assault
 
 
 // there shouldn't be any problem with increasing these values at the
@@ -498,28 +646,40 @@ typedef struct {
 	int		fileofs, filelen;
 } lump_t;
 
-#define	LUMP_ENTITIES		0
-#define	LUMP_SHADERS		1
-#define	LUMP_PLANES			2
-#define	LUMP_NODES			3
-#define	LUMP_LEAFS			4
-#define	LUMP_LEAFSURFACES	5
-#define	LUMP_LEAFBRUSHES	6
-#define	LUMP_MODELS			7
-#define	LUMP_BRUSHES		8
-#define	LUMP_BRUSHSIDES		9
-#define	LUMP_DRAWVERTS		10
-#define	LUMP_DRAWINDEXES	11
+#define	LUMP_SHADERS		0
+#define	LUMP_PLANES			1
+#define	LUMP_LIGHTMAPS		2
+#define	LUMP_SURFACES		3
+#define	LUMP_DRAWVERTS		4
+#define	LUMP_DRAWINDEXES	5
+#define	LUMP_LEAFSURFACES	6
+#define	LUMP_LEAFBRUSHES	7
+#define	LUMP_LEAFS			8
+#define	LUMP_NODES			9
+#define	LUMP_BRUSHSIDES		10
+#define	LUMP_BRUSHES		11
 #define	LUMP_FOGS			12
-#define	LUMP_SURFACES		13
-#define	LUMP_LIGHTMAPS		14
-#define	LUMP_LIGHTGRID		15
-#define	LUMP_VISIBILITY		16
-#define	HEADER_LUMPS		17
+#define	LUMP_MODELS			13
+#define	LUMP_ENTITIES		14
+#define	LUMP_VISIBILITY		15
+#define	LUMP_LIGHTGRID		16
+#define LUMP_DUMMY1			17
+#define LUMP_DUMMY2			18
+#define LUMP_DUMMY3			19
+#define LUMP_DUMMY4			20
+#define LUMP_DUMMY5			21
+#define LUMP_TERRAIN		22
+#define LUMP_DUMMY6			23
+#define LUMP_DUMMY7			24
+#define LUMP_DUMMY8			25
+#define LUMP_DUMMY9			26
+#define LUMP_DUMMY10		27
+#define	HEADER_LUMPS		28
 
 typedef struct {
 	int			ident;
 	int			version;
+	int			checksum;
 
 	lump_t		lumps[HEADER_LUMPS];
 } dheader_t;
