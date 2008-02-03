@@ -415,6 +415,99 @@ typedef struct {
 #endif
 } level_locals_t;
 
+// IneQuation: MoHAA server-side scripting
+// TODO: work on it, it's a stub
+
+// variables
+typedef enum {
+	SVT_INTEGER,
+	SVT_FLOAT,
+	SVT_VECTOR,
+	SVT_STRING,
+	SVT_ENTITY,
+	SVT_LISTENER,	// for compatibility with the bare Listener MoHAA object which is basically just a data container
+	SVT_ARRAY
+} scriptVariableType_t;
+
+typedef union {
+	int			i;
+	float			f;
+	char			*s;
+	gentity_t		*e;
+	struct scriptStack_s	*l;	// for compatibility with the bare Listener MoHAA object which is basically just a data container
+	struct scriptArray_s	*a;
+} scriptVariableData_t;
+
+typedef struct scriptArrayElement_s {
+	scriptVariableData_t	data;
+	struct scriptArrayElement_s	*next;
+	struct scriptArrayElement_s	*prev;
+} scriptArrayElement_t;
+
+typedef struct scriptArray_s {
+	int			size;
+	scriptArrayElement_t	*first;
+} scriptArray_t;
+
+typedef struct scriptVariable_s {
+	qboolean		readonly;
+	scriptVariableType_t	type;
+	scriptVariableData_t	data;
+} scriptVariable_t;
+
+// script stack
+typedef struct scriptStackVariable_s {
+	scriptStackVariable	var;
+	struct scriptStackVariable_s	*prev;
+	struct scriptStackVariable_s	*next;
+} scriptStackVariable_t;
+
+typedef struct scriptStack_s {
+	int			size;
+	scriptVariable_t	*top;
+} scriptStack_t;
+
+// compiled script
+typedef enum {			// what code gets translated into the given instruction
+	SI_STARTTHREAD,		// thread, waitthread, exec, waitexec
+	SI_TERMINATETHREAD,	// end
+	SI_WAIT,		// wait, waitframe
+	SI_JUMP,		// goto, break and continue
+	SI_CONDITIONALJUMP,	// if, for, while, switch
+	SI_INCR,		// ++
+	SI_DECR,		// --
+	SI_ASSIGN,
+	SI_EVENT	// TODO: this possibly needs expanding into a separate instruction for each event (entity command), need to think the design through
+} scriptInstruction_t;
+
+typedef struct scriptStatement_s {
+	scriptInstruction_t	inst;
+	int			numParams;
+	scriptVariableData_t	*params;	// malloced at script compilation time
+} scriptStatement_t;
+
+typedef struct scriptCompiled_s {
+	scriptStack_t		level;
+	scriptStack_t		parm;
+	int			numStats;
+	scriptStatement_t	*stat;
+} scriptCompiled_t;
+
+// script threads
+typedef struct scriptThread_s {
+	scriptVariableData_t	object;
+	scriptStack_t		stack;
+	int			pos;	// index of the statement we should be executing at this frame
+	int			resumeTime;	// execution of thread will stop until level.time >= resumeTime
+	struct scriptThread_s	*next;
+	struct scriptThread_s	*prev;
+} scriptThread_t;
+
+typedef struct scriptThreadGroup_s {
+	scriptStack_t		group;
+	int			count;
+	scriptThread_t		*first;
+} scriptThreadGroup_t;
 
 //
 // g_spawn.c
