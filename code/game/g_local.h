@@ -457,7 +457,7 @@ typedef struct scriptVariable_s {
 
 // script stack
 typedef struct scriptStackVariable_s {
-	scriptStackVariable	var;
+	scriptVariable_t	var;
 	struct scriptStackVariable_s	*prev;
 	struct scriptStackVariable_s	*next;
 } scriptStackVariable_t;
