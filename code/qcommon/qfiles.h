@@ -646,36 +646,40 @@ typedef struct {
 	int		fileofs, filelen;
 } lump_t;
 
-#define	LUMP_SHADERS		0
-#define	LUMP_PLANES			1
-#define	LUMP_LIGHTMAPS		2
-#define	LUMP_SURFACES		3
-#define	LUMP_DRAWVERTS		4
-#define	LUMP_DRAWINDEXES	5
-#define	LUMP_LEAFSURFACES	6
-#define	LUMP_LEAFBRUSHES	7
-#define	LUMP_LEAFS			8
-#define	LUMP_NODES			9
-#define	LUMP_BRUSHSIDES		10
-#define	LUMP_BRUSHES		11
-#define	LUMP_FOGS			12
-#define	LUMP_MODELS			13
-#define	LUMP_ENTITIES		14
-#define	LUMP_VISIBILITY		15
-#define	LUMP_LIGHTGRID		16
+// new lump defines. lump numbers are different in mohaa
+#define LUMP_SHADERS		0
+#define LUMP_PLANES			1
+#define LUMP_LIGHTMAPS		2
+#define LUMP_SURFACES		3
+#define LUMP_DRAWVERTS		4
+#define LUMP_DRAWINDEXES	5
+#define LUMP_LEAFBRUSHES	6
+#define LUMP_LEAFSURFACES	7
+#define LUMP_LEAFS			8
+#define LUMP_NODES			9
+#define LIMP_SIDEEQUATIONS	10
+#define LUMP_BRUSHSIDES		11
+#define LUMP_BRUSHES		12
+#define LUMP_FOGS			12
+#define LUMP_MODELS			13
+#define LUMP_ENTITIES		14
+#define LUMP_VISIBILITY		15
+#define LUMP_LIGHTGRID		16
 #define LUMP_DUMMY1			17
 #define LUMP_DUMMY2			18
 #define LUMP_DUMMY3			19
 #define LUMP_DUMMY4			20
 #define LUMP_DUMMY5			21
 #define LUMP_TERRAIN		22
-#define LUMP_DUMMY6			23
+#define LUMP_TERRAININDEXES	23
 #define LUMP_DUMMY7			24
 #define LUMP_DUMMY8			25
 #define LUMP_DUMMY9			26
 #define LUMP_DUMMY10		27
+
 #define	HEADER_LUMPS		28
 
+// added "checksum"
 typedef struct {
 	int			ident;
 	int			version;
@@ -690,10 +694,14 @@ typedef struct {
 	int			firstBrush, numBrushes;
 } dmodel_t;
 
+// added "subdivisions" and "fenceMaskImage"
 typedef struct {
 	char		shader[MAX_QPATH];
 	int			surfaceFlags;
 	int			contentFlags;
+
+	int			subdivisions;
+	char		fenceMaskImage[64];
 } dshader_t;
 
 // planes x^1 is allways the opposite of plane x
@@ -722,11 +730,20 @@ typedef struct {
 
 	int			firstLeafBrush;
 	int			numLeafBrushes;
+
+	//added for mohaa
+	int			firstTerraPatch;
+	int			numTerraPatches;
+	int			firstStaticModel;
+	int			numStaticModels;
 } dleaf_t;
 
 typedef struct {
 	int			planeNum;			// positive plane side faces out of the leaf
 	int			shaderNum;
+
+	//added for mohaa
+	int			equationNum;
 } dbrushside_t;
 
 typedef struct {
@@ -756,7 +773,8 @@ typedef enum {
 	MST_PLANAR,
 	MST_PATCH,
 	MST_TRIANGLE_SOUP,
-	MST_FLARE
+	MST_FLARE,
+	MST_TERRAIN
 } mapSurfaceType_t;
 
 typedef struct {
@@ -779,6 +797,9 @@ typedef struct {
 
 	int			patchWidth;
 	int			patchHeight;
+
+	//added for mohaa
+	float		subdivisions;
 } dsurface_t;
 
 
