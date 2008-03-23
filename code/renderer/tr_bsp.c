@@ -1842,18 +1842,22 @@ void RE_LoadWorldMap( const char *name ) {
 		((int *)header)[i] = LittleLong ( ((int *)header)[i]);
 	}
 
+	// create fake "empty" fog lump to at least work around the fog lump error
+	lump_t emptyLump;
+	emptyLump.filelen = 0;
+	emptyLump.fileofs = header->lumps[0].fileofs;
 	// load into heap
 	R_LoadShaders( &header->lumps[LUMP_SHADERS] );
 	R_LoadLightmaps( &header->lumps[LUMP_LIGHTMAPS] );
 	R_LoadPlanes (&header->lumps[LUMP_PLANES]);
-	R_LoadFogs( &header->lumps[LUMP_FOGS], &header->lumps[LUMP_BRUSHES], &header->lumps[LUMP_BRUSHSIDES] );
+	R_LoadFogs( /*&header->lumps[LUMP_FOGS]*/ &emptyLump, &header->lumps[LUMP_BRUSHES], &header->lumps[LUMP_BRUSHSIDES] );
 	R_LoadSurfaces( &header->lumps[LUMP_SURFACES], &header->lumps[LUMP_DRAWVERTS], &header->lumps[LUMP_DRAWINDEXES] );
 	R_LoadMarksurfaces (&header->lumps[LUMP_LEAFSURFACES]);
 	R_LoadNodesAndLeafs (&header->lumps[LUMP_NODES], &header->lumps[LUMP_LEAFS]);
 	R_LoadSubmodels (&header->lumps[LUMP_MODELS]);
 	R_LoadVisibility( &header->lumps[LUMP_VISIBILITY] );
 	R_LoadEntities( &header->lumps[LUMP_ENTITIES] );
-	R_LoadLightGrid( &header->lumps[LUMP_LIGHTGRID] );
+	R_LoadLightGrid( &header->lumps[LUMP_LIGHTGRIDDATA] );
 
 	s_worldData.dataSize = (byte *)ri.Hunk_Alloc(0, h_low) - startMarker;
 

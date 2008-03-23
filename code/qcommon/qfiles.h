@@ -647,35 +647,38 @@ typedef struct {
 } lump_t;
 
 // new lump defines. lump numbers are different in mohaa
-#define LUMP_SHADERS		0
-#define LUMP_PLANES			1
-#define LUMP_LIGHTMAPS		2
-#define LUMP_SURFACES		3
-#define LUMP_DRAWVERTS		4
-#define LUMP_DRAWINDEXES	5
-#define LUMP_LEAFBRUSHES	6
-#define LUMP_LEAFSURFACES	7
-#define LUMP_LEAFS			8
-#define LUMP_NODES			9
-#define LIMP_SIDEEQUATIONS	10
-#define LUMP_BRUSHSIDES		11
-#define LUMP_BRUSHES		12
-#define LUMP_FOGS			12
-#define LUMP_MODELS			13
-#define LUMP_ENTITIES		14
-#define LUMP_VISIBILITY		15
-#define LUMP_LIGHTGRID		16
-#define LUMP_DUMMY1			17
-#define LUMP_DUMMY2			18
-#define LUMP_DUMMY3			19
-#define LUMP_DUMMY4			20
-#define LUMP_DUMMY5			21
-#define LUMP_TERRAIN		22
-#define LUMP_TERRAININDEXES	23
-#define LUMP_DUMMY7			24
-#define LUMP_DUMMY8			25
-#define LUMP_DUMMY9			26
-#define LUMP_DUMMY10		27
+#define LUMP_SHADERS			0
+#define LUMP_PLANES				1
+#define LUMP_LIGHTMAPS			2
+#define LUMP_SURFACES			3
+#define LUMP_DRAWVERTS			4
+#define LUMP_DRAWINDEXES		5
+#define LUMP_LEAFBRUSHES		6
+#define LUMP_LEAFSURFACES		7
+#define LUMP_LEAFS				8
+#define LUMP_NODES				9
+#define LIMP_SIDEEQUATIONS		10
+#define LUMP_BRUSHSIDES			11
+#define LUMP_BRUSHES			12
+/*
+// FOG seems to be handled differently in MOHAA - no fog lump found yet
+#define LUMP_FOGS				0
+*/
+#define LUMP_MODELS				13
+#define LUMP_ENTITIES			14
+#define LUMP_VISIBILITY			15
+#define LUMP_LGTGRIDPALETTBYTES	16
+#define LUMP_LIGHTGRIDOFFSETS	17
+#define LUMP_LIGHTGRIDDATA		18
+#define LUMP_SPHERELIGHTS		19
+#define LUMP_SPHERELIGHTVIS		20
+#define LUMP_DUMMY5				21
+#define LUMP_TERRAIN			22
+#define LUMP_TERRAININDEXES		23
+#define LUMP_STATICMODELDATA	24
+#define LUMP_STATICMODELDEF		25
+#define LUMP_STATICMODELINDEXES	26
+#define LUMP_DUMMY10			27
 
 #define	HEADER_LUMPS		28
 
