@@ -629,14 +629,15 @@ static qboolean ParseStage( shaderStage_t *stage, char **text )
 			}
 			else if ( !Q_stricmp( token, "$lightmap" ) )
 			{
-				if (bundleNum < NUM_TEXTURE_BUNDLES - 1) {	// IneQuation: placing lightmaps in the last bundle is BAD!
-					stage->bundle[bundleNum].isLightmap = qtrue;
-					if ( shader.lightmapIndex < 0 ) {
-						stage->bundle[bundleNum].image[0] = tr.whiteImage;
-					} else {
-						stage->bundle[bundleNum].image[0] = tr.lightmaps[shader.lightmapIndex];
-					}
+				stage->bundle[bundleNum].isLightmap = qtrue;
+				if ( shader.lightmapIndex < 0 ) {
+					stage->bundle[bundleNum].image[0] = tr.whiteImage;
+				} else {
+					stage->bundle[bundleNum].image[0] = tr.lightmaps[shader.lightmapIndex];
 				}
+				// IneQuation: an attempt to fix the broken UV mapping
+				if (bundleNum > 0)
+					stage->bundle[bundleNum].tcGen = TCGEN_LIGHTMAP;
 				continue;
 			}
 			else
@@ -1344,6 +1345,10 @@ infoParm_t	infoParms[] = {
 	{"lava",		1,	0,	CONTENTS_LAVA },		// very damaging
 	{"playerclip",	1,	0,	CONTENTS_PLAYERCLIP },
 	{"monsterclip",	1,	0,	CONTENTS_MONSTERCLIP },
+	{"weaponclip",	1,	0,	CONTENTS_WEAPONCLIP },
+	{"vehicleclip",	1,	0,	CONTENTS_VEHICLECLIP },
+	{"shootonly",	1,	0,	CONTENTS_SHOOTONLY },
+	{"fence",		1,	0,	CONTENTS_FENCE },
 	{"nodrop",		1,	0,	CONTENTS_NODROP },		// don't drop items or leave bodies (death fog, lava, etc)
 	{"nonsolid",	1,	SURF_NONSOLID,	0},						// clears the solid flag
 
@@ -1353,12 +1358,11 @@ infoParm_t	infoParms[] = {
 	{"detail",		0,	0,	CONTENTS_DETAIL },		// don't include in structural bsp
 	{"structural",	0,	0,	CONTENTS_STRUCTURAL },	// force into structural bsp even if trnas
 	{"areaportal",	1,	0,	CONTENTS_AREAPORTAL },	// divides areas
-	{"clusterportal", 1,0,  CONTENTS_CLUSTERPORTAL },	// for bots
 	{"donotenter",  1,  0,  CONTENTS_DONOTENTER },		// for bots
 
 	{"fog",			1,	0,	CONTENTS_FOG},			// carves surfaces entering
 	{"sky",			0,	SURF_SKY,		0 },		// emit light from an environment map
-	{"lightfilter",	0,	SURF_LIGHTFILTER, 0 },		// filter light going through it
+	{"castshadow",	0,	SURF_CASTSHADOW, 0 },		// filter light going through it
 	{"alphashadow",	0,	SURF_ALPHASHADOW, 0 },		// test light on a per-pixel basis
 	{"hint",		0,	SURF_HINT,		0 },		// use as a primary splitter
 
@@ -1368,16 +1372,26 @@ infoParm_t	infoParms[] = {
 	{"nomarks",		0,	SURF_NOMARKS,	0 },		// don't make impact marks, but still explode
 	{"ladder",		0,	SURF_LADDER,	0 },
 	{"nodamage",	0,	SURF_NODAMAGE,	0 },
-	{"metalsteps",	0,	SURF_METALSTEPS,0 },
-	{"flesh",		0,	SURF_FLESH,		0 },
 	{"nosteps",		0,	SURF_NOSTEPS,	0 },
 
 	// drawsurf attributes
 	{"nodraw",		0,	SURF_NODRAW,	0 },	// don't generate a drawsurface (or a lightmap)
-	{"pointlight",	0,	SURF_POINTLIGHT, 0 },	// sample lighting at vertexes
 	{"nolightmap",	0,	SURF_NOLIGHTMAP,0 },	// don't generate a lightmap
 	{"nodlight",	0,	SURF_NODLIGHT, 0 },		// don't ever add dynamic lights
-	{"dust",		0,	SURF_DUST, 0}			// leave a dust trail when walking on this surface
+
+	// material attributes
+	{"paper",		0,	SURF_PAPER, 0 },
+	{"wood",		0,	SURF_WOOD, 0 },
+	{"metal",		0,	SURF_METAL, 0 },
+	{"rock",		0,	SURF_ROCK, 0 },
+	{"dirt",		0,	SURF_DIRT, 0 },
+	{"grill",		0,	SURF_GRILL, 0 },
+	{"grass",		0,	SURF_GRASS, 0 },
+	{"gravel",		0,	SURF_GRAVEL, 0 },
+	{"sand",		0,	SURF_SAND, 0 },
+	{"foliage",		0,	SURF_FOLIAGE, 0 },
+	{"snow",		0,	SURF_SNOW, 0 },
+	{"carpet",		0,	SURF_CARPET, 0 }
 };
 
 

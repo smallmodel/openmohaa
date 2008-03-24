@@ -805,5 +805,19 @@ typedef struct {
 	float		subdivisions;
 } dsurface_t;
 
+// IneQuation was here
+typedef struct dterrainNode_s {
+	byte		flags;
+	byte		dummy1[35];
+	char		x;
+	char		y;
+	short		z;
+	short		shader;
+	byte		dummy2[262];
+	byte		m[9][9];
+	byte		dummy3[3];
+} dterrainNode_t;
+
+typedef short int dterrainIndices_t[3];
 
 #endif
