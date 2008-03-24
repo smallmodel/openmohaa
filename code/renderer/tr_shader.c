@@ -629,11 +629,13 @@ static qboolean ParseStage( shaderStage_t *stage, char **text )
 			}
 			else if ( !Q_stricmp( token, "$lightmap" ) )
 			{
-				stage->bundle[bundleNum].isLightmap = qtrue;
-				if ( shader.lightmapIndex < 0 ) {
-					stage->bundle[bundleNum].image[0] = tr.whiteImage;
-				} else {
-					stage->bundle[bundleNum].image[0] = tr.lightmaps[shader.lightmapIndex];
+				if (bundleNum < NUM_TEXTURE_BUNDLES - 1) {	// IneQuation: placing lightmaps in the last bundle is BAD!
+					stage->bundle[bundleNum].isLightmap = qtrue;
+					if ( shader.lightmapIndex < 0 ) {
+						stage->bundle[bundleNum].image[0] = tr.whiteImage;
+					} else {
+						stage->bundle[bundleNum].image[0] = tr.lightmaps[shader.lightmapIndex];
+					}
 				}
 				continue;
 			}
