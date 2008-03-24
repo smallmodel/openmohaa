@@ -50,7 +50,7 @@ char *Sys_DefaultHomePath( void )
 	TCHAR szPath[MAX_PATH];
 	FARPROC qSHGetFolderPath;
 	HMODULE shfolder = LoadLibrary("shfolder.dll");
-	
+
 	if( !*homePath )
 	{
 		if(shfolder == NULL)
@@ -75,7 +75,7 @@ char *Sys_DefaultHomePath( void )
 			return NULL;
 		}
 		Q_strncpyz( homePath, szPath, sizeof( homePath ) );
-		Q_strcat( homePath, sizeof( homePath ), "\\Quake3" );
+		Q_strcat( homePath, sizeof( homePath ), "\\OpenMoHAA" );
 		FreeLibrary(shfolder);
 		if( !CreateDirectory( homePath, NULL ) )
 		{
@@ -200,7 +200,7 @@ char *Sys_GetClipboardData( void )
 				data = Z_Malloc( GlobalSize( hClipboardData ) + 1 );
 				Q_strncpyz( data, cliptext, GlobalSize( hClipboardData ) );
 				GlobalUnlock( hClipboardData );
-				
+
 				strtok( data, "\n\r\b" );
 			}
 		}

@@ -860,7 +860,7 @@ void UI_Report( void ) {
 
 // IneQuation: adjusted to load UberResourCe UI files
 void UI_LoadMenus(const char *menuFile, qboolean reset) {
-	pc_token_t token;
+	//pc_token_t token;
 	int		count;
 	int		start;
 	char	menulist[4096];
@@ -876,7 +876,7 @@ void UI_LoadMenus(const char *menuFile, qboolean reset) {
 
 	ui_new.integer = 1;
 
-	if (reset)
+	if (reset) {
 		Menu_Reset();
 
 		if (count > MAX_DEMOS)
@@ -890,9 +890,9 @@ void UI_LoadMenus(const char *menuFile, qboolean reset) {
 		}
 	}
 
-	Com_Printf("UI menu load time = %d milli seconds\n", trap_Milliseconds() - start);
+	Com_Printf("UI menu load time = %d milliseconds\n", trap_Milliseconds() - start);
 
-	trap_PC_FreeSource( handle );
+	//trap_PC_FreeSource( handle );
 }
 
 void UI_Load(void) {

@@ -1362,7 +1362,7 @@ qboolean CG_Asset_Parse(int handle) {
 
 // TODO: remove all of the UI-related stuff from cgame, all UI is to be done by the UI module
 void CG_ParseMenu(const char *menuFile) {
-	pc_token_t token;
+	/*pc_token_t token;
 	int handle;
 
 	handle = trap_PC_LoadSource(menuFile);
@@ -1404,7 +1404,7 @@ void CG_ParseMenu(const char *menuFile) {
 			Menu_New(handle);
 		}
 	}
-	trap_PC_FreeSource(handle);
+	trap_PC_FreeSource(handle);*/
 }
 
 qboolean CG_Load_Menu(char **p) {

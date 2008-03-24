@@ -105,6 +105,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define SLIDER_THUMB_HEIGHT 20.0
 #define	NUM_CROSSHAIRS			10
 
+// IneQuation
+#define BORDER_NONE					0
+#define BORDER_RAISED				1
+#define BORDER_3D_BORDER			2
+#define BORDER_INDENT_BORDER		3
+
 typedef struct {
   const char *command;
   const char *args[MAX_SCRIPT_ARGS];
@@ -218,6 +224,7 @@ typedef struct modelDef_s {
 #define CVAR_SHOW			0x00000004
 #define CVAR_HIDE			0x00000008
 
+// IneQuation was here
 typedef struct itemDef_s {
   Window window;                 // common positional, border, style, layout info
   Rectangle textRect;            // rectangle the text ( if any ) consumes
@@ -242,7 +249,8 @@ typedef struct itemDef_s {
   const char *cvarTest;          // associated cvar for enable actions
 	const char *enableCvar;			   // enable, disable, show, or hide based on value, this can contain a list
 	int cvarFlags;								 //	what type of action to take on cvarenables
-  sfxHandle_t focusSound;
+  sfxHandle_t clickSound;
+  sfxHandle_t stopSound;
 	int numColors;								 // number of color ranges
 	colorRangeDef_t colorRanges[MAX_COLOR_RANGES];
 	float special;								 // used for feeder id's etc.. diff per type

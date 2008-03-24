@@ -53,9 +53,9 @@ char *Sys_DefaultHomePath(void)
 		{
 			Q_strncpyz( homePath, p, sizeof( homePath ) );
 #ifdef MACOS_X
-			Q_strcat( homePath, sizeof( homePath ), "/Library/Application Support/Quake3" );
+			Q_strcat( homePath, sizeof( homePath ), "/Library/Application Support/OpenMoHAA" );
 #else
-			Q_strcat( homePath, sizeof( homePath ), "/.q3a" );
+			Q_strcat( homePath, sizeof( homePath ), "/.openmohaa" );
 #endif
 			if( mkdir( homePath, 0777 ) )
 			{
@@ -351,7 +351,7 @@ char **Sys_ListFiles( const char *directory, const char *extension, char *filter
 	}
 
 	extLen = strlen( extension );
-	
+
 	// search
 	nfiles = 0;
 
