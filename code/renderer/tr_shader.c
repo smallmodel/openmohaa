@@ -635,9 +635,11 @@ static qboolean ParseStage( shaderStage_t *stage, char **text )
 				} else {
 					stage->bundle[bundleNum].image[0] = tr.lightmaps[shader.lightmapIndex];
 				}
-				// IneQuation: an attempt to fix the broken UV mapping
-				if (bundleNum > 0)
+				// IneQuation: an attempt to fix the broken blending and UV mapping
+				if (bundleNum > 0) {
 					stage->bundle[bundleNum].tcGen = TCGEN_LIGHTMAP;
+					shader.multitextureEnv = GL_MODULATE;
+				}
 				continue;
 			}
 			else

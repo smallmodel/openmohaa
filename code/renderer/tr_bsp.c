@@ -1788,33 +1788,43 @@ R_LoadTerrain
 ================
 IneQuation was here
 */
-void R_LoadTerrain(lump_t *ter, lump_t *indices) {
-	int				i, j;
-	dterrainNode_t	*in;
-	mterrainNode_t	*out;
-	int				numNodes;
-	dterrainIndices_t	*inI, *outI;
-	int				numIndices;
+void R_LoadTerrain(lump_t *ter) {
+	int			i, x, y;
+	dterPatch_t	*in;
+	mterPatch_t	*out;
+	int			numPatches;
+	/*dterrainIndices_t	*inI, *outI;
+	int			numIndices;*/
 
 	in = (void *)(fileBase + ter->fileofs);
-	if (ter->filelen % sizeof(dterrainNode_t))
-		ri.Error (ERR_DROP, "LoadMap: funny terrain lump size in %s",s_worldData.name);
-	numNodes = ter->filelen / sizeof(dterrainNode_t);
+	if (ter->filelen % sizeof(dterPatch_t))
+		ri.Error (ERR_DROP, "LoadMap: funny terrain lump size in %s (%d %% %d)",s_worldData.name, ter->filelen, sizeof(dterPatch_t));
+	numPatches = ter->filelen / sizeof(dterPatch_t);
 
-	out = ri.Hunk_Alloc(numNodes * sizeof(*out), h_low);
+	out = ri.Hunk_Alloc(numPatches * sizeof(*out), h_low);
 
-	s_worldData.terrainNodes = out;
-	s_worldData.numTerrainNodes = numNodes;
+	s_worldData.terrainPatches = out;
+	s_worldData.numTerrainPatches = numPatches;
 
-	for (i = 0; i < numNodes; i++) {
+	for (i = 0; i < numPatches; i++) {
 		out[i].origin[0] = in[i].x * 64.f;
 		out[i].origin[1] = in[i].y * 64.f;
-		out[i].origin[1] = in[i].z;
-		out[i].shader = R_FindShader(s_worldData.shaders[LittleShort(in[i].shader)].shader, LIGHTMAP_WHITEIMAGE, qfalse);
+		out[i].origin[2] = LittleShort(in[i].baseZ);
+		ri.Printf(PRINT_DEVELOPER, "R_LoadTerrain: terrain patch %d origin: (%f %f %f)\n", i, out[i].origin[0], out[i].origin[1], out[i].origin[2]);
+		out[i].shader = R_FindShader(s_worldData.shaders[LittleShort(in[i].shader)].shader, LittleShort(in[i].lightmap), qfalse);
+		ri.Printf(PRINT_DEVELOPER, "R_LoadTerrain: internal shader: %d, BSP shader: %s, shader pointer: %d\n", in[i].shader, s_worldData.shaders[LittleShort(in[i].shader)].shader, (long)out[i].shader);
+		for (x = 0; x < 9; x++) {
+			for (y = 0; y < 9; y++)
+				out[i].heightmap[x][y] = in[i].heightmap[x][y] * 2.f;
+		}
+		memset(&out[i].surf, 0, sizeof(out[i].surf));
+		out[i].surf.surfaceType = SF_TERRAIN_PATCH;
+		out[i].surf.patch = out + i;
 	}
-	ri.Printf(PRINT_ALL, "R_LoadTerrain: %d terrain nodes loaded\n", numNodes);
+	ri.Printf(PRINT_DEVELOPER, "R_LoadTerrain: %d terrain patches loaded\n", numPatches);
 
-	inI = (void *)(fileBase + indices->fileofs);
+	// IneQuation: this code is all wrong, disregard it
+	/*inI = (void *)(fileBase + indices->fileofs);
 	if (indices->filelen % sizeof(dterrainIndices_t))
 		ri.Error (ERR_DROP, "LoadMap: funny terrain indices lump size in %s",s_worldData.name);
 	numIndices = indices->filelen / sizeof(dterrainIndices_t);
@@ -1828,7 +1838,7 @@ void R_LoadTerrain(lump_t *ter, lump_t *indices) {
 		for (j = 0; j < 3; j++)
 			outI[i][j] = LittleShort(inI[i][j]);
 	}
-	ri.Printf(PRINT_ALL, "R_LoadTerrain: %d terrain indices loaded\n", numIndices);
+	ri.Printf(PRINT_ALL, "R_LoadTerrain: %d terrain indices loaded\n", numIndices);*/
 }
 
 /*
@@ -1906,9 +1916,9 @@ void RE_LoadWorldMap( const char *name ) {
 	R_LoadSubmodels (&header->lumps[LUMP_MODELS]);
 	R_LoadVisibility( &header->lumps[LUMP_VISIBILITY] );
 	R_LoadEntities( &header->lumps[LUMP_ENTITIES] );
-	R_LoadLightGrid( &header->lumps[LUMP_LIGHTGRIDDATA] );
+	R_LoadLightGrid( &header->lumps[LUMP_LIGHTGRIDOFFSETS] );
 	// IneQuation
-	R_LoadTerrain(&header->lumps[LUMP_TERRAIN], &header->lumps[LUMP_TERRAININDEXES]);
+	R_LoadTerrain(&header->lumps[LUMP_TERRAIN]);
 
 	s_worldData.dataSize = (byte *)ri.Hunk_Alloc(0, h_low) - startMarker;
 

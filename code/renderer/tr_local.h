@@ -532,6 +532,9 @@ typedef enum {
 	SF_ENTITY,				// beams, rails, lightning, etc that can be determined by entity
 	SF_DISPLAY_LIST,
 
+	// IneQuation was here
+	SF_TERRAIN_PATCH,
+
 	SF_NUM_SURFACE_TYPES,
 	SF_MAX = 0x7fffffff			// ensures that sizeof( surfaceType_t ) == sizeof( int )
 } surfaceType_t;
@@ -634,6 +637,15 @@ typedef struct {
 	drawVert_t		*verts;
 } srfTriangles_t;
 
+// IneQuation was here
+typedef struct {
+	surfaceType_t	surfaceType;
+
+	// dynamic lighting information
+	int			dlightBits[SMP_FRAMES];
+
+	struct mterPatch_s	*patch;
+} srfTerrainPatch_t;
 
 extern	void (*rb_surfaceTable[SF_NUM_SURFACE_TYPES])(void *);
 
@@ -691,10 +703,12 @@ typedef struct {
 } bmodel_t;
 
 // IneQuation was here
-typedef struct {
-	vec3_t		origin;
-	shader_t	*shader;
-} mterrainNode_t;
+typedef struct mterPatch_s {
+	vec3_t			origin;
+	shader_t		*shader;
+	byte			heightmap[9][9];
+	srfTerrainPatch_t	surf;
+} mterPatch_t;
 
 typedef struct {
 	char		name[MAX_QPATH];		// ie: maps/tim_dm2.bsp
@@ -740,10 +754,8 @@ typedef struct {
 	char		*entityParsePoint;
 
 	// IneQuation: terrain
-	mterrainNode_t	*terrainNodes;
-	int			numTerrainNodes;
-	dterrainIndices_t	*terrainIndices;
-	int			numTerrainIndices;
+	mterPatch_t	*terrainPatches;
+	int			numTerrainPatches;
 } world_t;
 
 //======================================================================
@@ -1038,6 +1050,7 @@ extern cvar_t	*r_dlightBacks;			// dlight non-facing surfaces for continuity
 extern	cvar_t	*r_norefresh;			// bypasses the ref rendering
 extern	cvar_t	*r_drawentities;		// disable/enable entity rendering
 extern	cvar_t	*r_drawworld;			// disable/enable world rendering
+extern	cvar_t	*r_drawterrain;			// IneQuation: disable/enable terrain rendering
 extern	cvar_t	*r_speeds;				// various levels of information display
 extern  cvar_t	*r_detailTextures;		// enables/disables detail texturing stages
 extern	cvar_t	*r_novis;				// disable/enable usage of PVS
@@ -1354,6 +1367,7 @@ WORLD MAP
 
 void R_AddBrushModelSurfaces( trRefEntity_t *e );
 void R_AddWorldSurfaces( void );
+void R_AddTerrainSurfaces(void);	// IneQuation
 qboolean R_inPVS( const vec3_t p1, const vec3_t p2 );
 
 

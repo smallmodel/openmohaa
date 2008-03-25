@@ -70,6 +70,7 @@ cvar_t	*r_lodscale;
 cvar_t	*r_norefresh;
 cvar_t	*r_drawentities;
 cvar_t	*r_drawworld;
+cvar_t	*r_drawterrain;	// IneQuation
 cvar_t	*r_speeds;
 cvar_t	*r_fullbright;
 cvar_t	*r_novis;
@@ -199,11 +200,11 @@ static void InitOpenGL( void )
 	//		- r_ignorehwgamma
 	//		- r_gamma
 	//
-	
+
 	if ( glConfig.vidWidth == 0 )
 	{
 		GLint		temp;
-		
+
 		GLimp_Init();
 
 		strcpy( renderer_buffer, glConfig.renderer_string );
@@ -214,7 +215,7 @@ static void InitOpenGL( void )
 		glConfig.maxTextureSize = temp;
 
 		// stubbed or broken drivers may have reported 0...
-		if ( glConfig.maxTextureSize <= 0 ) 
+		if ( glConfig.maxTextureSize <= 0 )
 		{
 			glConfig.maxTextureSize = 0;
 		}
@@ -345,10 +346,10 @@ static void R_ModeList_f( void )
 }
 
 
-/* 
-============================================================================== 
- 
-						SCREEN SHOTS 
+/*
+==============================================================================
+
+						SCREEN SHOTS
 
 NOTE TTimo
 some thoughts about the screenshots system:
@@ -361,18 +362,18 @@ we use statics to store a count and start writing the first screenshot/screensho
 (with FS_FileExists / FS_FOpenFileWrite calls)
 FIXME: the statics don't get a reinit between fs_game changes
 
-============================================================================== 
-*/ 
+==============================================================================
+*/
 
-/* 
-================== 
+/*
+==================
 RB_TakeScreenshot
-================== 
-*/  
+==================
+*/
 void RB_TakeScreenshot( int x, int y, int width, int height, char *fileName ) {
 	byte		*buffer;
 	int			i, c, temp;
-		
+
 	buffer = ri.Hunk_AllocateTempMemory(glConfig.vidWidth*glConfig.vidHeight*3+18);
 
 	Com_Memset (buffer, 0, 18);
@@ -383,7 +384,7 @@ void RB_TakeScreenshot( int x, int y, int width, int height, char *fileName ) {
 	buffer[15] = height >> 8;
 	buffer[16] = 24;	// pixel size
 
-	qglReadPixels( x, y, width, height, GL_RGB, GL_UNSIGNED_BYTE, buffer+18 ); 
+	qglReadPixels( x, y, width, height, GL_RGB, GL_UNSIGNED_BYTE, buffer+18 );
 
 	// swap rgb to bgr
 	c = 18 + width * height * 3;
@@ -403,17 +404,17 @@ void RB_TakeScreenshot( int x, int y, int width, int height, char *fileName ) {
 	ri.Hunk_FreeTempMemory( buffer );
 }
 
-/* 
-================== 
+/*
+==================
 RB_TakeScreenshotJPEG
-================== 
-*/  
+==================
+*/
 void RB_TakeScreenshotJPEG( int x, int y, int width, int height, char *fileName ) {
 	byte		*buffer;
 
 	buffer = ri.Hunk_AllocateTempMemory(glConfig.vidWidth*glConfig.vidHeight*4);
 
-	qglReadPixels( x, y, width, height, GL_RGBA, GL_UNSIGNED_BYTE, buffer ); 
+	qglReadPixels( x, y, width, height, GL_RGBA, GL_UNSIGNED_BYTE, buffer );
 
 	// gamma correct
 	if ( ( tr.overbrightBits > 0 ) && glConfig.deviceSupportsGamma ) {
@@ -433,15 +434,15 @@ RB_TakeScreenshotCmd
 */
 const void *RB_TakeScreenshotCmd( const void *data ) {
 	const screenshotCommand_t	*cmd;
-	
+
 	cmd = (const screenshotCommand_t *)data;
-	
+
 	if (cmd->jpeg)
 		RB_TakeScreenshotJPEG( cmd->x, cmd->y, cmd->width, cmd->height, cmd->fileName);
 	else
 		RB_TakeScreenshot( cmd->x, cmd->y, cmd->width, cmd->height, cmd->fileName);
-	
-	return (const void *)(cmd + 1);	
+
+	return (const void *)(cmd + 1);
 }
 
 /*
@@ -468,11 +469,11 @@ void R_TakeScreenshot( int x, int y, int width, int height, char *name, qboolean
 	cmd->jpeg = jpeg;
 }
 
-/* 
-================== 
+/*
+==================
 R_ScreenshotFilename
-================== 
-*/  
+==================
+*/
 void R_ScreenshotFilename( int lastNumber, char *fileName ) {
 	int		a,b,c,d;
 
@@ -493,11 +494,11 @@ void R_ScreenshotFilename( int lastNumber, char *fileName ) {
 		, a, b, c, d );
 }
 
-/* 
-================== 
+/*
+==================
 R_ScreenshotFilename
-================== 
-*/  
+==================
+*/
 void R_ScreenshotFilenameJPEG( int lastNumber, char *fileName ) {
 	int		a,b,c,d;
 
@@ -547,7 +548,7 @@ void R_LevelShot( void ) {
 	buffer[14] = 128;
 	buffer[16] = 24;	// pixel size
 
-	qglReadPixels( 0, 0, glConfig.vidWidth, glConfig.vidHeight, GL_RGB, GL_UNSIGNED_BYTE, source ); 
+	qglReadPixels( 0, 0, glConfig.vidWidth, glConfig.vidHeight, GL_RGB, GL_UNSIGNED_BYTE, source );
 
 	// resample from source
 	xScale = glConfig.vidWidth / 512.0f;
@@ -583,8 +584,8 @@ void R_LevelShot( void ) {
 	ri.Printf( PRINT_ALL, "Wrote %s\n", checkname );
 }
 
-/* 
-================== 
+/*
+==================
 R_ScreenShot_f
 
 screenshot
@@ -593,8 +594,8 @@ screenshot [levelshot]
 screenshot [filename]
 
 Doesn't print the pacifier message if there is a second arg
-================== 
-*/  
+==================
+*/
 void R_ScreenShot_f (void) {
 	char	checkname[MAX_OSPATH];
 	static	int	lastNumber = -1;
@@ -634,7 +635,7 @@ void R_ScreenShot_f (void) {
 		}
 
 		if ( lastNumber >= 9999 ) {
-			ri.Printf (PRINT_ALL, "ScreenShot: Couldn't create a file\n"); 
+			ri.Printf (PRINT_ALL, "ScreenShot: Couldn't create a file\n");
 			return;
  		}
 
@@ -646,7 +647,7 @@ void R_ScreenShot_f (void) {
 	if ( !silent ) {
 		ri.Printf (PRINT_ALL, "Wrote %s\n", checkname);
 	}
-} 
+}
 
 void R_ScreenShotJPEG_f (void) {
 	char		checkname[MAX_OSPATH];
@@ -687,7 +688,7 @@ void R_ScreenShotJPEG_f (void) {
 		}
 
 		if ( lastNumber == 10000 ) {
-			ri.Printf (PRINT_ALL, "ScreenShot: Couldn't create a file\n"); 
+			ri.Printf (PRINT_ALL, "ScreenShot: Couldn't create a file\n");
 			return;
  		}
 
@@ -699,7 +700,7 @@ void R_ScreenShotJPEG_f (void) {
 	if ( !silent ) {
 		ri.Printf (PRINT_ALL, "Wrote %s\n", checkname);
 	}
-} 
+}
 
 //============================================================================
 
@@ -713,9 +714,9 @@ const void *RB_TakeVideoFrameCmd( const void *data )
 	const videoFrameCommand_t	*cmd;
 	int												frameSize;
 	int												i;
-	
+
 	cmd = (const videoFrameCommand_t *)data;
-	
+
 	qglReadPixels( 0, 0, cmd->width, cmd->height, GL_RGBA,
 			GL_UNSIGNED_BYTE, cmd->captureBuffer );
 
@@ -743,7 +744,7 @@ const void *RB_TakeVideoFrameCmd( const void *data )
 		ri.CL_WriteAVIVideoFrame( cmd->encodeBuffer, frameSize * 3 );
 	}
 
-	return (const void *)(cmd + 1);	
+	return (const void *)(cmd + 1);
 }
 
 //============================================================================
@@ -799,7 +800,7 @@ void GL_SetDefaultState( void )
 GfxInfo_f
 ================
 */
-void GfxInfo_f( void ) 
+void GfxInfo_f( void )
 {
 	const char *enablestrings[] =
 	{
@@ -894,7 +895,7 @@ void GfxInfo_f( void )
 R_Register
 ===============
 */
-void R_Register( void ) 
+void R_Register( void )
 {
 	//
 	// latched and archived variables
@@ -985,6 +986,7 @@ void R_Register( void )
 
 	r_nocurves = ri.Cvar_Get ("r_nocurves", "0", CVAR_CHEAT );
 	r_drawworld = ri.Cvar_Get ("r_drawworld", "1", CVAR_CHEAT );
+	r_drawterrain = ri.Cvar_Get("r_drawterrain", "1", CVAR_CHEAT);	// IneQuation
 	r_lightmap = ri.Cvar_Get ("r_lightmap", "0", 0 );
 	r_portalOnly = ri.Cvar_Get ("r_portalOnly", "0", CVAR_CHEAT );
 
@@ -1039,7 +1041,7 @@ void R_Register( void )
 R_Init
 ===============
 */
-void R_Init( void ) {	
+void R_Init( void ) {
 	int	err;
 	int i;
 	byte *ptr;
@@ -1143,7 +1145,7 @@ void R_Init( void ) {
 RE_Shutdown
 ===============
 */
-void RE_Shutdown( qboolean destroyWindow ) {	
+void RE_Shutdown( qboolean destroyWindow ) {
 
 	ri.Printf( PRINT_ALL, "RE_Shutdown( %i )\n", destroyWindow );
 
@@ -1204,7 +1206,7 @@ refexport_t *GetRefAPI ( int apiVersion, refimport_t *rimp ) {
 	Com_Memset( &re, 0, sizeof( re ) );
 
 	if ( apiVersion != REF_API_VERSION ) {
-		ri.Printf(PRINT_ALL, "Mismatched REF_API_VERSION: expected %i, got %i\n", 
+		ri.Printf(PRINT_ALL, "Mismatched REF_API_VERSION: expected %i, got %i\n",
 			REF_API_VERSION, apiVersion );
 		return NULL;
 	}

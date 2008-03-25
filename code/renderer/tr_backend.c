@@ -176,7 +176,6 @@ void GL_TexEnv( int env )
 
 	switch ( env )
 	{
-	case 0:	// IneQuation: fall back to modulate if 0 is passed
 	case GL_MODULATE:
 		qglTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );
 		break;

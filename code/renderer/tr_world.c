@@ -64,7 +64,7 @@ static qboolean	R_CullGrid( srfGridMesh_t *cv ) {
 		sphereCull = R_CullPointAndRadius( cv->localOrigin, cv->meshRadius );
 	}
 	boxCull = CULL_OUT;
-	
+
 	// check for trivial reject
 	if ( sphereCull == CULL_OUT )
 	{
@@ -78,7 +78,7 @@ static qboolean	R_CullGrid( srfGridMesh_t *cv ) {
 
 		boxCull = R_CullLocalBox( cv->meshBounds );
 
-		if ( boxCull == CULL_OUT ) 
+		if ( boxCull == CULL_OUT )
 		{
 			tr.pc.c_box_cull_patch_out++;
 			return qtrue;
@@ -145,7 +145,7 @@ static qboolean	R_CullSurface( surfaceType_t *surface, shader_t *shader ) {
 
 	// don't cull exactly on the plane, because there are levels of rounding
 	// through the BSP, ICD, and hardware that may cause pixel gaps if an
-	// epsilon isn't allowed here 
+	// epsilon isn't allowed here
 	if ( shader->cullType == CT_FRONT_SIDED ) {
 		if ( d < sface->plane.dist - 8 ) {
 			return qtrue;
@@ -330,7 +330,7 @@ void R_AddBrushModelSurfaces ( trRefEntity_t *ent ) {
 	if ( clip == CULL_OUT ) {
 		return;
 	}
-	
+
 	R_DlightBmodel( bmodel );
 
 	for ( i = 0 ; i < bmodel->numSurfaces ; i++ ) {
@@ -431,7 +431,7 @@ static void R_RecursiveWorldNode( mnode_t *node, int planeBits, int dlightBits )
 				if ( dlightBits & ( 1 << i ) ) {
 					dl = &tr.refdef.dlights[i];
 					dist = DotProduct( dl->origin, node->plane->normal ) - node->plane->dist;
-					
+
 					if ( dist > -dl->radius ) {
 						newDlights[0] |= ( 1 << i );
 					}
@@ -502,7 +502,7 @@ static mnode_t *R_PointInLeaf( const vec3_t p ) {
 	mnode_t		*node;
 	float		d;
 	cplane_t	*plane;
-	
+
 	if ( !tr.world ) {
 		ri.Error (ERR_DROP, "R_PointInLeaf: bad model");
 	}
@@ -520,7 +520,7 @@ static mnode_t *R_PointInLeaf( const vec3_t p ) {
 			node = node->children[1];
 		}
 	}
-	
+
 	return node;
 }
 
@@ -583,8 +583,8 @@ static void R_MarkLeaves (void) {
 	// if the cluster is the same and the area visibility matrix
 	// hasn't changed, we don't need to mark everything again
 
-	// if r_showcluster was just turned on, remark everything 
-	if ( tr.viewCluster == cluster && !tr.refdef.areamaskModified 
+	// if r_showcluster was just turned on, remark everything
+	if ( tr.viewCluster == cluster && !tr.refdef.areamaskModified
 		&& !r_showcluster->modified ) {
 		return;
 	}
@@ -609,7 +609,7 @@ static void R_MarkLeaves (void) {
 	}
 
 	vis = R_ClusterPVS (tr.viewCluster);
-	
+
 	for (i=0,leaf=tr.world->nodes ; i<tr.world->numnodes ; i++, leaf++) {
 		cluster = leaf->cluster;
 		if ( cluster < 0 || cluster >= tr.world->numClusters ) {
@@ -635,7 +635,6 @@ static void R_MarkLeaves (void) {
 		} while (parent);
 	}
 }
-
 
 /*
 =============
@@ -665,4 +664,47 @@ void R_AddWorldSurfaces (void) {
 		tr.refdef.num_dlights = 32 ;
 	}
 	R_RecursiveWorldNode( tr.world->nodes, 15, ( 1 << tr.refdef.num_dlights ) - 1 );
+}
+
+/*
+=============
+R_AddTerrainSurfaces
+=============
+IneQuation was here
+*/
+void R_AddTerrainSurfaces (void) {
+	int					i, dlightBits;
+	srfTerrainPatch_t	*surf;
+
+	if (!r_drawterrain->integer || tr.refdef.rdflags & RDF_NOWORLDMODEL)
+		return;
+
+	for (i = 0; i < tr.world->numTerrainPatches; i++) {
+		surf = &tr.world->terrainPatches[i].surf;
+
+		// TODO: frustum culling
+
+		// determine which dlights are needed
+		dlightBits = 0;
+		if (tr.refdef.num_dlights) {
+			int			j;
+			dlight_t	*dl;
+			for (j = 0; j < tr.refdef.num_dlights; j++) {
+				if (((1 << tr.refdef.num_dlights) - 1) & (1 << j)) {
+					dl = &tr.refdef.dlights[j];
+					if ((dl->origin[2] - surf->patch->origin[2]) < dl->radius)
+						dlightBits |= (1 << j);
+				}
+			}
+		}
+
+		// TODO
+		//R_CullSurface((surfaceType_t *)surf, surf->patch->shader);
+
+		// dlighting
+		surf->dlightBits[tr.smpFrame] = dlightBits;
+		dlightBits = (dlightBits != 0);
+
+		R_AddDrawSurf((void *)surf, surf->patch->shader, 0, dlightBits);
+	}
 }

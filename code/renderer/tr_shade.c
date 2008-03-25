@@ -373,7 +373,7 @@ static void DrawMultitextured( shaderCommands_t *input, int stage ) {
 	qglEnableClientState( GL_TEXTURE_COORD_ARRAY );
 
 	if ( r_lightmap->integer ) {
-		GL_TexEnv( GL_REPLACE );	// IneQuation was here
+		GL_TexEnv( GL_REPLACE );
 	} else {
 		GL_TexEnv( tess.shader->multitextureEnv );
 	}
