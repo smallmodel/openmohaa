@@ -181,7 +181,7 @@ void CMod_LoadNodes( lump_t *l ) {
 	int			child;
 	cNode_t		*out;
 	int			i, j, count;
-	
+
 	in = (void *)(cmod_base + l->fileofs);
 	if (l->filelen % sizeof(*in))
 		Com_Error (ERR_DROP, "MOD_LoadBmodel: funny lump size");
@@ -272,7 +272,7 @@ void CMod_LoadLeafs (lump_t *l)
 	cLeaf_t		*out;
 	dleaf_t 	*in;
 	int			count;
-	
+
 	in = (void *)(cmod_base + l->fileofs);
 	if (l->filelen % sizeof(*in))
 		Com_Error (ERR_DROP, "MOD_LoadBmodel: funny lump size");
@@ -284,7 +284,7 @@ void CMod_LoadLeafs (lump_t *l)
 	cm.leafs = Hunk_Alloc( ( BOX_LEAFS + count ) * sizeof( *cm.leafs ), h_high );
 	cm.numLeafs = count;
 
-	out = cm.leafs;	
+	out = cm.leafs;
 	for ( i=0 ; i<count ; i++, in++, out++)
 	{
 		out->cluster = LittleLong (in->cluster);
@@ -316,7 +316,7 @@ void CMod_LoadPlanes (lump_t *l)
 	dplane_t 	*in;
 	int			count;
 	int			bits;
-	
+
 	in = (void *)(cmod_base + l->fileofs);
 	if (l->filelen % sizeof(*in))
 		Com_Error (ERR_DROP, "MOD_LoadBmodel: funny lump size");
@@ -327,7 +327,7 @@ void CMod_LoadPlanes (lump_t *l)
 	cm.planes = Hunk_Alloc( ( BOX_PLANES + count ) * sizeof( *cm.planes ), h_high );
 	cm.numPlanes = count;
 
-	out = cm.planes;	
+	out = cm.planes;
 
 	for ( i=0 ; i<count ; i++, in++, out++)
 	{
@@ -356,7 +356,7 @@ void CMod_LoadLeafBrushes (lump_t *l)
 	int			*out;
 	int		 	*in;
 	int			count;
-	
+
 	in = (void *)(cmod_base + l->fileofs);
 	if (l->filelen % sizeof(*in))
 		Com_Error (ERR_DROP, "MOD_LoadBmodel: funny lump size");
@@ -383,7 +383,7 @@ void CMod_LoadLeafSurfaces( lump_t *l )
 	int			*out;
 	int		 	*in;
 	int			count;
-	
+
 	in = (void *)(cmod_base + l->fileofs);
 	if (l->filelen % sizeof(*in))
 		Com_Error (ERR_DROP, "MOD_LoadBmodel: funny lump size");
@@ -421,7 +421,7 @@ void CMod_LoadBrushSides (lump_t *l)
 	cm.brushsides = Hunk_Alloc( ( BOX_SIDES + count ) * sizeof( *cm.brushsides ), h_high );
 	cm.numBrushSides = count;
 
-	out = cm.brushsides;	
+	out = cm.brushsides;
 
 	for ( i=0 ; i<count ; i++, in++, out++) {
 		num = LittleLong( in->planeNum );
@@ -536,6 +536,65 @@ void CMod_LoadPatches( lump_t *surfs, lump_t *verts ) {
 	}
 }
 
+/*
+=================
+CMod_LoadTerrain
+=================
+*/
+void CMod_LoadTerrain(lump_t *ter) {
+	/*dterPatch_t	*in;
+	int			count;
+	int			i, j;
+	int			c;
+	cterPatch_t	*patch;
+	vec3_t		points[MAX_PATCH_VERTS];
+	int			width, height;
+	int			shaderNum;
+
+	in = (void *)(cmod_base + surfs->fileofs);
+	if (surfs->filelen % sizeof(*in))
+		Com_Error (ERR_DROP, "MOD_LoadBmodel: funny lump size");
+	cm.numSurfaces = count = surfs->filelen / sizeof(*in);
+	cm.surfaces = Hunk_Alloc( cm.numSurfaces * sizeof( cm.surfaces[0] ), h_high );
+
+	dv = (void *)(cmod_base + verts->fileofs);
+	if (verts->filelen % sizeof(*dv))
+		Com_Error (ERR_DROP, "MOD_LoadBmodel: funny lump size");
+
+	// scan through all the surfaces, but only load patches,
+	// not planar faces
+	for ( i = 0 ; i < count ; i++, in++ ) {
+		if ( LittleLong( in->surfaceType ) != MST_PATCH ) {
+			continue;		// ignore other surfaces
+		}
+		// FIXME: check for non-colliding patches
+
+		cm.surfaces[ i ] = patch = Hunk_Alloc( sizeof( *patch ), h_high );
+
+		// load the full drawverts onto the stack
+		width = LittleLong( in->patchWidth );
+		height = LittleLong( in->patchHeight );
+		c = width * height;
+		if ( c > MAX_PATCH_VERTS ) {
+			Com_Error( ERR_DROP, "ParseMesh: MAX_PATCH_VERTS" );
+		}
+
+		dv_p = dv + LittleLong( in->firstVert );
+		for ( j = 0 ; j < c ; j++, dv_p++ ) {
+			points[j][0] = LittleFloat( dv_p->xyz[0] );
+			points[j][1] = LittleFloat( dv_p->xyz[1] );
+			points[j][2] = LittleFloat( dv_p->xyz[2] );
+		}
+
+		shaderNum = LittleLong( in->shaderNum );
+		patch->contents = cm.shaders[shaderNum].contentFlags;
+		patch->surfaceFlags = cm.shaders[shaderNum].surfaceFlags;
+
+		// create the internal facet structure
+		patch->pc = CM_GeneratePatchCollide( width, height, points );
+	}*/
+}
+
 //==================================================================
 
 unsigned CM_LumpChecksum(lump_t *lump) {
@@ -643,6 +702,8 @@ void CM_LoadMap( const char *name, qboolean clientload, int *checksum ) {
 	CMod_LoadEntityString (&header.lumps[LUMP_ENTITIES]);
 	CMod_LoadVisibility( &header.lumps[LUMP_VISIBILITY] );
 	CMod_LoadPatches( &header.lumps[LUMP_SURFACES], &header.lumps[LUMP_DRAWVERTS] );
+	// IneQuation was here
+	CMod_LoadTerrain(&header.lumps[LUMP_TERRAIN]);
 
 	// we are NOT freeing the file, because it is cached for the ref
 	FS_FreeFile (buf);
@@ -683,7 +744,7 @@ cmodel_t	*CM_ClipHandleToModel( clipHandle_t handle ) {
 		return &box_model;
 	}
 	if ( handle < MAX_SUBMODELS ) {
-		Com_Error( ERR_DROP, "CM_ClipHandleToModel: bad handle %i < %i < %i", 
+		Com_Error( ERR_DROP, "CM_ClipHandleToModel: bad handle %i < %i < %i",
 			cm.numSubModels, handle, MAX_SUBMODELS );
 	}
 	Com_Error( ERR_DROP, "CM_ClipHandleToModel: bad handle %i", handle + MAX_SUBMODELS );
@@ -783,7 +844,7 @@ void CM_InitBoxHull (void)
 		p->normal[i>>1] = -1;
 
 		SetPlaneSignbits( p );
-	}	
+	}
 }
 
 /*

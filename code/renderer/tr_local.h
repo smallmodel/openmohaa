@@ -642,7 +642,9 @@ typedef struct {
 	surfaceType_t	surfaceType;
 
 	// dynamic lighting information
-	int			dlightBits[SMP_FRAMES];
+	int				dlightBits[SMP_FRAMES];
+
+	int				lod;
 
 	struct mterPatch_s	*patch;
 } srfTerrainPatch_t;
@@ -707,6 +709,7 @@ typedef struct mterPatch_s {
 	vec3_t			origin;
 	shader_t		*shader;
 	byte			heightmap[9][9];
+	float			texCoords[8];
 	srfTerrainPatch_t	surf;
 } mterPatch_t;
 
@@ -1128,6 +1131,10 @@ extern	cvar_t	*r_printShaders;
 extern	cvar_t	*r_saveFontData;
 
 extern	cvar_t	*r_GLlibCoolDownMsec;
+
+extern	cvar_t	*ter_maxlod;		// IneQuation: control terrain level of detail; valid range: 3-6, inclusive
+extern	cvar_t	*ter_lodgapbase;	// for testing purposes
+extern	cvar_t	*ter_constlod;		// overrides the above, for testing; valid range: 0-3, inclusive
 
 //====================================================================
 

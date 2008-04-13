@@ -1257,8 +1257,8 @@ static void PM_CheckDuck (void)
 			VectorSet( pm->maxs, 42, 42, 42 );
 		}
 		else {
-			VectorSet( pm->mins, -15, -15, MINS_Z );
-			VectorSet( pm->maxs, 15, 15, 16 );
+			VectorSet( pm->mins, -16, -16, MINS_Z );
+			VectorSet( pm->maxs, 16, 16, 62 );	// FIXME: IneQuation: not sure if it really is 62 in MoHAA, but since stand viewheight is 82 and stand bbox max[2] is 96, 62 is my best guess
 		}
 		pm->ps->pm_flags |= PMF_DUCKED;
 		pm->ps->viewheight = CROUCH_VIEWHEIGHT;
@@ -1266,17 +1266,17 @@ static void PM_CheckDuck (void)
 	}
 	pm->ps->pm_flags &= ~PMF_INVULEXPAND;
 
-	pm->mins[0] = -15;
-	pm->mins[1] = -15;
+	pm->mins[0] = -16;
+	pm->mins[1] = -16;
 
-	pm->maxs[0] = 15;
-	pm->maxs[1] = 15;
+	pm->maxs[0] = 16;
+	pm->maxs[1] = 16;
 
 	pm->mins[2] = MINS_Z;
 
 	if (pm->ps->pm_type == PM_DEAD)
 	{
-		pm->maxs[2] = -8;
+		pm->maxs[2] = 16;
 		pm->ps->viewheight = DEAD_VIEWHEIGHT;
 		return;
 	}
@@ -1290,7 +1290,7 @@ static void PM_CheckDuck (void)
 		if (pm->ps->pm_flags & PMF_DUCKED)
 		{
 			// try to stand up
-			pm->maxs[2] = 32;
+			pm->maxs[2] = 96;
 			pm->trace (&trace, pm->ps->origin, pm->mins, pm->maxs, pm->ps->origin, pm->ps->clientNum, pm->tracemask );
 			if (!trace.allsolid)
 				pm->ps->pm_flags &= ~PMF_DUCKED;
@@ -1299,12 +1299,12 @@ static void PM_CheckDuck (void)
 
 	if (pm->ps->pm_flags & PMF_DUCKED)
 	{
-		pm->maxs[2] = 16;
+		pm->maxs[2] = 62;
 		pm->ps->viewheight = CROUCH_VIEWHEIGHT;
 	}
 	else
 	{
-		pm->maxs[2] = 32;
+		pm->maxs[2] = 96;
 		pm->ps->viewheight = DEFAULT_VIEWHEIGHT;
 	}
 }

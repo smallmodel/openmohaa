@@ -94,6 +94,17 @@ typedef struct {
 	int			floodvalid;
 } cArea_t;
 
+// IneQuation
+/*typedef struct {
+	int			checkcount;				// to avoid repeated testings
+	int			surfaceFlags;
+	int			contents;
+
+	int			shaderNum;
+
+	struct terCollide_s	*tc;
+} cterPatch_t;*/
+
 typedef struct {
 	char		name[MAX_QPATH];
 

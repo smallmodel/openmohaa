@@ -154,6 +154,11 @@ int		max_polys;
 cvar_t	*r_maxpolyverts;
 int		max_polyverts;
 
+// IneQuation: terrain LOD control
+cvar_t	*ter_maxlod;		// this is a little hack to allow us to feed on MoHAA's terrain settings, has a diff. meaning than the one in MoHAA
+cvar_t	*ter_lodgapbase;	// for testing purposes
+cvar_t	*ter_constlod;		// overrides all the above, for testing purposes; valid range: 0-3, inclusive
+
 static void AssertCvarRange( cvar_t *cv, float minVal, float maxVal, qboolean shouldBeIntegral )
 {
 	if ( shouldBeIntegral )
@@ -1023,6 +1028,10 @@ void R_Register( void )
 
 	r_maxpolys = ri.Cvar_Get( "r_maxpolys", va("%d", MAX_POLYS), 0);
 	r_maxpolyverts = ri.Cvar_Get( "r_maxpolyverts", va("%d", MAX_POLYVERTS), 0);
+
+	ter_maxlod = ri.Cvar_Get("ter_maxlod", "6", CVAR_ARCHIVE);	// IneQuation
+	ter_lodgapbase = ri.Cvar_Get("ter_lodgapbase", "2048", CVAR_ARCHIVE);	// IneQuation
+	ter_constlod = ri.Cvar_Get("ter_constlod", "-1", CVAR_ARCHIVE);	// IneQuation
 
 	// make sure all the commands added here are also
 	// removed in R_Shutdown

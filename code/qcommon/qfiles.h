@@ -634,6 +634,7 @@ typedef struct {
 
 #define	LIGHTMAP_WIDTH		128
 #define	LIGHTMAP_HEIGHT		128
+#define	LIGHTMAP_SIZE		128	// IneQuation: moved it here, MUST MATCH THE FORMER TWO
 
 #define MAX_WORLD_COORD		( 128*1024 )
 #define MIN_WORLD_COORD		( -128*1024 )
@@ -806,10 +807,10 @@ typedef struct {
 } dsurface_t;
 
 // IneQuation was here
-typedef struct dterrainNode_s {
+typedef struct dterPatch_s {
 	byte			flags;
 	byte			scale;
-	short			dummy1;
+	byte			lmCoords[2];
 	float			texCoords[8];
 	char			x;
 	char			y;

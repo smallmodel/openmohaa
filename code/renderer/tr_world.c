@@ -672,9 +672,13 @@ R_AddTerrainSurfaces
 =============
 IneQuation was here
 */
+#define TER_PATCH_RADIUS	362.03867196751233249323	// 256.f * SQRT_2
+#define TER_LOD_GAP			(ter_lodgapbase->value + ter_lodgapbase->value * f)
 void R_AddTerrainSurfaces (void) {
-	int					i, dlightBits;
+	int					i, j, dlightBits;
 	srfTerrainPatch_t	*surf;
+	vec3_t				centre;
+	float				f;
 
 	if (!r_drawterrain->integer || tr.refdef.rdflags & RDF_NOWORLDMODEL)
 		return;
@@ -682,7 +686,38 @@ void R_AddTerrainSurfaces (void) {
 	for (i = 0; i < tr.world->numTerrainPatches; i++) {
 		surf = &tr.world->terrainPatches[i].surf;
 
-		// TODO: frustum culling
+		// frustum culling: cull if a sphere that encloses the entire terrain patch is outside the frustum planes
+		centre[0] = surf->patch->origin[0] + 256;	// because the origin of a patch is actually in its bottom-left corner, not in its centre
+		centre[1] = surf->patch->origin[1] + 256;
+		centre[2] = surf->patch->origin[2] + 256;	// highest elevation possible is 512 units
+		for (j = 0; j < 4; j++) {
+			if (DotProduct(centre, tr.viewParms.frustum[j].normal) - tr.viewParms.frustum[j].dist + TER_PATCH_RADIUS < 0)
+				break;
+		}
+		if (j < 4)
+			continue;	// not in our view, don't draw
+
+		// LODing
+		if (ter_constlod->integer < 0) {
+			if (ter_maxlod->value < 3.f)
+				ri.Cvar_Set(ter_maxlod->name, "3");
+			else if (ter_maxlod->value > 6.f)
+				ri.Cvar_Set(ter_maxlod->name, "6");
+			f = (ter_maxlod->value - 3.f) / 3.f;
+			VectorSubtract(centre, tr.viewParms.or.origin, centre);
+			if (VectorLengthSquared(centre) > TER_LOD_GAP * TER_LOD_GAP * 9)
+				surf->lod = 3;
+			else if (VectorLengthSquared(centre) > TER_LOD_GAP * TER_LOD_GAP * 4)
+				surf->lod = 2;
+			else if (VectorLengthSquared(centre) > TER_LOD_GAP * TER_LOD_GAP)
+				surf->lod = 1;
+			else
+				surf->lod = 0;
+		} else {
+			if (ter_constlod->integer > 3)
+				ri.Cvar_Set(ter_constlod->name, "3");
+			surf->lod = ter_constlod->integer;
+		}
 
 		// determine which dlights are needed
 		dlightBits = 0;

@@ -131,7 +131,6 @@ R_LoadLightmaps
 
 ===============
 */
-#define	LIGHTMAP_SIZE	128
 static	void R_LoadLightmaps( lump_t *l ) {
 	byte		*buf, *buf_p;
 	int			len;
@@ -1798,7 +1797,7 @@ void R_LoadTerrain(lump_t *ter) {
 
 	in = (void *)(fileBase + ter->fileofs);
 	if (ter->filelen % sizeof(dterPatch_t))
-		ri.Error (ERR_DROP, "LoadMap: funny terrain lump size in %s (%d %% %d)",s_worldData.name, ter->filelen, sizeof(dterPatch_t));
+		ri.Error (ERR_DROP, "LoadMap: funny terrain lump size in %s (%d %% %d)", s_worldData.name, ter->filelen, sizeof(dterPatch_t));
 	numPatches = ter->filelen / sizeof(dterPatch_t);
 
 	out = ri.Hunk_Alloc(numPatches * sizeof(*out), h_low);
@@ -1811,12 +1810,19 @@ void R_LoadTerrain(lump_t *ter) {
 		out[i].origin[1] = in[i].y * 64.f;
 		out[i].origin[2] = LittleShort(in[i].baseZ);
 		ri.Printf(PRINT_DEVELOPER, "R_LoadTerrain: terrain patch %d origin: (%f %f %f)\n", i, out[i].origin[0], out[i].origin[1], out[i].origin[2]);
-		out[i].shader = R_FindShader(s_worldData.shaders[LittleShort(in[i].shader)].shader, LittleShort(in[i].lightmap), qfalse);
+		out[i].shader = R_FindShader(s_worldData.shaders[LittleShort(in[i].shader)].shader, LittleShort(in[i].lightmap), qfalse);	// FIXME: restore proper lightmap
 		ri.Printf(PRINT_DEVELOPER, "R_LoadTerrain: internal shader: %d, BSP shader: %s, shader pointer: %d\n", in[i].shader, s_worldData.shaders[LittleShort(in[i].shader)].shader, (long)out[i].shader);
 		for (x = 0; x < 9; x++) {
 			for (y = 0; y < 9; y++)
 				out[i].heightmap[x][y] = in[i].heightmap[x][y] * 2.f;
 		}
+		for (x = 0; x < 8; x += 2) // fill the even indices (texture coords) only, odd ones (lightmap coords) are filled below
+			out[i].texCoords[x] = LittleFloat(in[i].texCoords[x]);
+		// the person who invented the following should be hanged!
+		out[i].texCoords[1] = ((float)in[i].lmCoords[0] + 0.5) / LIGHTMAP_SIZE;
+		out[i].texCoords[3] = ((float)in[i].lmCoords[1] + 0.5) / LIGHTMAP_SIZE;
+		out[i].texCoords[5] = ((float)in[i].lmCoords[0] + 16.5) / LIGHTMAP_SIZE;
+		out[i].texCoords[7] = ((float)in[i].lmCoords[1] + 16.5) / LIGHTMAP_SIZE;
 		memset(&out[i].surf, 0, sizeof(out[i].surf));
 		out[i].surf.surfaceType = SF_TERRAIN_PATCH;
 		out[i].surf.patch = out + i;

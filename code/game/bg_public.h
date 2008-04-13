@@ -46,10 +46,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #define	VOTE_TIME			30000	// 30 seconds before vote times out
 
-#define	MINS_Z				-24
-#define	DEFAULT_VIEWHEIGHT	58//26	// IneQuation: so that the viewheight is the same as in MoHAA
-#define CROUCH_VIEWHEIGHT	24//12	// same as above
-#define	DEAD_VIEWHEIGHT		-16
+#define	MINS_Z				0		// IneQuation: bounding box and viewheights to match MoHAA
+#define	DEFAULT_VIEWHEIGHT	82
+#define CROUCH_VIEWHEIGHT	48
+#define	DEAD_VIEWHEIGHT		8
 
 //
 // config strings are a general means of communicating variable length strings

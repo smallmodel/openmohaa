@@ -1230,30 +1230,106 @@ void RB_SurfaceSkip( void *surf ) {
 }
 
 /*
-==============
-RB_SurfaceFace
-==============
+======================
+RB_SurfaceTerrainPatch
+======================
 */
+#define TERRAIN_LM_LENGTH		(16.f / LIGHTMAP_SIZE)
 void RB_SurfaceTerrainPatch(srfTerrainPatch_t *surf) {
 	int			x, y;
 	vec3_t		v;
 	int			ndx, Wombat, Hippy;
 	int			dlightBits;
+	short		incr, verts, spacing, quads;
+	float		f, distU, distV;
 
-	// TODO: IneQuation: optimalization
-	//RB_CHECKOVERFLOW(surf->numPoints, surf->numIndices);
+#if 0	// stub code left here just in case
+	// screw that, let's do simple quad rendering to debug positioning and texture coordinates
+	Wombat = tess.numIndexes;
+	tess.numIndexes += 6;
+	Hippy = tess.numVertexes;
+	tess.numVertexes += 4;
+
+	// vertices
+	ndx = Hippy;
+	if (tess.shader->needsNormal) {
+		VectorSet(tess.normal[ndx], 0.f, 0.f, 1.f);	// placeholder horizontal normal
+		VectorSet(tess.normal[ndx + 1], 0.f, 0.f, 1.f);	// placeholder horizontal normal
+		VectorSet(tess.normal[ndx + 2], 0.f, 0.f, 1.f);	// placeholder horizontal normal
+		VectorSet(tess.normal[ndx + 3], 0.f, 0.f, 1.f);	// placeholder horizontal normal
+	}
+	VectorCopy(surf->patch->origin, v);
+	v[2] += surf->patch->heightmap[0][0];
+	VectorCopy(v, tess.xyz[ndx]);
+	v[0] += 512.f;
+	v[2] = surf->patch->origin[2] + surf->patch->heightmap[0][8];
+	VectorCopy(v, tess.xyz[ndx + 1]);
+	v[1] += 512.f;
+	v[2] = surf->patch->origin[2] + surf->patch->heightmap[8][8];
+	VectorCopy(v, tess.xyz[ndx + 2]);
+	v[0] = surf->patch->origin[0];
+	//v[1] = 512.f;
+	v[2] = surf->patch->origin[2] + surf->patch->heightmap[8][0];
+	VectorCopy(v, tess.xyz[ndx + 3]);
+
+	tess.texCoords[ndx][0][0] = surf->patch->texCoords[0];
+	tess.texCoords[ndx][0][1] = surf->patch->texCoords[6];
+	tess.texCoords[ndx][1][0] = surf->patch->texCoords[1];
+	tess.texCoords[ndx][1][1] = surf->patch->texCoords[3];
+
+	tess.texCoords[ndx + 1][0][0] = surf->patch->texCoords[4];
+	tess.texCoords[ndx + 1][0][1] = surf->patch->texCoords[6];
+	tess.texCoords[ndx + 1][1][0] = surf->patch->texCoords[5];
+	tess.texCoords[ndx + 1][1][1] = surf->patch->texCoords[3];
+
+	tess.texCoords[ndx + 2][0][0] = surf->patch->texCoords[4];
+	tess.texCoords[ndx + 2][0][1] = surf->patch->texCoords[2];
+	tess.texCoords[ndx + 2][1][0] = surf->patch->texCoords[5];
+	tess.texCoords[ndx + 2][1][1] = surf->patch->texCoords[7];
+
+	tess.texCoords[ndx + 3][0][0] = surf->patch->texCoords[0];
+	tess.texCoords[ndx + 3][0][1] = surf->patch->texCoords[2];
+	tess.texCoords[ndx + 3][1][0] = surf->patch->texCoords[1];
+	tess.texCoords[ndx + 3][1][1] = surf->patch->texCoords[7];
+
+	// triangles
+	ndx = Wombat;
+	tess.indexes[ndx + 0] = Hippy + 0;
+	tess.indexes[ndx + 1] = Hippy + 2;
+	tess.indexes[ndx + 2] = Hippy + 1;
+
+	tess.indexes[ndx + 3] = Hippy + 0;
+	tess.indexes[ndx + 4] = Hippy + 3;
+	tess.indexes[ndx + 5] = Hippy + 2;
+#else	// the actual version
+	// cap the lod level
+	if (surf->lod > 3)
+		surf->lod = 3;
+	incr = 1 << surf->lod;
+	verts = (short)ceilf(9.f / incr);
+	spacing = 64 * incr;
+	quads = surf->lod == 0 ? 8 :
+		(surf->lod == 1 ? 4 :
+		(surf->lod == 2 ? 2 :
+		1
+		));
+
+	RB_CHECKOVERFLOW(verts * verts, quads * quads * 2);
 
 	dlightBits = surf->dlightBits[backEnd.smpFrame];
 	tess.dlightBits |= dlightBits;
 
 	Wombat = tess.numIndexes;
-	tess.numIndexes += 128;	// 8 * 8 squares * 2 triangles each
+	tess.numIndexes += quads * quads * 6;
 	Hippy = tess.numVertexes;
-	tess.numVertexes += 81;	// 9 * 9
+	tess.numVertexes += verts * verts;
+
+	distU = surf->patch->texCoords[4] - surf->patch->texCoords[0];
+	distV = surf->patch->texCoords[2] - surf->patch->texCoords[6];
 
 	// vertices
-	for (ndx = Hippy, x = 0; x < 9; x++) {
-		for (y = 0; y < 9; y++, ndx++) {
+	for (ndx = Hippy, y = 0; y < 9; y += incr) {
+		for (x = 0; x < 9; x += incr, ndx++) {
 			if (tess.shader->needsNormal)
 				// TODO
 				VectorSet(tess.normal[ndx], 0.f, 0.f, 1.f);	// placeholder horizontal normal
@@ -1262,38 +1338,65 @@ void RB_SurfaceTerrainPatch(srfTerrainPatch_t *surf) {
 			v[1] += y * 64;
 			v[2] += surf->patch->heightmap[y][x];
 			VectorCopy(v, tess.xyz[ndx]);
-			// TODO: fix the texture coords
-			tess.texCoords[ndx][0][0] = 1;
-			tess.texCoords[ndx][0][1] = 1;
-			tess.texCoords[ndx][1][0] = 0;
-			tess.texCoords[ndx][1][1] = 0;
+
+			f = x / 8.f;
+			tess.texCoords[ndx][0][0] = surf->patch->texCoords[0] + f * distU;
+			tess.texCoords[ndx][1][0] = surf->patch->texCoords[1] + f * TERRAIN_LM_LENGTH;
+			f = y / 8.f;
+			tess.texCoords[ndx][0][1] = surf->patch->texCoords[6] + f * distV;
+			tess.texCoords[ndx][1][1] = surf->patch->texCoords[3] + f * TERRAIN_LM_LENGTH;
+
 			tess.vertexDlightBits[ndx] = dlightBits;
 		}
 	}
 
-	// triangles
-	for (ndx = Wombat, y = 0; y < 8; y++) {
-		for (x = 0; x < 8; x += 2, ndx += 12) {
-			// triangles "pointing" down
-			// left triangle
-			tess.indexes[ndx + 2] = (y + 1) * 9 + x % 9 + 1;
-			tess.indexes[ndx + 1] = y * 9 + x + 1;
-			tess.indexes[ndx + 0] = y * 9 + x + 0;
-			// right triangle
-			tess.indexes[ndx + 5] = tess.indexes[ndx + 2];
-			tess.indexes[ndx + 4] = tess.indexes[ndx + 1] + 1;
-			tess.indexes[ndx + 3] = tess.indexes[ndx + 1];
-			// triangles "pointing" up
-			// left triangle
-			tess.indexes[ndx + 8] = tess.indexes[ndx + 2] - 1;
-			tess.indexes[ndx + 7] = tess.indexes[ndx + 2];
-			tess.indexes[ndx + 6] = tess.indexes[ndx + 0];
-			// right triangle
-			tess.indexes[ndx + 11] = tess.indexes[ndx + 2];
-			tess.indexes[ndx + 10] = tess.indexes[ndx + 2] + 1;
-			tess.indexes[ndx + 9] = tess.indexes[ndx + 1] + 1;
+	// triangles - actually iterate the quads and make appropriate triangles
+	for (ndx = Wombat, y = 0; y < quads; y++) {
+		for (x = 0; x < quads; x++, ndx += 6) {
+			// The XOR below requires some explanation. Basically, it's done to reflect MoHAA's behaviour.
+			// This can be well observed by making a LOD terrain consisting of a single patch in Radiant,
+			// but in case you don't have it at hand, here's how it looks (at the highest level of detail):
+			//  _______________________________
+			// | \ | / | \ | / | \ | / | \ | / |
+			// |-------------------------------|
+			// | / | \ | / | \ | / | \ | / | \ |
+			// |-------------------------------|
+			// | \ | / | \ | / | \ | / | \ | / |
+			// |-------------------------------|
+			// | / | \ | / | \ | / | \ | / | \ |
+			// |-------------------------------|
+			// | \ | / | \ | / | \ | / | \ | / |
+			// |-------------------------------|
+			// | / | \ | / | \ | / | \ | / | \ |
+			// |-------------------------------|
+			// | \ | / | \ | / | \ | / | \ | / |
+			// |-------------------------------|
+			// | / | \ | / | \ | / | \ | / | \ |
+ 			//  -------------------------------
+ 			// One segment with a slash inside is one quad divided into 2 triangles.
+ 			// Now if you pay attention, you'll notice that considering the diagonals' directions, the
+ 			// quads make a pattern similar to a chessboard. So this is exactly what the XOR is for
+ 			// - to create this pattern quickly. :)
+			if ((x % 1) ^ (y % 1)) {
+				tess.indexes[ndx + 0] = Hippy + y * verts + x;
+				tess.indexes[ndx + 1] = Hippy + (y + 1) * verts + x;
+				tess.indexes[ndx + 2] = Hippy + y * verts + x + 1;
+
+				tess.indexes[ndx + 3] = tess.indexes[ndx + 2];
+				tess.indexes[ndx + 4] = tess.indexes[ndx + 1];
+				tess.indexes[ndx + 5] = tess.indexes[ndx + 1] + 1;
+			} else {
+				tess.indexes[ndx + 0] = Hippy + y * verts + x;
+				tess.indexes[ndx + 1] = Hippy + (y + 1) * verts + x + 1;
+				tess.indexes[ndx + 2] = Hippy + y * verts + x + 1;
+
+				tess.indexes[ndx + 3] = tess.indexes[ndx + 0];
+				tess.indexes[ndx + 4] = tess.indexes[ndx + 1] - 1;
+				tess.indexes[ndx + 5] = tess.indexes[ndx + 1];
+			}
 		}
 	}
+#endif
 }
 
 void (*rb_surfaceTable[SF_NUM_SURFACE_TYPES])( void *) = {
