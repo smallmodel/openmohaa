@@ -321,6 +321,7 @@ static int GLimp_SetMode( int mode, qboolean fullscreen )
 		SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
 		// IneQuation was here
 		if (multiSamplingAvailable && r_ext_multisample_samples->integer > 1) {
+			SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
 			SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, r_ext_multisample_samples->integer);
 		}
 
