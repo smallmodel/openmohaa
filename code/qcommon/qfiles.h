@@ -658,7 +658,7 @@ typedef struct {
 #define LUMP_LEAFSURFACES		7
 #define LUMP_LEAFS				8
 #define LUMP_NODES				9
-#define LIMP_SIDEEQUATIONS		10
+#define LIMP_DUMMY				10
 #define LUMP_BRUSHSIDES			11
 #define LUMP_BRUSHES			12
 /*
@@ -668,7 +668,7 @@ typedef struct {
 #define LUMP_MODELS				13
 #define LUMP_ENTITIES			14
 #define LUMP_VISIBILITY			15
-#define LUMP_LGTGRIDPALETTBYTES	16
+#define LUMP_LIGHTGRIDPALETTE	16
 #define LUMP_LIGHTGRIDOFFSETS	17
 #define LUMP_LIGHTGRIDDATA		18
 #define LUMP_SPHERELIGHTS		19
@@ -683,11 +683,10 @@ typedef struct {
 
 #define	HEADER_LUMPS		28
 
-// added "checksum"
 typedef struct {
 	int			ident;
 	int			version;
-	int			checksum;
+	int			dummy;
 
 	lump_t		lumps[HEADER_LUMPS];
 } dheader_t;
@@ -698,14 +697,12 @@ typedef struct {
 	int			firstBrush, numBrushes;
 } dmodel_t;
 
-// added "subdivisions" and "fenceMaskImage"
 typedef struct {
 	char		shader[MAX_QPATH];
 	int			surfaceFlags;
 	int			contentFlags;
 
-	int			subdivisions;
-	char		fenceMaskImage[64];
+	int			dummy[17];
 } dshader_t;
 
 // planes x^1 is allways the opposite of plane x
@@ -736,10 +733,10 @@ typedef struct {
 	int			numLeafBrushes;
 
 	//added for mohaa
-	int			firstTerraPatch;
-	int			numTerraPatches;
-	int			firstStaticModel;
-	int			numStaticModels;
+	int			dummy1;
+	int			dummy2;
+	int			dummy3;
+	int			dummy4;
 } dleaf_t;
 
 typedef struct {
@@ -747,7 +744,7 @@ typedef struct {
 	int			shaderNum;
 
 	//added for mohaa
-	int			equationNum;
+	int			dummy;
 } dbrushside_t;
 
 typedef struct {
@@ -777,8 +774,7 @@ typedef enum {
 	MST_PLANAR,
 	MST_PATCH,
 	MST_TRIANGLE_SOUP,
-	MST_FLARE,
-	MST_TERRAIN
+	MST_FLARE
 } mapSurfaceType_t;
 
 typedef struct {
@@ -803,7 +799,7 @@ typedef struct {
 	int			patchHeight;
 
 	//added for mohaa
-	float		subdivisions;
+	float		dummy;
 } dsurface_t;
 
 // IneQuation was here

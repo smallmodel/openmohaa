@@ -1643,7 +1643,7 @@ R_LoadLightGrid
 
 ================
 */
-void R_LoadLightGrid( lump_t *l ) {
+void R_LoadLightGrid( lump_t *lightGridPalette, lump_t *lightGridOffsets, lump_t *lightGridData ) {
 	int		i;
 	vec3_t	maxs;
 	int		numGridPoints;
@@ -1651,6 +1651,13 @@ void R_LoadLightGrid( lump_t *l ) {
 	float	*wMins, *wMaxs;
 
 	w = &s_worldData;
+
+	if ( !(lightGridPalette->fileofs) || !(lightGridOffsets->fileofs) || !(lightGridData->fileofs) ) {
+		ri.Printf( PRINT_WARNING, "WARNING: No light grid data present\n" );
+		w->lightGridData = NULL;
+		w->lightGridOffsets = NULL;
+		return;
+	}
 
 	w->lightGridInverseSize[0] = 1.0f / w->lightGridSize[0];
 	w->lightGridInverseSize[1] = 1.0f / w->lightGridSize[1];
@@ -1665,22 +1672,43 @@ void R_LoadLightGrid( lump_t *l ) {
 		w->lightGridBounds[i] = (maxs[i] - w->lightGridOrigin[i])/w->lightGridSize[i] + 1;
 	}
 
-	numGridPoints = w->lightGridBounds[0] * w->lightGridBounds[1] * w->lightGridBounds[2];
+	// wombat: this is the calculation done by mohaa. no idea what is behind this. probably NOT "number of grid points"
+	numGridPoints = (w->lightGridBounds[0] * w->lightGridBounds[1]) + w->lightGridBounds[0];
 
-	if ( l->filelen != numGridPoints * 8 ) {
-		ri.Printf( PRINT_WARNING, "WARNING: light grid mismatch\n" );
+	if ( lightGridOffsets->filelen != numGridPoints * 2 ) {
+		ri.Printf( PRINT_WARNING, "WARNING: light grid offset size mismatch\n" );
 		w->lightGridData = NULL;
+		w->lightGridOffsets = NULL;
 		return;
 	}
 
-	w->lightGridData = ri.Hunk_Alloc( l->filelen, h_low );
-	Com_Memcpy( w->lightGridData, (void *)(fileBase + l->fileofs), l->filelen );
+	if ( lightGridPalette->filelen != 768 ) {
+		ri.Printf( PRINT_WARNING, "WARNING: light grid palette size mismatch\n" );
+		w->lightGridData = NULL;
+		w->lightGridOffsets = NULL;
+		return;
+	}
 
-	// deal with overbright bits
+	w->lightGridOffsets = ri.Hunk_Alloc( lightGridOffsets->filelen, h_low );
+	Com_Memcpy( w->lightGridOffsets, (void *)(fileBase + lightGridOffsets->fileofs), lightGridOffsets->filelen );
+
+	Com_Memcpy( w->lightGridPalette, (void *)(fileBase + lightGridPalette->fileofs), lightGridPalette->filelen );
+
+	w->lightGridData = ri.Hunk_Alloc( lightGridData->filelen, h_low );
+	Com_Memcpy( w->lightGridData, (void *)(fileBase + lightGridData->fileofs), lightGridData->filelen );
+
+	// ATTENTION: until someone writes the code to actually USE the lg data, i will clear it
+	// in order to not confuse the engine
+	w->lightGridData = NULL;
+	w->lightGridOffsets = NULL;
+
+
+	// wombat: the following is not done in mohaa
+/*	// deal with overbright bits
 	for ( i = 0 ; i < numGridPoints ; i++ ) {
 		R_ColorShiftLightingBytes( &w->lightGridData[i*8], &w->lightGridData[i*8] );
 		R_ColorShiftLightingBytes( &w->lightGridData[i*8+3], &w->lightGridData[i*8+3] );
-	}
+	}*/
 }
 
 /*
@@ -1695,9 +1723,11 @@ void R_LoadEntities( lump_t *l ) {
 	world_t	*w;
 
 	w = &s_worldData;
-	w->lightGridSize[0] = 64;
-	w->lightGridSize[1] = 64;
-	w->lightGridSize[2] = 128;
+
+	// wombat was here
+	w->lightGridSize[0] = 32;
+	w->lightGridSize[1] = 32;
+	w->lightGridSize[2] = 32;
 
 	p = (char *)(fileBase + l->fileofs);
 
@@ -1922,7 +1952,7 @@ void RE_LoadWorldMap( const char *name ) {
 	R_LoadSubmodels (&header->lumps[LUMP_MODELS]);
 	R_LoadVisibility( &header->lumps[LUMP_VISIBILITY] );
 	R_LoadEntities( &header->lumps[LUMP_ENTITIES] );
-	R_LoadLightGrid( &header->lumps[LUMP_LIGHTGRIDOFFSETS] );
+	R_LoadLightGrid( &header->lumps[LUMP_LIGHTGRIDPALETTE], &header->lumps[LUMP_LIGHTGRIDOFFSETS], &header->lumps[LUMP_LIGHTGRIDDATA] );
 	// IneQuation
 	R_LoadTerrain(&header->lumps[LUMP_TERRAIN]);
 

@@ -45,8 +45,8 @@ typedef struct {
 	int			numLeafSurfaces;
 
 	//added for mohaa
-	int			firstLeafTerrain;
-	int			numLeafTerrains;
+	int			dummy1;
+	int			dummy2;
 } cLeaf_t;
 
 typedef struct cmodel_s {
@@ -54,17 +54,12 @@ typedef struct cmodel_s {
 	cLeaf_t		leaf;			// submodels don't reference the main tree
 } cmodel_t;
 
-typedef struct dsideequation_s {
-  float fSeq[4];
-  float fTeq[4];
-} dsideequation_t;
-
 typedef struct {
 	cplane_t	*plane;
 	int			surfaceFlags;
 	int			shaderNum;
 
-	dsideequation_t *pEq;
+	void	*dummy;
 } cbrushside_t;
 
 typedef struct {
@@ -82,8 +77,8 @@ typedef struct {
 	int			surfaceFlags;
 	int			contents;
 
-	int			shaderNum;
-	int			subdivisions;
+	int			dummy1;
+	int			dummy2;
 
 	struct patchCollide_s	*pc;
 } cPatch_t;

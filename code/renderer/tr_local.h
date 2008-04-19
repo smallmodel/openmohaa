@@ -746,6 +746,10 @@ typedef struct {
 	int			lightGridBounds[3];
 	byte		*lightGridData;
 
+	// wombat: additional light grid information
+	byte		lightGridPalette[768];
+	uint16_t	*lightGridOffsets;
+
 
 	int			numClusters;
 	int			clusterBytes;
