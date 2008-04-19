@@ -1,17 +1,18 @@
- / _ \ _ __   ___ _ __ |  \/  |/ _ \| | | |  / \      / \   
-| | | | '_ \ / _ \ '_ \| |\/| | | | | |_| | / _ \    / _ \  
-| |_| | |_) |  __/ | | | |  | | |_| |  _  |/ ___ \  / ___ \ 
+ / _ \ _ __   ___ _ __ |  \/  |/ _ \| | | |  / \      / \
+| | | | '_ \ / _ \ '_ \| |\/| | | | | |_| | / _ \    / _ \
+| |_| | |_) |  __/ | | | |  | | |_| |  _  |/ ___ \  / ___ \
  \___/| .__/ \___|_| |_|_|  |_|\___/|_| |_/_/   \_\/_/   \_\
-      |_|                                                   
+      |_|
 Building
 =======================
 Please refer to ioquake3's README (README.ioq3).
 
 Running
 =======================
-You need the VMs/shared libraries of the modules from the main
+NOTE: You need the VMs/shared libraries of the modules from the "main"
 subdirectory inside the build directory.
 DO NOT USE MISSIONPACK ONES, they will fail.
+
 Now this can be a little tricky. At the current, early development
 state, OpenMoHAA requires both Quake III (or compatible) and
 MoHAA's pk3 files. If you don't have a copy of Q3 Arena, get
@@ -22,8 +23,9 @@ recommend you to copy MoHAA's pk3s into OMoHAA's main directory and
 rename them to mohaapak0.pk3, mohaapak2.pk3 and so on. Remember,
 you need both games' pk3s or you will experience all kinds of
 failures!
+
 When you're done with the pk3s and binaries, run the game, open up
-the console and type for example map dm/mohdm1 and run around it. 
+the console and type for example map dm/mohdm1 and run around it.
 There's not much more you can do there yet. Enjoy!
 
 URL

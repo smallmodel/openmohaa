@@ -90,15 +90,11 @@ typedef struct {
 } cArea_t;
 
 // IneQuation
-/*typedef struct {
+typedef struct {
 	int			checkcount;				// to avoid repeated testings
-	int			surfaceFlags;
-	int			contents;
 
-	int			shaderNum;
-
-	struct terCollide_s	*tc;
-} cterPatch_t;*/
+	struct terPatchCollide_s	*tc;
+} cterPatch_t;
 
 typedef struct {
 	char		name[MAX_QPATH];
@@ -145,6 +141,10 @@ typedef struct {
 	int			numSurfaces;
 	cPatch_t	**surfaces;			// non-patches will be NULL
 
+	// IneQuation
+	int			numTerPatches;
+	cterPatch_t	*terPatches;
+
 	int			floodvalid;
 	int			checkcount;					// incremented on each trace
 } clipMap_t;
@@ -156,10 +156,11 @@ typedef struct {
 
 extern	clipMap_t	cm;
 extern	int			c_pointcontents;
-extern	int			c_traces, c_brush_traces, c_patch_traces;
+extern	int			c_traces, c_brush_traces, c_patch_traces, c_terrain_patch_traces;
 extern	cvar_t		*cm_noAreas;
 extern	cvar_t		*cm_noCurves;
 extern	cvar_t		*cm_playerCurveClip;
+extern	cvar_t		*cm_noTerrain;	// IneQuation
 
 // cm_test.c
 
@@ -215,3 +216,8 @@ struct patchCollide_s	*CM_GeneratePatchCollide( int width, int height, vec3_t *p
 void CM_TraceThroughPatchCollide( traceWork_t *tw, const struct patchCollide_s *pc );
 qboolean CM_PositionTestInPatchCollide( traceWork_t *tw, const struct patchCollide_s *pc );
 void CM_ClearLevelPatches( void );
+
+// cm_terrain.c
+struct terPatchCollide_s *CM_GenerateTerPatchCollide(vec3_t origin, byte heightmap[9][9], dshader_t *shader);
+void CM_TraceThroughTerPatchCollide(traceWork_t *tw, const struct terPatchCollide_s *tc);
+void CM_PositionTestInTerPatchCollide(traceWork_t *tw, const struct terPatchCollide_s *tc);

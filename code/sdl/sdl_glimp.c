@@ -79,6 +79,9 @@ static SDL_Surface *screen = NULL;
 
 cvar_t *r_allowSoftwareGL; // Don't abort out if a hardware visual can't be obtained
 
+qboolean	multiSamplingAvailable = qfalse;		// IneQuation: generic MSAA
+qboolean	NVCoverageSamplingAvailable = qfalse;	// IneQuation: nVidia's CSAA
+
 void (APIENTRYP qglActiveTextureARB) (GLenum texture);
 void (APIENTRYP qglClientActiveTextureARB) (GLenum texture);
 void (APIENTRYP qglMultiTexCoord2fARB) (GLenum target, GLfloat s, GLfloat t);
@@ -316,6 +319,10 @@ static int GLimp_SetMode( int mode, qboolean fullscreen )
 		SDL_GL_SetAttribute( SDL_GL_DEPTH_SIZE, tdepthbits );
 		SDL_GL_SetAttribute( SDL_GL_STENCIL_SIZE, tstencilbits );
 		SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
+		// IneQuation was here
+		if (multiSamplingAvailable && r_ext_multisample_samples->integer > 1) {
+			SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, r_ext_multisample_samples->integer);
+		}
 
 #if 0 // See http://bugzilla.icculus.org/show_bug.cgi?id=3526
 		// If not allowing software GL, demand accelerated
@@ -574,6 +581,12 @@ static void GLimp_InitExtensions( void )
 	{
 		ri.Printf( PRINT_ALL, "...GL_EXT_texture_filter_anisotropic not found\n" );
 	}
+
+	// IneQuation: antialiasing
+	if (strstr(glConfig.extensions_string, "GL_ARB_multisample"))
+		multiSamplingAvailable = qtrue;
+	if (strstr(glConfig.extensions_string, "GL_NV_multisample_coverage"))
+		NVCoverageSamplingAvailable = qtrue;
 }
 
 #define R_MODE_FALLBACK 3 // 640 * 480

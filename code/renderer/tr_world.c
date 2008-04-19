@@ -672,7 +672,7 @@ R_AddTerrainSurfaces
 =============
 IneQuation was here
 */
-#define TER_PATCH_RADIUS	362.03867196751233249323	// 256.f * SQRT_2
+#define TER_PATCH_RADIUS	(256.f * M_SQRT2 + 16.f)	// add some space to account for viewpoint displacement
 #define TER_LOD_GAP			(ter_lodgapbase->value + ter_lodgapbase->value * f)
 void R_AddTerrainSurfaces (void) {
 	int					i, j, dlightBits;

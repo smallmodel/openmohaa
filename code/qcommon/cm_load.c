@@ -53,7 +53,7 @@ void SetPlaneSignbits (cplane_t *out) {
 
 clipMap_t	cm;
 int			c_pointcontents;
-int			c_traces, c_brush_traces, c_patch_traces;
+int			c_traces, c_brush_traces, c_patch_traces, c_terrain_patch_traces;
 
 
 byte		*cmod_base;
@@ -62,6 +62,7 @@ byte		*cmod_base;
 cvar_t		*cm_noAreas;
 cvar_t		*cm_noCurves;
 cvar_t		*cm_playerCurveClip;
+cvar_t		*cm_noTerrain;	// IneQuation
 #endif
 
 cmodel_t	box_model;
@@ -542,57 +543,25 @@ CMod_LoadTerrain
 =================
 */
 void CMod_LoadTerrain(lump_t *ter) {
-	/*dterPatch_t	*in;
-	int			count;
-	int			i, j;
-	int			c;
-	cterPatch_t	*patch;
-	vec3_t		points[MAX_PATCH_VERTS];
-	int			width, height;
-	int			shaderNum;
+	dterPatch_t	*in;
+	int			i;
+	cterPatch_t	*out;
+	vec3_t		origin;
 
-	in = (void *)(cmod_base + surfs->fileofs);
-	if (surfs->filelen % sizeof(*in))
-		Com_Error (ERR_DROP, "MOD_LoadBmodel: funny lump size");
-	cm.numSurfaces = count = surfs->filelen / sizeof(*in);
-	cm.surfaces = Hunk_Alloc( cm.numSurfaces * sizeof( cm.surfaces[0] ), h_high );
+	in = (void *)(cmod_base + ter->fileofs);
+	if (ter->filelen % sizeof(*in))
+		Com_Error(ERR_DROP, "Cmod_LoadTerrain: funny lump size");
+	cm.numTerPatches = ter->filelen / sizeof(*in);
+	out = cm.terPatches = Hunk_Alloc(cm.numTerPatches * sizeof(cm.terPatches[0]), h_high);
 
-	dv = (void *)(cmod_base + verts->fileofs);
-	if (verts->filelen % sizeof(*dv))
-		Com_Error (ERR_DROP, "MOD_LoadBmodel: funny lump size");
-
-	// scan through all the surfaces, but only load patches,
-	// not planar faces
-	for ( i = 0 ; i < count ; i++, in++ ) {
-		if ( LittleLong( in->surfaceType ) != MST_PATCH ) {
-			continue;		// ignore other surfaces
-		}
-		// FIXME: check for non-colliding patches
-
-		cm.surfaces[ i ] = patch = Hunk_Alloc( sizeof( *patch ), h_high );
-
-		// load the full drawverts onto the stack
-		width = LittleLong( in->patchWidth );
-		height = LittleLong( in->patchHeight );
-		c = width * height;
-		if ( c > MAX_PATCH_VERTS ) {
-			Com_Error( ERR_DROP, "ParseMesh: MAX_PATCH_VERTS" );
-		}
-
-		dv_p = dv + LittleLong( in->firstVert );
-		for ( j = 0 ; j < c ; j++, dv_p++ ) {
-			points[j][0] = LittleFloat( dv_p->xyz[0] );
-			points[j][1] = LittleFloat( dv_p->xyz[1] );
-			points[j][2] = LittleFloat( dv_p->xyz[2] );
-		}
-
-		shaderNum = LittleLong( in->shaderNum );
-		patch->contents = cm.shaders[shaderNum].contentFlags;
-		patch->surfaceFlags = cm.shaders[shaderNum].surfaceFlags;
+	for (i = 0; i < cm.numTerPatches; i++) {
+		origin[0] = in[i].x * 64.f;
+		origin[1] = in[i].y * 64.f;
+		origin[2] = LittleShort(in[i].baseZ);
 
 		// create the internal facet structure
-		patch->pc = CM_GeneratePatchCollide( width, height, points );
-	}*/
+		out[i].tc = CM_GenerateTerPatchCollide(origin, in[i].heightmap, &cm.shaders[LittleShort(in[i].shader)]);
+	}
 }
 
 //==================================================================
@@ -640,6 +609,7 @@ void CM_LoadMap( const char *name, qboolean clientload, int *checksum ) {
 	cm_noAreas = Cvar_Get ("cm_noAreas", "0", CVAR_CHEAT);
 	cm_noCurves = Cvar_Get ("cm_noCurves", "0", CVAR_CHEAT);
 	cm_playerCurveClip = Cvar_Get ("cm_playerCurveClip", "1", CVAR_ARCHIVE|CVAR_CHEAT );
+	cm_noTerrain = Cvar_Get ("cm_noTerrain", "0", CVAR_CHEAT);	// IneQuation
 #endif
 	Com_DPrintf( "CM_LoadMap( %s, %i )\n", name, clientload );
 

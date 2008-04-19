@@ -650,6 +650,11 @@ static qboolean ParseStage( shaderStage_t *stage, char **text )
 					ri.Printf( PRINT_WARNING, "WARNING: R_FindImageFile could not find '%s' in shader '%s'\n", token, shader.name );
 					return qfalse;
 				}
+				// FIXME: IneQuation: this is just a quick and dirty fix to keep some maps from crashing
+				if (bundleNum > 0) {
+					stage->bundle[bundleNum].tcGen = TCGEN_TEXTURE;
+					shader.multitextureEnv = GL_MODULATE;
+				}
 			}
 		}
 		//

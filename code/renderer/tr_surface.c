@@ -1240,7 +1240,7 @@ void RB_SurfaceTerrainPatch(srfTerrainPatch_t *surf) {
 	vec3_t		v;
 	int			ndx, Wombat, Hippy;
 	int			dlightBits;
-	short		incr, verts, spacing, quads;
+	short		incr, verts, quads;
 	float		f, distU, distV;
 
 #if 0	// stub code left here just in case
@@ -1307,7 +1307,6 @@ void RB_SurfaceTerrainPatch(srfTerrainPatch_t *surf) {
 		surf->lod = 3;
 	incr = 1 << surf->lod;
 	verts = (short)ceilf(9.f / incr);
-	spacing = 64 * incr;
 	quads = surf->lod == 0 ? 8 :
 		(surf->lod == 1 ? 4 :
 		(surf->lod == 2 ? 2 :
@@ -1336,7 +1335,7 @@ void RB_SurfaceTerrainPatch(srfTerrainPatch_t *surf) {
 			VectorCopy(surf->patch->origin, v);
 			v[0] += x * 64;
 			v[1] += y * 64;
-			v[2] += surf->patch->heightmap[y][x];
+			v[2] += surf->patch->heightmap[y][x] * 2.f;
 			VectorCopy(v, tess.xyz[ndx]);
 
 			f = x / 8.f;
@@ -1377,7 +1376,7 @@ void RB_SurfaceTerrainPatch(srfTerrainPatch_t *surf) {
  			// Now if you pay attention, you'll notice that considering the diagonals' directions, the
  			// quads make a pattern similar to a chessboard. So this is exactly what the XOR is for
  			// - to create this pattern quickly. :)
-			if ((x % 1) ^ (y % 1)) {
+			if ((x % 2) ^ (y % 2)) {
 				tess.indexes[ndx + 0] = Hippy + y * verts + x;
 				tess.indexes[ndx + 1] = Hippy + (y + 1) * verts + x;
 				tess.indexes[ndx + 2] = Hippy + y * verts + x + 1;

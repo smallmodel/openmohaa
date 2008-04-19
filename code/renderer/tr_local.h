@@ -1001,13 +1001,14 @@ extern trGlobals_t	tr;
 extern glconfig_t	glConfig;		// outside of TR since it shouldn't be cleared during ref re-init
 extern glstate_t	glState;		// outside of TR since it shouldn't be cleared during ref re-init
 
-// These two variables should live inside glConfig but can't because of compatibility issues to the original ID vms.
+// These variables should live inside glConfig but can't because of compatibility issues to the original ID vms.
 // If you release a stand-alone game and your mod uses tr_types.h from this build you can safely move them to
 // the glconfig_t struct.
-extern qboolean  textureFilterAnisotropic;
-extern int       maxAnisotropy;
-extern float     displayAspect;
-
+extern qboolean	textureFilterAnisotropic;
+extern int		maxAnisotropy;
+extern float	displayAspect;
+extern qboolean	multiSamplingAvailable;			// IneQuation: generic MSAA
+extern qboolean NVCoverageSamplingAvailable;	// IneQuation: nVidia's CSAA
 
 //
 // cvars
@@ -1077,6 +1078,8 @@ extern cvar_t	*r_ext_compressed_textures;		// these control use of specific exte
 extern cvar_t	*r_ext_multitexture;
 extern cvar_t	*r_ext_compiled_vertex_array;
 extern cvar_t	*r_ext_texture_env_add;
+// IneQuation
+extern cvar_t	*r_ext_multisample_samples;
 
 extern cvar_t	*r_ext_texture_filter_anisotropic;
 extern cvar_t	*r_ext_max_anisotropy;

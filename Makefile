@@ -1,5 +1,5 @@
 #
-# OpenMoHAa Makefile
+# OpenMoHAA Makefile
 #
 # GNU Make required
 #
@@ -1053,6 +1053,7 @@ Q3OBJ = \
   \
   $(B)/client/cm_load.o \
   $(B)/client/cm_patch.o \
+  $(B)/client/cm_terrain.o \
   $(B)/client/cm_polylib.o \
   $(B)/client/cm_test.o \
   $(B)/client/cm_trace.o \
@@ -1280,6 +1281,7 @@ Q3DOBJ = \
   \
   $(B)/ded/cm_load.o \
   $(B)/ded/cm_patch.o \
+  $(B)/ded/cm_terrain.o \
   $(B)/ded/cm_polylib.o \
   $(B)/ded/cm_test.o \
   $(B)/ded/cm_trace.o \
