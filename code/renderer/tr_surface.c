@@ -1335,6 +1335,14 @@ void RB_SurfaceTerrainPatch(srfTerrainPatch_t *surf) {
 			VectorCopy(surf->patch->origin, v);
 			v[0] += x * 64;
 			v[1] += y * 64;
+			/*if (x == 0)
+				v[0] += 16;
+			else if (x == 8)
+				v[0] -= 16;
+			if (y == 0)
+				v[1] += 16;
+			else if (y == 8)
+				v[1] -= 16;*/
 			v[2] += surf->patch->heightmap[y][x] * 2.f;
 			VectorCopy(v, tess.xyz[ndx]);
 

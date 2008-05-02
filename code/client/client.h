@@ -81,10 +81,12 @@ typedef struct {
 
 // the parseEntities array must be large enough to hold PACKET_BACKUP frames of
 // entities, so that when a delta compressed message arives from the server
-// it can be un-deltad from the original 
+// it can be un-deltad from the original
 #define	MAX_PARSE_ENTITIES	2048
 
 extern int g_console_field_width;
+extern int g_console_charWidth;
+extern int g_console_charHeight;
 
 typedef struct {
 	int			timeoutcount;		// it requres several frames in a timeout condition
@@ -319,6 +321,7 @@ typedef struct {
 	qhandle_t	charSetShader;
 	qhandle_t	whiteShader;
 	qhandle_t	consoleShader;
+	fontInfo_t	consoleFont;
 } clientStatic_t;
 
 extern	clientStatic_t		cls;
@@ -496,7 +499,7 @@ void	SCR_DebugGraph (float value, int color);
 int		SCR_GetBigStringWidth( const char *str );	// returns in virtual 640x480 coordinates
 
 void	SCR_AdjustFrom640( float *x, float *y, float *w, float *h );
-void	SCR_FillRect( float x, float y, float width, float height, 
+void	SCR_FillRect( float x, float y, float width, float height,
 					 const float *color );
 void	SCR_DrawPic( float x, float y, float width, float height, qhandle_t hShader );
 void	SCR_DrawNamedPic( float x, float y, float width, float height, const char *picname );

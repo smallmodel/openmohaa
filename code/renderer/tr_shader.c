@@ -842,7 +842,16 @@ static qboolean ParseStage( shaderStage_t *stage, char **text )
 			}
 			else if ( !Q_stricmp( token, "identity" ) )
 			{
-				stage->rgbGen = CGEN_IDENTITY;
+				// HACK HACK HACK!!!
+				// IneQuation: this is for RitualFont compatibility!
+				// I still don't understand what did Ritual or 2015 change in their colour
+				// generation code for the font colouring to work with identity cgen. :S
+				if (!Q_stricmpn(shader.name, "gfx/fonts/", 10)) {
+					stage->rgbGen = CGEN_VERTEX;
+					if (stage->alphaGen == 0)
+						stage->alphaGen = AGEN_VERTEX;
+				} else
+					stage->rgbGen = CGEN_IDENTITY;
 			}
 			else if ( !Q_stricmp( token, "identityLighting" ) )
 			{
@@ -2507,6 +2516,13 @@ shader_t *R_FindShader( const char *name, int lightmapIndex, qboolean mipRawImag
 	shader.needsST1 = qtrue;
 	shader.needsST2 = qtrue;
 	shader.needsColor = qtrue;
+
+	// IneQuation: predefined *white shader for the UI
+	if (lightmapIndex == LIGHTMAP_2D && !Q_stricmp(name, "*white")) {
+		stages[0].bundle[0].image[0] = R_FindImageFile("*white", mipRawImage, qfalse, GL_REPEAT);
+		stages[0].rgbGen = CGEN_IDENTITY;
+		stages[0].stateBits = GLS_SRCBLEND_SRC_ALPHA | GLS_DSTBLEND_ONE_MINUS_SRC_ALPHA;
+	}
 
 	//
 	// attempt to define shader from an explicit parameter file

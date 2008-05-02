@@ -12,7 +12,7 @@ equ	trap_Argv							-9
 equ	trap_Args							-10
 equ	trap_FS_FOpenFile					-11
 equ	trap_FS_Read						-12
-equ	trap_FS_Write						-13 
+equ	trap_FS_Write						-13
 equ	trap_FS_FCloseFile					-14
 equ	trap_SendConsoleCommand				-15
 equ	trap_AddCommand						-16
@@ -89,7 +89,11 @@ equ trap_R_AddAdditiveLightToScene		-86
 equ trap_GetEntityToken					-87
 equ	trap_R_AddPolysToScene				-88
 equ trap_R_inPVS						-89
-equ trap_FS_Seek			-90
+equ trap_FS_Seek						-90
+equ trap_R_Text_Width					-91
+equ trap_R_Text_Height					-92
+equ trap_R_Text_Paint					-93
+equ trap_R_Text_PaintChar				-94
 
 equ	memset						-101
 equ	memcpy						-102

@@ -1264,5 +1264,11 @@ refexport_t *GetRefAPI ( int apiVersion, refimport_t *rimp ) {
 
 	re.TakeVideoFrame = RE_TakeVideoFrame;
 
+	// IneQuation
+	re.Text_Width = RE_Text_Width;
+	re.Text_Height = RE_Text_Height;
+	re.Text_Paint = RE_Text_Paint;
+	re.Text_PaintChar = RE_Text_PaintChar;
+
 	return &re;
 }

@@ -32,6 +32,8 @@ qboolean CM_PositionTestInTerPatchCollide(traceWork_t *tw, const struct terPatch
 #define CM_TERRAIN_H
 
 #define TER_QUADS_PER_ROW	1//8
+#define TER_TRIS_PER_PATCH	(TER_QUADS_PER_ROW * TER_QUADS_PER_ROW * 2)
+#define TER_PLANES_PER_TRI	4//5
 
 typedef struct terTriangle_s {
 	cplane_t		planes[5];	// 0 is the surface plane, 3 border planes follow and a cap to give it some finite volume
@@ -42,7 +44,7 @@ typedef struct terPatchCollide_s {
 
 	dshader_t		*shader;
 
-	terTriangle_t	tris[TER_QUADS_PER_ROW * TER_QUADS_PER_ROW * 2];
+	terTriangle_t	tris[TER_TRIS_PER_PATCH];
 } terPatchCollide_t;
 
 #endif // CM_TERRAIN_H

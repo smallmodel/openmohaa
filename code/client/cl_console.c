@@ -25,7 +25,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 
 int g_console_field_width = 78;
-
+int	g_console_charWidth = SMALLCHAR_WIDTH, g_console_charHeight = SMALLCHAR_HEIGHT;
 
 #define	NUM_CON_TIMES 4
 
@@ -159,7 +159,7 @@ void Con_Clear_f (void) {
 	Con_Bottom();		// go to end
 }
 
-						
+
 /*
 ================
 Con_Dump_f
@@ -221,7 +221,7 @@ void Con_Dump_f (void)
 	FS_FCloseFile( f );
 }
 
-						
+
 /*
 ================
 Con_ClearNotify
@@ -229,13 +229,13 @@ Con_ClearNotify
 */
 void Con_ClearNotify( void ) {
 	int		i;
-	
+
 	for ( i = 0 ; i < NUM_CON_TIMES ; i++ ) {
 		con.times[i] = 0;
 	}
 }
 
-						
+
 
 /*
 ================
@@ -249,7 +249,7 @@ void Con_CheckResize (void)
 	int		i, j, width, oldwidth, oldtotallines, numlines, numchars;
 	short	tbuf[CON_TEXTSIZE];
 
-	width = (SCREEN_WIDTH / SMALLCHAR_WIDTH) - 2;
+	width = (SCREEN_WIDTH / g_console_charWidth) - 2;
 
 	if (width == con.linewidth)
 		return;
@@ -275,7 +275,7 @@ void Con_CheckResize (void)
 			numlines = con.totallines;
 
 		numchars = oldwidth;
-	
+
 		if (con.linewidth < numchars)
 			numchars = con.linewidth;
 
@@ -380,15 +380,15 @@ void CL_ConsolePrint( char *txt ) {
 		skipnotify = qtrue;
 		txt += 12;
 	}
-	
+
 	// for some demos we don't want to ever show anything on the console
 	if ( cl_noprint && cl_noprint->integer ) {
 		return;
 	}
-	
+
 	if (!con.initialized) {
-		con.color[0] = 
-		con.color[1] = 
+		con.color[0] =
+		con.color[1] =
 		con.color[2] =
 		con.color[3] = 1.0f;
 		con.linewidth = -1;
@@ -481,14 +481,14 @@ void Con_DrawInput (void) {
 		return;
 	}
 
-	y = con.vislines - ( SMALLCHAR_HEIGHT * 2 );
+	y = con.vislines - ( g_console_charHeight * 2 );
 
 	re.SetColor( con.color );
 
-	SCR_DrawSmallChar( con.xadjust + 1 * SMALLCHAR_WIDTH, y, ']' );
+	re.Text_PaintChar(&cls.consoleFont, con.xadjust + 1 * g_console_charWidth, y, ']');
 
-	Field_Draw( &g_consoleField, con.xadjust + 2 * SMALLCHAR_WIDTH, y,
-		SCREEN_WIDTH - 3 * SMALLCHAR_WIDTH, qtrue, qtrue );
+	Field_Draw(&cls.consoleFont, &g_consoleField, con.xadjust + 2 * g_console_charWidth, y,
+		SCREEN_WIDTH - 3 * g_console_charWidth, qtrue, qtrue);
 }
 
 
@@ -536,10 +536,10 @@ void Con_DrawNotify (void)
 				currentColor = (text[x]>>8)&7;
 				re.SetColor( g_color_table[currentColor] );
 			}
-			SCR_DrawSmallChar( cl_conXOffset->integer + con.xadjust + (x+1)*SMALLCHAR_WIDTH, v, text[x] & 0xff );
+			re.Text_PaintChar(&cls.consoleFont, cl_conXOffset->integer + con.xadjust + (x+1)*g_console_charWidth, v, text[x] & 0xff);
 		}
 
-		v += SMALLCHAR_HEIGHT;
+		v += g_console_charHeight;
 	}
 
 	re.SetColor( NULL );
@@ -553,19 +553,22 @@ void Con_DrawNotify (void)
 	{
 		if (chat_team)
 		{
-			SCR_DrawBigString (8, v, "say_team:", 1.0f, qfalse );
+			//SCR_DrawBigString (8, v, "say_team:", 1.0f, qfalse );
+			re.Text_Paint(&cls.consoleFont, 8, v, 1.f, "say_team:", 0, 0, qtrue);
 			skip = 10;
 		}
 		else
 		{
-			SCR_DrawBigString (8, v, "say:", 1.0f, qfalse );
+			//SCR_DrawBigString (8, v, "say:", 1.0f, qfalse );
+			re.Text_Paint(&cls.consoleFont, 8, v, 1.f, "say:", 0, 0, qtrue);
 			skip = 5;
 		}
 
-		Field_BigDraw( &chatField, skip * BIGCHAR_WIDTH, v,
-			SCREEN_WIDTH - ( skip + 1 ) * BIGCHAR_WIDTH, qtrue, qtrue );
+		// TODO: make this use facfont?
+		Field_BigDraw(&cls.consoleFont, &chatField, skip * g_console_charWidth, v,
+			SCREEN_WIDTH - ( skip + 1 ) * g_console_charWidth, qtrue, qtrue );
 
-		v += BIGCHAR_HEIGHT;
+		v += g_console_charHeight;
 	}
 
 }
@@ -604,35 +607,44 @@ void Con_DrawSolidConsole( float frac ) {
 		y = 0;
 	}
 	else {
-		SCR_DrawPic( 0, 0, SCREEN_WIDTH, y, cls.consoleShader );
+		//SCR_DrawPic( 0, 0, SCREEN_WIDTH, y, cls.consoleShader );
+		// IneQuation: transparent MoHAA-style console
+		color[0] = 0.1125;
+		color[1] = 0.15;
+		color[2] = 0.21;
+		color[3] = 0.85;
+		SCR_FillRect(0, 0, SCREEN_WIDTH, y, color);
 	}
 
-	color[0] = 1;
-	color[1] = 0;
-	color[2] = 0;
+	color[0] = 0.7;
+	color[1] = 0.6;
+	color[2] = 0.05;
 	color[3] = 1;
 	SCR_FillRect( 0, y, SCREEN_WIDTH, 2, color );
 
 
 	// draw the version number
 
-	re.SetColor( g_color_table[ColorIndex(COLOR_RED)] );
+	/*color[0] = 0.7;
+	color[1] = 0.6;
+	color[2] = 0.05;
+	color[3] = 1;*/
+	re.SetColor( color/*g_color_table[ColorIndex(COLOR_RED)]*/ );
 
 	i = strlen( Q3_VERSION );
 
 	for (x=0 ; x<i ; x++) {
 
-		SCR_DrawSmallChar( cls.glconfig.vidWidth - ( i - x ) * SMALLCHAR_WIDTH, 
-			(lines-(SMALLCHAR_HEIGHT+SMALLCHAR_HEIGHT/2)), Q3_VERSION[x] );
+		re.Text_PaintChar(&cls.consoleFont, cls.glconfig.vidWidth - ( i - x ) * g_console_charWidth,
+			(lines-(g_console_charHeight+g_console_charHeight/2)), Q3_VERSION[x]);
 
 	}
 
-
 	// draw the text
 	con.vislines = lines;
-	rows = (lines-SMALLCHAR_WIDTH)/SMALLCHAR_WIDTH;		// rows of text to draw
+	rows = (lines - g_console_charWidth) / g_console_charWidth;		// rows of text to draw
 
-	y = lines - (SMALLCHAR_HEIGHT*3);
+	y = lines - g_console_charHeight * 3;
 
 	// draw from the bottom up
 	if (con.display != con.current)
@@ -640,11 +652,11 @@ void Con_DrawSolidConsole( float frac ) {
 	// draw arrows to show the buffer is backscrolled
 		re.SetColor( g_color_table[ColorIndex(COLOR_RED)] );
 		for (x=0 ; x<con.linewidth ; x+=4)
-			SCR_DrawSmallChar( con.xadjust + (x+1)*SMALLCHAR_WIDTH, y, '^' );
+			re.Text_PaintChar(&cls.consoleFont, con.xadjust + (x+1)*SMALLCHAR_WIDTH, y, '^');
 		y -= SMALLCHAR_HEIGHT;
 		rows--;
 	}
-	
+
 	row = con.display;
 
 	if ( con.x == 0 ) {
@@ -654,13 +666,13 @@ void Con_DrawSolidConsole( float frac ) {
 	currentColor = 7;
 	re.SetColor( g_color_table[currentColor] );
 
-	for (i=0 ; i<rows ; i++, y -= SMALLCHAR_HEIGHT, row--)
+	for (i=0 ; i<rows ; i++, y -= g_console_charHeight, row--)
 	{
 		if (row < 0)
 			break;
 		if (con.current - row >= con.totallines) {
 			// past scrollback wrap point
-			continue;	
+			continue;
 		}
 
 		text = con.text + (row % con.totallines)*con.linewidth;
@@ -672,9 +684,9 @@ void Con_DrawSolidConsole( float frac ) {
 
 			if ( ( (text[x]>>8)&7 ) != currentColor ) {
 				currentColor = (text[x]>>8)&7;
-				re.SetColor( g_color_table[currentColor] );
+				re.SetColor(g_color_table[currentColor]);
 			}
-			SCR_DrawSmallChar(  con.xadjust + (x+1)*SMALLCHAR_WIDTH, y, text[x] & 0xff );
+			re.Text_PaintChar(&cls.consoleFont, con.xadjust + (x+1)*g_console_charWidth, y, text[x] & 0xff);
 		}
 	}
 
@@ -728,7 +740,7 @@ void Con_RunConsole (void) {
 		con.finalFrac = 0.5;		// half screen
 	else
 		con.finalFrac = 0;				// none visible
-	
+
 	// scroll towards the destination height
 	if (con.finalFrac < con.displayFrac)
 	{

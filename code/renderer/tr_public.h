@@ -70,7 +70,7 @@ typedef struct {
 	void	(*RenderScene)( const refdef_t *fd );
 
 	void	(*SetColor)( const float *rgba );	// NULL = 1,1,1,1
-	void	(*DrawStretchPic) ( float x, float y, float w, float h, 
+	void	(*DrawStretchPic) ( float x, float y, float w, float h,
 		float s1, float t1, float s2, float t2, qhandle_t hShader );	// 0 = white
 
 	// Draw images for cinematic rendering, pass as 32 bit rgba
@@ -86,7 +86,7 @@ typedef struct {
 	int		(*MarkFragments)( int numPoints, const vec3_t *points, const vec3_t projection,
 				   int maxPoints, vec3_t pointBuffer, int maxFragments, markFragment_t *fragmentBuffer );
 
-	int		(*LerpTag)( orientation_t *tag,  qhandle_t model, int startFrame, int endFrame, 
+	int		(*LerpTag)( orientation_t *tag,  qhandle_t model, int startFrame, int endFrame,
 					 float frac, const char *tagName );
 	void	(*ModelBounds)( qhandle_t model, vec3_t mins, vec3_t maxs );
 
@@ -99,6 +99,13 @@ typedef struct {
 	qboolean (*inPVS)( const vec3_t p1, const vec3_t p2 );
 
 	void (*TakeVideoFrame)( int h, int w, byte* captureBuffer, byte *encodeBuffer, qboolean motionJpeg );
+
+	// IneQuation
+	int		(*Text_Width)(fontInfo_t *font, const char *text, int limit, qboolean useColourCodes);
+	int		(*Text_Height)(fontInfo_t *font, const char *text, int limit, qboolean useColourCodes);
+	// Paints a string. The alpha value will be ignored unless useColourCodes is qtrue.
+	void	(*Text_Paint)(fontInfo_t *font, float x, float y, float alpha, const char *text, float adjust, int limit, qboolean useColourCodes);
+	void	(*Text_PaintChar)(fontInfo_t *font, float x, float y, int c);
 } refexport_t;
 
 //

@@ -41,7 +41,7 @@ equ	trap_Key_GetOverstrikeMode				-38
 equ	trap_Key_SetOverstrikeMode				-39
 equ	trap_Key_ClearStates					-40
 equ	trap_Key_GetCatcher						-41
-equ	trap_Key_SetCatcher						-42        
+equ	trap_Key_SetCatcher						-42
 equ	trap_GetClipboardData					-43
 equ	trap_GetGlconfig						-44
 equ	trap_GetClientState						-45
@@ -86,8 +86,12 @@ equ trap_LAN_ServerStatus					-83
 equ trap_LAN_GetServerPing					-84
 equ trap_LAN_ServerIsVisible				-85
 equ trap_LAN_CompareServers					-86
-equ trap_FS_Seek		-87
-equ trap_SetPbClStatus -88
+equ trap_FS_Seek							-87
+equ trap_SetPbClStatus						-88
+equ trap_R_Text_Width						-89
+equ trap_R_Text_Height						-90
+equ trap_R_Text_Paint						-91
+equ trap_R_Text_PaintChar					-92
 
 equ	memset						-101
 equ	memcpy						-102

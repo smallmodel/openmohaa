@@ -49,7 +49,7 @@ void trap_Error( const char *string ) {
 }
 
 int trap_Milliseconds( void ) {
-	return syscall( UI_MILLISECONDS ); 
+	return syscall( UI_MILLISECONDS );
 }
 
 void trap_Cvar_Register( vmCvar_t *cvar, const char *var_name, const char *value, int flags ) {
@@ -79,7 +79,7 @@ void trap_Cvar_SetValue( const char *var_name, float value ) {
 }
 
 void trap_Cvar_Reset( const char *name ) {
-	syscall( UI_CVAR_RESET, name ); 
+	syscall( UI_CVAR_RESET, name );
 }
 
 void trap_Cvar_Create( const char *var_name, const char *var_value, int flags ) {
@@ -362,7 +362,7 @@ int trap_RealTime(qtime_t *qtime) {
 int trap_CIN_PlayCinematic( const char *arg0, int xpos, int ypos, int width, int height, int bits) {
   return syscall(UI_CIN_PLAYCINEMATIC, arg0, xpos, ypos, width, height, bits);
 }
- 
+
 // stops playing the cinematic and ends it.  should always return FMV_EOF
 // cinematics must be stopped in reverse order of when they are started
 e_status trap_CIN_StopCinematic(int handle) {
@@ -374,13 +374,13 @@ e_status trap_CIN_StopCinematic(int handle) {
 e_status trap_CIN_RunCinematic (int handle) {
   return syscall(UI_CIN_RUNCINEMATIC, handle);
 }
- 
+
 
 // draws the current frame
 void trap_CIN_DrawCinematic (int handle) {
   syscall(UI_CIN_DRAWCINEMATIC, handle);
 }
- 
+
 
 // allows you to resize the animation dynamically
 void trap_CIN_SetExtents (int handle, int x, int y, int w, int h) {
@@ -398,4 +398,20 @@ qboolean trap_VerifyCDKey( const char *key, const char *chksum) {
 
 void trap_SetPbClStatus( int status ) {
 	syscall( UI_SET_PBCLSTATUS, status );
+}
+
+int trap_R_Text_Width(fontInfo_t *font, const char *text, int limit, qboolean useColourCodes) {
+	return syscall(UI_R_TEXT_WIDTH, font, text, limit, useColourCodes);
+}
+
+int trap_R_Text_Height(fontInfo_t *font, const char *text, int limit, qboolean useColourCodes) {
+	return syscall(UI_R_TEXT_HEIGHT, font, text, limit, useColourCodes);
+}
+
+void trap_R_Text_Paint(fontInfo_t *font, float x, float y, float alpha, const char *text, int limit, qboolean useColourCodes) {
+	syscall(UI_R_TEXT_PAINT, font, PASSFLOAT(x), PASSFLOAT(y), PASSFLOAT(alpha), text, limit, useColourCodes);
+}
+
+void trap_R_Text_PaintChar(fontInfo_t *font, float x, float y, int c) {
+	syscall(UI_R_TEXT_PAINTCHAR, font, PASSFLOAT(x), PASSFLOAT(y), c);
 }

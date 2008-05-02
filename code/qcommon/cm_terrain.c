@@ -48,7 +48,7 @@ CM_GenerateTerPatchCollide
 */
 struct terPatchCollide_s *CM_GenerateTerPatchCollide(vec3_t origin, byte heightmap[9][9], dshader_t *shader) {
 	int					x, y, tri;
-	vec3_t				farend, points[3], vhmap[81];
+	vec3_t				farend, points[4], vhmap[81], filler;
 	//float				*points[6];
 	terPatchCollide_t	*tc = Hunk_Alloc(sizeof(*tc), h_high);
 
@@ -213,9 +213,9 @@ struct terPatchCollide_s *CM_GenerateTerPatchCollide(vec3_t origin, byte heightm
 	points[2][1] = origin[1] + 512.f;
 	points[2][2] = origin[2] + heightmap[8][8] * 2;
 
-	farend[0] = origin[0] + 512.f;
-	farend[1] = origin[1] + 512.f;
-	farend[2] = origin[2];
+	points[3][0] = origin[0];
+	points[3][1] = origin[1] + 512.f;
+	points[3][2] = origin[2] + heightmap[8][0] * 2;
 
 	// HACK HACK HACK!
 	// this relies on the current layout of cplane_t
@@ -223,24 +223,33 @@ struct terPatchCollide_s *CM_GenerateTerPatchCollide(vec3_t origin, byte heightm
 	tc->tris[0].planes[0].signbits = CM_SignbitsForNormal(tc->tris[0].planes[0].normal);
 	tc->tris[0].planes[0].type = PlaneTypeForNormal(tc->tris[0].planes[0].normal);
 
-	tc->tris[0].planes[1].normal[0] = 0.f;
+	/*tc->tris[0].planes[1].normal[0] = 0.f;
 	tc->tris[0].planes[1].normal[1] = -1.f;
 	tc->tris[0].planes[1].normal[2] = 0.f;
-	tc->tris[0].planes[1].dist = DotProduct(tc->tris[0].planes[1].normal, origin);
+	tc->tris[0].planes[1].dist = DotProduct(tc->tris[0].planes[1].normal, points[0]);*/
+	filler[0] = points[1][0];
+	filler[1] = points[1][1];
+	filler[2] = points[1][2] + 1.f;
+	PlaneFromPoints((float *)tc->tris[0].planes[1].normal, points[2], points[1], filler);
 	tc->tris[0].planes[1].signbits = CM_SignbitsForNormal(tc->tris[0].planes[1].normal);
 	tc->tris[0].planes[1].type = PlaneTypeForNormal(tc->tris[0].planes[1].normal);
 
-	tc->tris[0].planes[2].normal[0] = 1.f;
+	/*tc->tris[0].planes[2].normal[0] = 1.f;
 	tc->tris[0].planes[2].normal[1] = 0.f;
 	tc->tris[0].planes[2].normal[2] = 0.f;
-	tc->tris[0].planes[2].dist = DotProduct(tc->tris[0].planes[2].normal, farend);
+	tc->tris[0].planes[2].dist = DotProduct(tc->tris[0].planes[2].normal, points[2]);*/
+	PlaneFromPoints((float *)tc->tris[0].planes[2].normal, points[1], points[0], filler);
 	tc->tris[0].planes[2].signbits = CM_SignbitsForNormal(tc->tris[0].planes[2].normal);
 	tc->tris[0].planes[2].type = PlaneTypeForNormal(tc->tris[0].planes[2].normal);
 
-	tc->tris[0].planes[3].normal[0] = -M_SQRT1_2;
+	/*tc->tris[0].planes[3].normal[0] = -M_SQRT1_2;
 	tc->tris[0].planes[3].normal[1] = M_SQRT1_2;
 	tc->tris[0].planes[3].normal[2] = 0.f;
-	tc->tris[0].planes[3].dist = DotProduct(tc->tris[0].planes[3].normal, origin);
+	tc->tris[0].planes[3].dist = DotProduct(tc->tris[0].planes[3].normal, points[0]);*/
+	filler[0] = points[2][0];
+	filler[1] = points[2][1];
+	filler[2] = points[2][2] + 1.f;
+	PlaneFromPoints((float *)tc->tris[0].planes[3].normal, points[0], points[2], filler);
 	tc->tris[0].planes[3].signbits = CM_SignbitsForNormal(tc->tris[0].planes[3].normal);
 	tc->tris[0].planes[3].type = PlaneTypeForNormal(tc->tris[0].planes[3].normal);
 
@@ -248,34 +257,36 @@ struct terPatchCollide_s *CM_GenerateTerPatchCollide(vec3_t origin, byte heightm
 	tc->tris[0].planes[4].dist = -tc->tris[0].planes[0].dist + 16/*SURFACE_CLIP_EPSILON*/;
 	tc->tris[0].planes[4].signbits = CM_SignbitsForNormal(tc->tris[0].planes[4].normal);
 
-	points[1][0] = origin[0];
-	points[1][1] = origin[0] + 512.f;
-	points[1][2] = origin[2] + heightmap[8][0] * 2;
-
 	// HACK HACK HACK!
 	// this relies on the current layout of cplane_t
-	PlaneFromPoints((float *)tc->tris[1].planes[0].normal, points[0], points[1], points[2]);
+	PlaneFromPoints((float *)tc->tris[1].planes[0].normal, points[0], points[3], points[2]);
 	tc->tris[1].planes[0].signbits = CM_SignbitsForNormal(tc->tris[1].planes[0].normal);
 	tc->tris[1].planes[0].type = PlaneTypeForNormal(tc->tris[1].planes[0].normal);
 
-	tc->tris[1].planes[1].normal[0] = -1.f;
+	/*tc->tris[1].planes[1].normal[0] = -1.f;
 	tc->tris[1].planes[1].normal[1] = 0.f;
 	tc->tris[1].planes[1].normal[2] = 0.f;
-	tc->tris[1].planes[1].dist = DotProduct(tc->tris[1].planes[1].normal, origin);
+	tc->tris[1].planes[1].dist = DotProduct(tc->tris[1].planes[1].normal, points[0]);*/
+	PlaneFromPoints((float *)tc->tris[1].planes[1].normal, points[2], points[0], filler);
 	tc->tris[1].planes[1].signbits = CM_SignbitsForNormal(tc->tris[1].planes[1].normal);
 	tc->tris[1].planes[1].type = PlaneTypeForNormal(tc->tris[1].planes[1].normal);
 
-	tc->tris[1].planes[2].normal[0] = 0.f;
+	/*tc->tris[1].planes[2].normal[0] = 0.f;
 	tc->tris[1].planes[2].normal[1] = 1.f;
 	tc->tris[1].planes[2].normal[2] = 0.f;
-	tc->tris[1].planes[2].dist = DotProduct(tc->tris[1].planes[2].normal, farend);
+	tc->tris[1].planes[2].dist = DotProduct(tc->tris[1].planes[2].normal, points[2]);*/
+	PlaneFromPoints((float *)tc->tris[1].planes[2].normal, points[3], points[2], filler);
 	tc->tris[1].planes[2].signbits = CM_SignbitsForNormal(tc->tris[1].planes[2].normal);
 	tc->tris[1].planes[2].type = PlaneTypeForNormal(tc->tris[1].planes[2].normal);
 
-	tc->tris[1].planes[3].normal[0] = M_SQRT1_2;
+	/*tc->tris[1].planes[3].normal[0] = M_SQRT1_2;
 	tc->tris[1].planes[3].normal[1] = -M_SQRT1_2;
 	tc->tris[1].planes[3].normal[2] = 0.f;
-	tc->tris[1].planes[3].dist = DotProduct(tc->tris[1].planes[3].normal, origin);
+	tc->tris[1].planes[3].dist = DotProduct(tc->tris[1].planes[3].normal, points[0]);*/
+	filler[0] = points[3][0];
+	filler[1] = points[3][1];
+	filler[2] = points[3][2] + 1.f;
+	PlaneFromPoints((float *)tc->tris[1].planes[3].normal, points[0], points[3], filler);
 	tc->tris[1].planes[3].signbits = CM_SignbitsForNormal(tc->tris[1].planes[3].normal);
 	tc->tris[1].planes[3].type = PlaneTypeForNormal(tc->tris[1].planes[3].normal);
 
@@ -302,7 +313,7 @@ void CM_TracePointThroughTerPatchCollide(traceWork_t *tw, const struct terPatchC
 	if (!tw->isPoint)
 		return;
 
-	for (i = 0; i < sizeof(tc->tris) / sizeof(tc->tris[0]); i++) {
+	for (i = 0; i < TER_TRIS_PER_PATCH; i++) {
 		getout = startout = qfalse;
 
 		d1 = DotProduct(tw->start, tc->tris[i].planes[0].normal) - tc->tris[i].planes[0].dist;
@@ -377,7 +388,7 @@ void CM_TraceThroughTerTriangle(traceWork_t *tw, const cplane_t planes[5]) {
 		// find the latest time the trace crosses a plane towards the interior
 		// and the earliest time the trace crosses a plane towards the exterior
 		//
-		for (i = 0; i < 5; i++) {
+		for (i = 0; i < TER_PLANES_PER_TRI; i++) {
 			// adjust the plane distance apropriately for radius
 			dist = planes[i].dist + tw->sphere.radius;
 
@@ -430,7 +441,7 @@ void CM_TraceThroughTerTriangle(traceWork_t *tw, const cplane_t planes[5]) {
 		// find the latest time the trace crosses a plane towards the interior
 		// and the earliest time the trace crosses a plane towards the exterior
 		//
-		for (i = 0; i < 5; i++) {
+		for (i = 0; i < TER_PLANES_PER_TRI; i++) {
 			// adjust the plane distance apropriately for mins/maxs
 			dist = planes[i].dist - DotProduct(tw->offsets[ planes[i].signbits ], planes[i].normal);
 
@@ -516,13 +527,15 @@ void CM_TraceThroughTerPatchCollide(traceWork_t *tw, const struct terPatchCollid
 		return;
 	}
 
-	for (i = 0; i < sizeof(tc->tris) / sizeof(tc->tris[0]); i++) {
+	for (i = 0; i < TER_TRIS_PER_PATCH; i++) {
 		origFrac = tw->trace.fraction;
 		CM_TraceThroughTerTriangle(tw, tc->tris[i].planes);
 		if (tw->trace.fraction != origFrac) {
 			tw->trace.surfaceFlags = tc->shader->surfaceFlags;
 			tw->trace.contents = tc->shader->contentFlags;
 		}
+		if (!tw->trace.fraction)
+			return;
 	}
 }
 
@@ -541,9 +554,9 @@ void CM_PositionTestInTerPatchCollide(traceWork_t *tw, const struct terPatchColl
 	if (!(tc->shader->contentFlags & tw->contents) || tw->isPoint)	// terrain has no volume
 		return;
 
-	for (i = 0; i < sizeof(tc->tris) / sizeof(tc->tris[0]); i++) {
+	for (i = 0; i < TER_TRIS_PER_PATCH; i++) {
 		if (tw->sphere.use) {
-			for (j = 0; j < 5; j++) {
+			for (j = 0; j < TER_PLANES_PER_TRI; j++) {
 				// adjust the plane distance apropriately for radius
 				dist = tc->tris[i].planes[j].dist + tw->sphere.radius;
 				// find the closest point on the capsule to the plane
@@ -558,7 +571,7 @@ void CM_PositionTestInTerPatchCollide(traceWork_t *tw, const struct terPatchColl
 					return;
 			}
 		} else {
-			for (j = 0; j < 5; j++) {
+			for (j = 0; j < TER_PLANES_PER_TRI; j++) {
 				// adjust the plane distance apropriately for mins/maxs
 				dist = tc->tris[i].planes[j].dist - DotProduct(tw->offsets[ tc->tris[i].planes[j].signbits ], tc->tris[i].planes[j].normal);
 

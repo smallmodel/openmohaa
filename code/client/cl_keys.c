@@ -73,7 +73,7 @@ keyname_t keynames[] =
 
 	{"CAPSLOCK", K_CAPSLOCK},
 
-	
+
 	{"F1", K_F1},
 	{"F2", K_F2},
 	{"F3", K_F3},
@@ -176,7 +176,7 @@ keyname_t keynames[] =
 	{"KP_EQUALS",		K_KP_EQUALS },
 
 	{"PAUSE", K_PAUSE},
-	
+
 	{"SEMICOLON", ';'},	// because a raw semicolon seperates commands
 
 	{"WORLD_0", K_WORLD_0},
@@ -309,7 +309,7 @@ Handles horizontal scrolling and cursor blinking
 x, y, and width are in pixels
 ===================
 */
-void Field_VariableSizeDraw( field_t *edit, int x, int y, int width, int size, qboolean showCursor,
+void Field_VariableSizeDraw(fontInfo_t *font, field_t *edit, int x, int y, int width, qboolean showCursor,
 		qboolean noColorEscape ) {
 	int		len;
 	int		drawLen;
@@ -347,7 +347,7 @@ void Field_VariableSizeDraw( field_t *edit, int x, int y, int width, int size, q
 	str[ drawLen ] = 0;
 
 	// draw it
-	if ( size == SMALLCHAR_WIDTH ) {
+	/*if ( size == SMALLCHAR_WIDTH ) {
 		float	color[4];
 
 		color[0] = color[1] = color[2] = color[3] = 1.0;
@@ -355,7 +355,8 @@ void Field_VariableSizeDraw( field_t *edit, int x, int y, int width, int size, q
 	} else {
 		// draw big string with drop shadow
 		SCR_DrawBigString( x, y, str, 1.0, noColorEscape );
-	}
+	}*/
+	re.Text_Paint(font, x, y, 1.0, str, 0, 0, !noColorEscape);
 
 	// draw the cursor
 	if ( showCursor ) {
@@ -364,32 +365,35 @@ void Field_VariableSizeDraw( field_t *edit, int x, int y, int width, int size, q
 		}
 
 		if ( key_overstrikeMode ) {
-			cursorChar = 11;
+			cursorChar = '|';
 		} else {
-			cursorChar = 10;
+			cursorChar = '_';
 		}
 
 		i = drawLen - strlen( str );
 
-		if ( size == SMALLCHAR_WIDTH ) {
+		/*if ( size == SMALLCHAR_WIDTH ) {
 			SCR_DrawSmallChar( x + ( edit->cursor - prestep - i ) * size, y, cursorChar );
 		} else {
 			str[0] = cursorChar;
 			str[1] = 0;
 			SCR_DrawBigString( x + ( edit->cursor - prestep - i ) * size, y, str, 1.0, qfalse );
 
-		}
+		}*/
+		str[edit->cursor - prestep - i - 1] = cursorChar;
+		str[edit->cursor - prestep - i] = 0;
+		re.Text_PaintChar(&cls.consoleFont, x + re.Text_Width(&cls.consoleFont, str, 0, !noColorEscape), y, cursorChar);
 	}
 }
 
-void Field_Draw( field_t *edit, int x, int y, int width, qboolean showCursor, qboolean noColorEscape ) 
+void Field_Draw(fontInfo_t *font, field_t *edit, int x, int y, int width, qboolean showCursor, qboolean noColorEscape )
 {
-	Field_VariableSizeDraw( edit, x, y, width, SMALLCHAR_WIDTH, showCursor, noColorEscape );
+	Field_VariableSizeDraw(font, edit, x, y, width, showCursor, noColorEscape );
 }
 
-void Field_BigDraw( field_t *edit, int x, int y, int width, qboolean showCursor, qboolean noColorEscape ) 
+void Field_BigDraw(fontInfo_t *font, field_t *edit, int x, int y, int width, qboolean showCursor, qboolean noColorEscape )
 {
-	Field_VariableSizeDraw( edit, x, y, width, BIGCHAR_WIDTH, showCursor, noColorEscape );
+	Field_VariableSizeDraw(font, edit, x, y, width, showCursor, noColorEscape );
 }
 
 /*
@@ -441,7 +445,7 @@ void Field_KeyDownEvent( field_t *edit, int key ) {
 	switch ( key ) {
 		case K_DEL:
 			if ( edit->cursor < len ) {
-				memmove( edit->buffer + edit->cursor, 
+				memmove( edit->buffer + edit->cursor,
 					edit->buffer + edit->cursor + 1, len - edit->cursor );
 			}
 			break;
@@ -504,7 +508,7 @@ void Field_CharEvent( field_t *edit, int ch ) {
 
 	if ( ch == 'h' - 'a' + 1 )	{	// ctrl-h is backspace
 		if ( edit->cursor > 0 ) {
-			memmove( edit->buffer + edit->cursor - 1, 
+			memmove( edit->buffer + edit->cursor - 1,
 				edit->buffer + edit->cursor, len + 1 - edit->cursor );
 			edit->cursor--;
 			if ( edit->cursor < edit->scroll )
@@ -534,7 +538,7 @@ void Field_CharEvent( field_t *edit, int ch ) {
 		return;
 	}
 
-	if ( key_overstrikeMode ) {	
+	if ( key_overstrikeMode ) {
 		if ( edit->cursor == MAX_EDIT_LINE - 1 )
 			return;
 		edit->buffer[edit->cursor] = ch;
@@ -543,7 +547,7 @@ void Field_CharEvent( field_t *edit, int ch ) {
 		if ( len == MAX_EDIT_LINE - 1 ) {
 			return; // all full
 		}
-		memmove( edit->buffer + edit->cursor + 1, 
+		memmove( edit->buffer + edit->cursor + 1,
 			edit->buffer + edit->cursor, len + 1 - edit->cursor );
 		edit->buffer[edit->cursor] = ch;
 		edit->cursor++;
@@ -584,7 +588,7 @@ void Console_Key (int key) {
 	// enter finishes the line
 	if ( key == K_ENTER || key == K_KP_ENTER ) {
 		// if not in the game explicitly prepend a slash if needed
-		if ( cls.state != CA_ACTIVE && g_consoleField.buffer[0] != '\\' 
+		if ( cls.state != CA_ACTIVE && g_consoleField.buffer[0] != '\\'
 			&& g_consoleField.buffer[0] != '/' ) {
 			char	temp[MAX_EDIT_LINE-1];
 
@@ -638,7 +642,7 @@ void Console_Key (int key) {
 
 	if ( (key == K_MWHEELUP && keys[K_SHIFT].down) || ( key == K_UPARROW ) || ( key == K_KP_UPARROW ) ||
 		 ( ( tolower(key) == 'p' ) && keys[K_CTRL].down ) ) {
-		if ( nextHistoryLine - historyLine < COMMAND_HISTORY 
+		if ( nextHistoryLine - historyLine < COMMAND_HISTORY
 			&& historyLine > 0 ) {
 			historyLine--;
 		}
@@ -792,7 +796,7 @@ to be configured even if they don't have defined names.
 */
 int Key_StringToKeynum( char *str ) {
 	keyname_t	*kn;
-	
+
 	if ( !str || !str[0] ) {
 		return -1;
 	}
@@ -803,7 +807,7 @@ int Key_StringToKeynum( char *str ) {
 	// check for hex code
 	if ( str[0] == '0' && str[1] == 'x' && strlen( str ) == 4) {
 		int		n1, n2;
-		
+
 		n1 = str[2];
 		if ( n1 >= '0' && n1 <= '9' ) {
 			n1 -= '0';
@@ -843,7 +847,7 @@ given keynum.
 ===================
 */
 char *Key_KeynumToString( int keynum ) {
-	keyname_t	*kn;	
+	keyname_t	*kn;
 	static	char	tinystr[5];
 	int			i, j;
 
@@ -897,7 +901,7 @@ void Key_SetBinding( int keynum, const char *binding ) {
 	if ( keys[ keynum ].binding ) {
 		Z_Free( keys[ keynum ].binding );
 	}
-		
+
 	// allocate memory for new binding
 	keys[keynum].binding = CopyString( binding );
 
@@ -920,7 +924,7 @@ char *Key_GetBinding( int keynum ) {
 	return keys[ keynum ].binding;
 }
 
-/* 
+/*
 ===================
 Key_GetKey
 ===================
@@ -953,7 +957,7 @@ void Key_Unbind_f (void)
 		Com_Printf ("unbind <key> : remove commands from a key\n");
 		return;
 	}
-	
+
 	b = Key_StringToKeynum (Cmd_Argv(1));
 	if (b==-1)
 	{
@@ -972,7 +976,7 @@ Key_Unbindall_f
 void Key_Unbindall_f (void)
 {
 	int		i;
-	
+
 	for (i=0 ; i < MAX_KEYS; i++)
 		if (keys[i].binding)
 			Key_SetBinding (i, "");
@@ -988,7 +992,7 @@ void Key_Bind_f (void)
 {
 	int			i, c, b;
 	char		cmd[1024];
-	
+
 	c = Cmd_Argc();
 
 	if (c < 2)
@@ -1011,7 +1015,7 @@ void Key_Bind_f (void)
 			Com_Printf ("\"%s\" is not bound\n", Cmd_Argv(1) );
 		return;
 	}
-	
+
 // copy the rest of the command line
 	cmd[0] = 0;		// start out with a null string
 	for (i=2 ; i< c ; i++)
@@ -1255,11 +1259,11 @@ void CL_KeyEvent (int key, qboolean down, unsigned time) {
 	} else if ( Key_GetCatcher( ) & KEYCATCH_UI ) {
 		if ( uivm ) {
 			VM_Call( uivm, UI_KEY_EVENT, key, down );
-		} 
+		}
 	} else if ( Key_GetCatcher( ) & KEYCATCH_CGAME ) {
 		if ( cgvm ) {
 			VM_Call( cgvm, CG_KEY_EVENT, key, down );
-		} 
+		}
 	} else if ( Key_GetCatcher( ) & KEYCATCH_MESSAGE ) {
 		Message_Key( key );
 	} else if ( cls.state == CA_DISCONNECTED ) {
@@ -1336,7 +1340,7 @@ void CL_CharEvent( int key ) {
 	{
 		VM_Call( uivm, UI_KEY_EVENT, key | K_CHAR_FLAG, qtrue );
 	}
-	else if ( Key_GetCatcher( ) & KEYCATCH_MESSAGE ) 
+	else if ( Key_GetCatcher( ) & KEYCATCH_MESSAGE )
 	{
 		Field_CharEvent( &chatField, key );
 	}
