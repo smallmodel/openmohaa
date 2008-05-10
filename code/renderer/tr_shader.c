@@ -575,6 +575,21 @@ static void ParseTexMod( char *_text, shaderStage_t *stage )
 	{
 		tmi->type = TMOD_ENTITY_TRANSLATE;
 	}
+	//
+	// IneQuation: wavetrant (WTF is this?)
+	//
+	else if (!Q_stricmp(token, "wavetrant")) {
+		ri.Printf(PRINT_ALL, "FIXME: ParseTexMod: stub tcMod wavetrant!!!\n");
+		// TODO
+		//tmi->type = TMOD_WAVETRANT;
+		//ParseWaveForm(text, &tmi->wavetrant);
+		// for now just skip those 5 tokens
+		token = COM_ParseExt(text, qfalse);
+		token = COM_ParseExt(text, qfalse);
+		token = COM_ParseExt(text, qfalse);
+		token = COM_ParseExt(text, qfalse);
+		token = COM_ParseExt(text, qfalse);
+	}
 	else
 	{
 		ri.Printf( PRINT_WARNING, "WARNING: unknown tcMod '%s' in shader '%s'\n", token, shader.name );
@@ -660,7 +675,7 @@ static qboolean ParseStage( shaderStage_t *stage, char **text )
 		//
 		// clampmap <name>
 		//
-		else if ( !Q_stricmp( token, "clampmap" ) )
+		else if ( !Q_stricmp( token, "clampmap" ) || !Q_stricmp( token, "clampmapy" ) )	// IneQuation: I know it's silly, but it fixes the shingle texture on Omaha
 		{
 			token = COM_ParseExt( text, qfalse );
 			if ( !token[0] )
@@ -951,6 +966,88 @@ static qboolean ParseStage( shaderStage_t *stage, char **text )
 					shader.portalRange = atof( token );
 				}
 			}
+			// IneQuation: more alpha generation methods from FAKK2
+			else if (!Q_stricmp(token, "dot"))
+			{
+				ri.Printf(PRINT_ALL, "FIXME: ParseStage: stub alphaGen dot!!!\n");
+				// TODO
+				//stage->alphaGen = AGEN_DOT;
+				token = COM_ParseExt(text, qfalse);
+				if (token[0] == 0) {
+					//shader.agenDotMin = 0.f;
+					//shader.agenDotMax = 1.f;
+					ri.Printf(PRINT_WARNING, "WARNING: missing range params for alphaGen dot in shader '%s', defaulting to 0..1\n", shader.name);
+				}
+				/*else
+					shader.agenDotMin = atof(token);*/
+				token = COM_ParseExt(text, qfalse);
+				if (token[0] == 0) {
+					//shader.agenDotMin = 0.f;
+					//shader.agenDotMax = 1.f;
+					ri.Printf(PRINT_WARNING, "WARNING: missing range params for alphaGen dot in shader '%s', defaulting to 0..1\n", shader.name);
+				}
+				/*else
+					shader.agenDotMax = atof(token);*/
+			}
+			else if (!Q_stricmp(token, "oneMinusDot"))
+			{
+				ri.Printf(PRINT_ALL, "FIXME: ParseStage: stub alphaGen oneMinusDot!!!\n");
+				// TODO
+				//stage->alphaGen = AGEN_ONE_MINUS_DOT;
+				token = COM_ParseExt(text, qfalse);
+				if (token[0] == 0) {
+					//shader.agenDotMin = 0.f;
+					//shader.agenDotMax = 1.f;
+					ri.Printf(PRINT_WARNING, "WARNING: missing range params for alphaGen oneMinusDot in shader '%s', defaulting to 0..1\n", shader.name);
+				}
+				/*else
+					shader.agenDotMin = atof(token);*/
+				token = COM_ParseExt(text, qfalse);
+				if (token[0] == 0) {
+					//shader.agenDotMin = 0.f;
+					//shader.agenDotMax = 1.f;
+					ri.Printf(PRINT_WARNING, "WARNING: missing range params for alphaGen oneMinusDot in shader '%s', defaulting to 0..1\n", shader.name);
+				}
+				/*else
+					shader.agenDotMax = atof(token);*/
+			}
+			else if (!Q_stricmp(token, "skyAlpha"))
+			{
+				ri.Printf(PRINT_ALL, "FIXME: ParseStage: stub alphaGen skyAlpha!!!\n");
+				// TODO
+				//stage->alphaGen = AGEN_SKYALPHA;
+			}
+			else if (!Q_stricmp(token, "oneMinusSkyAlpha"))
+			{
+				ri.Printf(PRINT_ALL, "FIXME: ParseStage: stub alphaGen oneMinusSkyAlpha!!!\n");
+				// TODO
+				//stage->alphaGen = AGEN_ONE_MINUS_SKYALPHA;
+			}
+			// this one seems to have been introduced in MoHAA
+			else if (!Q_stricmp(token, "tCoord"))
+			{
+				ri.Printf(PRINT_ALL, "FIXME: ParseStage: stub alphaGen tCoord!!!\n");
+				// TODO
+				//stage->alphaGen = AGEN_TCOORD;
+
+				token = COM_ParseExt(text, qfalse);
+				if (token[0] == 0) {
+					//shader.tCoordS = 0.f;
+					//shader.tCoordT = 1.f;
+					ri.Printf(PRINT_WARNING, "WARNING: missing range params for alphaGen tCoord in shader '%s', defaulting to 0..1\n", shader.name);
+				}
+				/*else
+					shader.tCoordS = atof(token);*/
+
+				token = COM_ParseExt(text, qfalse);
+				if (token[0] == 0) {
+					//shader.tCoordS = 0.f;
+					//shader.tCoordT = 1.f;
+					ri.Printf(PRINT_WARNING, "WARNING: missing range params for alphaGen tCoord in shader '%s', defaulting to 0..1\n", shader.name);
+				}
+				/*else
+					shader.tCoordT = atof(token);*/
+			}
 			else
 			{
 				ri.Printf( PRINT_WARNING, "WARNING: unknown alphaGen parameter '%s' in shader '%s'\n", token, shader.name );
@@ -1023,16 +1120,25 @@ static qboolean ParseStage( shaderStage_t *stage, char **text )
 
 			continue;
 		}
-		//
-		// IneQuation: nextbundle
-		//
+		// IneQuation: nextbundle implementation
 		else if ( !Q_stricmp( token, "nextbundle" ) )
 		{
 			bundleNum++;
 			if (bundleNum >= NUM_TEXTURE_BUNDLES) {
-				ri.Printf(PRINT_WARNING, "WARNING: too many texture bundles ind shader '%s'\n", shader.name);
+				ri.Printf(PRINT_WARNING, "WARNING: too many texture bundles in shader '%s'\n", shader.name);
 				return qfalse;
 			}
+			continue;
+		}
+		// IneQuation: this is not supposed to be here as it is a general shader param, but its absence breaks the Omaha water texture
+		else if (!Q_stricmp(token, "nopicmip"))
+		{
+			shader.noPicMip = qtrue;
+			continue;
+		}
+		// whether this shader param will be supported or not remains to be seen
+		else if (!Q_stricmp(token, "noDepthTest"))
+		{
 			continue;
 		}
 		else
@@ -1233,6 +1339,61 @@ static void ParseDeform( char **text ) {
 
 		ParseWaveForm( text, &ds->deformationWave );
 		ds->deformation = DEFORM_MOVE;
+		return;
+	}
+
+	// IneQuation: flap seems to be a more elaborate version of wave, but I'm not perfectly sure of that
+	if (!Q_stricmp(token, "flap")) {
+		ri.Printf(PRINT_ALL, "FIXME: ParseDeform: stub deformVertexes flap!!!\n");
+
+		token = COM_ParseExt(text, qfalse);
+		if (token[0] == 0) {
+			ri.Printf(PRINT_WARNING, "WARNING: missing deformVertexes parm in shader '%s'\n", shader.name);
+			return;
+		}
+		if (token[0] == 's') {
+			// TODO
+			//ds->flapType = FLAP_S;
+		} else if (token[0] == 't') {
+			// TODO
+			//ds->flapType = FLAP_T;
+		} else {
+			ri.Printf(PRINT_WARNING, "WARNING: unknown flap parm '%s' in shader '%s'\n", token, shader.name);
+			return;
+		}
+
+		token = COM_ParseExt(text, qfalse);
+		if (token[0] == 0) {
+			ri.Printf(PRINT_WARNING, "WARNING: missing deformVertexes parm in shader '%s'\n", shader.name);
+			return;
+		}
+		// TODO
+		// what the hell is this? tesselation/subdivision size?
+		//ds->flapSize = atof(token);
+
+		// what follows is apparently a waveform
+		ParseWaveForm(text, &ds->deformationWave);
+
+		// and WTF are these 2?
+		token = COM_ParseExt(text, qfalse);
+		if (token[0] == 0) {
+			ri.Printf(PRINT_WARNING, "WARNING: missing deformVertexes parm in shader '%s'\n", shader.name);
+			return;
+		}
+		// TODO
+		//ds->flapMin = atof(token);
+
+		token = COM_ParseExt(text, qfalse);
+		if (token[0] == 0) {
+			ri.Printf(PRINT_WARNING, "WARNING: missing deformVertexes parm in shader '%s'\n", shader.name);
+			return;
+		}
+		// TODO
+		//ds->flapMin = atof(token);
+
+		// this is temporary until we figure out the meaning of what flap actually does
+		ds->deformation = DEFORM_WAVE;
+		//ds->deformation = DEFORM_FLAP;
 		return;
 	}
 
@@ -1634,6 +1795,11 @@ static qboolean ParseShader( char **text )
 			{
 				shader.cullType = CT_BACK_SIDED;
 			}
+			// IneQuation: some MoHAA shaders explicitly declare front
+			else if (!Q_stricmp(token, "front") || !Q_stricmp(token, "frontside") || !Q_stricmp(token, "frontsided"))
+			{
+				shader.cullType = CT_FRONT_SIDED;
+			}
 			else
 			{
 				ri.Printf( PRINT_WARNING, "WARNING: invalid cull parm '%s' in shader '%s'\n", token, shader.name );
@@ -1645,6 +1811,41 @@ static qboolean ParseShader( char **text )
 		{
 			ParseSort( text );
 			continue;
+		}
+		// IneQuation: some general shader parms introduced in FAKK2
+		else if (!Q_stricmp(token, "spriteGen"))
+		{
+			ri.Printf(PRINT_ALL, "FIXME: ParseShader: spriteGen stub!!!\n");
+			token = COM_ParseExt(text, qfalse);
+			if (!token[0]) {
+				ri.Printf(PRINT_WARNING, "WARNING: missing spriteGen parms in shader '%s'\n", shader.name);
+				continue;
+			}
+			if (!Q_stricmp(token, "parallel")) {
+				// TODO
+				// shader.spriteGen = SG_PARALLEL;
+			} else if (!Q_stricmp(token, "parallel_oriented")) {
+				// TODO
+				// shader.spriteGen = SG_PARALLEL_ORIENTED;
+			} else if (!Q_stricmp(token, "parallel_upright")) {
+				// TODO
+				// shader.spriteGen = SG_PARALLEL_UPRIGHT;
+			} else if (!Q_stricmp(token, "oriented")) {
+				// TODO
+				// shader.spriteGen = SG_ORIENTED;
+			} else
+				ri.Printf(PRINT_WARNING, "WARNING: invalid spriteGen parm '%s' in shader '%s'\n", token, shader.name);
+			continue;
+		}
+		else if (!Q_stricmp(token, "spriteScale")) {
+			ri.Printf(PRINT_ALL, "FIXME: ParseShader: spriteScale stub!!!\n");
+			token = COM_ParseExt(text, qfalse);
+			if (!token[0]) {
+				ri.Printf(PRINT_WARNING, "WARNING: missing spriteScale parm in shader '%s'\n", shader.name);
+				continue;
+			}
+			// TODO
+			// shader.spriteScale = atof(token);
 		}
 		else
 		{

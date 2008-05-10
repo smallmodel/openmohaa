@@ -227,7 +227,7 @@ typedef struct {
 	float frequency;
 } waveForm_t;
 
-#define TR_MAX_TEXMODS 4
+#define TR_MAX_TEXMODS 8	// IneQuation: increased for MoHAA compatibility
 
 typedef enum {
 	TMOD_NONE,
@@ -1710,7 +1710,7 @@ void RE_RegisterFont(const char *fontName, int pointSize, fontInfo_t *font);
 // IneQuation: string drawing
 int RE_Text_Width(fontInfo_t *font, const char *text, int limit, qboolean useColourCodes);
 int RE_Text_Height(fontInfo_t *font, const char *text, int limit, qboolean useColourCodes);
-void RE_Text_Paint(fontInfo_t *font, float x, float y, float alpha, const char *text, float adjust, int limit, qboolean useColourCodes);
-void RE_Text_PaintChar(fontInfo_t *font, float x, float y, int c);
+void RE_Text_Paint(fontInfo_t *font, float x, float y, float scale, float alpha, const char *text, float adjust, int limit, qboolean useColourCodes);
+void RE_Text_PaintChar(fontInfo_t *font, float x, float y, float scale, int c);
 
 #endif //TR_LOCAL_H

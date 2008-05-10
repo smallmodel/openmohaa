@@ -740,7 +740,7 @@ RE_Text_PaintChar
 ===================
 Paints a single character.
 */
-void RE_Text_PaintChar(fontInfo_t *font, float x, float y, int c) {
+void RE_Text_PaintChar(fontInfo_t *font, float x, float y, float scale, int c) {
 	glyphInfo_t *glyph;
 
 	glyph = &font->glyphs[c];
@@ -749,8 +749,8 @@ void RE_Text_PaintChar(fontInfo_t *font, float x, float y, int c) {
 		ri.Printf(PRINT_WARNING, "RE_Text_PaintChar: no #%d character in font %s!\n", (int)c, font->name);
 	}
 	RE_StretchPic(x, y - font->glyphScale * glyph->top,
-		glyph->imageWidth * font->glyphScale,
-		glyph->imageHeight * font->glyphScale,
+		glyph->imageWidth * font->glyphScale * scale,
+		glyph->imageHeight * font->glyphScale * scale,
 		glyph->s,
 		glyph->t,
 		glyph->s2,
@@ -764,7 +764,7 @@ RE_Text_Paint
 ===================
 Paints a string. The alpha value will be ignored unless useColourCodes is qtrue.
 */
-void RE_Text_Paint(fontInfo_t *font, float x, float y, float alpha, const char *text, float adjust, int limit, qboolean useColourCodes) {
+void RE_Text_Paint(fontInfo_t *font, float x, float y, float scale, float alpha, const char *text, float adjust, int limit, qboolean useColourCodes) {
 	int len, count;
 	vec4_t newColor;
 	glyphInfo_t *glyph;
@@ -790,7 +790,7 @@ void RE_Text_Paint(fontInfo_t *font, float x, float y, float alpha, const char *
 				s += 2;
 				continue;
 			} else {
-				float yadj = font->glyphScale * glyph->top;
+				float yadj = font->glyphScale * scale * glyph->top;
 				/*if (style == ITEM_TEXTSTYLE_SHADOWED || style == ITEM_TEXTSTYLE_SHADOWEDMORE) {
 					int ofs = style == ITEM_TEXTSTYLE_SHADOWED ? 1 : 2;
 					colorBlack[3] = newColor[3];
@@ -807,14 +807,14 @@ void RE_Text_Paint(fontInfo_t *font, float x, float y, float alpha, const char *
 					RE_SetColor( newColor );
 				}*/
 				RE_StretchPic(x, y - yadj,
-					glyph->imageWidth * font->glyphScale,
-					glyph->imageHeight * font->glyphScale,
+					glyph->imageWidth * font->glyphScale * scale,
+					glyph->imageHeight * font->glyphScale * scale,
 					glyph->s,
 					glyph->t,
 					glyph->s2,
 					glyph->t2,
 					glyph->glyph);
-				x += (glyph->xSkip * font->glyphScale) + adjust;
+				x += (glyph->xSkip * font->glyphScale * scale) + adjust;
 				s++;
 				count++;
 			}

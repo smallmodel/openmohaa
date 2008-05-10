@@ -408,10 +408,10 @@ int trap_R_Text_Height(fontInfo_t *font, const char *text, int limit, qboolean u
 	return syscall(UI_R_TEXT_HEIGHT, font, text, limit, useColourCodes);
 }
 
-void trap_R_Text_Paint(fontInfo_t *font, float x, float y, float alpha, const char *text, int limit, qboolean useColourCodes) {
+void trap_R_Text_Paint(fontInfo_t *font, float x, float y, float scale, float alpha, const char *text, int limit, qboolean useColourCodes) {
 	syscall(UI_R_TEXT_PAINT, font, PASSFLOAT(x), PASSFLOAT(y), PASSFLOAT(alpha), text, limit, useColourCodes);
 }
 
-void trap_R_Text_PaintChar(fontInfo_t *font, float x, float y, int c) {
+void trap_R_Text_PaintChar(fontInfo_t *font, float x, float y, float scale, int c) {
 	syscall(UI_R_TEXT_PAINTCHAR, font, PASSFLOAT(x), PASSFLOAT(y), c);
 }

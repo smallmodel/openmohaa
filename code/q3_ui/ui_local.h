@@ -686,8 +686,8 @@ void			trap_SetPbClStatus( int status );
 // IneQuation
 int				trap_R_Text_Width(fontInfo_t *font, const char *text, int limit, qboolean useColourCodes);
 int				trap_R_Text_Height(fontInfo_t *font, const char *text, int limit, qboolean useColourCodes);
-void			trap_R_Text_Paint(fontInfo_t *font, float x, float y, float alpha, const char *text, int limit, qboolean useColourCodes);
-void			trap_R_Text_PaintChar(fontInfo_t *font, float x, float y, int c);
+void			trap_R_Text_Paint(fontInfo_t *font, float x, float y, float scale, float alpha, const char *text, int limit, qboolean useColourCodes);
+void			trap_R_Text_PaintChar(fontInfo_t *font, float x, float y, float scale, int c);
 
 //
 // ui_addbots.c

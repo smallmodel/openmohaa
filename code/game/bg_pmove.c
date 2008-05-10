@@ -1555,16 +1555,17 @@ static void PM_Weapon( void ) {
 	}
 
 	// check for item using
-	if ( pm->cmd.buttons & BUTTON_USE_HOLDABLE ) {
+	if ( pm->cmd.buttons & BUTTON_USE ) {
 		if ( ! ( pm->ps->pm_flags & PMF_USE_ITEM_HELD ) ) {
-			if ( bg_itemlist[pm->ps->stats[STAT_HOLDABLE_ITEM]].giTag == HI_MEDKIT
+			// IneQuation
+			/*if ( bg_itemlist[pm->ps->stats[STAT_HOLDABLE_ITEM]].giTag == HI_MEDKIT
 				&& pm->ps->stats[STAT_HEALTH] >= (pm->ps->stats[STAT_MAX_HEALTH] + 25) ) {
 				// don't use medkit if at max health
-			} else {
+			} else {*/
 				pm->ps->pm_flags |= PMF_USE_ITEM_HELD;
-				PM_AddEvent( EV_USE_ITEM0 + bg_itemlist[pm->ps->stats[STAT_HOLDABLE_ITEM]].giTag );
-				pm->ps->stats[STAT_HOLDABLE_ITEM] = 0;
-			}
+				PM_AddEvent( EV_USE_ITEM0 /*+ bg_itemlist[pm->ps->stats[STAT_HOLDABLE_ITEM]].giTag */);
+				/*pm->ps->stats[STAT_HOLDABLE_ITEM] = 0;
+			}*/
 			return;
 		}
 	} else {
@@ -1872,7 +1873,7 @@ void PmoveSingle (pmove_t *pmove) {
 
 	// clear the respawned flag if attack and use are cleared
 	if ( pm->ps->stats[STAT_HEALTH] > 0 &&
-		!( pm->cmd.buttons & (BUTTON_ATTACK | BUTTON_USE_HOLDABLE) ) ) {
+		!( pm->cmd.buttons & (BUTTON_ATTACK | BUTTON_USE) ) ) {
 		pm->ps->pm_flags &= ~PMF_RESPAWNED;
 	}
 
@@ -1931,14 +1932,15 @@ void PmoveSingle (pmove_t *pmove) {
 		pm->cmd.upmove = 0;
 	}
 
-	if ( pm->ps->pm_type == PM_SPECTATOR ) {
+	// IneQuation: MoHAA-style noclip spectator
+	/*if ( pm->ps->pm_type == PM_SPECTATOR ) {
 		PM_CheckDuck ();
 		PM_FlyMove ();
 		PM_DropTimers ();
 		return;
-	}
+	}*/
 
-	if ( pm->ps->pm_type == PM_NOCLIP ) {
+	if ( pm->ps->pm_type == PM_NOCLIP || pm->ps->pm_type == PM_SPECTATOR ) {
 		PM_NoclipMove ();
 		PM_DropTimers ();
 		return;

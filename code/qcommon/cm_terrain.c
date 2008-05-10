@@ -200,7 +200,7 @@ struct terPatchCollide_s *CM_GenerateTerPatchCollide(vec3_t origin, byte heightm
 			tc->tris[tri + 1].planes[4].type = PlaneTypeForNormal(tc->tris[tri + 1].planes[4].normal);
 		}
 	}
-#else	// development test case code, left over just in case; works with TER_QUADS_PER_ROW = 1 ONLY!!!
+#elseif 0	// development test case code, left over just in case; works with TER_QUADS_PER_ROW = 1 ONLY!!!
 	points[0][0] = origin[0];
 	points[0][1] = origin[1];
 	points[0][2] = origin[2] + heightmap[0][0] * 2;
@@ -292,6 +292,76 @@ struct terPatchCollide_s *CM_GenerateTerPatchCollide(vec3_t origin, byte heightm
 
 	VectorNegate(tc->tris[1].planes[0].normal, tc->tris[1].planes[4].normal);
 	tc->tris[1].planes[4].dist = -tc->tris[1].planes[0].dist + 16/*SURFACE_CLIP_EPSILON*/;
+	tc->tris[1].planes[4].signbits = CM_SignbitsForNormal(tc->tris[1].planes[4].normal);
+	tc->tris[1].planes[4].type = PlaneTypeForNormal(tc->tris[1].planes[4].normal);
+#else	// total kernel panic, last resort kind of code :S
+	points[0][0] = origin[0] + 512.f;
+	points[0][1] = origin[1] + 512.f;
+	points[0][2] = origin[2] + heightmap[8][8];
+
+	tc->tris[0].planes[0].normal[0] = 0.f;
+	tc->tris[0].planes[0].normal[1] = 0.f;
+	tc->tris[0].planes[0].normal[2] = 1.f;
+	tc->tris[0].planes[0].dist = (origin[2] + heightmap[0][0] * 2 + origin[2] + heightmap[0][8] * 2 + origin[2] + heightmap[8][8] * 2) / 3.f;
+	tc->tris[0].planes[0].signbits = CM_SignbitsForNormal(tc->tris[0].planes[0].normal);
+	tc->tris[0].planes[0].type = PlaneTypeForNormal(tc->tris[0].planes[0].normal);
+
+	tc->tris[0].planes[1].normal[0] = 1.f;
+	tc->tris[0].planes[1].normal[0] = 0.f;
+	tc->tris[0].planes[1].normal[2] = 0.f;
+	tc->tris[0].planes[1].dist = points[0][0];
+	tc->tris[0].planes[1].signbits = CM_SignbitsForNormal(tc->tris[0].planes[1].normal);
+	tc->tris[0].planes[1].type = PlaneTypeForNormal(tc->tris[0].planes[1].normal);
+
+	tc->tris[0].planes[2].normal[0] = 0.f;
+	tc->tris[0].planes[2].normal[0] = -1.f;
+	tc->tris[0].planes[2].normal[2] = 0.f;
+	tc->tris[0].planes[2].dist = origin[0];
+	tc->tris[0].planes[2].signbits = CM_SignbitsForNormal(tc->tris[0].planes[2].normal);
+	tc->tris[0].planes[2].type = PlaneTypeForNormal(tc->tris[0].planes[2].normal);
+
+	tc->tris[0].planes[3].normal[0] = -M_PI_2;
+	tc->tris[0].planes[3].normal[0] = M_PI_2;
+	tc->tris[0].planes[3].normal[2] = 0.f;
+	tc->tris[0].planes[3].dist = origin[0];
+	tc->tris[0].planes[3].signbits = CM_SignbitsForNormal(tc->tris[0].planes[3].normal);
+	tc->tris[0].planes[3].type = PlaneTypeForNormal(tc->tris[0].planes[3].normal);
+
+	VectorNegate(tc->tris[0].planes[0].normal, tc->tris[0].planes[4].normal);
+	tc->tris[0].planes[4].dist = -tc->tris[0].planes[0].dist;
+	tc->tris[0].planes[4].signbits = CM_SignbitsForNormal(tc->tris[0].planes[4].normal);
+	tc->tris[0].planes[4].type = PlaneTypeForNormal(tc->tris[0].planes[4].normal);
+
+	tc->tris[1].planes[0].normal[0] = 0.f;
+	tc->tris[1].planes[0].normal[1] = 0.f;
+	tc->tris[1].planes[0].normal[2] = 1.f;
+	tc->tris[1].planes[0].dist = (origin[2] + heightmap[0][0] * 2 + origin[2] + heightmap[8][0] * 2 + origin[2] + heightmap[8][8] * 2) / 3.f;
+	tc->tris[1].planes[0].signbits = CM_SignbitsForNormal(tc->tris[1].planes[0].normal);
+	tc->tris[1].planes[0].type = PlaneTypeForNormal(tc->tris[1].planes[0].normal);
+
+	tc->tris[1].planes[1].normal[0] = -1.f;
+	tc->tris[1].planes[1].normal[0] = 0.f;
+	tc->tris[1].planes[1].normal[2] = 0.f;
+	tc->tris[1].planes[1].dist = origin[0];
+	tc->tris[1].planes[1].signbits = CM_SignbitsForNormal(tc->tris[1].planes[1].normal);
+	tc->tris[1].planes[1].type = PlaneTypeForNormal(tc->tris[1].planes[1].normal);
+
+	tc->tris[1].planes[2].normal[0] = 0.f;
+	tc->tris[1].planes[2].normal[0] = 1.f;
+	tc->tris[1].planes[2].normal[2] = 0.f;
+	tc->tris[1].planes[2].dist = points[0][1];
+	tc->tris[1].planes[2].signbits = CM_SignbitsForNormal(tc->tris[1].planes[2].normal);
+	tc->tris[1].planes[2].type = PlaneTypeForNormal(tc->tris[1].planes[2].normal);
+
+	tc->tris[1].planes[3].normal[0] = M_PI_2;
+	tc->tris[1].planes[3].normal[0] = -M_PI_2;
+	tc->tris[1].planes[3].normal[2] = 0.f;
+	tc->tris[1].planes[3].dist = origin[0];
+	tc->tris[1].planes[3].signbits = CM_SignbitsForNormal(tc->tris[1].planes[3].normal);
+	tc->tris[1].planes[3].type = PlaneTypeForNormal(tc->tris[1].planes[3].normal);
+
+	VectorNegate(tc->tris[1].planes[0].normal, tc->tris[1].planes[4].normal);
+	tc->tris[1].planes[4].dist = -tc->tris[1].planes[0].dist;
 	tc->tris[1].planes[4].signbits = CM_SignbitsForNormal(tc->tris[1].planes[4].normal);
 	tc->tris[1].planes[4].type = PlaneTypeForNormal(tc->tris[1].planes[4].normal);
 #endif

@@ -485,7 +485,7 @@ void Con_DrawInput (void) {
 
 	re.SetColor( con.color );
 
-	re.Text_PaintChar(&cls.consoleFont, con.xadjust + 1 * g_console_charWidth, y, ']');
+	re.Text_PaintChar(&cls.consoleFont, con.xadjust + 1 * g_console_charWidth, y, 1.f, ']');
 
 	Field_Draw(&cls.consoleFont, &g_consoleField, con.xadjust + 2 * g_console_charWidth, y,
 		SCREEN_WIDTH - 3 * g_console_charWidth, qtrue, qtrue);
@@ -536,7 +536,7 @@ void Con_DrawNotify (void)
 				currentColor = (text[x]>>8)&7;
 				re.SetColor( g_color_table[currentColor] );
 			}
-			re.Text_PaintChar(&cls.consoleFont, cl_conXOffset->integer + con.xadjust + (x+1)*g_console_charWidth, v, text[x] & 0xff);
+			re.Text_PaintChar(&cls.consoleFont, cl_conXOffset->integer + con.xadjust + (x+1)*g_console_charWidth, v, 1.f, text[x] & 0xff);
 		}
 
 		v += g_console_charHeight;
@@ -554,13 +554,13 @@ void Con_DrawNotify (void)
 		if (chat_team)
 		{
 			//SCR_DrawBigString (8, v, "say_team:", 1.0f, qfalse );
-			re.Text_Paint(&cls.consoleFont, 8, v, 1.f, "say_team:", 0, 0, qtrue);
+			re.Text_Paint(&cls.consoleFont, 8, v, 1.f, 1.f, "say_team:", 0, 0, qtrue);
 			skip = 10;
 		}
 		else
 		{
 			//SCR_DrawBigString (8, v, "say:", 1.0f, qfalse );
-			re.Text_Paint(&cls.consoleFont, 8, v, 1.f, "say:", 0, 0, qtrue);
+			re.Text_Paint(&cls.consoleFont, 8, v, 1.f, 1.f, "say:", 0, 0, qtrue);
 			skip = 5;
 		}
 
@@ -636,7 +636,7 @@ void Con_DrawSolidConsole( float frac ) {
 	for (x=0 ; x<i ; x++) {
 
 		re.Text_PaintChar(&cls.consoleFont, cls.glconfig.vidWidth - ( i - x ) * g_console_charWidth,
-			(lines-(g_console_charHeight+g_console_charHeight/2)), Q3_VERSION[x]);
+			(lines-(g_console_charHeight+g_console_charHeight/2)), 1.f, Q3_VERSION[x]);
 
 	}
 
@@ -652,7 +652,7 @@ void Con_DrawSolidConsole( float frac ) {
 	// draw arrows to show the buffer is backscrolled
 		re.SetColor( g_color_table[ColorIndex(COLOR_RED)] );
 		for (x=0 ; x<con.linewidth ; x+=4)
-			re.Text_PaintChar(&cls.consoleFont, con.xadjust + (x+1)*SMALLCHAR_WIDTH, y, '^');
+			re.Text_PaintChar(&cls.consoleFont, con.xadjust + (x+1)*SMALLCHAR_WIDTH, y, 1.f, '^');
 		y -= SMALLCHAR_HEIGHT;
 		rows--;
 	}
@@ -686,7 +686,7 @@ void Con_DrawSolidConsole( float frac ) {
 				currentColor = (text[x]>>8)&7;
 				re.SetColor(g_color_table[currentColor]);
 			}
-			re.Text_PaintChar(&cls.consoleFont, con.xadjust + (x+1)*g_console_charWidth, y, text[x] & 0xff);
+			re.Text_PaintChar(&cls.consoleFont, con.xadjust + (x+1)*g_console_charWidth, y, 1.f, text[x] & 0xff);
 		}
 	}
 

@@ -721,7 +721,7 @@ static int GetConfigString(int index, char *buf, int size)
 	}
 
 	Q_strncpyz( buf, cl.gameState.stringData+offset, size);
- 
+
 	return qtrue;
 }
 
@@ -759,7 +759,7 @@ intptr_t CL_UISystemCalls( intptr_t *args ) {
 		return Sys_Milliseconds();
 
 	case UI_CVAR_REGISTER:
-		Cvar_Register( VMA(1), VMA(2), VMA(3), args[4] ); 
+		Cvar_Register( VMA(1), VMA(2), VMA(3), args[4] );
 		return 0;
 
 	case UI_CVAR_UPDATE:
@@ -824,7 +824,7 @@ intptr_t CL_UISystemCalls( intptr_t *args ) {
 
 	case UI_FS_SEEK:
 		return FS_Seek( args[1], args[2], args[3] );
-	
+
 	case UI_R_REGISTERMODEL:
 		return re.RegisterModel( VMA(1) );
 
@@ -921,7 +921,7 @@ intptr_t CL_UISystemCalls( intptr_t *args ) {
 
 	case UI_GETCLIENTSTATE:
 		GetClientState( VMA(1) );
-		return 0;		
+		return 0;
 
 	case UI_GETGLCONFIG:
 		CL_GetGlconfig( VMA(1) );
@@ -1004,9 +1004,9 @@ intptr_t CL_UISystemCalls( intptr_t *args ) {
 	case UI_SET_CDKEY:
 		CLUI_SetCDKey( VMA(1) );
 		return 0;
-	
+
 	case UI_SET_PBCLSTATUS:
-		return 0;	
+		return 0;
 
 	case UI_R_REGISTERFONT:
 		re.RegisterFont( VMA(1), args[2], VMA(3));
@@ -1088,8 +1088,18 @@ intptr_t CL_UISystemCalls( intptr_t *args ) {
 	case UI_VERIFY_CDKEY:
 		return CL_CDKeyValidate(VMA(1), VMA(2));
 
+	// IneQuation
+	case UI_R_TEXT_WIDTH:
+		return re.Text_Width(VMA(1), VMA(2), args[3], args[4]);
+	case UI_R_TEXT_HEIGHT:
+		return re.Text_Height(VMA(1), VMA(2), args[3], args[4]);
+	case UI_R_TEXT_PAINT:
+		re.Text_Paint(VMA(1), VMF(2), VMF(3), VMF(4), VMF(5), VMA(6), VMF(7), args[8], args[9]);
+		return 0;
+	case UI_R_TEXT_PAINTCHAR:
+		re.Text_PaintChar(VMA(1), VMF(2), VMF(3), VMF(4), args[5]);
+		return 0;
 
-		
 	default:
 		Com_Error( ERR_DROP, "Bad UI system trap: %ld", (long int) args[0] );
 
@@ -1155,7 +1165,7 @@ void CL_InitUI( void ) {
 	}
 
 	// reset any CVAR_CHEAT cvars registered by ui
-	if ( !clc.demoplaying && !cl_connectedToCheatServer ) 
+	if ( !clc.demoplaying && !cl_connectedToCheatServer )
 		Cvar_SetCheatState();
 }
 

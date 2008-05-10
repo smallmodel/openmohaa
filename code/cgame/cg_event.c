@@ -756,65 +756,66 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		CG_FireWeapon( cent );
 		break;
 
+	// IneQuation: no cgame response to the event
 	case EV_USE_ITEM0:
 		DEBUGNAME("EV_USE_ITEM0");
-		CG_UseItem( cent );
+		//CG_UseItem( cent );
 		break;
 	case EV_USE_ITEM1:
 		DEBUGNAME("EV_USE_ITEM1");
-		CG_UseItem( cent );
+		//CG_UseItem( cent );
 		break;
 	case EV_USE_ITEM2:
 		DEBUGNAME("EV_USE_ITEM2");
-		CG_UseItem( cent );
+		//CG_UseItem( cent );
 		break;
 	case EV_USE_ITEM3:
 		DEBUGNAME("EV_USE_ITEM3");
-		CG_UseItem( cent );
+		//CG_UseItem( cent );
 		break;
 	case EV_USE_ITEM4:
 		DEBUGNAME("EV_USE_ITEM4");
-		CG_UseItem( cent );
+		//CG_UseItem( cent );
 		break;
 	case EV_USE_ITEM5:
 		DEBUGNAME("EV_USE_ITEM5");
-		CG_UseItem( cent );
+		//CG_UseItem( cent );
 		break;
 	case EV_USE_ITEM6:
 		DEBUGNAME("EV_USE_ITEM6");
-		CG_UseItem( cent );
+		//CG_UseItem( cent );
 		break;
 	case EV_USE_ITEM7:
 		DEBUGNAME("EV_USE_ITEM7");
-		CG_UseItem( cent );
+		//CG_UseItem( cent );
 		break;
 	case EV_USE_ITEM8:
 		DEBUGNAME("EV_USE_ITEM8");
-		CG_UseItem( cent );
+		//CG_UseItem( cent );
 		break;
 	case EV_USE_ITEM9:
 		DEBUGNAME("EV_USE_ITEM9");
-		CG_UseItem( cent );
+		//CG_UseItem( cent );
 		break;
 	case EV_USE_ITEM10:
 		DEBUGNAME("EV_USE_ITEM10");
-		CG_UseItem( cent );
+		//CG_UseItem( cent );
 		break;
 	case EV_USE_ITEM11:
 		DEBUGNAME("EV_USE_ITEM11");
-		CG_UseItem( cent );
+		//CG_UseItem( cent );
 		break;
 	case EV_USE_ITEM12:
 		DEBUGNAME("EV_USE_ITEM12");
-		CG_UseItem( cent );
+		//CG_UseItem( cent );
 		break;
 	case EV_USE_ITEM13:
 		DEBUGNAME("EV_USE_ITEM13");
-		CG_UseItem( cent );
+		//CG_UseItem( cent );
 		break;
 	case EV_USE_ITEM14:
 		DEBUGNAME("EV_USE_ITEM14");
-		CG_UseItem( cent );
+		//CG_UseItem( cent );
 		break;
 
 	//=================================================================

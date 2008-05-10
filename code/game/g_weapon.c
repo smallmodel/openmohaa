@@ -20,14 +20,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ===========================================================================
 */
 //
-// g_weapon.c 
+// g_weapon.c
 // perform the server side effects of a weapon firing
 
 #include "g_local.h"
 
 static	float	s_quadFactor;
 static	vec3_t	forward, right, up;
-static	vec3_t	muzzle;
+/*static*/	vec3_t	g_muzzle;	// IneQuation: made this non-static
 
 #define NUM_NAILSHOTS 15
 
@@ -76,11 +76,11 @@ qboolean CheckGauntletAttack( gentity_t *ent ) {
 	// set aiming directions
 	AngleVectors (ent->client->ps.viewangles, forward, right, up);
 
-	CalcMuzzlePoint ( ent, forward, right, up, muzzle );
+	CalcMuzzlePoint ( ent, forward, right, up, g_muzzle );
 
-	VectorMA (muzzle, 32, forward, end);
+	VectorMA (g_muzzle, 32, forward, end);
 
-	trap_Trace (&tr, muzzle, NULL, NULL, end, ent->s.number, MASK_SHOT);
+	trap_Trace (&tr, g_muzzle, NULL, NULL, end, ent->s.number, MASK_SHOT);
 	if ( tr.surfaceFlags & SURF_NOIMPACT ) {
 		return qfalse;
 	}
@@ -133,7 +133,7 @@ SnapVectorTowards
 
 Round a vector to integers for more efficient network
 transmission, but make sure that it rounds towards a given point
-rather than blindly truncating.  This prevents it from truncating 
+rather than blindly truncating.  This prevents it from truncating
 into a wall.
 ======================
 */
@@ -173,14 +173,14 @@ void Bullet_Fire (gentity_t *ent, float spread, int damage ) {
 	r = random() * M_PI * 2.0f;
 	u = sin(r) * crandom() * spread * 16;
 	r = cos(r) * crandom() * spread * 16;
-	VectorMA (muzzle, 8192*16, forward, end);
+	VectorMA (g_muzzle, 8192*16, forward, end);
 	VectorMA (end, r, right, end);
 	VectorMA (end, u, up, end);
 
 	passent = ent->s.number;
 	for (i = 0; i < 10; i++) {
 
-		trap_Trace (&tr, muzzle, NULL, NULL, end, passent, MASK_SHOT);
+		trap_Trace (&tr, g_muzzle, NULL, NULL, end, passent, MASK_SHOT);
 		if ( tr.surfaceFlags & SURF_NOIMPACT ) {
 			return;
 		}
@@ -188,7 +188,7 @@ void Bullet_Fire (gentity_t *ent, float spread, int damage ) {
 		traceEnt = &g_entities[ tr.entityNum ];
 
 		// snap the endpos to integers, but nudged towards the line
-		SnapVectorTowards( tr.endpos, muzzle );
+		SnapVectorTowards( tr.endpos, g_muzzle );
 
 		// send bullet impact
 		if ( traceEnt->takedamage && traceEnt->client ) {
@@ -207,13 +207,13 @@ void Bullet_Fire (gentity_t *ent, float spread, int damage ) {
 #ifdef MISSIONPACK
 			if ( traceEnt->client && traceEnt->client->invulnerabilityTime > level.time ) {
 				if (G_InvulnerabilityEffect( traceEnt, forward, tr.endpos, impactpoint, bouncedir )) {
-					G_BounceProjectile( muzzle, impactpoint, bouncedir, end );
-					VectorCopy( impactpoint, muzzle );
+					G_BounceProjectile( g_muzzle, impactpoint, bouncedir, end );
+					VectorCopy( impactpoint, g_muzzle );
 					// the player can hit him/herself with the bounced rail
 					passent = ENTITYNUM_NONE;
 				}
 				else {
-					VectorCopy( tr.endpos, muzzle );
+					VectorCopy( tr.endpos, g_muzzle );
 					passent = traceEnt->s.number;
 				}
 				continue;
@@ -242,7 +242,7 @@ BFG
 void BFG_Fire ( gentity_t *ent ) {
 	gentity_t	*m;
 
-	m = fire_bfg (ent, muzzle, forward);
+	m = fire_bfg (ent, g_muzzle, forward);
 	m->damage *= s_quadFactor;
 	m->splashDamage *= s_quadFactor;
 
@@ -354,7 +354,7 @@ void weapon_supershotgun_fire (gentity_t *ent) {
 	gentity_t		*tent;
 
 	// send shotgun blast
-	tent = G_TempEntity( muzzle, EV_SHOTGUN );
+	tent = G_TempEntity( g_muzzle, EV_SHOTGUN );
 	VectorScale( forward, 4096, tent->s.origin2 );
 	SnapVector( tent->s.origin2 );
 	tent->s.eventParm = rand() & 255;		// seed for spread pattern
@@ -379,7 +379,7 @@ void weapon_grenadelauncher_fire (gentity_t *ent) {
 	forward[2] += 0.2f;
 	VectorNormalize( forward );
 
-	m = fire_grenade (ent, muzzle, forward);
+	m = fire_grenade (ent, g_muzzle, forward);
 	m->damage *= s_quadFactor;
 	m->splashDamage *= s_quadFactor;
 
@@ -397,7 +397,7 @@ ROCKET
 void Weapon_RocketLauncher_Fire (gentity_t *ent) {
 	gentity_t	*m;
 
-	m = fire_rocket (ent, muzzle, forward);
+	m = fire_rocket (ent, g_muzzle, forward);
 	m->damage *= s_quadFactor;
 	m->splashDamage *= s_quadFactor;
 
@@ -416,7 +416,7 @@ PLASMA GUN
 void Weapon_Plasmagun_Fire (gentity_t *ent) {
 	gentity_t	*m;
 
-	m = fire_plasma (ent, muzzle, forward);
+	m = fire_plasma (ent, g_muzzle, forward);
 	m->damage *= s_quadFactor;
 	m->splashDamage *= s_quadFactor;
 
@@ -455,14 +455,14 @@ void weapon_railgun_fire (gentity_t *ent) {
 
 	damage = 100 * s_quadFactor;
 
-	VectorMA (muzzle, 8192, forward, end);
+	VectorMA (g_muzzle, 8192, forward, end);
 
 	// trace only against the solids, so the railgun will go through people
 	unlinked = 0;
 	hits = 0;
 	passent = ent->s.number;
 	do {
-		trap_Trace (&trace, muzzle, NULL, NULL, end, passent, MASK_SHOT );
+		trap_Trace (&trace, g_muzzle, NULL, NULL, end, passent, MASK_SHOT );
 		if ( trace.entityNum >= ENTITYNUM_MAX_NORMAL ) {
 			break;
 		}
@@ -471,20 +471,20 @@ void weapon_railgun_fire (gentity_t *ent) {
 #ifdef MISSIONPACK
 			if ( traceEnt->client && traceEnt->client->invulnerabilityTime > level.time ) {
 				if ( G_InvulnerabilityEffect( traceEnt, forward, trace.endpos, impactpoint, bouncedir ) ) {
-					G_BounceProjectile( muzzle, impactpoint, bouncedir, end );
+					G_BounceProjectile( g_muzzle, impactpoint, bouncedir, end );
 					// snap the endpos to integers to save net bandwidth, but nudged towards the line
-					SnapVectorTowards( trace.endpos, muzzle );
+					SnapVectorTowards( trace.endpos, g_muzzle );
 					// send railgun beam effect
 					tent = G_TempEntity( trace.endpos, EV_RAILTRAIL );
 					// set player number for custom colors on the railtrail
 					tent->s.clientNum = ent->s.clientNum;
-					VectorCopy( muzzle, tent->s.origin2 );
+					VectorCopy( g_muzzle, tent->s.origin2 );
 					// move origin a bit to come closer to the drawn gun muzzle
 					VectorMA( tent->s.origin2, 4, right, tent->s.origin2 );
 					VectorMA( tent->s.origin2, -1, up, tent->s.origin2 );
 					tent->s.eventParm = 255;	// don't make the explosion at the end
 					//
-					VectorCopy( impactpoint, muzzle );
+					VectorCopy( impactpoint, g_muzzle );
 					// the player can hit him/herself with the bounced rail
 					passent = ENTITYNUM_NONE;
 				}
@@ -519,7 +519,7 @@ void weapon_railgun_fire (gentity_t *ent) {
 	// the final trace endpos will be the terminal point of the rail trail
 
 	// snap the endpos to integers to save net bandwidth, but nudged towards the line
-	SnapVectorTowards( trace.endpos, muzzle );
+	SnapVectorTowards( trace.endpos, g_muzzle );
 
 	// send railgun beam effect
 	tent = G_TempEntity( trace.endpos, EV_RAILTRAIL );
@@ -527,7 +527,7 @@ void weapon_railgun_fire (gentity_t *ent) {
 	// set player number for custom colors on the railtrail
 	tent->s.clientNum = ent->s.clientNum;
 
-	VectorCopy( muzzle, tent->s.origin2 );
+	VectorCopy( g_muzzle, tent->s.origin2 );
 	// move origin a bit to come closer to the drawn gun muzzle
 	VectorMA( tent->s.origin2, 4, right, tent->s.origin2 );
 	VectorMA( tent->s.origin2, -1, up, tent->s.origin2 );
@@ -572,7 +572,7 @@ GRAPPLING HOOK
 void Weapon_GrapplingHook_Fire (gentity_t *ent)
 {
 	if (!ent->client->fireHeld && !ent->client->hook)
-		fire_grapple (ent, muzzle, forward);
+		fire_grapple (ent, g_muzzle, forward);
 
 	ent->client->fireHeld = qtrue;
 }
@@ -622,9 +622,9 @@ void Weapon_LightningFire( gentity_t *ent ) {
 
 	passent = ent->s.number;
 	for (i = 0; i < 10; i++) {
-		VectorMA( muzzle, LIGHTNING_RANGE, forward, end );
+		VectorMA( g_muzzle, LIGHTNING_RANGE, forward, end );
 
-		trap_Trace( &tr, muzzle, NULL, NULL, end, passent, MASK_SHOT );
+		trap_Trace( &tr, g_muzzle, NULL, NULL, end, passent, MASK_SHOT );
 
 #ifdef MISSIONPACK
 		// if not the first trace (the lightning bounced of an invulnerability sphere)
@@ -632,7 +632,7 @@ void Weapon_LightningFire( gentity_t *ent ) {
 			// add bounced off lightning bolt temp entity
 			// the first lightning bolt is a cgame only visual
 			//
-			tent = G_TempEntity( muzzle, EV_LIGHTNINGBOLT );
+			tent = G_TempEntity( g_muzzle, EV_LIGHTNINGBOLT );
 			VectorCopy( tr.endpos, end );
 			SnapVector( end );
 			VectorCopy( end, tent->s.origin2 );
@@ -648,15 +648,15 @@ void Weapon_LightningFire( gentity_t *ent ) {
 #ifdef MISSIONPACK
 			if ( traceEnt->client && traceEnt->client->invulnerabilityTime > level.time ) {
 				if (G_InvulnerabilityEffect( traceEnt, forward, tr.endpos, impactpoint, bouncedir )) {
-					G_BounceProjectile( muzzle, impactpoint, bouncedir, end );
-					VectorCopy( impactpoint, muzzle );
+					G_BounceProjectile( g_muzzle, impactpoint, bouncedir, end );
+					VectorCopy( impactpoint, g_muzzle );
 					VectorSubtract( end, impactpoint, forward );
 					VectorNormalize(forward);
 					// the player can hit him/herself with the bounced lightning
 					passent = ENTITYNUM_NONE;
 				}
 				else {
-					VectorCopy( tr.endpos, muzzle );
+					VectorCopy( tr.endpos, g_muzzle );
 					passent = traceEnt->s.number;
 				}
 				continue;
@@ -702,7 +702,7 @@ void Weapon_Nailgun_Fire (gentity_t *ent) {
 	int			count;
 
 	for( count = 0; count < NUM_NAILSHOTS; count++ ) {
-		m = fire_nail (ent, muzzle, forward, right, up );
+		m = fire_nail (ent, g_muzzle, forward, right, up );
 		m->damage *= s_quadFactor;
 		m->splashDamage *= s_quadFactor;
 	}
@@ -726,7 +726,7 @@ void weapon_proxlauncher_fire (gentity_t *ent) {
 	forward[2] += 0.2f;
 	VectorNormalize( forward );
 
-	m = fire_prox (ent, muzzle, forward);
+	m = fire_prox (ent, g_muzzle, forward);
 	m->damage *= s_quadFactor;
 	m->splashDamage *= s_quadFactor;
 
@@ -837,7 +837,7 @@ void FireWeapon( gentity_t *ent ) {
 	// set aiming directions
 	AngleVectors (ent->client->ps.viewangles, forward, right, up);
 
-	CalcMuzzlePointOrigin ( ent, ent->client->oldOrigin, forward, right, up, muzzle );
+	CalcMuzzlePointOrigin ( ent, ent->client->oldOrigin, forward, right, up, g_muzzle );
 
 	// fire the specific weapon
 	switch( ent->s.weapon ) {

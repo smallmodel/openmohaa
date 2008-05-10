@@ -140,7 +140,7 @@ void P_WorldEffects( gentity_t *ent ) {
 				// don't play a normal pain sound
 				ent->pain_debounce_time = level.time + 200;
 
-				G_Damage (ent, NULL, NULL, NULL, NULL, 
+				G_Damage (ent, NULL, NULL, NULL, NULL,
 					ent->damage, DAMAGE_NO_ARMOR, MOD_WATER);
 			}
 		}
@@ -152,7 +152,7 @@ void P_WorldEffects( gentity_t *ent ) {
 	//
 	// check for sizzle damage (move to pmove?)
 	//
-	if (waterlevel && 
+	if (waterlevel &&
 		(ent->watertype&(CONTENTS_LAVA|CONTENTS_SLIME)) ) {
 		if (ent->health > 0
 			&& ent->pain_debounce_time <= level.time	) {
@@ -161,12 +161,12 @@ void P_WorldEffects( gentity_t *ent ) {
 				G_AddEvent( ent, EV_POWERUP_BATTLESUIT, 0 );
 			} else {
 				if (ent->watertype & CONTENTS_LAVA) {
-					G_Damage (ent, NULL, NULL, NULL, NULL, 
+					G_Damage (ent, NULL, NULL, NULL, NULL,
 						30*waterlevel, 0, MOD_LAVA);
 				}
 
 				if (ent->watertype & CONTENTS_SLIME) {
-					G_Damage (ent, NULL, NULL, NULL, NULL, 
+					G_Damage (ent, NULL, NULL, NULL, NULL,
 						10*waterlevel, 0, MOD_SLIME);
 				}
 			}
@@ -248,7 +248,7 @@ void	G_TouchTriggers( gentity_t *ent ) {
 	gentity_t	*hit;
 	trace_t		trace;
 	vec3_t		mins, maxs;
-	static vec3_t	range = { 40, 40, 52 };
+	static vec3_t	range = { 42, 42, 56 };
 
 	if ( !ent->client ) {
 		return;
@@ -267,6 +267,8 @@ void	G_TouchTriggers( gentity_t *ent ) {
 	// can't use ent->absmin, because that has a one unit pad
 	VectorAdd( ent->client->ps.origin, ent->r.mins, mins );
 	VectorAdd( ent->client->ps.origin, ent->r.maxs, maxs );
+	mins[2] += 48.f;	// so that it's in the middle of the bounding box
+	maxs[2] += 48.f;
 
 	for ( i=0 ; i<num ; i++ ) {
 		hit = &g_entities[touch[i]];
@@ -302,7 +304,8 @@ void	G_TouchTriggers( gentity_t *ent ) {
 
 		memset( &trace, 0, sizeof(trace) );
 
-		if ( hit->touch ) {
+		// IneQuation: doors can require "manual" activation by human players
+		if ( hit->touch && !(hit->touch == Touch_DoorTrigger && hit->splashDamage && !(ent->r.svFlags & SVF_BOT)) ) {
 			hit->touch (hit, ent, &trace);
 		}
 
@@ -331,7 +334,7 @@ void SpectatorThink( gentity_t *ent, usercmd_t *ucmd ) {
 
 	if ( client->sess.spectatorState != SPECTATOR_FOLLOW ) {
 		client->ps.pm_type = PM_SPECTATOR;
-		client->ps.speed = 400;	// faster than normal
+		client->ps.speed = g_speed.value * 2.f;	// faster than normal
 
 		// set up for pmove
 		memset (&pm, 0, sizeof(pm));
@@ -374,8 +377,8 @@ qboolean ClientInactivityTimer( gclient_t *client ) {
 		// gameplay, everyone isn't kicked
 		client->inactivityTime = level.time + 60 * 1000;
 		client->inactivityWarning = qfalse;
-	} else if ( client->pers.cmd.forwardmove || 
-		client->pers.cmd.rightmove || 
+	} else if ( client->pers.cmd.forwardmove ||
+		client->pers.cmd.rightmove ||
 		client->pers.cmd.upmove ||
 		(client->pers.cmd.buttons & BUTTON_ATTACK) ) {
 		client->inactivityTime = level.time + g_inactivity.integer * 1000;
@@ -519,12 +522,47 @@ void ClientIntermissionThink( gclient_t *client ) {
 	// swap and latch button actions
 	client->oldbuttons = client->buttons;
 	client->buttons = client->pers.cmd.buttons;
-	if ( client->buttons & ( BUTTON_ATTACK | BUTTON_USE_HOLDABLE ) & ( client->oldbuttons ^ client->buttons ) ) {
+	if ( client->buttons & ( BUTTON_ATTACK | BUTTON_USE ) & ( client->oldbuttons ^ client->buttons ) ) {
 		// this used to be an ^1 but once a player says ready, it should stick
 		client->readyToExit = 1;
 	}
 }
 
+/*
+================
+ClientUse
+================
+Does a trace and touches the entity hit.
+*/
+void ClientUse(gentity_t *ent) {
+	trace_t		tr;
+	vec3_t		forward, right, up;
+	gentity_t	*other;
+
+	// set aiming directions
+	AngleVectors(ent->client->ps.viewangles, forward, right, up);
+	CalcMuzzlePoint(ent, forward, right, up, g_muzzle);
+
+	VectorMA(g_muzzle, 96.f, forward, right);
+	trap_Trace(&tr, g_muzzle, NULL, NULL, right, ent - g_entities, MASK_SOLID);
+
+	if (tr.fraction == 1.f || tr.entityNum == ENTITYNUM_NONE || tr.entityNum == ENTITYNUM_WORLD)
+		return;	// nothing interesting hit
+	other = g_entities + tr.entityNum;
+	if (other->client) { // push them around
+		// make the velocity lateral only so that they can't make others go over obstacles
+		forward[2] = 0;
+		VectorNormalize(forward);
+		if (VectorLengthSquared(forward) < 1.f)
+			return; // probably looking straight up or down, don't bother
+		VectorMA(other->client->ps.velocity, 128.f, forward, other->client->ps.velocity);
+		other->client->ps.velocity[2] += 16.f;	// nudge the velocity upwards so that it's not eaten immediately by ground friction
+		return;
+	}
+	if (other->s.eType == ET_MOVER && other->splashDamage) {
+		Use_BinaryMover(other, ent, ent);
+	}
+}
 
 /*
 ================
@@ -576,6 +614,16 @@ void ClientEvents( gentity_t *ent, int oldEventSequence ) {
 			FireWeapon( ent );
 			break;
 
+		// IneQuation: removed Q3 powerups in favour of MoHAA-style "using"
+		case EV_USE_ITEM0:	// gotta catch 'em all! ;)
+		case EV_USE_ITEM1:
+		case EV_USE_ITEM2:
+		case EV_USE_ITEM3:
+		case EV_USE_ITEM4:
+		case EV_USE_ITEM5:
+			ClientUse(ent);
+			break;
+#if 0
 		case EV_USE_ITEM1:		// teleporter
 			// drop flags in CTF
 			item = NULL;
@@ -653,6 +701,7 @@ void ClientEvents( gentity_t *ent, int oldEventSequence ) {
 		case EV_USE_ITEM5:		// invulnerability
 			ent->client->invulnerabilityTime = level.time + 10000;
 			break;
+#endif
 #endif
 
 		default:
@@ -777,7 +826,7 @@ void ClientThink_real( gentity_t *ent ) {
 	if ( ucmd->serverTime < level.time - 1000 ) {
 		ucmd->serverTime = level.time - 1000;
 //		G_Printf("serverTime >>>>>\n" );
-	} 
+	}
 
 	msec = ucmd->serverTime - client->ps.commandTime;
 	// following others may result in bad times, but we still want
@@ -999,14 +1048,14 @@ void ClientThink_real( gentity_t *ent ) {
 		// wait for the attack button to be pressed
 		if ( level.time > client->respawnTime ) {
 			// forcerespawn is to prevent users from waiting out powerups
-			if ( g_forcerespawn.integer > 0 && 
+			if ( g_forcerespawn.integer > 0 &&
 				( level.time - client->respawnTime ) > g_forcerespawn.integer * 1000 ) {
 				respawn( ent );
 				return;
 			}
-		
+
 			// pressing attack or use is the normal respawn method
-			if ( ucmd->buttons & ( BUTTON_ATTACK | BUTTON_USE_HOLDABLE ) ) {
+			if ( ucmd->buttons & ( BUTTON_ATTACK | BUTTON_USE ) ) {
 				respawn( ent );
 			}
 		}
