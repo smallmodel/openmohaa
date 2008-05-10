@@ -128,6 +128,10 @@ qboolean	G_TryPushingEntity( gentity_t *check, gentity_t *pusher, vec3_t move, v
 		return qfalse;
 	}
 
+	// IneQuation: rotating doors don't push
+	if (check->client && !Q_stricmp(pusher->classname, "func_rotatingdoor"))
+		return qfalse;
+
 	// save off the old position
 	if (pushed_p > &pushed[MAX_GENTITIES]) {
 		G_Error( "pushed_p > &pushed[MAX_GENTITIES]" );
@@ -647,8 +651,9 @@ Use_BinaryMover
 ================
 */
 void Use_BinaryMover( gentity_t *ent, gentity_t *other, gentity_t *activator ) {
-	int		total;
-	int		partial;
+	int				total;
+	int				partial;
+	trajectory_t	*tr;
 
 	// only the master should be used
 	if ( ent->flags & FL_TEAMSLAVE ) {
@@ -656,16 +661,20 @@ void Use_BinaryMover( gentity_t *ent, gentity_t *other, gentity_t *activator ) {
 		return;
 	}
 
+	if (!Q_stricmp(ent->classname, "func_rotatingdoor"))
+		tr = &ent->s.apos;
+	else
+		tr = &ent->s.pos;
+
 	ent->activator = activator;
 
 	if ( ent->moverState == MOVER_POS1 ) {
 		// IneQuation: if this is a rotating door, check if we need to inverse
-		// its apos.trDelta to switch the opening direction
+		// its pos2 to switch the opening direction
 		// ent->movedir is door plane normal, ent->physicsBounce is the plane's distance from (0 0 0)
 		if (!Q_stricmp(ent->classname, "func_rotatingdoor")) {
 			float dot = DotProduct(activator->r.currentOrigin, ent->movedir) + ent->physicsBounce;
 			if ((dot > 0 && ent->splashMethodOfDeath != 0) || (dot < 0 && ent->splashMethodOfDeath != 1)) {
-				VectorInverse(ent->s.apos.trDelta);
 				VectorInverse(ent->pos2);
 				ent->splashMethodOfDeath = !ent->splashMethodOfDeath;
 			}
@@ -692,14 +701,28 @@ void Use_BinaryMover( gentity_t *ent, gentity_t *other, gentity_t *activator ) {
 
 	// if all the way up, just delay before coming down
 	if ( ent->moverState == MOVER_POS2 ) {
-		ent->nextthink = level.time + ent->wait;
+		//ent->nextthink = level.time + ent->wait;
+		// IneQuation: WTF? close, without waiting
+		// start moving 50 msec later, becase if this was player
+		// triggered, level.time hasn't been advanced yet
+		MatchTeam(ent, MOVER_2TO1, level.time/* + 50 */);	// IneQuation: this delay makes it look glitchy
+
+		// switch off the thinker so that the door doesn't try closing again
+		ent->nextthink = level.time - 100;
+
+		// starting sound
+		if (ent->sound2to1)
+			G_AddEvent(ent, EV_GENERAL_SOUND, ent->sound2to1);
+
+		// looping sound
+		ent->s.loopSound = ent->soundLoop;
 		return;
 	}
 
 	// only partway down before reversing
 	if ( ent->moverState == MOVER_2TO1 ) {
-		total = ent->s.pos.trDuration;
-		partial = level.time - ent->s.pos.trTime;
+		total = tr->trDuration;
+		partial = level.time - tr->trTime;
 		if ( partial > total ) {
 			partial = total;
 		}
@@ -714,8 +737,8 @@ void Use_BinaryMover( gentity_t *ent, gentity_t *other, gentity_t *activator ) {
 
 	// only partway up before reversing
 	if ( ent->moverState == MOVER_1TO2 ) {
-		total = ent->s.pos.trDuration;
-		partial = level.time - ent->s.pos.trTime;
+		total = tr->trDuration;
+		partial = level.time - tr->trTime;
 		if ( partial > total ) {
 			partial = total;
 		}
@@ -868,7 +891,7 @@ void Blocked_Door( gentity_t *ent, gentity_t *other ) {
 	if (ent->spawnflags & 4 && Q_stricmp(ent->classname, "func_rotatingdoor")) {	// IneQuation: rotating doors don't crush
 		return;		// crushers don't reverse
 	}
-
+G_Printf("Blocked_Door: reversing\n");
 	// reverse direction
 	Use_BinaryMover( ent, ent, other );
 }
