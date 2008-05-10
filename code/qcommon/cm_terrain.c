@@ -47,160 +47,142 @@ CM_GenerateTerPatchCollide
 ====================
 */
 struct terPatchCollide_s *CM_GenerateTerPatchCollide(vec3_t origin, byte heightmap[9][9], dshader_t *shader) {
-	int					x, y, tri;
-	vec3_t				farend, points[4], vhmap[81], filler;
-	//float				*points[6];
+	int					x, y, tri, i;
+	vec3_t				/*farend, points[4],*/ vhmap[9][9]/*, filler*/;
+	float				*points[4];
 	terPatchCollide_t	*tc = Hunk_Alloc(sizeof(*tc), h_high);
 
-	VectorSet(tc->bounds[0], 256, 256, 512);
+	VectorSet(tc->bounds[0], 512, 512, 512);
 	VectorAdd(origin, tc->bounds[0], tc->bounds[1]);
 	VectorCopy(origin, tc->bounds[0]);
 	tc->shader = shader;
 
-#if 0
+#if 1
 	// build a heightmap first
 	for (tri = 0, y = 0; y < 9; y++) {
 		for (x = 0; x < 9; x++, tri++) {
-			vhmap[tri][0] = origin[0] + x * 64.f;
-			vhmap[tri][1] = origin[1] + y * 64.f;
-			vhmap[tri][2] = origin[2] + heightmap[y][x] * 2;
+			vhmap[y][x][0] = origin[0] + x * 64.f;
+			vhmap[y][x][1] = origin[1] + y * 64.f;
+			vhmap[y][x][2] = origin[2] + heightmap[y][x] * 2;
 		}
 	}
 
 	for (tri = 0, y = 0; y < TER_QUADS_PER_ROW; y++) {
 		for (x = 0; x < TER_QUADS_PER_ROW; x++, tri += 2) {
-			// border planes
+			points[0] = vhmap[y][x];
+			points[1] = vhmap[y + 1][x];
+			points[2] = vhmap[y][x + 1];
+			points[3] = vhmap[y + 1][x + 1];
+
 			// the XOR below is explained in RB_SurfaceTerrainPatch (../renderer/tr_surface.c)
-			if (0/*(x % 2) ^ (y % 2)*/) {
-				points[0] = vhmap[y * 9 + x];
-				points[1] = vhmap[(y + 1) * 9 + x];
-				points[2] = vhmap[y * 9 + x + 1];
-
-				points[3] = points[2];
-				points[4] = points[1];
-				points[5] = vhmap[(y + 1) * 9 + x + 1];
-
+			if ((x % 2) ^ (y % 2)) {
 				// 1st triangle border planes
 				tc->tris[tri + 0].planes[1].normal[0] = -1.f;
 				tc->tris[tri + 0].planes[1].normal[1] = 0.f;
 				tc->tris[tri + 0].planes[1].normal[2] = 0.f;
 				tc->tris[tri + 0].planes[1].dist = DotProduct(tc->tris[tri + 0].planes[1].normal, points[0]);
-				tc->tris[tri + 0].planes[1].signbits = CM_SignbitsForNormal(tc->tris[tri + 0].planes[1].normal);
-				tc->tris[tri + 0].planes[1].type = PlaneTypeForNormal(tc->tris[tri + 0].planes[1].normal);
 
 				tc->tris[tri + 0].planes[2].normal[0] = 0.f;
 				tc->tris[tri + 0].planes[2].normal[1] = -1.f;
 				tc->tris[tri + 0].planes[2].normal[2] = 0.f;
 				tc->tris[tri + 0].planes[2].dist = DotProduct(tc->tris[tri + 0].planes[2].normal, points[0]);
-				tc->tris[tri + 0].planes[2].signbits = CM_SignbitsForNormal(tc->tris[tri + 0].planes[2].normal);
-				tc->tris[tri + 0].planes[2].type = PlaneTypeForNormal(tc->tris[tri + 0].planes[2].normal);
 
 				tc->tris[tri + 0].planes[3].normal[0] = M_SQRT1_2;
 				tc->tris[tri + 0].planes[3].normal[1] = M_SQRT1_2;
 				tc->tris[tri + 0].planes[3].normal[2] = 0.f;
-				tc->tris[tri + 0].planes[3].dist = DotProduct(tc->tris[tri + 0].planes[3].normal, points[5]);
-				tc->tris[tri + 0].planes[3].signbits = CM_SignbitsForNormal(tc->tris[tri + 0].planes[3].normal);
-				tc->tris[tri + 0].planes[3].type = PlaneTypeForNormal(tc->tris[tri + 0].planes[3].normal);
+				tc->tris[tri + 0].planes[3].dist = DotProduct(tc->tris[tri + 0].planes[3].normal, points[1]);
 
 				// 2nd triangle border planes
 				tc->tris[tri + 1].planes[1].normal[0] = 1.f;
 				tc->tris[tri + 1].planes[1].normal[1] = 0.f;
 				tc->tris[tri + 1].planes[1].normal[2] = 0.f;
-				tc->tris[tri + 1].planes[1].dist = DotProduct(tc->tris[tri + 1].planes[1].normal, points[5]);
-				tc->tris[tri + 1].planes[1].signbits = CM_SignbitsForNormal(tc->tris[tri + 1].planes[1].normal);
-				tc->tris[tri + 1].planes[1].type = PlaneTypeForNormal(tc->tris[tri + 1].planes[1].normal);
+				tc->tris[tri + 1].planes[1].dist = DotProduct(tc->tris[tri + 1].planes[1].normal, points[3]);
 
 				tc->tris[tri + 1].planes[2].normal[0] = 0.f;
 				tc->tris[tri + 1].planes[2].normal[1] = 1.f;
 				tc->tris[tri + 1].planes[2].normal[2] = 0.f;
-				tc->tris[tri + 1].planes[2].dist = DotProduct(tc->tris[tri + 1].planes[2].normal, points[5]);
-				tc->tris[tri + 1].planes[2].signbits = CM_SignbitsForNormal(tc->tris[tri + 1].planes[2].normal);
-				tc->tris[tri + 1].planes[2].type = PlaneTypeForNormal(tc->tris[tri + 1].planes[2].normal);
+				tc->tris[tri + 1].planes[2].dist = DotProduct(tc->tris[tri + 1].planes[2].normal, points[3]);
 
 				tc->tris[tri + 1].planes[3].normal[0] = -M_SQRT1_2;
 				tc->tris[tri + 1].planes[3].normal[1] = -M_SQRT1_2;
 				tc->tris[tri + 1].planes[3].normal[2] = 0.f;
 				tc->tris[tri + 1].planes[3].dist = DotProduct(tc->tris[tri + 1].planes[3].normal, points[2]);
-				tc->tris[tri + 1].planes[3].signbits = CM_SignbitsForNormal(tc->tris[tri + 1].planes[3].normal);
-				tc->tris[tri + 1].planes[3].type = PlaneTypeForNormal(tc->tris[tri + 1].planes[3].normal);
+
+				// cap planes
+				// HACK HACK HACK!
+				// this relies on the current layout of cplane_t
+				PlaneFromPoints((float *)tc->tris[tri + 0].planes[0].normal, points[0], points[1], points[2]);
+
+				VectorNegate(tc->tris[tri + 0].planes[0].normal, tc->tris[tri + 0].planes[4].normal);
+				tc->tris[tri + 0].planes[4].dist = -tc->tris[tri + 0].planes[0].dist + 0.5;
+
+				// HACK HACK HACK!
+				// this relies on the current layout of cplane_t
+				PlaneFromPoints((float *)tc->tris[tri + 1].planes[0].normal, points[1], points[3], points[2]);
+
+				VectorNegate(tc->tris[tri + 1].planes[0].normal, tc->tris[tri + 1].planes[4].normal);
+				tc->tris[tri + 1].planes[4].dist = -tc->tris[tri + 1].planes[0].dist + 0.5;
 			} else {
-				points[0] = vhmap[y * 9 + x];
-				points[1] = vhmap[(y + 1) * 9 + x + 1];
-				points[2] = vhmap[y * 9 + x + 1];
-
-				points[3] = points[0];
-				points[4] = vhmap[(y + 1) * 9 + x];
-				points[5] = points[1];
-
 				// 1st triangle border planes
 				tc->tris[tri + 0].planes[1].normal[0] = 1.f;
 				tc->tris[tri + 0].planes[1].normal[1] = 0.f;
 				tc->tris[tri + 0].planes[1].normal[2] = 0.f;
-				tc->tris[tri + 0].planes[1].dist = DotProduct(tc->tris[tri + 0].planes[1].normal, points[1]);
-				tc->tris[tri + 0].planes[1].signbits = CM_SignbitsForNormal(tc->tris[tri + 0].planes[1].normal);
-				tc->tris[tri + 0].planes[1].type = PlaneTypeForNormal(tc->tris[tri + 0].planes[1].normal);
+				tc->tris[tri + 0].planes[1].dist = DotProduct(tc->tris[tri + 0].planes[1].normal, points[2]);
 
 				tc->tris[tri + 0].planes[2].normal[0] = 0.f;
 				tc->tris[tri + 0].planes[2].normal[1] = -1.f;
 				tc->tris[tri + 0].planes[2].normal[2] = 0.f;
 				tc->tris[tri + 0].planes[2].dist = DotProduct(tc->tris[tri + 0].planes[2].normal, points[0]);
-				tc->tris[tri + 0].planes[2].signbits = CM_SignbitsForNormal(tc->tris[tri + 0].planes[2].normal);
-				tc->tris[tri + 0].planes[2].type = PlaneTypeForNormal(tc->tris[tri + 0].planes[2].normal);
 
 				tc->tris[tri + 0].planes[3].normal[0] = -M_SQRT1_2;
 				tc->tris[tri + 0].planes[3].normal[1] = M_SQRT1_2;
 				tc->tris[tri + 0].planes[3].normal[2] = 0.f;
 				tc->tris[tri + 0].planes[3].dist = DotProduct(tc->tris[tri + 0].planes[3].normal, points[0]);
-				tc->tris[tri + 0].planes[3].signbits = CM_SignbitsForNormal(tc->tris[tri + 0].planes[3].normal);
-				tc->tris[tri + 0].planes[3].type = PlaneTypeForNormal(tc->tris[tri + 0].planes[3].normal);
 
 				// 2nd triangle border planes
 				tc->tris[tri + 1].planes[1].normal[0] = -1.f;
 				tc->tris[tri + 1].planes[1].normal[1] = 0.f;
 				tc->tris[tri + 1].planes[1].normal[2] = 0.f;
 				tc->tris[tri + 1].planes[1].dist = DotProduct(tc->tris[tri + 1].planes[1].normal, points[0]);
-				tc->tris[tri + 1].planes[1].signbits = CM_SignbitsForNormal(tc->tris[tri + 1].planes[1].normal);
-				tc->tris[tri + 1].planes[1].type = PlaneTypeForNormal(tc->tris[tri + 1].planes[1].normal);
 
 				tc->tris[tri + 1].planes[2].normal[0] = 0.f;
 				tc->tris[tri + 1].planes[2].normal[1] = 1.f;
 				tc->tris[tri + 1].planes[2].normal[2] = 0.f;
 				tc->tris[tri + 1].planes[2].dist = DotProduct(tc->tris[tri + 1].planes[2].normal, points[1]);
-				tc->tris[tri + 1].planes[2].signbits = CM_SignbitsForNormal(tc->tris[tri + 1].planes[2].normal);
-				tc->tris[tri + 1].planes[2].type = PlaneTypeForNormal(tc->tris[tri + 1].planes[2].normal);
 
 				tc->tris[tri + 1].planes[3].normal[0] = M_SQRT1_2;
 				tc->tris[tri + 1].planes[3].normal[1] = -M_SQRT1_2;
 				tc->tris[tri + 1].planes[3].normal[2] = 0.f;
 				tc->tris[tri + 1].planes[3].dist = DotProduct(tc->tris[tri + 1].planes[3].normal, points[0]);
-				tc->tris[tri + 1].planes[3].signbits = CM_SignbitsForNormal(tc->tris[tri + 1].planes[3].normal);
-				tc->tris[tri + 1].planes[3].type = PlaneTypeForNormal(tc->tris[tri + 1].planes[3].normal);
+
+				// cap planes
+				// HACK HACK HACK!
+				// this relies on the current layout of cplane_t
+				PlaneFromPoints((float *)tc->tris[tri + 0].planes[0].normal, points[0], points[3], points[2]);
+
+				VectorNegate(tc->tris[tri + 0].planes[0].normal, tc->tris[tri + 0].planes[4].normal);
+				tc->tris[tri + 0].planes[4].dist = -tc->tris[tri + 0].planes[0].dist + 0.5;
+
+				// HACK HACK HACK!
+				// this relies on the current layout of cplane_t
+				PlaneFromPoints((float *)tc->tris[tri + 1].planes[0].normal, points[0], points[1], points[3]);
+
+				VectorNegate(tc->tris[tri + 1].planes[0].normal, tc->tris[tri + 1].planes[4].normal);
+				tc->tris[tri + 1].planes[4].dist = -tc->tris[tri + 1].planes[0].dist + 0.5;
 			}
-			// cap planes
-			// HACK HACK HACK!
-			// this relies on the current layout of cplane_t
-			PlaneFromPoints((float *)tc->tris[tri + 0].planes[0].normal, points[0], points[1], points[2]);
-			tc->tris[tri + 0].planes[0].signbits = CM_SignbitsForNormal(tc->tris[tri + 0].planes[0].normal);
-			tc->tris[tri + 0].planes[0].type = PlaneTypeForNormal(tc->tris[tri + 0].planes[0].normal);
-
-			VectorNegate(tc->tris[tri + 0].planes[0].normal, tc->tris[tri + 0].planes[4].normal);
-			tc->tris[tri + 0].planes[4].dist = -tc->tris[tri + 0].planes[0].dist + 16;
-			tc->tris[tri + 0].planes[4].signbits = CM_SignbitsForNormal(tc->tris[tri + 0].planes[4].normal);
-			tc->tris[tri + 0].planes[4].type = PlaneTypeForNormal(tc->tris[tri + 0].planes[4].normal);
-
-			// HACK HACK HACK!
-			// this relies on the current layout of cplane_t
-			PlaneFromPoints((float *)tc->tris[tri + 1].planes[0].normal, points[3], points[4], points[5]);
-			tc->tris[tri + 1].planes[0].signbits = CM_SignbitsForNormal(tc->tris[tri + 1].planes[0].normal);
-			tc->tris[tri + 1].planes[0].type = PlaneTypeForNormal(tc->tris[tri + 1].planes[0].normal);
-
-			VectorNegate(tc->tris[tri + 1].planes[0].normal, tc->tris[tri + 1].planes[4].normal);
-			tc->tris[tri + 1].planes[4].dist = -tc->tris[tri + 1].planes[0].dist + 16;
-			tc->tris[tri + 1].planes[4].signbits = CM_SignbitsForNormal(tc->tris[tri + 1].planes[4].normal);
-			tc->tris[tri + 1].planes[4].type = PlaneTypeForNormal(tc->tris[tri + 1].planes[4].normal);
+			for (i = 0; i < TER_TRIS_PER_PATCH; i++) {
+				tc->tris[tri + 0].planes[i].signbits = CM_SignbitsForNormal(tc->tris[tri + 0].planes[i].normal);
+				tc->tris[tri + 0].planes[i].type = PlaneTypeForNormal(tc->tris[tri + 0].planes[i].normal);
+				tc->tris[tri + 1].planes[i].signbits = CM_SignbitsForNormal(tc->tris[tri + 1].planes[i].normal);
+				tc->tris[tri + 1].planes[i].type = PlaneTypeForNormal(tc->tris[tri + 1].planes[i].normal);
+			}
 		}
 	}
-#elseif 0	// development test case code, left over just in case; works with TER_QUADS_PER_ROW = 1 ONLY!!!
+#else	// development test case code, left over just in case; works with TER_QUADS_PER_ROW = 1 ONLY!!!
+#if 1
+#if TER_QUADS_PER_ROW != 1
+	#error("TER_QUADS_PER_ROW must be equal to 1!")
+#endif
 	points[0][0] = origin[0];
 	points[0][1] = origin[1];
 	points[0][2] = origin[2] + heightmap[0][0] * 2;
@@ -364,6 +346,7 @@ struct terPatchCollide_s *CM_GenerateTerPatchCollide(vec3_t origin, byte heightm
 	tc->tris[1].planes[4].dist = -tc->tris[1].planes[0].dist;
 	tc->tris[1].planes[4].signbits = CM_SignbitsForNormal(tc->tris[1].planes[4].normal);
 	tc->tris[1].planes[4].type = PlaneTypeForNormal(tc->tris[1].planes[4].normal);
+#endif
 #endif
 
 	return tc;

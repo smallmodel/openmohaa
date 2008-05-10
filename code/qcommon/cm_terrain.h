@@ -31,12 +31,12 @@ qboolean CM_PositionTestInTerPatchCollide(traceWork_t *tw, const struct terPatch
 #ifndef CM_TERRAIN_H
 #define CM_TERRAIN_H
 
-#define TER_QUADS_PER_ROW	1//8
+#define TER_QUADS_PER_ROW	8
 #define TER_TRIS_PER_PATCH	(TER_QUADS_PER_ROW * TER_QUADS_PER_ROW * 2)
-#define TER_PLANES_PER_TRI	4//5
+#define TER_PLANES_PER_TRI	5
 
 typedef struct terTriangle_s {
-	cplane_t		planes[5];	// 0 is the surface plane, 3 border planes follow and a cap to give it some finite volume
+	cplane_t		planes[TER_PLANES_PER_TRI];	// 0 is the surface plane, 3 border planes follow and a cap to give it some finite volume
 } terTriangle_t;
 
 typedef struct terPatchCollide_s {
