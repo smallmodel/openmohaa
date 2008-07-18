@@ -1225,7 +1225,7 @@ void UI_Refresh( int realtime )
 
 	// draw cursor
 	UI_SetColor( NULL );
-	UI_DrawHandlePic( uis.cursorx-16, uis.cursory-16, 32, 32, uis.cursor);
+	UI_DrawHandlePic( uis.cursorx, uis.cursory, 32, 32, uis.cursor);
 
 #ifndef NDEBUG
 	if (uis.debug)
