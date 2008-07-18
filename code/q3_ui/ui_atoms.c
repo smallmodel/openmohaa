@@ -1203,7 +1203,9 @@ void UI_Refresh( int realtime )
 		{
 			// draw the background
 			if( uis.activemenu->showlogo ) {
-				UI_DrawHandlePic( 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, uis.menuBackShader );
+				// MOHAA main menu background is split into two parts
+				UI_DrawHandlePic( 0, 0, SCREEN_WIDTH-128, SCREEN_HEIGHT+32, uis.menuBackShader_a );
+				UI_DrawHandlePic( 480, 0, SCREEN_WIDTH-384, SCREEN_HEIGHT+32, uis.menuBackShader_b );
 			}
 			else {
 				UI_DrawHandlePic( 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, uis.menuBackNoLogoShader );

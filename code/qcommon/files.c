@@ -176,15 +176,15 @@ or configs will never get loaded from disk!
 // the easiest way to get it is to just run the game and see what it spits out
 #define	DEMO_PAK0_CHECKSUM	2985612116u
 static const unsigned pak_checksums[] = {
-	1566731103u,
-	298122907u,
-	412165236u,
-	2991495316u,
-	1197932710u,
-	4087071573u,
-	3709064859u,
-	908855077u,
-	977125798u
+	229290730u,
+	651935416u,
+	3954541494u,
+	755737592u,
+	1893706666u,
+	3323617005u
+	//3709064859u,
+	//908855077u,
+	//977125798u
 };
 
 // if this is defined, the executable positively won't work with any paks other

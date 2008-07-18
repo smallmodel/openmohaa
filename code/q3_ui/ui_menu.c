@@ -192,7 +192,7 @@ static void Main_MenuDraw( void ) {
 	origin[1] = 0;
 	origin[2] = -32;
 
-	trap_R_ClearScene();
+//	trap_R_ClearScene();
 
 	// add the model
 
@@ -207,9 +207,9 @@ static void Main_MenuDraw( void ) {
 	ent.renderfx = RF_LIGHTING_ORIGIN | RF_NOSHADOW;
 	VectorCopy( ent.origin, ent.oldorigin );
 
-	trap_R_AddRefEntityToScene( &ent );
+//	trap_R_AddRefEntityToScene( &ent );
 
-	trap_R_RenderScene( &refdef );
+//	trap_R_RenderScene( &refdef );
 	
 	if (strlen(s_errorMessage.errorMessage))
 	{
@@ -221,12 +221,12 @@ static void Main_MenuDraw( void ) {
 		Menu_Draw( &s_main.menu );		
 	}
 
-	if (uis.demoversion) {
-		UI_DrawProportionalString( 320, 372, "DEMO      FOR MATURE AUDIENCES      DEMO", UI_CENTER|UI_SMALLFONT, color );
-		UI_DrawString( 320, 400, "Quake III Arena(c) 1999-2000, Id Software, Inc.  All Rights Reserved", UI_CENTER|UI_SMALLFONT, color );
-	} else {
-		UI_DrawString( 320, 450, "Quake III Arena(c) 1999-2000, Id Software, Inc.  All Rights Reserved", UI_CENTER|UI_SMALLFONT, color );
-	}
+//	if (uis.demoversion) {
+//		UI_DrawProportionalString( 320, 372, "DEMO      FOR MATURE AUDIENCES      DEMO", UI_CENTER|UI_SMALLFONT, color );
+//		UI_DrawString( 320, 400, "Quake III Arena(c) 1999-2000, Id Software, Inc.  All Rights Reserved", UI_CENTER|UI_SMALLFONT, color );
+//	} else {
+		UI_DrawString( 320, 450, "OpenMOHAA (c) 2008, SVN BUILD  All Rights Reserved", UI_CENTER|UI_SMALLFONT, color );
+//	}
 }
 
 

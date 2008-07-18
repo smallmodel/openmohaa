@@ -1716,18 +1716,19 @@ void Menu_Cache( void )
 	uis.charsetProp		= trap_R_RegisterShaderNoMip( "menu/art/font1_prop.tga" );
 	uis.charsetPropGlow	= trap_R_RegisterShaderNoMip( "menu/art/font1_prop_glo.tga" );
 	uis.charsetPropB	= trap_R_RegisterShaderNoMip( "menu/art/font2_prop.tga" );
-	uis.cursor          = trap_R_RegisterShaderNoMip( "menu/art/3_cursor2" );
+	uis.cursor          = trap_R_RegisterShaderNoMip( "gfx/2d/mouse_cursor.tga" );
 	uis.rb_on           = trap_R_RegisterShaderNoMip( "menu/art/switch_on" );
 	uis.rb_off          = trap_R_RegisterShaderNoMip( "menu/art/switch_off" );
 
 	uis.whiteShader = trap_R_RegisterShaderNoMip( "*white" );
 	if ( uis.glconfig.hardwareType == GLHW_RAGEPRO ) {
 		// the blend effect turns to shit with the normal
-		uis.menuBackShader	= trap_R_RegisterShaderNoMip( "menubackRagePro" );
+		uis.menuBackShader_a	= trap_R_RegisterShaderNoMip( "menubackRagePro" );
 	} else {
-		uis.menuBackShader	= trap_R_RegisterShaderNoMip( "menuback" );
+		uis.menuBackShader_a	= trap_R_RegisterShaderNoMip( "textures/mohmenu/main_a.tga" ); //"menuback"
+		uis.menuBackShader_b	= trap_R_RegisterShaderNoMip( "textures/mohmenu/main_b.tga" ); //"menuback"
 	}
-	uis.menuBackNoLogoShader = trap_R_RegisterShaderNoMip( "menubacknologo" );
+	uis.menuBackNoLogoShader = trap_R_RegisterShaderNoMip( "textures/mohmenu/black.tga" );
 
 	menu_in_sound	= trap_S_RegisterSound( "sound/misc/menu1.wav", qfalse );
 	menu_move_sound	= trap_S_RegisterSound( "sound/misc/menu2.wav", qfalse );
