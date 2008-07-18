@@ -382,7 +382,7 @@ void RE_RegisterFont(const char *fontName, int pointSize, fontInfo_t *font) {
 	    token = COM_Parse(&p);
 	    if (!strcmp(token, "RitFont")) {
 			int			j;
-	    	float		height, aspect;	// TODO: find out what the meaning of aspect is
+	    	float		height, aspect;	// aspect is the aspect ratio of the tga file
 	    	char		indirections[256];
 	    	shader_t	*fontShader;
 	    	vec4_t		locations;
