@@ -1,22 +1,22 @@
 #!/bin/sh
-APPBUNDLE=ioquake3.app
-BINARY=ioquake3.ub
-DEDBIN=ioq3ded.ub
-PKGINFO=APPLIOQ3
-ICNS=misc/quake3.icns
+APPBUNDLE=openmohaa.app
+BINARY=openmohaa.ub
+DEDBIN=omohaaded.ub
+PKGINFO=APPLOMOHAA
+ICNS=misc/openmohaa.icns
 DESTDIR=build/release-darwin-ub
-BASEDIR=baseq3
+BASEDIR=main
 MPACKDIR=missionpack
 Q3_VERSION=`grep "\#define Q3_VERSION" code/qcommon/q_shared.h | \
 	sed -e 's/.*".* \([^ ]*\)"/\1/'`;
 
 BIN_OBJ="
-	build/release-darwin-ppc/ioquake3-smp.ppc
-	build/release-darwin-i386/ioquake3-smp.i386
+	build/release-darwin-ppc/openmohaa-smp.ppc
+	build/release-darwin-i386/openmohaa-smp.i386
 "
 BIN_DEDOBJ="
-	build/release-darwin-ub/ioq3ded.ppc
-	build/release-darwin-i386/ioq3ded.i386
+	build/release-darwin-ub/omohaaded.ppc
+	build/release-darwin-i386/omohaaded.i386
 "
 BASE_OBJ="
 	build/release-darwin-ppc/$BASEDIR/cgameppc.dylib
@@ -35,7 +35,7 @@ MPACK_OBJ="
 	build/release-darwin-i386/$MPACKDIR/qagamei386.dylib
 "
 if [ ! -f Makefile ]; then
-	echo "This script must be run from the ioquake3 build directory";
+	echo "This script must be run from the openmohaa build directory";
 fi
 
 TIGERHOST=0
@@ -159,7 +159,7 @@ if [ -d build/release-darwin-ppc ]; then
 fi
 (ARCH=ppc BUILD_CLIENT_SMP=0 BUILD_CLIENT=0 BUILD_GAME_VM=0 BUILD_GAME_SO=0 \
 	CFLAGS=$PPC_SERVER_CFLAGS LDFLAGS=$PPC_SERVER_LDFLAGS make) || exit 1;
-cp build/release-darwin-ppc/ioq3ded.ppc $DESTDIR
+cp build/release-darwin-ppc/omohaaded.ppc $DESTDIR
 
 # ppc client
 if [ -d build/release-darwin-ppc ]; then
@@ -184,7 +184,7 @@ fi
 if [ ! -d $DESTDIR/$APPBUNDLE/Contents/Resources ]; then
 	mkdir -p $DESTDIR/$APPBUNDLE/Contents/Resources
 fi
-cp $ICNS $DESTDIR/$APPBUNDLE/Contents/Resources/ioquake3.icns || exit 1;
+cp $ICNS $DESTDIR/$APPBUNDLE/Contents/Resources/openmohaa.icns || exit 1;
 echo $PKGINFO > $DESTDIR/$APPBUNDLE/Contents/PkgInfo
 echo "
 	<?xml version=\"1.0\" encoding="UTF-8"?>
@@ -198,15 +198,15 @@ echo "
 		<key>CFBundleExecutable</key>
 		<string>$BINARY</string>
 		<key>CFBundleGetInfoString</key>
-		<string>ioquake3 $Q3_VERSION</string>
+		<string>openmohaa $Q3_VERSION</string>
 		<key>CFBundleIconFile</key>
-		<string>ioquake3.icns</string>
+		<string>openmohaa.icns</string>
 		<key>CFBundleIdentifier</key>
 		<string>org.icculus.quake3</string>
 		<key>CFBundleInfoDictionaryVersion</key>
 		<string>6.0</string>
 		<key>CFBundleName</key>
-		<string>ioquake3</string>
+		<string>opemohaa</string>
 		<key>CFBundlePackageType</key>
 		<string>APPL</string>
 		<key>CFBundleShortVersionString</key>
@@ -225,7 +225,7 @@ echo "
 
 lipo -create -o $DESTDIR/$APPBUNDLE/Contents/MacOS/$BINARY $BIN_OBJ
 lipo -create -o $DESTDIR/$APPBUNDLE/Contents/MacOS/$DEDBIN $BIN_DEDOBJ
-rm $DESTDIR/ioq3ded.ppc
+rm $DESTDIR/omohaaded.ppc
 cp $BASE_OBJ $DESTDIR/$APPBUNDLE/Contents/MacOS/$BASEDIR/
 cp $MPACK_OBJ $DESTDIR/$APPBUNDLE/Contents/MacOS/$MPACKDIR/
 cp code/libs/macosx/*.dylib $DESTDIR/$APPBUNDLE/Contents/MacOS/
