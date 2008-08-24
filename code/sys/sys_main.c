@@ -396,6 +396,9 @@ void *Sys_LoadDll( const char *name, char *fqpath ,
 	char  fname[MAX_OSPATH];
 	char  *basepath;
 	char  *homepath;
+#ifdef MACOS_X
+	char  *apppath;
+#endif
 	char  *pwdpath;
 	char  *gamedir;
 
@@ -407,6 +410,9 @@ void *Sys_LoadDll( const char *name, char *fqpath ,
 	pwdpath = Sys_Cwd();
 	basepath = Cvar_VariableString( "fs_basepath" );
 	homepath = Cvar_VariableString( "fs_homepath" );
+#ifdef MACOS_X
+	apppath  = Cvar_VariableString( "fs_apppath" );
+#endif
 	gamedir = Cvar_VariableString( "fs_game" );
 
 	libHandle = Sys_TryLibraryLoad(pwdpath, gamedir, fname, fqpath);
@@ -416,6 +422,10 @@ void *Sys_LoadDll( const char *name, char *fqpath ,
 
 	if(!libHandle && basepath)
 		libHandle = Sys_TryLibraryLoad(basepath, gamedir, fname, fqpath);
+#ifdef MACOS_X
+	if(!libHandle && apppath)
+		libHandle = Sys_TryLibraryLoad(apppath, gamedir, fname, fqpath);
+#endif
 
 	if(!libHandle) {
 		Com_Printf ( "Sys_LoadDll(%s) failed to load library\n", name );

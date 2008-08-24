@@ -5,28 +5,64 @@
       |_|
 Building
 =======================
+*NIX:
+Run 'make'
+
+WIN:
+Download and install Mingw and Msys from http://www.mingw.org/
+Open Msys console, change to openmohaa directory, run 'make'
+
+There is an MSVS project file included, but it does not compile.
+I advise you to just install mingw/msys to compile the code, you
+can still use the VS IDE to write your code. REALLY!! VS may be
+great, but so is GCC!
+
+MOSX:
+Run './make-macosx-ub.sh'
+
+The built binaries reside in the 'build' directory.
+
+For further instructions:
 Please refer to ioquake3's README (README.ioq3).
+Or get in touch with any of our developers (->forums/irc).
 
 Running
 =======================
-NOTE: You need the VMs/shared libraries of the modules from the "main"
-subdirectory inside the build directory.
-DO NOT USE MISSIONPACK ONES, they will fail.
+In order to run the game, you need the original MOHAA media files,
+which are stored in pak*.pk3 files.
 
-Now this can be a little tricky. At the current, early development
-state, OpenMoHAA requires both Quake III (or compatible) and
-MoHAA's pk3 files. If you don't have a copy of Q3 Arena, get
-OpenArena (http://www.openarena.ws/), which is a free clone of Q3.
-When you've already got the Q3 (or OA) pk3 files at hand, you will
-notice there's a name conflict between them and MoHAA's pk3s. I
-recommend you to copy MoHAA's pk3s into OMoHAA's main directory and
-rename them to mohaapak0.pk3, mohaapak2.pk3 and so on. Remember,
-you need both games' pk3s or you will experience all kinds of
-failures!
+Copy all pak*.pk3 from your MOHAA/main directory into openmohaa's
+'main' directory (found in the 'build' directory).
 
-When you're done with the pk3s and binaries, run the game, open up
-the console and type for example map dm/mohdm1 and run around it.
+At this stage of development, openmohaa still needs some files
+which cannot be read from the MOHAA pk3's so you must get a
+Quake 3 Arena pak0.pk3 from somewhere (Q3demo or OpenArena will do fine).
+Take that pak0.pk3, rename it to qPak0.pk3 (to resolve the name conflict)
+and copy it to openmohaa's 'main' directory.
+
+Now you need the SDL library. Windows users can download the ready-to-use
+DLL file at http://www.libsdl.org/
+
+Now run openmohaa with start parameters:
++set sv_pure 0 +set vm_cgame 0 +set vm_game 0 +set vm_ui 0 +developer 1
+
+Open up the console and type for example map dm/mohdm1 and run around it.
 There's not much more you can do there yet. Enjoy!
+
+Developing
+=======================
+There is plenty of work to do. Basically, our goal is to get openmohaa
+compatible to MOHAA. If you want to help out, just follow the above
+instructions to get your development system set up.
+It doesn't help anybody if you tell us you'd like to help out but never
+submit one single line of code.
+So *before* you ask to get on the team, do something. Feel free to ask
+for help. Just ask for advise on what to do to help out.
+When you've produced some code, tell us and we will consider access to
+the subversion system for you.
+
+After all, you are always welcome in our irc channel and forums!
+
 
 URL
 =======================

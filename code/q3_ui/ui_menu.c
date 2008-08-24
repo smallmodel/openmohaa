@@ -273,7 +273,7 @@ void UI_MainMenu( void ) {
 
 	trap_Cvar_Set( "sv_killserver", "1" );
 
-	if( !uis.demoversion && !ui_cdkeychecked.integer ) {
+/*	if( !uis.demoversion && !ui_cdkeychecked.integer ) {
 		char	key[17];
 
 		trap_GetCDKey( key, sizeof(key) );
@@ -282,7 +282,7 @@ void UI_MainMenu( void ) {
 			return;
 		}
 	}
-	
+*/	
 	memset( &s_main, 0 ,sizeof(mainmenu_t) );
 	memset( &s_errorMessage, 0 ,sizeof(errorMessage_t) );
 
