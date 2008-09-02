@@ -226,13 +226,13 @@ typedef enum {
 
 // font rendering values used by ui and cgame
 
-#define PROP_GAP_WIDTH			3
+#define PROP_GAP_WIDTH			5
 #define PROP_SPACE_WIDTH		8
-#define PROP_HEIGHT				27
+#define PROP_HEIGHT				30
 #define PROP_SMALL_SIZE_SCALE	0.75
 
 #define BLINK_DIVISOR			200
-#define PULSE_DIVISOR			75
+#define PULSE_DIVISOR			500.0f
 
 #define UI_LEFT			0x00000000	// default
 #define UI_CENTER		0x00000001

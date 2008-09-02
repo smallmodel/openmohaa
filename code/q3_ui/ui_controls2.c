@@ -1081,7 +1081,7 @@ static void Controls_MenuEvent( void* ptr, int event )
 		case ID_DEFAULTS:
 			if (event == QM_ACTIVATED)
 			{
-				UI_ConfirmMenu( "SET TO DEFAULTS?", Controls_ResetDefaults_Draw, Controls_ResetDefaults_Action );
+				UI_ConfirmMenu( "Set to Defaults?", Controls_ResetDefaults_Draw, Controls_ResetDefaults_Action );
 			}
 			break;
 

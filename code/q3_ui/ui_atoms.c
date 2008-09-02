@@ -179,6 +179,32 @@ void UI_LerpColor(vec4_t a, vec4_t b, vec4_t c, float t)
 	}
 }
 
+// Wombat
+/*
+=================
+UI_DrawBox
+ctrCoord == qtrue: draw box with center at x,y
+ctrCoord == qfalse: box with upper left corner at x,y
+=================
+*/
+#define LINE_THICKNESS	1
+void	UI_DrawBox( int x, int y, int w, int h, qboolean ctrCoord ) {
+
+	if ( ctrCoord ) {
+		x -= w/2;
+		y -= h/2;
+	}
+
+	trap_R_SetColor( color_gray );
+	trap_R_DrawStretchPic( x*uis.xscale, y*uis.yscale, w*uis.xscale, h*uis.yscale, 0, 0, 16, 16, uis.blackShader );
+	trap_R_SetColor( color_white );
+	trap_R_DrawStretchPic( x*uis.xscale, y*uis.yscale, w*uis.xscale, LINE_THICKNESS*uis.yscale, 0, 0, 32, 32, uis.whiteShader );
+	trap_R_DrawStretchPic( x*uis.xscale, y*uis.yscale, LINE_THICKNESS*uis.xscale, h*uis.yscale, 0, 0, 32, 32, uis.whiteShader );
+	trap_R_DrawStretchPic( x*uis.xscale, (y+h)*uis.yscale, w*uis.xscale, LINE_THICKNESS*uis.yscale, 0, 0, 32, 32, uis.whiteShader );
+	trap_R_DrawStretchPic( (x+w)*uis.xscale, y*uis.yscale, LINE_THICKNESS*uis.xscale, (h+LINE_THICKNESS)*uis.yscale, 0, 0, 32, 32, uis.whiteShader );
+	trap_R_SetColor( NULL );
+}
+
 /*
 =================
 UI_DrawProportionalString2
@@ -384,7 +410,7 @@ void UI_DrawBannerString( int x, int y, const char* str, int style, vec4_t color
 	int				width;
 	vec4_t			drawcolor;
 
-	// find the width of the drawn text
+/*	// find the width of the drawn text
 	s = str;
 	width = 0;
 	while ( *s ) {
@@ -398,7 +424,8 @@ void UI_DrawBannerString( int x, int y, const char* str, int style, vec4_t color
 		s++;
 	}
 	width -= PROPB_GAP_WIDTH;
-
+*/
+	width = trap_R_Text_Width( &uis.menuFont, str, 0, 1 )*2;
 	switch( style & UI_FORMATMASK ) {
 		case UI_CENTER:
 			x -= width / 2;
@@ -416,15 +443,21 @@ void UI_DrawBannerString( int x, int y, const char* str, int style, vec4_t color
 	if ( style & UI_DROPSHADOW ) {
 		drawcolor[0] = drawcolor[1] = drawcolor[2] = 0;
 		drawcolor[3] = color[3];
-		UI_DrawBannerString2( x+2, y+2, str, drawcolor );
-	}
 
-	UI_DrawBannerString2( x, y, str, color );
+		trap_R_SetColor( drawcolor );
+		trap_R_Text_Paint( &uis.menuFont, x+2,y+2, 2, 0, str, 0, 0, 1, 1 );
+		trap_R_SetColor( NULL );
+		//UI_DrawBannerString2( x+2, y+2, str, drawcolor );
+	}
+	trap_R_SetColor( color );
+	trap_R_Text_Paint( &uis.menuFont, x,y, 2, 0, str, 0, 0, 1, 1 );
+	trap_R_SetColor( NULL );
+//	UI_DrawBannerString2( x, y, str, color );
 }
 
 
 int UI_ProportionalStringWidth( const char* str ) {
-	const char *	s;
+/*	const char *	s;
 	int				ch;
 	int				charWidth;
 	int				width;
@@ -443,6 +476,8 @@ int UI_ProportionalStringWidth( const char* str ) {
 
 	width -= PROP_GAP_WIDTH;
 	return width;
+*/
+	return trap_R_Text_Width(&uis.menuFont, str, 0, 1) * 2;
 }
 
 static void UI_DrawProportionalString2( int x, int y, const char* str, vec4_t color, float sizeScale, qhandle_t charset )
@@ -516,12 +551,14 @@ void UI_DrawProportionalString( int x, int y, const char* str, int style, vec4_t
 
 	switch( style & UI_FORMATMASK ) {
 		case UI_CENTER:
-			width = UI_ProportionalStringWidth( str ) * sizeScale;
+			width = trap_R_Text_Width(&uis.menuFont, str, 0, 1) * 2*sizeScale;
+			//width = UI_ProportionalStringWidth( str ) * sizeScale;
 			x -= width / 2;
 			break;
 
 		case UI_RIGHT:
-			width = UI_ProportionalStringWidth( str ) * sizeScale;
+			width = trap_R_Text_Width(&uis.menuFont, str, 0, 1) * 2*sizeScale;
+			//width = UI_ProportionalStringWidth( str ) * sizeScale;
 			x -= width;
 			break;
 
@@ -533,7 +570,11 @@ void UI_DrawProportionalString( int x, int y, const char* str, int style, vec4_t
 	if ( style & UI_DROPSHADOW ) {
 		drawcolor[0] = drawcolor[1] = drawcolor[2] = 0;
 		drawcolor[3] = color[3];
-		UI_DrawProportionalString2( x+2, y+2, str, drawcolor, sizeScale, uis.charsetProp );
+
+		trap_R_SetColor( drawcolor );
+		trap_R_Text_Paint( &uis.menuFont, x+2, y+2, 2*sizeScale, 1, str, 0, 0, 1, qtrue );
+		trap_R_SetColor( NULL );
+		//UI_DrawProportionalString2( x+2, y+2, str, drawcolor, sizeScale, uis.charsetProp );
 	}
 
 	if ( style & UI_INVERSE ) {
@@ -541,7 +582,11 @@ void UI_DrawProportionalString( int x, int y, const char* str, int style, vec4_t
 		drawcolor[1] = color[1] * 0.7;
 		drawcolor[2] = color[2] * 0.7;
 		drawcolor[3] = color[3];
-		UI_DrawProportionalString2( x, y, str, drawcolor, sizeScale, uis.charsetProp );
+
+		trap_R_SetColor( drawcolor );
+		trap_R_Text_Paint( &uis.menuFont, x, y, 2*sizeScale, 1, str, 0, 0, 1, qtrue );
+		trap_R_SetColor( NULL );
+		//UI_DrawProportionalString2( x, y, str, drawcolor, sizeScale, uis.charsetProp );
 		return;
 	}
 
@@ -550,17 +595,28 @@ void UI_DrawProportionalString( int x, int y, const char* str, int style, vec4_t
 		drawcolor[1] = color[1] * 0.7;
 		drawcolor[2] = color[2] * 0.7;
 		drawcolor[3] = color[3];
-		UI_DrawProportionalString2( x, y, str, color, sizeScale, uis.charsetProp );
+
+		trap_R_SetColor( color );
+		trap_R_Text_Paint( &uis.menuFont, x, y, 2*sizeScale, 1, str, 0, 0, 1, qtrue );
+		trap_R_SetColor( NULL );
+		//UI_DrawProportionalString2( x, y, str, color, sizeScale, uis.charsetProp );
 
 		drawcolor[0] = color[0];
 		drawcolor[1] = color[1];
 		drawcolor[2] = color[2];
 		drawcolor[3] = 0.5 + 0.5 * sin( uis.realtime / PULSE_DIVISOR );
-		UI_DrawProportionalString2( x, y, str, drawcolor, sizeScale, uis.charsetPropGlow );
+
+		trap_R_SetColor( drawcolor );
+		trap_R_Text_Paint( &uis.menuFont, x, y, 2*sizeScale, 1, str, 0, 0, 1, qtrue );
+		trap_R_SetColor( NULL );
+		//UI_DrawProportionalString2( x, y, str, drawcolor, sizeScale, uis.charsetPropGlow );
 		return;
 	}
 
-	UI_DrawProportionalString2( x, y, str, color, sizeScale, uis.charsetProp );
+	trap_R_SetColor( color );
+	trap_R_Text_Paint( &uis.menuFont, x, y, 2*sizeScale, 1, str, 0, 0, 1, qtrue );
+	trap_R_SetColor( NULL );
+	//UI_DrawProportionalString2( x, y, str, color, sizeScale, uis.charsetProp );
 }
 
 /*
@@ -1082,6 +1138,9 @@ void UI_Init( void ) {
 
 	uis.activemenu = NULL;
 	uis.menusp     = 0;
+
+	// wombat
+	trap_R_RegisterFont( "facfont-20", 0, &uis.menuFont );
 }
 
 /*
@@ -1204,11 +1263,27 @@ void UI_Refresh( int realtime )
 			// draw the background
 			if( uis.activemenu->showlogo ) {
 				// MOHAA main menu background is split into two parts
-				UI_DrawHandlePic( 0, 0, SCREEN_WIDTH-128, SCREEN_HEIGHT+32, uis.menuBackShader_a );
-				UI_DrawHandlePic( 480, 0, SCREEN_WIDTH-384, SCREEN_HEIGHT+32, uis.menuBackShader_b );
+				switch (uis.activemenu->menuBack) {
+					case BG_MAIN:
+						UI_DrawHandlePic( 0, 0, 512, 512, uis.menuBackShader_a );
+						UI_DrawHandlePic( 480, 0, 256, 512, uis.menuBackShader_b );
+						break;
+					case BG_STAT1:
+						UI_DrawHandlePic( 0, 0, 512, 512, uis.statScreenShader_a );
+						UI_DrawHandlePic( 384, 0, 256, 512, uis.statScreenShader_b );
+						break;
+					case BG_STAT2:
+						UI_DrawHandlePic( 0, 0, 512, 512, uis.statScreen2Shader_a );
+						UI_DrawHandlePic( 384, 0, 256, 512, uis.statScreen2Shader_b );
+						break;
+					default:
+						UI_DrawHandlePic( 0, 0, 512, 512, uis.menuBackShader_a );
+						UI_DrawHandlePic( 480, 0, 256, 512, uis.menuBackShader_b );
+						break;
+				}
 			}
 			else {
-				UI_DrawHandlePic( 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, uis.menuBackNoLogoShader );
+				UI_DrawHandlePic( 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, uis.blackShader );
 			}
 		}
 

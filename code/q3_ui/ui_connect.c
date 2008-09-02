@@ -169,7 +169,7 @@ void UI_DrawConnectScreen( qboolean overlay ) {
 	if ( !overlay ) {
 		// draw the dialog background
 		UI_SetColor( color_white );
-		UI_DrawHandlePic( 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, uis.menuBackNoLogoShader );
+		UI_DrawHandlePic( 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, uis.blackShader );
 	}
 
 	// see what information we should display

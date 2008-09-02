@@ -587,7 +587,7 @@ typedef struct {
 	qhandle_t		whiteShader;
 	qhandle_t		menuBackShader;
 	qhandle_t		menuBackShader2;
-	qhandle_t		menuBackNoLogoShader;
+	qhandle_t		blackShader;
 	qhandle_t		charset;
 	qhandle_t		charsetProp;
 	qhandle_t		charsetPropGlow;
@@ -999,11 +999,11 @@ qboolean		trap_VerifyCDKey( const char *key, const char *chksum);
 
 void			trap_SetPbClStatus( int status );
 
-// IneQuation
+// IneQuation, wombat
 int				trap_R_Text_Width(fontInfo_t *font, const char *text, int limit, qboolean useColourCodes);
 int				trap_R_Text_Height(fontInfo_t *font, const char *text, int limit, qboolean useColourCodes);
-void			trap_R_Text_Paint(fontInfo_t *font, float x, float y, float scale, float alpha, const char *text, int limit, qboolean useColourCodes);
-void			trap_R_Text_PaintChar(fontInfo_t *font, float x, float y, float scale, int c);
+void			trap_R_Text_Paint(fontInfo_t *font, float x, float y, float scale, float alpha, const char *text, float adjust, int limit, qboolean useColourCodes, qboolean is640);
+void			trap_R_Text_PaintChar(fontInfo_t *font, float x, float y, float scale, int c, qboolean is640);
 
 //
 // ui_addbots.c

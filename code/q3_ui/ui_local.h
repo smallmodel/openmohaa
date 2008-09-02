@@ -119,6 +119,7 @@ extern vmCvar_t	ui_ioq3;
 #define MTYPE_SCROLLLIST		8
 #define MTYPE_PTEXT				9
 #define MTYPE_BTEXT				10
+#define MTYPE_BUTTON			11
 
 #define QMF_BLINK				0x00000001
 #define QMF_SMALLFONT			0x00000002
@@ -147,6 +148,12 @@ extern vmCvar_t	ui_ioq3;
 #define QM_LOSTFOCUS			2
 #define QM_ACTIVATED			3
 
+typedef enum {
+	BG_MAIN,
+	BG_STAT1,
+	BG_STAT2
+} menuBackground_t;
+
 typedef struct _tag_menuframework
 {
 	int	cursor;
@@ -161,6 +168,8 @@ typedef struct _tag_menuframework
 	qboolean	wrapAround;
 	qboolean	fullscreen;
 	qboolean	showlogo;
+
+	menuBackground_t	menuBack;
 } menuframework_s;
 
 typedef struct
@@ -255,6 +264,14 @@ typedef struct
 	float*			color;
 } menutext_s;
 
+typedef struct
+{
+	menucommon_s	generic;
+	char*			string;
+	int				style;
+	float*			color;
+} menubutton_s;
+
 extern void			Menu_Cache( void );
 extern void			Menu_Focus( menucommon_s *m );
 extern void			Menu_AddItem( menuframework_s *menu, void *item );
@@ -289,6 +306,8 @@ extern vec4_t		color_blue;
 extern vec4_t		color_orange;
 extern vec4_t		color_red;
 extern vec4_t		color_dim;
+// wombat
+extern vec4_t		color_gray;
 extern vec4_t		name_color;
 extern vec4_t		list_color;
 extern vec4_t		listbar_color;
@@ -541,7 +560,7 @@ typedef struct {
 	qhandle_t			whiteShader;
 	qhandle_t			menuBackShader_a;
 	qhandle_t			menuBackShader_b;
-	qhandle_t			menuBackNoLogoShader;
+	qhandle_t			blackShader;
 	qhandle_t			charset;
 	qhandle_t			charsetProp;
 	qhandle_t			charsetPropGlow;
@@ -554,8 +573,17 @@ typedef struct {
 	float				bias;
 	qboolean			demoversion;
 	qboolean			firstdraw;
+
+	// wombat
+	fontInfo_t			menuFont;
+	qhandle_t			statScreenShader_a;
+	qhandle_t			statScreenShader_b;
+	qhandle_t			statScreen2Shader_a;
+	qhandle_t			statScreen2Shader_b;
 } uiStatic_t;
 
+// wombat
+extern void			UI_DrawBox( int x, int y, int w, int h, qboolean ctrCoord );
 extern void			UI_Init( void );
 extern void			UI_Shutdown( void );
 extern void			UI_KeyEvent( int key, int down );
@@ -684,11 +712,13 @@ qboolean               trap_VerifyCDKey( const char *key, const char *chksum);
 
 void			trap_SetPbClStatus( int status );
 
-// IneQuation
+// wombat
+void			trap_R_RegisterFont(const char *fontName, int pointSize, fontInfo_t *font);
+// IneQuation, wombat
 int				trap_R_Text_Width(fontInfo_t *font, const char *text, int limit, qboolean useColourCodes);
 int				trap_R_Text_Height(fontInfo_t *font, const char *text, int limit, qboolean useColourCodes);
-void			trap_R_Text_Paint(fontInfo_t *font, float x, float y, float scale, float alpha, const char *text, int limit, qboolean useColourCodes);
-void			trap_R_Text_PaintChar(fontInfo_t *font, float x, float y, float scale, int c);
+void			trap_R_Text_Paint(fontInfo_t *font, float x, float y, float scale, float alpha, const char *text, float adjust, int limit, qboolean useColourCodes, qboolean is640);
+void			trap_R_Text_PaintChar(fontInfo_t *font, float x, float y, float scale, int c, qboolean is640);
 
 //
 // ui_addbots.c

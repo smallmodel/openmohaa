@@ -1630,11 +1630,11 @@ int			trap_Key_GetCatcher( void );
 void		trap_Key_SetCatcher( int catcher );
 int			trap_Key_GetKey( const char *binding );
 
-// IneQuation
+// IneQuation, wombat
 int			trap_R_Text_Width(fontInfo_t *font, const char *text, int limit, qboolean useColourCodes);
 int			trap_R_Text_Height(fontInfo_t *font, const char *text, int limit, qboolean useColourCodes);
-void		trap_R_Text_Paint(fontInfo_t *font, float x, float y, float scale, float alpha, const char *text, int limit, qboolean useColourCodes);
-void		trap_R_Text_PaintChar(fontInfo_t *font, float x, float y, float scale, int c);
+void		trap_R_Text_Paint(fontInfo_t *font, float x, float y, float scale, float alpha, const char *text, float adjust, int limit, qboolean useColourCodes, qboolean is640);
+void		trap_R_Text_PaintChar(fontInfo_t *font, float x, float y, float scale, int c, qboolean is640);
 
 typedef enum {
   SYSTEM_PRINT,

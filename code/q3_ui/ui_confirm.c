@@ -32,7 +32,7 @@ CONFIRMATION MENU
 #include "ui_local.h"
 
 
-#define ART_CONFIRM_FRAME	"menu/art/cut_frame"
+//#define ART_CONFIRM_FRAME	"menu/art/cut_frame"
 
 #define ID_CONFIRM_NO		10
 #define ID_CONFIRM_YES		11
@@ -121,12 +121,12 @@ MessaheMenu_Draw
 static void MessageMenu_Draw( void ) {
 	int i,y;
 	
-	UI_DrawNamedPic( 142, 118, 359, 256, ART_CONFIRM_FRAME );
+//	UI_DrawNamedPic( 142, 118, 359, 256, ART_CONFIRM_FRAME );
 	
 	y = 188;
 	for(i=0; s_confirm.lines[i]; i++)
 	{
-		UI_DrawProportionalString( 320, y, s_confirm.lines[i], s_confirm.style, color_red );
+		UI_DrawProportionalString( 320, y, s_confirm.lines[i], s_confirm.style, color_white );
 		y += 18;
 	}
 
@@ -143,9 +143,38 @@ ConfirmMenu_Draw
 =================
 */
 static void ConfirmMenu_Draw( void ) {
-	UI_DrawNamedPic( 142, 118, 359, 256, ART_CONFIRM_FRAME );
-	UI_DrawProportionalString( 320, 204, s_confirm.question, s_confirm.style, color_red );
-	UI_DrawProportionalString( s_confirm.slashX, 265, "/", UI_LEFT|UI_INVERSE, color_red );
+//	UI_DrawNamedPic( 142, 118, 359, 256, ART_CONFIRM_FRAME );
+	int		y;
+
+	y = 12;
+	UI_DrawProportionalString( 320, y, "openMOHAA team is:", UI_CENTER|UI_SMALLFONT, color_white );
+
+	y += 1.42 * PROP_HEIGHT * PROP_SMALL_SIZE_SCALE;
+	UI_DrawProportionalString( 320, y, "Programming", UI_CENTER|UI_SMALLFONT, color_white );
+	y += PROP_HEIGHT * PROP_SMALL_SIZE_SCALE;
+	UI_DrawProportionalString( 320, y, "IneQuation, wombat", UI_CENTER|UI_SMALLFONT, color_white );
+	y += 1.42 * PROP_HEIGHT * PROP_SMALL_SIZE_SCALE;
+	UI_DrawProportionalString( 320, y, "Q3 engine code by iD Software and the ioquake3 team:", UI_CENTER|UI_SMALLFONT, color_white );
+	y += PROP_HEIGHT * PROP_SMALL_SIZE_SCALE;
+	UI_DrawProportionalString( 320, y, "John Carmack, Robert A. Duffy, Jim Dose'", UI_CENTER|UI_SMALLFONT, color_white );
+	y += PROP_HEIGHT * PROP_SMALL_SIZE_SCALE;
+	UI_DrawProportionalString( 320, y, "et al.", UI_CENTER|UI_SMALLFONT, color_white );
+
+	y+= 200;
+
+	y += 1.42 * PROP_HEIGHT * PROP_SMALL_SIZE_SCALE;
+	UI_DrawProportionalString( 320, y, "Rest of the team:", UI_CENTER|UI_SMALLFONT, color_white );
+	y += PROP_HEIGHT * PROP_SMALL_SIZE_SCALE;
+	UI_DrawProportionalString( 320, y, "heiko, jed, m0d hippY", UI_CENTER|UI_SMALLFONT, color_white );
+
+	y += 20;
+	y += 1.42 * PROP_HEIGHT * PROP_SMALL_SIZE_SCALE;
+	UI_DrawString( 320, y, "This is a FREE and OPEN game     http://openmohaa.sf.net     www.idsoftware.com", UI_CENTER|UI_SMALLFONT, color_red );
+
+	UI_DrawBox( 320, 240, 300, 150, qtrue );
+
+	UI_DrawProportionalString( 320, 180, s_confirm.question, s_confirm.style, color_white );
+	UI_DrawProportionalString( s_confirm.slashX, 265, "/", UI_LEFT|UI_INVERSE, color_white );
 
 	Menu_Draw( &s_confirm.menu );
 
@@ -161,7 +190,7 @@ ConfirmMenu_Cache
 =================
 */
 void ConfirmMenu_Cache( void ) {
-	trap_R_RegisterShaderNoMip( ART_CONFIRM_FRAME );
+//	trap_R_RegisterShaderNoMip( ART_CONFIRM_FRAME );
 }
 
 
@@ -180,8 +209,8 @@ void UI_ConfirmMenu_Style( const char *question, int style, void (*draw)( void )
 
 	ConfirmMenu_Cache();
 
-	n1 = UI_ProportionalStringWidth( "YES/NO" );
-	n2 = UI_ProportionalStringWidth( "YES" ) + PROP_GAP_WIDTH;
+	n1 = UI_ProportionalStringWidth( "Yes / No" );
+	n2 = UI_ProportionalStringWidth( "Yes" ) + PROP_GAP_WIDTH;
 	n3 = UI_ProportionalStringWidth( "/" )  + PROP_GAP_WIDTH;
 	l1 = 320 - ( n1 / 2 );
 	l2 = l1 + n2;
@@ -197,12 +226,15 @@ void UI_ConfirmMenu_Style( const char *question, int style, void (*draw)( void )
 	s_confirm.menu.key        = ConfirmMenu_Key;
 	s_confirm.menu.wrapAround = qtrue;
 
+
 	trap_GetClientState( &cstate );
 	if ( cstate.connState >= CA_CONNECTED ) {
 		s_confirm.menu.fullscreen = qfalse;
 	}
 	else {
 		s_confirm.menu.fullscreen = qtrue;
+		s_confirm.menu.showlogo = qtrue;
+		s_confirm.menu.menuBack = BG_STAT2;
 	}
 
 	s_confirm.yes.generic.type		= MTYPE_PTEXT;      
@@ -211,8 +243,8 @@ void UI_ConfirmMenu_Style( const char *question, int style, void (*draw)( void )
 	s_confirm.yes.generic.id		= ID_CONFIRM_YES;
 	s_confirm.yes.generic.x			= l1;
 	s_confirm.yes.generic.y			= 264;
-	s_confirm.yes.string			= "YES";
-	s_confirm.yes.color				= color_red;
+	s_confirm.yes.string			= "Yes";
+	s_confirm.yes.color				= color_white;
 	s_confirm.yes.style				= UI_LEFT;
 
 	s_confirm.no.generic.type		= MTYPE_PTEXT;      
@@ -221,8 +253,8 @@ void UI_ConfirmMenu_Style( const char *question, int style, void (*draw)( void )
 	s_confirm.no.generic.id			= ID_CONFIRM_NO;
 	s_confirm.no.generic.x		    = l3;
 	s_confirm.no.generic.y		    = 264;
-	s_confirm.no.string				= "NO";
-	s_confirm.no.color			    = color_red;
+	s_confirm.no.string				= "No";
+	s_confirm.no.color			    = color_white;
 	s_confirm.no.style			    = UI_LEFT;
 
 	Menu_AddItem( &s_confirm.menu,	&s_confirm.yes );             
@@ -239,7 +271,7 @@ UI_ConfirmMenu
 =================
 */
 void UI_ConfirmMenu( const char *question, void (*draw)( void ), void (*action)( qboolean result ) ) {
-	UI_ConfirmMenu_Style(question, UI_CENTER|UI_INVERSE, draw, action);
+	UI_ConfirmMenu_Style(question, UI_CENTER/*|UI_INVERSE*/, draw, action);
 }
 
 /*
@@ -282,7 +314,7 @@ void UI_Message( const char **lines ) {
 	s_confirm.yes.generic.x			= l1;
 	s_confirm.yes.generic.y			= 280;
 	s_confirm.yes.string			= "OK";
-	s_confirm.yes.color				= color_red;
+	s_confirm.yes.color				= color_white;
 	s_confirm.yes.style				= UI_LEFT;
 
 	Menu_AddItem( &s_confirm.menu,	&s_confirm.yes );

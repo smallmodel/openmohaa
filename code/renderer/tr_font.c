@@ -88,7 +88,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 FT_Library ftLibrary = NULL;
 #endif
 
-#define MAX_FONTS 6
+#define MAX_FONTS 32
 static int registeredFontCount = 0;
 static fontInfo_t registeredFont[MAX_FONTS];
 
@@ -740,17 +740,27 @@ RE_Text_PaintChar
 ===================
 Paints a single character.
 */
-void RE_Text_PaintChar(fontInfo_t *font, float x, float y, float scale, int c) {
+void RE_Text_PaintChar(fontInfo_t *font, float x, float y, float scale, int c, qboolean is640) {
 	glyphInfo_t *glyph;
+	float xscale;
+	float yscale;
+
+	if ( is640 ) {
+		xscale=glConfig.vidWidth/640.0f;
+		yscale=glConfig.vidHeight/480.0f;
+	} else {
+		xscale=1.0f;
+		yscale=1.0f;
+	}
 
 	glyph = &font->glyphs[c];
 	if (c != '\n' && glyph->imageWidth == 0 && glyph->imageHeight == 0) {
 		glyph = &font->glyphs['?'];
 		ri.Printf(PRINT_WARNING, "RE_Text_PaintChar: no #%d character in font %s!\n", (int)c, font->name);
 	}
-	RE_StretchPic(x, y - font->glyphScale * glyph->top,
-		glyph->imageWidth * font->glyphScale * scale,
-		glyph->imageHeight * font->glyphScale * scale,
+	RE_StretchPic(x * xscale, y*yscale - font->glyphScale * glyph->top,
+		glyph->imageWidth * font->glyphScale * scale * xscale,
+		glyph->imageHeight * font->glyphScale * scale * yscale,
 		glyph->s,
 		glyph->t,
 		glyph->s2,
@@ -764,10 +774,20 @@ RE_Text_Paint
 ===================
 Paints a string. The alpha value will be ignored unless useColourCodes is qtrue.
 */
-void RE_Text_Paint(fontInfo_t *font, float x, float y, float scale, float alpha, const char *text, float adjust, int limit, qboolean useColourCodes) {
+void RE_Text_Paint(fontInfo_t *font, float x, float y, float scale, float alpha, const char *text, float adjust, int limit, qboolean useColourCodes, qboolean is640) {
 	int len, count;
 	vec4_t newColor;
 	glyphInfo_t *glyph;
+	float xscale;
+	float yscale;
+
+	if ( is640 ) {
+		xscale=glConfig.vidWidth/640.0f;
+		yscale=glConfig.vidHeight/480.0f;
+	} else {
+		xscale=1.0f;
+		yscale=1.0f;
+	}
 
 	if (text) {
 // TTimo: FIXME
@@ -806,9 +826,9 @@ void RE_Text_Paint(fontInfo_t *font, float x, float y, float scale, float alpha,
 					colorBlack[3] = 1.0;
 					RE_SetColor( newColor );
 				}*/
-				RE_StretchPic(x, y - yadj,
-					glyph->imageWidth * font->glyphScale * scale,
-					glyph->imageHeight * font->glyphScale * scale,
+				RE_StretchPic(x*xscale, (y - yadj)*yscale,
+					glyph->imageWidth * font->glyphScale * scale*xscale,
+					glyph->imageHeight * font->glyphScale * scale*yscale,
 					glyph->s,
 					glyph->t,
 					glyph->s2,

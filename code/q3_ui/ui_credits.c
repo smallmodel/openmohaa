@@ -63,28 +63,30 @@ static void UI_CreditMenu_Draw( void ) {
 	int		y;
 
 	y = 12;
-	UI_DrawProportionalString( 320, y, "the Development team is:", UI_CENTER|UI_SMALLFONT, color_white );
+	UI_DrawProportionalString( 320, y, "openMOHAA team is:", UI_CENTER|UI_SMALLFONT, color_white );
 
 	y += 1.42 * PROP_HEIGHT * PROP_SMALL_SIZE_SCALE;
 	UI_DrawProportionalString( 320, y, "Programming", UI_CENTER|UI_SMALLFONT, color_white );
 	y += PROP_HEIGHT * PROP_SMALL_SIZE_SCALE;
-	UI_DrawProportionalString( 320, y, "IneQuation, WOMBAT", UI_CENTER|UI_SMALLFONT, color_white );
+	UI_DrawProportionalString( 320, y, "IneQuation, wombat", UI_CENTER|UI_SMALLFONT, color_white );
 	y += 1.42 * PROP_HEIGHT * PROP_SMALL_SIZE_SCALE;
-	UI_DrawProportionalString( 320, y, "Original code by the ioquake3 team and iD Software:", UI_CENTER|UI_SMALLFONT, color_white );
+	UI_DrawProportionalString( 320, y, "Q3 engine code by iD Software and the ioquake3 team:", UI_CENTER|UI_SMALLFONT, color_white );
 	y += PROP_HEIGHT * PROP_SMALL_SIZE_SCALE;
 	UI_DrawProportionalString( 320, y, "John Carmack, Robert A. Duffy, Jim Dose'", UI_CENTER|UI_SMALLFONT, color_white );
+	y += PROP_HEIGHT * PROP_SMALL_SIZE_SCALE;
+	UI_DrawProportionalString( 320, y, "et al.", UI_CENTER|UI_SMALLFONT, color_white );
 
 
 	y += 1.42 * PROP_HEIGHT * PROP_SMALL_SIZE_SCALE;
 	UI_DrawProportionalString( 320, y, "Rest of the team:", UI_CENTER|UI_SMALLFONT, color_white );
 	y += PROP_HEIGHT * PROP_SMALL_SIZE_SCALE;
-	UI_DrawProportionalString( 320, y, "- write your name here -", UI_CENTER|UI_SMALLFONT, color_white );
+	UI_DrawProportionalString( 320, y, "heiko, jed, m0d hippY", UI_CENTER|UI_SMALLFONT, color_white );
 
-
+y+= 200;
 	y += 1.42 * PROP_HEIGHT * PROP_SMALL_SIZE_SCALE;
-	UI_DrawString( 320, y, "This is a free game     http://openmohaa.sf.net     www.idsoftware.com", UI_CENTER|UI_SMALLFONT, color_red );
-	y += SMALLCHAR_HEIGHT;
-	UI_DrawString( 320, y, "OpenMOHAA (c) 2008, SVN BUILD  All Rights Reserved", UI_CENTER|UI_SMALLFONT, color_red );
+	UI_DrawString( 320, y, "This is a FREE and OPEN game     http://openmohaa.sf.net     www.idsoftware.com", UI_CENTER|UI_SMALLFONT, color_red );
+//	y += SMALLCHAR_HEIGHT;
+//	UI_DrawString( 320, y, "OpenMOHAA (c) 2008, SVN BUILD  All Rights Reserved", UI_CENTER|UI_SMALLFONT, color_red );
 }
 
 

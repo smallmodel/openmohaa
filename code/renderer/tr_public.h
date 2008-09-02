@@ -104,8 +104,8 @@ typedef struct {
 	int		(*Text_Width)(fontInfo_t *font, const char *text, int limit, qboolean useColourCodes);
 	int		(*Text_Height)(fontInfo_t *font, const char *text, int limit, qboolean useColourCodes);
 	// Paints a string. The alpha value will be ignored unless useColourCodes is qtrue.
-	void	(*Text_Paint)(fontInfo_t *font, float x, float y, float scale, float alpha, const char *text, float adjust, int limit, qboolean useColourCodes);
-	void	(*Text_PaintChar)(fontInfo_t *font, float x, float y, float scale, int c);
+	void	(*Text_Paint)(fontInfo_t *font, float x, float y, float scale, float alpha, const char *text, float adjust, int limit, qboolean useColourCodes, qboolean is640);
+	void	(*Text_PaintChar)(fontInfo_t *font, float x, float y, float scale, int c, qboolean is640);
 } refexport_t;
 
 //

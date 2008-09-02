@@ -356,7 +356,7 @@ void Field_VariableSizeDraw(fontInfo_t *font, field_t *edit, int x, int y, int w
 		// draw big string with drop shadow
 		SCR_DrawBigString( x, y, str, 1.0, noColorEscape );
 	}*/
-	re.Text_Paint(font, x, y, 1.f, 1.f, str, 0, 0, !noColorEscape);
+	re.Text_Paint(font, x, y, 1.f, 1.f, str, 0, 0, !noColorEscape,0);
 
 	// draw the cursor
 	if ( showCursor ) {
@@ -380,9 +380,9 @@ void Field_VariableSizeDraw(fontInfo_t *font, field_t *edit, int x, int y, int w
 			SCR_DrawBigString( x + ( edit->cursor - prestep - i ) * size, y, str, 1.0, qfalse );
 
 		}*/
-		str[edit->cursor - prestep - i - 1] = cursorChar;
-		str[edit->cursor - prestep - i] = 0;
-		re.Text_PaintChar(&cls.consoleFont, x + re.Text_Width(&cls.consoleFont, str, 0, !noColorEscape), y, 1.f, cursorChar);
+		//str[edit->cursor - prestep - i] = cursorChar;
+		//str[edit->cursor - prestep - i + 1] = 0;
+		re.Text_PaintChar(&cls.consoleFont, x + re.Text_Width(&cls.consoleFont, str, 0, !noColorEscape), y, 1.f, cursorChar,0);
 	}
 }
 

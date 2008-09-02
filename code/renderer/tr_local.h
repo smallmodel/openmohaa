@@ -1707,10 +1707,10 @@ void RE_TakeVideoFrame( int width, int height,
 void R_InitFreeType( void );
 void R_DoneFreeType( void );
 void RE_RegisterFont(const char *fontName, int pointSize, fontInfo_t *font);
-// IneQuation: string drawing
+// IneQuation: string drawing, wombat
 int RE_Text_Width(fontInfo_t *font, const char *text, int limit, qboolean useColourCodes);
 int RE_Text_Height(fontInfo_t *font, const char *text, int limit, qboolean useColourCodes);
-void RE_Text_Paint(fontInfo_t *font, float x, float y, float scale, float alpha, const char *text, float adjust, int limit, qboolean useColourCodes);
-void RE_Text_PaintChar(fontInfo_t *font, float x, float y, float scale, int c);
+void RE_Text_Paint(fontInfo_t *font, float x, float y, float scale, float alpha, const char *text, float adjust, int limit, qboolean useColourCodes, qboolean is640);
+void RE_Text_PaintChar(fontInfo_t *font, float x, float y, float scale, int c, qboolean is640);
 
 #endif //TR_LOCAL_H

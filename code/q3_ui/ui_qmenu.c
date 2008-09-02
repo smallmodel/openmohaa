@@ -48,6 +48,8 @@ vec4_t color_lightOrange    = {1.00f, 0.68f, 0.00f, 1.00f };
 vec4_t color_orange	    = {1.00f, 0.43f, 0.00f, 1.00f};
 vec4_t color_red	    = {1.00f, 0.00f, 0.00f, 1.00f};
 vec4_t color_dim	    = {0.00f, 0.00f, 0.00f, 0.25f};
+vec4_t color_gray	    = {0.00f, 0.00f, 0.00f, 0.6f};
+vec4_t color_green	    = {0.10f, 0.70f, 0.10f, 1.00f};
 
 // current color scheme
 vec4_t pulse_color          = {1.00f, 1.00f, 1.00f, 1.00f};
@@ -91,6 +93,76 @@ static void PText_Draw( menutext_s *b );
 // proportional banner text widget
 static void BText_Init( menutext_s *b );
 static void BText_Draw( menutext_s *b );
+
+/*
+=================
+Button_Init
+=================
+*/
+#define BUTTON_XADJ	30
+#define BUTTON_YADJ	10
+static void Button_Init( menutext_s *b )
+{
+	int	x;
+	int	y;
+	int	w;
+	int	h;
+
+	x = b->generic.x;
+	y = b->generic.y;
+	w = trap_R_Text_Width( &uis.menuFont, b->string, 0, 0 )*2 + BUTTON_XADJ;
+	h =	trap_R_Text_Height( &uis.menuFont, b->string, 0, 0 )*2 + BUTTON_YADJ;
+
+	if (b->generic.flags & QMF_RIGHT_JUSTIFY)
+	{
+		x = x - w;
+	}
+	else if (b->generic.flags & QMF_CENTER_JUSTIFY)
+	{
+		x = x - w/2;
+	}
+
+	b->generic.left   = x;
+	b->generic.right  = x + w;
+	b->generic.top    = y;
+	b->generic.bottom = y + h;
+}
+
+/*
+=================
+Button_Draw
+=================
+*/
+#define LINE_THICKNESS	1
+static void Button_Draw( menutext_s *b )
+{
+	int x;
+	int y;
+	int w;
+	int h;
+
+	x = b->generic.x;
+	y = b->generic.y;
+
+	h = trap_R_Text_Height( &uis.menuFont, b->string, 0, 0 )*2 + BUTTON_XADJ;
+	w = trap_R_Text_Width( &uis.menuFont, b->string, 0, 0 )*2 + BUTTON_YADJ;
+
+	if ( b->style & UI_CENTER )
+		x -= w/2;
+	else if ( b->style & UI_RIGHT )
+		x-= w;
+
+	trap_R_SetColor( color_green );
+	trap_R_DrawStretchPic( x*uis.xscale, y*uis.yscale, w*uis.xscale, h*uis.yscale, 0, 0, 16, 16, uis.whiteShader );
+	trap_R_SetColor( color_white );
+	trap_R_DrawStretchPic( x*uis.xscale, y*uis.yscale, w*uis.xscale, LINE_THICKNESS*uis.yscale, 0, 0, 32, 32, uis.whiteShader );
+	trap_R_DrawStretchPic( x*uis.xscale, y*uis.yscale, LINE_THICKNESS*uis.xscale, h*uis.yscale, 0, 0, 32, 32, uis.whiteShader );
+	trap_R_DrawStretchPic( x*uis.xscale, (y+h)*uis.yscale, w*uis.xscale, LINE_THICKNESS*uis.yscale, 0, 0, 32, 32, uis.whiteShader );
+	trap_R_DrawStretchPic( (x+w)*uis.xscale, y*uis.yscale, LINE_THICKNESS*uis.xscale, (h+LINE_THICKNESS)*uis.yscale, 0, 0, 32, 32, uis.whiteShader );
+	trap_R_SetColor( NULL );
+
+	UI_DrawProportionalString( x+ BUTTON_XADJ/2, y+ BUTTON_YADJ/2, b->string, UI_LEFT, color_white );
+}
 
 /*
 =================
@@ -1319,6 +1391,9 @@ void Menu_AddItem( menuframework_s *menu, void *item )
 			case MTYPE_BTEXT:
 				BText_Init((menutext_s*)item);
 				break;
+			case MTYPE_BUTTON:
+				Button_Init((menutext_s*)item);
+				break;
 
 			default:
 				trap_Error( va("Menu_Init: unknown type %d", itemptr->type) );
@@ -1510,6 +1585,9 @@ void Menu_Draw( menuframework_s *menu )
 
 				case MTYPE_BTEXT:
 					BText_Draw( (menutext_s*)itemptr );
+					break;
+				case MTYPE_BUTTON:
+					Button_Draw( (menutext_s*)itemptr );
 					break;
 
 				default:
@@ -1727,13 +1805,19 @@ void Menu_Cache( void )
 	} else {
 		uis.menuBackShader_a	= trap_R_RegisterShaderNoMip( "textures/mohmenu/main_a.tga" ); //"menuback"
 		uis.menuBackShader_b	= trap_R_RegisterShaderNoMip( "textures/mohmenu/main_b.tga" ); //"menuback"
-	}
-	uis.menuBackNoLogoShader = trap_R_RegisterShaderNoMip( "textures/mohmenu/black.tga" );
 
-	menu_in_sound	= trap_S_RegisterSound( "sound/misc/menu1.wav", qfalse );
-	menu_move_sound	= trap_S_RegisterSound( "sound/misc/menu2.wav", qfalse );
-	menu_out_sound	= trap_S_RegisterSound( "sound/misc/menu3.wav", qfalse );
-	menu_buzz_sound	= trap_S_RegisterSound( "sound/misc/menu4.wav", qfalse );
+		uis.statScreenShader_a	= trap_R_RegisterShaderNoMip( "textures/mohmenu/statscreen_a.tga" );
+		uis.statScreenShader_b	= trap_R_RegisterShaderNoMip( "textures/mohmenu/statscreen_b.tga" );
+		uis.statScreen2Shader_a	= trap_R_RegisterShaderNoMip( "textures/mohmenu/statscreen2_a.tga" );
+		uis.statScreen2Shader_b	= trap_R_RegisterShaderNoMip( "textures/mohmenu/statscreen2_b.tga" );
+	}
+	uis.blackShader = trap_R_RegisterShaderNoMip( "textures/mohmenu/black.tga" );
+//	uis.whiteShader = trap_R_RegisterShaderNoMip( "gfx/2d/BLANK.tga" );
+
+	menu_in_sound	= trap_S_RegisterSound( "sound/menu/apply.wav", qfalse );
+	menu_move_sound	= trap_S_RegisterSound( "sound/menu/none.wav", qfalse );
+	menu_out_sound	= trap_S_RegisterSound( "sound/menu/Back.wav", qfalse );
+	menu_buzz_sound	= trap_S_RegisterSound( "sound/menu/Back.wav", qfalse );
 	weaponChangeSound	= trap_S_RegisterSound( "sound/weapons/change.wav", qfalse );
 
 	// need a nonzero sound, make an empty sound for this

@@ -26,8 +26,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define ART_BACK1			"menu/art/back_1"	
 #define ART_FIGHT0			"menu/art/load_0"
 #define ART_FIGHT1			"menu/art/load_1"
-#define ART_FRAMEL			"menu/art/frame2_l"
-#define ART_FRAMER			"menu/art/frame1_r"
+//#define ART_FRAMEL			"menu/art/frame2_l"
+//#define ART_FRAMER			"menu/art/frame1_r"
 
 #define MAX_MODS			64
 #define NAMEBUFSIZE			( MAX_MODS * 48 )
@@ -47,8 +47,8 @@ typedef struct {
 
 	menulist_s		list;
 
-	menubitmap_s	back;
-	menubitmap_s	go;
+	menubutton_s	back;
+	menubutton_s	go;
 
 	char			description[NAMEBUFSIZE];
 	char			fs_game[GAMEBUFSIZE];
@@ -123,9 +123,9 @@ static void UI_Mods_LoadMods( void ) {
 	s_mods.descriptionPtr = s_mods.description;
 	s_mods.fs_gamePtr = s_mods.fs_game;
 
-	// always start off with baseq3
+	// always start off with allied assault
 	s_mods.list.numitems = 1;
-	s_mods.list.itemnames[0] = s_mods.descriptionList[0] = "Quake III Arena";
+	s_mods.list.itemnames[0] = s_mods.descriptionList[0] = "Allied Assault";
 	s_mods.fs_gameList[0] = "";
 
 	numdirs = trap_FS_GetFileList( "$modlist", "", dirlist, sizeof(dirlist) );
@@ -156,14 +156,17 @@ static void UI_Mods_MenuInit( void ) {
 	s_mods.menu.wrapAround = qtrue;
 	s_mods.menu.fullscreen = qtrue;
 
+	s_mods.menu.showlogo = qtrue;
+	s_mods.menu.menuBack = BG_STAT1;
+
 	s_mods.banner.generic.type		= MTYPE_BTEXT;
 	s_mods.banner.generic.x			= 320;
 	s_mods.banner.generic.y			= 16;
-	s_mods.banner.string			= "MODS";
+	s_mods.banner.string			= "Mods";
 	s_mods.banner.color				= color_white;
 	s_mods.banner.style				= UI_CENTER;
 
-	s_mods.framel.generic.type		= MTYPE_BITMAP;
+/*	s_mods.framel.generic.type		= MTYPE_BITMAP;
 	s_mods.framel.generic.name		= ART_FRAMEL;
 	s_mods.framel.generic.flags		= QMF_INACTIVE;
 	s_mods.framel.generic.x			= 0;  
@@ -178,28 +181,25 @@ static void UI_Mods_MenuInit( void ) {
 	s_mods.framer.generic.y			= 76;
 	s_mods.framer.width				= 256;
 	s_mods.framer.height			= 334;
+*/
+	s_mods.back.generic.type			= MTYPE_BUTTON;
+	s_mods.back.generic.flags			= QMF_LEFT_JUSTIFY|QMF_PULSEIFFOCUS;
+	s_mods.back.generic.x				= 0;
+	s_mods.back.generic.y				= 480-64;
+	s_mods.back.generic.id				= ID_BACK;
+	s_mods.back.generic.callback		= UI_Mods_MenuEvent; 
+	s_mods.back.string					= "Back";
+	s_mods.back.style					= UI_LEFT|UI_DROPSHADOW;
 
-	s_mods.back.generic.type		= MTYPE_BITMAP;
-	s_mods.back.generic.name		= ART_BACK0;
-	s_mods.back.generic.flags		= QMF_LEFT_JUSTIFY|QMF_PULSEIFFOCUS;
-	s_mods.back.generic.id			= ID_BACK;
-	s_mods.back.generic.callback	= UI_Mods_MenuEvent;
-	s_mods.back.generic.x			= 0;
-	s_mods.back.generic.y			= 480-64;
-	s_mods.back.width				= 128;
-	s_mods.back.height				= 64;
-	s_mods.back.focuspic			= ART_BACK1;
 
-	s_mods.go.generic.type			= MTYPE_BITMAP;
-	s_mods.go.generic.name			= ART_FIGHT0;
+	s_mods.go.generic.type			= MTYPE_BUTTON;
 	s_mods.go.generic.flags			= QMF_RIGHT_JUSTIFY|QMF_PULSEIFFOCUS;
 	s_mods.go.generic.id			= ID_GO;
 	s_mods.go.generic.callback		= UI_Mods_MenuEvent;
 	s_mods.go.generic.x				= 640;
 	s_mods.go.generic.y				= 480-64;
-	s_mods.go.width					= 128;
-	s_mods.go.height				= 64;
-	s_mods.go.focuspic				= ART_FIGHT1;
+	s_mods.go.string				= "Accept";
+	s_mods.back.style				= UI_RIGHT|UI_DROPSHADOW;
 
 	// scan for mods
 	s_mods.list.generic.type		= MTYPE_SCROLLLIST;
@@ -214,8 +214,8 @@ static void UI_Mods_MenuInit( void ) {
 	UI_Mods_LoadMods();
 
 	Menu_AddItem( &s_mods.menu, &s_mods.banner );
-	Menu_AddItem( &s_mods.menu, &s_mods.framel );
-	Menu_AddItem( &s_mods.menu, &s_mods.framer );
+//	Menu_AddItem( &s_mods.menu, &s_mods.framel );
+//	Menu_AddItem( &s_mods.menu, &s_mods.framer );
 	Menu_AddItem( &s_mods.menu, &s_mods.list );
 	Menu_AddItem( &s_mods.menu, &s_mods.back );
 	Menu_AddItem( &s_mods.menu, &s_mods.go );
@@ -231,8 +231,8 @@ void UI_ModsMenu_Cache( void ) {
 	trap_R_RegisterShaderNoMip( ART_BACK1 );
 	trap_R_RegisterShaderNoMip( ART_FIGHT0 );
 	trap_R_RegisterShaderNoMip( ART_FIGHT1 );
-	trap_R_RegisterShaderNoMip( ART_FRAMEL );
-	trap_R_RegisterShaderNoMip( ART_FRAMER );
+//	trap_R_RegisterShaderNoMip( ART_FRAMEL );
+//	trap_R_RegisterShaderNoMip( ART_FRAMER );
 }
 
 

@@ -1094,10 +1094,10 @@ intptr_t CL_UISystemCalls( intptr_t *args ) {
 	case UI_R_TEXT_HEIGHT:
 		return re.Text_Height(VMA(1), VMA(2), args[3], args[4]);
 	case UI_R_TEXT_PAINT:
-		re.Text_Paint(VMA(1), VMF(2), VMF(3), VMF(4), VMF(5), VMA(6), VMF(7), args[8], args[9]);
+		re.Text_Paint(VMA(1), VMF(2), VMF(3), VMF(4), VMF(5), VMA(6), VMF(7), args[8], args[9], args[10]);
 		return 0;
 	case UI_R_TEXT_PAINTCHAR:
-		re.Text_PaintChar(VMA(1), VMF(2), VMF(3), VMF(4), args[5]);
+		re.Text_PaintChar(VMA(1), VMF(2), VMF(3), VMF(4), args[5], args[6]);
 		return 0;
 
 	default:
