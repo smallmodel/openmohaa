@@ -166,40 +166,25 @@ static void UI_Mods_MenuInit( void ) {
 	s_mods.banner.color				= color_white;
 	s_mods.banner.style				= UI_CENTER;
 
-/*	s_mods.framel.generic.type		= MTYPE_BITMAP;
-	s_mods.framel.generic.name		= ART_FRAMEL;
-	s_mods.framel.generic.flags		= QMF_INACTIVE;
-	s_mods.framel.generic.x			= 0;  
-	s_mods.framel.generic.y			= 78;
-	s_mods.framel.width				= 256;
-	s_mods.framel.height			= 329;
 
-	s_mods.framer.generic.type		= MTYPE_BITMAP;
-	s_mods.framer.generic.name		= ART_FRAMER;
-	s_mods.framer.generic.flags		= QMF_INACTIVE;
-	s_mods.framer.generic.x			= 376;
-	s_mods.framer.generic.y			= 76;
-	s_mods.framer.width				= 256;
-	s_mods.framer.height			= 334;
-*/
 	s_mods.back.generic.type			= MTYPE_BUTTON;
-	s_mods.back.generic.flags			= QMF_LEFT_JUSTIFY|QMF_PULSEIFFOCUS;
+	s_mods.back.generic.flags			= QMF_LEFT_JUSTIFY|QMF_HIGHLIGHT_IF_FOCUS;
 	s_mods.back.generic.x				= 0;
-	s_mods.back.generic.y				= 480-64;
+	s_mods.back.generic.y				= 480-50;
 	s_mods.back.generic.id				= ID_BACK;
 	s_mods.back.generic.callback		= UI_Mods_MenuEvent; 
 	s_mods.back.string					= "Back";
-	s_mods.back.style					= UI_LEFT|UI_DROPSHADOW;
+	s_mods.back.style					= UI_LEFT;
 
 
 	s_mods.go.generic.type			= MTYPE_BUTTON;
-	s_mods.go.generic.flags			= QMF_RIGHT_JUSTIFY|QMF_PULSEIFFOCUS;
+	s_mods.go.generic.flags			= QMF_RIGHT_JUSTIFY|QMF_HIGHLIGHT_IF_FOCUS;
 	s_mods.go.generic.id			= ID_GO;
 	s_mods.go.generic.callback		= UI_Mods_MenuEvent;
 	s_mods.go.generic.x				= 640;
-	s_mods.go.generic.y				= 480-64;
+	s_mods.go.generic.y				= 480-50;
 	s_mods.go.string				= "Accept";
-	s_mods.back.style				= UI_RIGHT|UI_DROPSHADOW;
+	s_mods.go.style					= UI_RIGHT;
 
 	// scan for mods
 	s_mods.list.generic.type		= MTYPE_SCROLLLIST;

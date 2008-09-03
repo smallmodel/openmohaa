@@ -190,7 +190,7 @@ ConfirmMenu_Cache
 =================
 */
 void ConfirmMenu_Cache( void ) {
-//	trap_R_RegisterShaderNoMip( ART_CONFIRM_FRAME );
+
 }
 
 
@@ -238,7 +238,7 @@ void UI_ConfirmMenu_Style( const char *question, int style, void (*draw)( void )
 	}
 
 	s_confirm.yes.generic.type		= MTYPE_PTEXT;      
-	s_confirm.yes.generic.flags		= QMF_LEFT_JUSTIFY|QMF_PULSEIFFOCUS; 
+	s_confirm.yes.generic.flags		= QMF_LEFT_JUSTIFY|QMF_HIGHLIGHT_IF_FOCUS; 
 	s_confirm.yes.generic.callback	= ConfirmMenu_Event;
 	s_confirm.yes.generic.id		= ID_CONFIRM_YES;
 	s_confirm.yes.generic.x			= l1;
@@ -248,7 +248,7 @@ void UI_ConfirmMenu_Style( const char *question, int style, void (*draw)( void )
 	s_confirm.yes.style				= UI_LEFT;
 
 	s_confirm.no.generic.type		= MTYPE_PTEXT;      
-	s_confirm.no.generic.flags		= QMF_LEFT_JUSTIFY|QMF_PULSEIFFOCUS; 
+	s_confirm.no.generic.flags		= QMF_LEFT_JUSTIFY|QMF_HIGHLIGHT_IF_FOCUS; 
 	s_confirm.no.generic.callback	= ConfirmMenu_Event;
 	s_confirm.no.generic.id			= ID_CONFIRM_NO;
 	s_confirm.no.generic.x		    = l3;

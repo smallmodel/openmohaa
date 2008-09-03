@@ -1266,19 +1266,35 @@ void UI_Refresh( int realtime )
 				switch (uis.activemenu->menuBack) {
 					case BG_MAIN:
 						UI_DrawHandlePic( 0, 0, 512, 512, uis.menuBackShader_a );
-						UI_DrawHandlePic( 480, 0, 256, 512, uis.menuBackShader_b );
+						UI_DrawHandlePic( 479, 0, 256, 512, uis.menuBackShader_b );
 						break;
 					case BG_STAT1:
 						UI_DrawHandlePic( 0, 0, 512, 512, uis.statScreenShader_a );
-						UI_DrawHandlePic( 384, 0, 256, 512, uis.statScreenShader_b );
+						UI_DrawHandlePic( 383, 0, 256, 512, uis.statScreenShader_b );
 						break;
 					case BG_STAT2:
 						UI_DrawHandlePic( 0, 0, 512, 512, uis.statScreen2Shader_a );
-						UI_DrawHandlePic( 384, 0, 256, 512, uis.statScreen2Shader_b );
+						UI_DrawHandlePic( 383, 0, 256, 512, uis.statScreen2Shader_b );
+						break;
+					case BG_OPTIONS:
+						UI_DrawHandlePic( 0, 0, 512, 512, uis.optionsShader_a );
+						UI_DrawHandlePic( 479, 0, 256, 512, uis.optionsShader_b );
+						break;
+					case BG_MULTIPL:
+						UI_DrawHandlePic( 0, 0, 512, 512, uis.multiplayerShader_a );
+						UI_DrawHandlePic( 383, 0, 256, 512, uis.multiplayerShader_b );
+						break;
+					case BG_SERVERB:
+						UI_DrawHandlePic( 0, 0, 512, 512, uis.serverbackShader_a );
+						UI_DrawHandlePic( 383, 0, 256, 512, uis.serverbackShader_b );
+						break;
+					case BG_WARREC:
+						UI_DrawHandlePic( 0, 0, 512, 512, uis.warrecordsShader_a );
+						UI_DrawHandlePic( 479, 0, 256, 512, uis.warrecordsShader_b );
 						break;
 					default:
 						UI_DrawHandlePic( 0, 0, 512, 512, uis.menuBackShader_a );
-						UI_DrawHandlePic( 480, 0, 256, 512, uis.menuBackShader_b );
+						UI_DrawHandlePic( 479, 0, 256, 512, uis.menuBackShader_b );
 						break;
 				}
 			}

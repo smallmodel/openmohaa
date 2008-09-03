@@ -22,7 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 //
 #include "ui_local.h"
 
-#define ART_FRAMEL			"menu/art/frame2_l"
+/*#define ART_FRAMEL			"menu/art/frame2_l"
 #define ART_FRAMER			"menu/art/frame1_r"
 #define ART_MODEL0			"menu/art/model_0"
 #define ART_MODEL1			"menu/art/model_1"
@@ -35,7 +35,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define ART_FX_RED			"menu/art/fx_red"
 #define ART_FX_TEAL			"menu/art/fx_teal"
 #define ART_FX_WHITE		"menu/art/fx_white"
-#define ART_FX_YELLOW		"menu/art/fx_yel"
+#define ART_FX_YELLOW		"menu/art/fx_yel"*/
 
 #define ID_NAME			10
 #define ID_HANDICAP		11
@@ -50,16 +50,14 @@ typedef struct {
 	menuframework_s		menu;
 
 	menutext_s			banner;
-	menubitmap_s		framel;
-	menubitmap_s		framer;
 	menubitmap_s		player;
 
 	menufield_s			name;
 	menulist_s			handicap;
 	menulist_s			effects;
 
-	menubitmap_s		back;
-	menubitmap_s		model;
+	menubutton_s		back;
+	menubutton_s		model;
 	menubitmap_s		item_null;
 
 	qhandle_t			fxBasePic;
@@ -361,28 +359,16 @@ static void PlayerSettings_MenuInit( void ) {
 	s_playersettings.menu.wrapAround = qtrue;
 	s_playersettings.menu.fullscreen = qtrue;
 
+	s_playersettings.menu.showlogo		= qtrue;
+	s_playersettings.menu.menuBack		= BG_MULTIPL;
+
 	s_playersettings.banner.generic.type  = MTYPE_BTEXT;
 	s_playersettings.banner.generic.x     = 320;
 	s_playersettings.banner.generic.y     = 16;
-	s_playersettings.banner.string        = "PLAYER SETTINGS";
+	s_playersettings.banner.string        = "Player Settings";
 	s_playersettings.banner.color         = color_white;
 	s_playersettings.banner.style         = UI_CENTER;
 
-	s_playersettings.framel.generic.type  = MTYPE_BITMAP;
-	s_playersettings.framel.generic.name  = ART_FRAMEL;
-	s_playersettings.framel.generic.flags = QMF_LEFT_JUSTIFY|QMF_INACTIVE;
-	s_playersettings.framel.generic.x     = 0;
-	s_playersettings.framel.generic.y     = 78;
-	s_playersettings.framel.width         = 256;
-	s_playersettings.framel.height        = 329;
-
-	s_playersettings.framer.generic.type  = MTYPE_BITMAP;
-	s_playersettings.framer.generic.name  = ART_FRAMER;
-	s_playersettings.framer.generic.flags = QMF_LEFT_JUSTIFY|QMF_INACTIVE;
-	s_playersettings.framer.generic.x     = 376;
-	s_playersettings.framer.generic.y     = 76;
-	s_playersettings.framer.width         = 256;
-	s_playersettings.framer.height        = 334;
 
 	y = 144;
 	s_playersettings.name.generic.type			= MTYPE_FIELD;
@@ -397,7 +383,8 @@ static void PlayerSettings_MenuInit( void ) {
 	s_playersettings.name.generic.right			= 192 + 200;
 	s_playersettings.name.generic.bottom		= y + 2 * PROP_HEIGHT;
 
-	y += 3 * PROP_HEIGHT;
+// wombat: i don't think we need handicap etc.
+/*	y += 3 * PROP_HEIGHT;
 	s_playersettings.handicap.generic.type		= MTYPE_SPINCONTROL;
 	s_playersettings.handicap.generic.flags		= QMF_NODEFAULTINIT;
 	s_playersettings.handicap.generic.id		= ID_HANDICAP;
@@ -422,17 +409,16 @@ static void PlayerSettings_MenuInit( void ) {
 	s_playersettings.effects.generic.right		= 192 + 200;
 	s_playersettings.effects.generic.bottom		= y + 2* PROP_HEIGHT;
 	s_playersettings.effects.numitems			= 7;
+*/
 
-	s_playersettings.model.generic.type			= MTYPE_BITMAP;
-	s_playersettings.model.generic.name			= ART_MODEL0;
-	s_playersettings.model.generic.flags		= QMF_RIGHT_JUSTIFY|QMF_PULSEIFFOCUS;
+	s_playersettings.model.generic.type			= MTYPE_BUTTON;
+	s_playersettings.model.generic.flags		= QMF_RIGHT_JUSTIFY|QMF_HIGHLIGHT_IF_FOCUS;
 	s_playersettings.model.generic.id			= ID_MODEL;
 	s_playersettings.model.generic.callback		= PlayerSettings_MenuEvent;
 	s_playersettings.model.generic.x			= 640;
-	s_playersettings.model.generic.y			= 480-64;
-	s_playersettings.model.width				= 128;
-	s_playersettings.model.height				= 64;
-	s_playersettings.model.focuspic				= ART_MODEL1;
+	s_playersettings.model.generic.y			= 480-50;
+	s_playersettings.model.string				= "Model";
+	s_playersettings.model.style				= UI_RIGHT;
 
 	s_playersettings.player.generic.type		= MTYPE_BITMAP;
 	s_playersettings.player.generic.flags		= QMF_INACTIVE;
@@ -442,16 +428,14 @@ static void PlayerSettings_MenuInit( void ) {
 	s_playersettings.player.width				= 32*10;
 	s_playersettings.player.height				= 56*10;
 
-	s_playersettings.back.generic.type			= MTYPE_BITMAP;
-	s_playersettings.back.generic.name			= ART_BACK0;
-	s_playersettings.back.generic.flags			= QMF_LEFT_JUSTIFY|QMF_PULSEIFFOCUS;
+	s_playersettings.back.generic.type			= MTYPE_BUTTON;
+	s_playersettings.back.generic.flags			= QMF_LEFT_JUSTIFY|QMF_HIGHLIGHT_IF_FOCUS;
 	s_playersettings.back.generic.id			= ID_BACK;
 	s_playersettings.back.generic.callback		= PlayerSettings_MenuEvent;
 	s_playersettings.back.generic.x				= 0;
-	s_playersettings.back.generic.y				= 480-64;
-	s_playersettings.back.width					= 128;
-	s_playersettings.back.height				= 64;
-	s_playersettings.back.focuspic				= ART_BACK1;
+	s_playersettings.back.generic.y				= 480-50;
+	s_playersettings.back.string				= "Back";
+	s_playersettings.back.style					= UI_LEFT;
 
 	s_playersettings.item_null.generic.type		= MTYPE_BITMAP;
 	s_playersettings.item_null.generic.flags	= QMF_LEFT_JUSTIFY|QMF_MOUSEONLY|QMF_SILENT;
@@ -461,12 +445,11 @@ static void PlayerSettings_MenuInit( void ) {
 	s_playersettings.item_null.height			= 480;
 
 	Menu_AddItem( &s_playersettings.menu, &s_playersettings.banner );
-	Menu_AddItem( &s_playersettings.menu, &s_playersettings.framel );
-	Menu_AddItem( &s_playersettings.menu, &s_playersettings.framer );
 
 	Menu_AddItem( &s_playersettings.menu, &s_playersettings.name );
-	Menu_AddItem( &s_playersettings.menu, &s_playersettings.handicap );
+/*	Menu_AddItem( &s_playersettings.menu, &s_playersettings.handicap );
 	Menu_AddItem( &s_playersettings.menu, &s_playersettings.effects );
+*/
 	Menu_AddItem( &s_playersettings.menu, &s_playersettings.model );
 	Menu_AddItem( &s_playersettings.menu, &s_playersettings.back );
 
@@ -484,7 +467,7 @@ PlayerSettings_Cache
 =================
 */
 void PlayerSettings_Cache( void ) {
-	trap_R_RegisterShaderNoMip( ART_FRAMEL );
+/*	trap_R_RegisterShaderNoMip( ART_FRAMEL );
 	trap_R_RegisterShaderNoMip( ART_FRAMER );
 	trap_R_RegisterShaderNoMip( ART_MODEL0 );
 	trap_R_RegisterShaderNoMip( ART_MODEL1 );
@@ -499,6 +482,7 @@ void PlayerSettings_Cache( void ) {
 	s_playersettings.fxPic[4] = trap_R_RegisterShaderNoMip( ART_FX_BLUE );
 	s_playersettings.fxPic[5] = trap_R_RegisterShaderNoMip( ART_FX_CYAN );
 	s_playersettings.fxPic[6] = trap_R_RegisterShaderNoMip( ART_FX_WHITE );
+*/
 }
 
 

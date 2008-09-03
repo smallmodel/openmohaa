@@ -31,10 +31,6 @@ CONTROLS MENU
 
 #include "ui_local.h"
 
-#define ART_BACK0			"menu/art/back_0"
-#define ART_BACK1			"menu/art/back_1"
-#define ART_FRAMEL			"menu/art/frame2_l"
-#define ART_FRAMER			"menu/art/frame1_r"
 
 
 typedef struct {
@@ -154,8 +150,7 @@ typedef struct
 	menuframework_s		menu;
 
 	menutext_s			banner;
-	menubitmap_s		framel;
-	menubitmap_s		framer;
+
 	menubitmap_s		player;
 
 	menutext_s			movement;
@@ -217,13 +212,13 @@ typedef struct
 	int					playerWeapon;
 	qboolean			playerChat;
 
-	menubitmap_s		back;
+	menubutton_s		back;
 	menutext_s			name;
 } controls_t;
 
 static controls_t s_controls;
 
-static vec4_t controls_binding_color  = {1.00f, 0.43f, 0.00f, 1.00f};
+static vec4_t controls_binding_color  = {1.00f, 1.00f, 1.00f, 1.00f}; //{1.00f, 0.43f, 0.00f, 1.00f};
 
 static bind_t g_bindings[] =
 {
@@ -1195,29 +1190,18 @@ static void Controls_MenuInit( void )
 	s_controls.menu.wrapAround = qtrue;
 	s_controls.menu.fullscreen = qtrue;
 
+	s_controls.menu.showlogo		= qtrue;
+	s_controls.menu.menuBack		= BG_SERVERB;
+
 	s_controls.banner.generic.type	= MTYPE_BTEXT;
 	s_controls.banner.generic.flags	= QMF_CENTER_JUSTIFY;
 	s_controls.banner.generic.x		= 320;
 	s_controls.banner.generic.y		= 16;
-	s_controls.banner.string		= "CONTROLS";
+	s_controls.banner.string		= "Controls";
 	s_controls.banner.color			= color_white;
 	s_controls.banner.style			= UI_CENTER;
 
-	s_controls.framel.generic.type  = MTYPE_BITMAP;
-	s_controls.framel.generic.name  = ART_FRAMEL;
-	s_controls.framel.generic.flags = QMF_LEFT_JUSTIFY|QMF_INACTIVE;
-	s_controls.framel.generic.x     = 0;
-	s_controls.framel.generic.y     = 78;
-	s_controls.framel.width  	    = 256;
-	s_controls.framel.height  	    = 329;
 
-	s_controls.framer.generic.type  = MTYPE_BITMAP;
-	s_controls.framer.generic.name  = ART_FRAMER;
-	s_controls.framer.generic.flags = QMF_LEFT_JUSTIFY|QMF_INACTIVE;
-	s_controls.framer.generic.x     = 376;
-	s_controls.framer.generic.y     = 76;
-	s_controls.framer.width  	    = 256;
-	s_controls.framer.height  	    = 334;
 
 	s_controls.looking.generic.type     = MTYPE_PTEXT;
 	s_controls.looking.generic.flags    = QMF_RIGHT_JUSTIFY|QMF_PULSEIFFOCUS;
@@ -1225,9 +1209,9 @@ static void Controls_MenuInit( void )
 	s_controls.looking.generic.callback	= Controls_MenuEvent;
 	s_controls.looking.generic.x	    = 152;
 	s_controls.looking.generic.y	    = 240 - 2 * PROP_HEIGHT;
-	s_controls.looking.string			= "LOOK";
+	s_controls.looking.string			= "Look";
 	s_controls.looking.style			= UI_RIGHT;
-	s_controls.looking.color			= color_red;
+	s_controls.looking.color			= color_white;
 
 	s_controls.movement.generic.type     = MTYPE_PTEXT;
 	s_controls.movement.generic.flags    = QMF_RIGHT_JUSTIFY|QMF_PULSEIFFOCUS;
@@ -1235,9 +1219,9 @@ static void Controls_MenuInit( void )
 	s_controls.movement.generic.callback = Controls_MenuEvent;
 	s_controls.movement.generic.x	     = 152;
 	s_controls.movement.generic.y	     = 240 - PROP_HEIGHT;
-	s_controls.movement.string			= "MOVE";
+	s_controls.movement.string			= "Move";
 	s_controls.movement.style			= UI_RIGHT;
-	s_controls.movement.color			= color_red;
+	s_controls.movement.color			= color_white;
 
 	s_controls.weapons.generic.type	    = MTYPE_PTEXT;
 	s_controls.weapons.generic.flags    = QMF_RIGHT_JUSTIFY|QMF_PULSEIFFOCUS;
@@ -1245,9 +1229,9 @@ static void Controls_MenuInit( void )
 	s_controls.weapons.generic.callback	= Controls_MenuEvent;
 	s_controls.weapons.generic.x	    = 152;
 	s_controls.weapons.generic.y	    = 240;
-	s_controls.weapons.string			= "SHOOT";
+	s_controls.weapons.string			= "Shoot";
 	s_controls.weapons.style			= UI_RIGHT;
-	s_controls.weapons.color			= color_red;
+	s_controls.weapons.color			= color_white;
 
 	s_controls.misc.generic.type	 = MTYPE_PTEXT;
 	s_controls.misc.generic.flags    = QMF_RIGHT_JUSTIFY|QMF_PULSEIFFOCUS;
@@ -1255,20 +1239,18 @@ static void Controls_MenuInit( void )
 	s_controls.misc.generic.callback = Controls_MenuEvent;
 	s_controls.misc.generic.x		 = 152;
 	s_controls.misc.generic.y		 = 240 + PROP_HEIGHT;
-	s_controls.misc.string			= "MISC";
+	s_controls.misc.string			= "Misc";
 	s_controls.misc.style			= UI_RIGHT;
-	s_controls.misc.color			= color_red;
+	s_controls.misc.color			= color_white;
 
-	s_controls.back.generic.type	 = MTYPE_BITMAP;
-	s_controls.back.generic.name     = ART_BACK0;
-	s_controls.back.generic.flags    = QMF_LEFT_JUSTIFY|QMF_PULSEIFFOCUS;
+	s_controls.back.generic.type	 = MTYPE_BUTTON;
+	s_controls.back.generic.flags    = QMF_LEFT_JUSTIFY|QMF_HIGHLIGHT_IF_FOCUS;
 	s_controls.back.generic.x		 = 0;
-	s_controls.back.generic.y		 = 480-64;
+	s_controls.back.generic.y		 = 480-50;
 	s_controls.back.generic.id	     = ID_BACK;
 	s_controls.back.generic.callback = Controls_MenuEvent;
-	s_controls.back.width  		     = 128;
-	s_controls.back.height  		 = 64;
-	s_controls.back.focuspic         = ART_BACK1;
+	s_controls.back.string			= "Back";
+	s_controls.back.style			= UI_LEFT;
 
 	s_controls.player.generic.type      = MTYPE_BITMAP;
 	s_controls.player.generic.flags     = QMF_INACTIVE;
@@ -1559,8 +1541,7 @@ static void Controls_MenuInit( void )
 	s_controls.name.color			= text_color_normal;
 
 	Menu_AddItem( &s_controls.menu, &s_controls.banner );
-	Menu_AddItem( &s_controls.menu, &s_controls.framel );
-	Menu_AddItem( &s_controls.menu, &s_controls.framer );
+
 	Menu_AddItem( &s_controls.menu, &s_controls.player );
 	Menu_AddItem( &s_controls.menu, &s_controls.name );
 
@@ -1646,10 +1627,7 @@ Controls_Cache
 =================
 */
 void Controls_Cache( void ) {
-	trap_R_RegisterShaderNoMip( ART_BACK0 );
-	trap_R_RegisterShaderNoMip( ART_BACK1 );
-	trap_R_RegisterShaderNoMip( ART_FRAMEL );
-	trap_R_RegisterShaderNoMip( ART_FRAMER );
+
 }
 
 

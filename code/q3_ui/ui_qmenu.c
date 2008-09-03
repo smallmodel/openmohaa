@@ -50,11 +50,13 @@ vec4_t color_red	    = {1.00f, 0.00f, 0.00f, 1.00f};
 vec4_t color_dim	    = {0.00f, 0.00f, 0.00f, 0.25f};
 vec4_t color_gray	    = {0.00f, 0.00f, 0.00f, 0.6f};
 vec4_t color_green	    = {0.10f, 0.70f, 0.10f, 1.00f};
+vec4_t color_dkgreen	= {0.40f, 0.40f, 0.40f, 1.00f};
 
 // current color scheme
 vec4_t pulse_color          = {1.00f, 1.00f, 1.00f, 1.00f};
 vec4_t text_color_disabled  = {0.50f, 0.50f, 0.50f, 1.00f};	// light gray
-vec4_t text_color_normal    = {1.00f, 0.43f, 0.00f, 1.00f};	// light orange
+//vec4_t text_color_normal    = {1.00f, 0.43f, 0.00f, 1.00f};	// light orange
+vec4_t text_color_normal    = {1.00f, 1.00f, 1.00f, 1.00f};		//white
 vec4_t text_color_highlight = {1.00f, 1.00f, 0.00f, 1.00f};	// bright yellow
 vec4_t listbar_color        = {1.00f, 0.43f, 0.00f, 0.30f};	// transluscent orange
 vec4_t text_color_status    = {1.00f, 1.00f, 1.00f, 1.00f};	// bright white
@@ -140,19 +142,33 @@ static void Button_Draw( menutext_s *b )
 	int y;
 	int w;
 	int h;
+	vec4_t *butcol;
+	int style;
 
 	x = b->generic.x;
 	y = b->generic.y;
 
-	h = trap_R_Text_Height( &uis.menuFont, b->string, 0, 0 )*2 + BUTTON_XADJ;
-	w = trap_R_Text_Width( &uis.menuFont, b->string, 0, 0 )*2 + BUTTON_YADJ;
+	h = trap_R_Text_Height( &uis.menuFont, b->string, 0, 0 )*2 + BUTTON_YADJ;
+	w = trap_R_Text_Width( &uis.menuFont, b->string, 0, 0 )*2 + BUTTON_XADJ;
 
 	if ( b->style & UI_CENTER )
-		x -= w/2;
+		x -= w/2 + 1;
 	else if ( b->style & UI_RIGHT )
-		x-= w;
+		x -= w + 1;
 
-	trap_R_SetColor( color_green );
+	if (b->generic.flags & QMF_GRAYED)
+		butcol = &colorMdGrey;
+	else if ((b->generic.flags & QMF_HIGHLIGHT) || (b->generic.flags & QMF_HIGHLIGHT_IF_FOCUS)){
+		if ((b->generic.flags & QMF_HIGHLIGHT) ||(Menu_ItemAtCursor( b->generic.parent ) == b)){
+			butcol = &color_green;
+			style = UI_LEFT;
+		} else {
+			butcol = &color_dkgreen;
+			style = UI_LEFT|UI_INVERSE;
+		}
+	}
+
+	trap_R_SetColor( *butcol );
 	trap_R_DrawStretchPic( x*uis.xscale, y*uis.yscale, w*uis.xscale, h*uis.yscale, 0, 0, 16, 16, uis.whiteShader );
 	trap_R_SetColor( color_white );
 	trap_R_DrawStretchPic( x*uis.xscale, y*uis.yscale, w*uis.xscale, LINE_THICKNESS*uis.yscale, 0, 0, 32, 32, uis.whiteShader );
@@ -161,7 +177,7 @@ static void Button_Draw( menutext_s *b )
 	trap_R_DrawStretchPic( (x+w)*uis.xscale, y*uis.yscale, LINE_THICKNESS*uis.xscale, (h+LINE_THICKNESS)*uis.yscale, 0, 0, 32, 32, uis.whiteShader );
 	trap_R_SetColor( NULL );
 
-	UI_DrawProportionalString( x+ BUTTON_XADJ/2, y+ BUTTON_YADJ/2, b->string, UI_LEFT, color_white );
+	UI_DrawProportionalString( x+ BUTTON_XADJ/2, y+ BUTTON_YADJ/2, b->string, style, color_white );
 }
 
 /*
@@ -300,6 +316,10 @@ static void PText_Draw( menutext_s *t )
 		else {
 			style |= UI_INVERSE;
 		}
+	}
+	else if ((t->generic.flags & QMF_HIGHLIGHT) || (t->generic.flags & QMF_HIGHLIGHT_IF_FOCUS)){
+		if (!((t->generic.flags & QMF_HIGHLIGHT) ||(Menu_ItemAtCursor( t->generic.parent ) == t)))
+			style |= UI_INVERSE;
 	}
 
 	UI_DrawProportionalString( x, y, t->string, style, color );
@@ -1795,8 +1815,8 @@ void Menu_Cache( void )
 	uis.charsetPropGlow	= trap_R_RegisterShaderNoMip( "menu/art/font1_prop_glo.tga" );
 	uis.charsetPropB	= trap_R_RegisterShaderNoMip( "menu/art/font2_prop.tga" );
 	uis.cursor          = trap_R_RegisterShaderNoMip( "gfx/2d/mouse_cursor.tga" );
-	uis.rb_on           = trap_R_RegisterShaderNoMip( "menu/art/switch_on" );
-	uis.rb_off          = trap_R_RegisterShaderNoMip( "menu/art/switch_off" );
+	uis.rb_on           = trap_R_RegisterShaderNoMip( "textures/mohmenu/checkbox_checked.tga" );
+	uis.rb_off          = trap_R_RegisterShaderNoMip( "textures/mohmenu/checkbox_unchecked.tga" );
 
 	uis.whiteShader = trap_R_RegisterShaderNoMip( "*white" );
 	if ( uis.glconfig.hardwareType == GLHW_RAGEPRO ) {
@@ -1810,6 +1830,18 @@ void Menu_Cache( void )
 		uis.statScreenShader_b	= trap_R_RegisterShaderNoMip( "textures/mohmenu/statscreen_b.tga" );
 		uis.statScreen2Shader_a	= trap_R_RegisterShaderNoMip( "textures/mohmenu/statscreen2_a.tga" );
 		uis.statScreen2Shader_b	= trap_R_RegisterShaderNoMip( "textures/mohmenu/statscreen2_b.tga" );
+
+		uis.optionsShader_a		= trap_R_RegisterShaderNoMip( "textures/mohmenu/options_a.tga" );
+		uis.optionsShader_b		= trap_R_RegisterShaderNoMip( "textures/mohmenu/options_b.tga" );
+
+		uis.multiplayerShader_a		= trap_R_RegisterShaderNoMip( "textures/mohmenu/multiplayer_a.tga" );
+		uis.multiplayerShader_b		= trap_R_RegisterShaderNoMip( "textures/mohmenu/multiplayer_b.tga" );
+
+		uis.serverbackShader_a		= trap_R_RegisterShaderNoMip( "textures/mohmenu/serverback_a.tga" );
+		uis.serverbackShader_b		= trap_R_RegisterShaderNoMip( "textures/mohmenu/serverback_b.tga" );
+
+		uis.warrecordsShader_a		= trap_R_RegisterShaderNoMip( "textures/mohmenu/warrecords_a.tga" );
+		uis.warrecordsShader_b		= trap_R_RegisterShaderNoMip( "textures/mohmenu/warrecords_b.tga" );
 	}
 	uis.blackShader = trap_R_RegisterShaderNoMip( "textures/mohmenu/black.tga" );
 //	uis.whiteShader = trap_R_RegisterShaderNoMip( "gfx/2d/BLANK.tga" );
@@ -1823,8 +1855,8 @@ void Menu_Cache( void )
 	// need a nonzero sound, make an empty sound for this
 	menu_null_sound = -1;
 
-	sliderBar = trap_R_RegisterShaderNoMip( "menu/art/slider2" );
-	sliderButton_0 = trap_R_RegisterShaderNoMip( "menu/art/sliderbutt_0" );
-	sliderButton_1 = trap_R_RegisterShaderNoMip( "menu/art/sliderbutt_1" );
+	sliderBar = trap_R_RegisterShaderNoMip( "textures/mohmenu/SLIDER.tga" );
+	sliderButton_0 = trap_R_RegisterShaderNoMip( "textures/mohmenu/slider_thumb.tga" );
+	sliderButton_1 = trap_R_RegisterShaderNoMip( "textures/mohmenu/slider_thumb_sel.tga" );
 }
 

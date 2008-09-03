@@ -223,7 +223,7 @@ static cvarTable_t cvarTable[] = {
 	{ &cg_drawIcons, "cg_drawIcons", "1", CVAR_ARCHIVE  },
 	{ &cg_drawAmmoWarning, "cg_drawAmmoWarning", "1", CVAR_ARCHIVE  },
 	{ &cg_drawAttacker, "cg_drawAttacker", "1", CVAR_ARCHIVE  },
-	{ &cg_drawCrosshair, "cg_drawCrosshair", "4", CVAR_ARCHIVE },
+	{ &cg_drawCrosshair, "cg_drawCrosshair", "1", CVAR_ARCHIVE },
 	{ &cg_drawCrosshairNames, "cg_drawCrosshairNames", "1", CVAR_ARCHIVE },
 	{ &cg_drawRewards, "cg_drawRewards", "1", CVAR_ARCHIVE },
 	{ &cg_crosshairSize, "cg_crosshairSize", "24", CVAR_ARCHIVE },

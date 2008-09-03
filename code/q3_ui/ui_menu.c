@@ -317,7 +317,7 @@ void UI_MainMenu( void ) {
 
 	y = 134;
 	s_main.singleplayer.generic.type		= MTYPE_PTEXT;
-	s_main.singleplayer.generic.flags		= QMF_CENTER_JUSTIFY|QMF_PULSEIFFOCUS;
+	s_main.singleplayer.generic.flags		= QMF_INACTIVE|QMF_CENTER_JUSTIFY|QMF_HIGHLIGHT_IF_FOCUS;
 	s_main.singleplayer.generic.x			= 320;
 	s_main.singleplayer.generic.y			= y;
 	s_main.singleplayer.generic.id			= ID_SINGLEPLAYER;
@@ -328,7 +328,7 @@ void UI_MainMenu( void ) {
 
 	y += MAIN_MENU_VERTICAL_SPACING;
 	s_main.multiplayer.generic.type			= MTYPE_PTEXT;
-	s_main.multiplayer.generic.flags		= QMF_CENTER_JUSTIFY|QMF_PULSEIFFOCUS;
+	s_main.multiplayer.generic.flags		= QMF_CENTER_JUSTIFY|QMF_HIGHLIGHT_IF_FOCUS;
 	s_main.multiplayer.generic.x			= 320;
 	s_main.multiplayer.generic.y			= y;
 	s_main.multiplayer.generic.id			= ID_MULTIPLAYER;
@@ -339,7 +339,7 @@ void UI_MainMenu( void ) {
 
 	y += MAIN_MENU_VERTICAL_SPACING;
 	s_main.setup.generic.type				= MTYPE_PTEXT;
-	s_main.setup.generic.flags				= QMF_CENTER_JUSTIFY|QMF_PULSEIFFOCUS;
+	s_main.setup.generic.flags				= QMF_CENTER_JUSTIFY|QMF_HIGHLIGHT_IF_FOCUS;
 	s_main.setup.generic.x					= 320;
 	s_main.setup.generic.y					= y;
 	s_main.setup.generic.id					= ID_SETUP;
@@ -386,7 +386,7 @@ void UI_MainMenu( void ) {
 
 	y += MAIN_MENU_VERTICAL_SPACING;
 	s_main.mods.generic.type			= MTYPE_PTEXT;
-	s_main.mods.generic.flags			= QMF_CENTER_JUSTIFY|QMF_PULSEIFFOCUS;
+	s_main.mods.generic.flags			= QMF_CENTER_JUSTIFY|QMF_HIGHLIGHT_IF_FOCUS;
 	s_main.mods.generic.x				= 320;
 	s_main.mods.generic.y				= y;
 	s_main.mods.generic.id				= ID_MODS;
@@ -397,7 +397,7 @@ void UI_MainMenu( void ) {
 
 	y += MAIN_MENU_VERTICAL_SPACING;
 	s_main.exit.generic.type				= MTYPE_PTEXT;
-	s_main.exit.generic.flags				= QMF_CENTER_JUSTIFY|QMF_PULSEIFFOCUS;
+	s_main.exit.generic.flags				= QMF_CENTER_JUSTIFY|QMF_HIGHLIGHT_IF_FOCUS;
 	s_main.exit.generic.x					= 320;
 	s_main.exit.generic.y					= y;
 	s_main.exit.generic.id					= ID_EXIT;

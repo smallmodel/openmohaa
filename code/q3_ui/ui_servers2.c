@@ -43,16 +43,6 @@ MULTIPLAYER MENU (SERVER BROWSER)
 #define MAX_LEAGUELENGTH		28
 #define MAX_LISTBOXWIDTH		68
 
-#define ART_BACK0				"menu/art/back_0"
-#define ART_BACK1				"menu/art/back_1"
-#define ART_CREATE0				"menu/art/create_0"
-#define ART_CREATE1				"menu/art/create_1"
-#define ART_SPECIFY0			"menu/art/specify_0"
-#define ART_SPECIFY1			"menu/art/specify_1"
-#define ART_REFRESH0			"menu/art/refresh_0"
-#define ART_REFRESH1			"menu/art/refresh_1"
-#define ART_CONNECT0			"menu/art/fight_0"
-#define ART_CONNECT1			"menu/art/fight_1"
 #define ART_ARROWS0				"menu/art/arrows_vert_0"
 #define ART_ARROWS_UP			"menu/art/arrows_vert_top"
 #define ART_ARROWS_DOWN			"menu/art/arrows_vert_bot"
@@ -145,7 +135,7 @@ static char* netnames[] = {
 	NULL
 };
 
-static char quake3worldMessage[] = "Visit www.quake3world.com - News, Community, Events, Files";
+static char quake3worldMessage[] = "Visit http://openmohaa.sf.net/ - News, Community, Events, Files";
 
 const char* punkbuster_items[] = {
 	"Disabled",
@@ -207,11 +197,11 @@ typedef struct {
 	menutext_s			statusbar;
 
 	menubitmap_s		remove;
-	menubitmap_s		back;
-	menubitmap_s		refresh;
-	menubitmap_s		specify;
-	menubitmap_s		create;
-	menubitmap_s		go;
+	menubutton_s		back;
+	menubutton_s		refresh;
+	menubutton_s		specify;
+	menubutton_s		create;
+	menubutton_s		go;
 
 	pinglist_t			pinglist[MAX_PINGREQUESTS];
 	table_t				table[MAX_LISTBOXITEMS];
@@ -1342,11 +1332,14 @@ static void ArenaServers_MenuInit( void ) {
 	g_arenaservers.menu.draw       = ArenaServers_MenuDraw;
 	g_arenaservers.menu.key        = ArenaServers_MenuKey;
 
+	g_arenaservers.menu.showlogo		= qtrue;
+	g_arenaservers.menu.menuBack		= BG_MULTIPL;
+
 	g_arenaservers.banner.generic.type  = MTYPE_BTEXT;
 	g_arenaservers.banner.generic.flags = QMF_CENTER_JUSTIFY;
 	g_arenaservers.banner.generic.x	    = 320;
 	g_arenaservers.banner.generic.y	    = 16;
-	g_arenaservers.banner.string  		= "ARENA SERVERS";
+	g_arenaservers.banner.string  		= "MOHAA Servers";
 	g_arenaservers.banner.style  	    = UI_CENTER;
 	g_arenaservers.banner.color  	    = color_white;
 
@@ -1476,60 +1469,50 @@ static void ArenaServers_MenuInit( void ) {
 	g_arenaservers.remove.height			= 48;
 	g_arenaservers.remove.focuspic			= ART_REMOVE1;
 
-	g_arenaservers.back.generic.type		= MTYPE_BITMAP;
-	g_arenaservers.back.generic.name		= ART_BACK0;
-	g_arenaservers.back.generic.flags		= QMF_LEFT_JUSTIFY|QMF_PULSEIFFOCUS;
+	g_arenaservers.back.generic.type		= MTYPE_BUTTON;
+	g_arenaservers.back.generic.flags		= QMF_LEFT_JUSTIFY|QMF_HIGHLIGHT_IF_FOCUS;
 	g_arenaservers.back.generic.callback	= ArenaServers_Event;
 	g_arenaservers.back.generic.id			= ID_BACK;
 	g_arenaservers.back.generic.x			= 0;
-	g_arenaservers.back.generic.y			= 480-64;
-	g_arenaservers.back.width				= 128;
-	g_arenaservers.back.height				= 64;
-	g_arenaservers.back.focuspic			= ART_BACK1;
+	g_arenaservers.back.generic.y			= 480-50;
+	g_arenaservers.back.string				= "Back";
+	g_arenaservers.back.style				= UI_LEFT;
 
-	g_arenaservers.specify.generic.type	    = MTYPE_BITMAP;
-	g_arenaservers.specify.generic.name		= ART_SPECIFY0;
-	g_arenaservers.specify.generic.flags    = QMF_LEFT_JUSTIFY|QMF_PULSEIFFOCUS;
+	g_arenaservers.specify.generic.type	    = MTYPE_BUTTON;
+	g_arenaservers.specify.generic.flags    = QMF_LEFT_JUSTIFY|QMF_HIGHLIGHT_IF_FOCUS;
 	g_arenaservers.specify.generic.callback = ArenaServers_Event;
 	g_arenaservers.specify.generic.id	    = ID_SPECIFY;
 	g_arenaservers.specify.generic.x		= 128;
-	g_arenaservers.specify.generic.y		= 480-64;
-	g_arenaservers.specify.width  		    = 128;
-	g_arenaservers.specify.height  		    = 64;
-	g_arenaservers.specify.focuspic         = ART_SPECIFY1;
+	g_arenaservers.specify.generic.y		= 480-50;
+	g_arenaservers.specify.string			= "Specify";
+	g_arenaservers.specify.style			= UI_LEFT;
 
-	g_arenaservers.refresh.generic.type		= MTYPE_BITMAP;
-	g_arenaservers.refresh.generic.name		= ART_REFRESH0;
-	g_arenaservers.refresh.generic.flags	= QMF_LEFT_JUSTIFY|QMF_PULSEIFFOCUS;
+	g_arenaservers.refresh.generic.type		= MTYPE_BUTTON;
+	g_arenaservers.refresh.generic.flags	= QMF_LEFT_JUSTIFY|QMF_HIGHLIGHT_IF_FOCUS;
 	g_arenaservers.refresh.generic.callback	= ArenaServers_Event;
 	g_arenaservers.refresh.generic.id		= ID_REFRESH;
 	g_arenaservers.refresh.generic.x		= 256;
-	g_arenaservers.refresh.generic.y		= 480-64;
-	g_arenaservers.refresh.width			= 128;
-	g_arenaservers.refresh.height			= 64;
-	g_arenaservers.refresh.focuspic			= ART_REFRESH1;
+	g_arenaservers.refresh.generic.y		= 480-50;
+	g_arenaservers.refresh.string			= "Refresh";
+	g_arenaservers.refresh.style			= UI_LEFT;
 
-	g_arenaservers.create.generic.type		= MTYPE_BITMAP;
-	g_arenaservers.create.generic.name		= ART_CREATE0;
-	g_arenaservers.create.generic.flags		= QMF_LEFT_JUSTIFY|QMF_PULSEIFFOCUS;
+	g_arenaservers.create.generic.type		= MTYPE_BUTTON;
+	g_arenaservers.create.generic.flags		= QMF_LEFT_JUSTIFY|QMF_HIGHLIGHT_IF_FOCUS;
 	g_arenaservers.create.generic.callback	= ArenaServers_Event;
 	g_arenaservers.create.generic.id		= ID_CREATE;
 	g_arenaservers.create.generic.x			= 384;
-	g_arenaservers.create.generic.y			= 480-64;
-	g_arenaservers.create.width				= 128;
-	g_arenaservers.create.height			= 64;
-	g_arenaservers.create.focuspic			= ART_CREATE1;
+	g_arenaservers.create.generic.y			= 480-50;
+	g_arenaservers.create.string			= "Create";
+	g_arenaservers.create.style				= UI_LEFT;
 
-	g_arenaservers.go.generic.type			= MTYPE_BITMAP;
-	g_arenaservers.go.generic.name			= ART_CONNECT0;
-	g_arenaservers.go.generic.flags			= QMF_RIGHT_JUSTIFY|QMF_PULSEIFFOCUS;
+	g_arenaservers.go.generic.type			= MTYPE_BUTTON;
+	g_arenaservers.go.generic.flags			= QMF_RIGHT_JUSTIFY|QMF_HIGHLIGHT_IF_FOCUS;
 	g_arenaservers.go.generic.callback		= ArenaServers_Event;
 	g_arenaservers.go.generic.id			= ID_CONNECT;
 	g_arenaservers.go.generic.x				= 640;
-	g_arenaservers.go.generic.y				= 480-64;
-	g_arenaservers.go.width					= 128;
-	g_arenaservers.go.height				= 64;
-	g_arenaservers.go.focuspic				= ART_CONNECT1;
+	g_arenaservers.go.generic.y				= 480-50;
+	g_arenaservers.go.string				= "Connect";
+	g_arenaservers.go.style					= UI_LEFT;
 
 	g_arenaservers.punkbuster.generic.type			= MTYPE_SPINCONTROL;
 	g_arenaservers.punkbuster.generic.name			= "Punkbuster:";
@@ -1613,16 +1596,6 @@ ArenaServers_Cache
 =================
 */
 void ArenaServers_Cache( void ) {
-	trap_R_RegisterShaderNoMip( ART_BACK0 );
-	trap_R_RegisterShaderNoMip( ART_BACK1 );
-	trap_R_RegisterShaderNoMip( ART_CREATE0 );
-	trap_R_RegisterShaderNoMip( ART_CREATE1 );
-	trap_R_RegisterShaderNoMip( ART_SPECIFY0 );
-	trap_R_RegisterShaderNoMip( ART_SPECIFY1 );
-	trap_R_RegisterShaderNoMip( ART_REFRESH0 );
-	trap_R_RegisterShaderNoMip( ART_REFRESH1 );
-	trap_R_RegisterShaderNoMip( ART_CONNECT0 );
-	trap_R_RegisterShaderNoMip( ART_CONNECT1 );
 	trap_R_RegisterShaderNoMip( ART_ARROWS0  );
 	trap_R_RegisterShaderNoMip( ART_ARROWS_UP );
 	trap_R_RegisterShaderNoMip( ART_ARROWS_DOWN );

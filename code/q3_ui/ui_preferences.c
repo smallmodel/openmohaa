@@ -32,10 +32,6 @@ GAME OPTIONS MENU
 #include "ui_local.h"
 
 
-#define ART_FRAMEL				"menu/art/frame2_l"
-#define ART_FRAMER				"menu/art/frame1_r"
-#define ART_BACK0				"menu/art/back_0"
-#define ART_BACK1				"menu/art/back_1"
 
 #define PREFERENCES_X_POS		360
 
@@ -52,15 +48,13 @@ GAME OPTIONS MENU
 #define ID_ALLOWDOWNLOAD			137
 #define ID_BACK					138
 
-#define	NUM_CROSSHAIRS			10
+#define	NUM_CROSSHAIRS			3
 
 
 typedef struct {
 	menuframework_s		menu;
 
 	menutext_s			banner;
-	menubitmap_s		framel;
-	menubitmap_s		framer;
 
 	menulist_s			crosshair;
 	menuradiobutton_s	simpleitems;
@@ -73,7 +67,7 @@ typedef struct {
 	menuradiobutton_s	forcemodel;
 	menulist_s			drawteamoverlay;
 	menuradiobutton_s	allowdownload;
-	menubitmap_s		back;
+	menubutton_s		back;
 
 	qhandle_t			crosshairShader[NUM_CROSSHAIRS];
 } preferences_t;
@@ -228,28 +222,16 @@ static void Preferences_MenuInit( void ) {
 	s_preferences.menu.wrapAround = qtrue;
 	s_preferences.menu.fullscreen = qtrue;
 
+	s_preferences.menu.showlogo		= qtrue;
+	s_preferences.menu.menuBack		= BG_SERVERB;
+
 	s_preferences.banner.generic.type  = MTYPE_BTEXT;
 	s_preferences.banner.generic.x	   = 320;
 	s_preferences.banner.generic.y	   = 16;
-	s_preferences.banner.string		   = "GAME OPTIONS";
+	s_preferences.banner.string		   = "Game Options";
 	s_preferences.banner.color         = color_white;
 	s_preferences.banner.style         = UI_CENTER;
 
-	s_preferences.framel.generic.type  = MTYPE_BITMAP;
-	s_preferences.framel.generic.name  = ART_FRAMEL;
-	s_preferences.framel.generic.flags = QMF_INACTIVE;
-	s_preferences.framel.generic.x	   = 0;
-	s_preferences.framel.generic.y	   = 78;
-	s_preferences.framel.width  	   = 256;
-	s_preferences.framel.height  	   = 329;
-
-	s_preferences.framer.generic.type  = MTYPE_BITMAP;
-	s_preferences.framer.generic.name  = ART_FRAMER;
-	s_preferences.framer.generic.flags = QMF_INACTIVE;
-	s_preferences.framer.generic.x	   = 376;
-	s_preferences.framer.generic.y	   = 76;
-	s_preferences.framer.width  	   = 256;
-	s_preferences.framer.height  	   = 334;
 
 	y = 144;
 	s_preferences.crosshair.generic.type		= MTYPE_TEXT;
@@ -357,20 +339,16 @@ static void Preferences_MenuInit( void ) {
 	s_preferences.allowdownload.generic.y	       = y;
 
 	y += BIGCHAR_HEIGHT+2;
-	s_preferences.back.generic.type	    = MTYPE_BITMAP;
-	s_preferences.back.generic.name     = ART_BACK0;
-	s_preferences.back.generic.flags    = QMF_LEFT_JUSTIFY|QMF_PULSEIFFOCUS;
+	s_preferences.back.generic.type	    = MTYPE_BUTTON;
+	s_preferences.back.generic.flags    = QMF_LEFT_JUSTIFY|QMF_HIGHLIGHT_IF_FOCUS;
 	s_preferences.back.generic.callback = Preferences_Event;
 	s_preferences.back.generic.id	    = ID_BACK;
 	s_preferences.back.generic.x		= 0;
-	s_preferences.back.generic.y		= 480-64;
-	s_preferences.back.width  		    = 128;
-	s_preferences.back.height  		    = 64;
-	s_preferences.back.focuspic         = ART_BACK1;
+	s_preferences.back.generic.y		= 480-50;
+	s_preferences.back.string			= "Back";
+	s_preferences.back.style			= UI_LEFT;
 
 	Menu_AddItem( &s_preferences.menu, &s_preferences.banner );
-	Menu_AddItem( &s_preferences.menu, &s_preferences.framel );
-	Menu_AddItem( &s_preferences.menu, &s_preferences.framer );
 
 	Menu_AddItem( &s_preferences.menu, &s_preferences.crosshair );
 	Menu_AddItem( &s_preferences.menu, &s_preferences.simpleitems );
@@ -398,13 +376,16 @@ Preferences_Cache
 void Preferences_Cache( void ) {
 	int		n;
 
-	trap_R_RegisterShaderNoMip( ART_FRAMEL );
-	trap_R_RegisterShaderNoMip( ART_FRAMER );
-	trap_R_RegisterShaderNoMip( ART_BACK0 );
-	trap_R_RegisterShaderNoMip( ART_BACK1 );
-	for( n = 0; n < NUM_CROSSHAIRS; n++ ) {
+// Q3 uses exactly 10 crosshairs from a to j
+/*	for( n = 0; n < NUM_CROSSHAIRS; n++ ) {
 		s_preferences.crosshairShader[n] = trap_R_RegisterShaderNoMip( va("gfx/2d/crosshair%c", 'a' + n ) );
 	}
+*/
+// we'll only use the 2 from mohaa
+	//0 seems to be NO crosshair ?!
+	s_preferences.crosshairShader[0] = trap_R_RegisterShaderNoMip( "textures/hud/crosshair.tga" );
+	s_preferences.crosshairShader[1] = trap_R_RegisterShaderNoMip( "textures/hud/crosshair.tga" );
+	s_preferences.crosshairShader[2] = trap_R_RegisterShaderNoMip( "gfx/2d/crosshair.tga" );
 }
 
 

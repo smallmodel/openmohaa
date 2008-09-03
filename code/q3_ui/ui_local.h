@@ -151,7 +151,11 @@ extern vmCvar_t	ui_ioq3;
 typedef enum {
 	BG_MAIN,
 	BG_STAT1,
-	BG_STAT2
+	BG_STAT2,
+	BG_OPTIONS,
+	BG_MULTIPL,
+	BG_SERVERB,
+	BG_WARREC
 } menuBackground_t;
 
 typedef struct _tag_menuframework
@@ -580,6 +584,18 @@ typedef struct {
 	qhandle_t			statScreenShader_b;
 	qhandle_t			statScreen2Shader_a;
 	qhandle_t			statScreen2Shader_b;
+
+	qhandle_t			optionsShader_a;
+	qhandle_t			optionsShader_b;
+
+	qhandle_t			multiplayerShader_a;
+	qhandle_t			multiplayerShader_b;
+
+	qhandle_t			serverbackShader_a;
+	qhandle_t			serverbackShader_b;
+
+	qhandle_t			warrecordsShader_a;
+	qhandle_t			warrecordsShader_b;
 } uiStatic_t;
 
 // wombat
