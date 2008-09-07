@@ -1,4 +1,4 @@
-			/*
+/*
 ===========================================================================
 Copyright (C) 2008 Leszek Godlewski
 
@@ -398,7 +398,7 @@ void CM_TracePointThroughTerPatchCollide(traceWork_t *tw, const struct terPatchC
 				if (DotProduct(testpoint, tc->tris[i].planes[j].normal) - tc->tris[i].planes[j].dist > 0)
 					break;	// intersection is beyond the triangle
 			}
-			if (j < 3)	// intersection is beyond the triangle
+			if (j < 4)	// intersection is beyond the triangle
 				continue;
 			// we have a hit
 			tw->trace.fraction = f;

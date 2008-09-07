@@ -433,6 +433,8 @@ typedef struct {
 	int			ofsEnd;				// end of file
 } mdrHeader_t;
 
+#endif
+
 /*
 ==============================================================================
 
@@ -581,7 +583,17 @@ typedef struct {
 	int			numFrames;
 } skcHeader_t;
 
-#endif
+/*
+==============================================================================
+
+  .TIK file format
+
+==============================================================================
+*/
+
+#define TIKI_IDENT			(('I'<<24)+('K'<<16)+('I'<<8)+'T')	// little-endian "TIKI"
+
+// nothing else really required since it's a human-readable text format
 
 /*
 ==============================================================================

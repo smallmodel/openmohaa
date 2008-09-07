@@ -1068,6 +1068,7 @@ Q3OBJ = \
   $(B)/client/net_chan.o \
   $(B)/client/net_ip.o \
   $(B)/client/huffman.o \
+  $(B)/client/tiki.o \
   \
   $(B)/client/snd_adpcm.o \
   $(B)/client/snd_dma.o \
@@ -1294,6 +1295,7 @@ Q3DOBJ = \
   $(B)/ded/net_chan.o \
   $(B)/ded/net_ip.o \
   $(B)/ded/huffman.o \
+  $(B)/ded/tiki.o \
   \
   $(B)/ded/q_math.o \
   $(B)/ded/q_shared.o \

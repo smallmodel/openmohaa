@@ -1197,9 +1197,10 @@ void RB_StageIteratorGeneric( void )
 	//
 	// now do fog
 	//
-	if ( tess.fogNum && tess.shader->fogPass ) {
+	// IneQuation: MoHAA does not use Q3's fog
+	/*if ( tess.fogNum && tess.shader->fogPass ) {
 		RB_FogPass();
-	}
+	}*/
 
 	//
 	// unlock arrays
@@ -1285,9 +1286,10 @@ void RB_StageIteratorVertexLitTexture( void )
 	//
 	// now do fog
 	//
-	if ( tess.fogNum && tess.shader->fogPass ) {
+	// IneQuation: MoHAA does not use Q3's fog
+	/*if ( tess.fogNum && tess.shader->fogPass ) {
 		RB_FogPass();
-	}
+	}*/
 
 	//
 	// unlock arrays
@@ -1390,9 +1392,10 @@ void RB_StageIteratorLightmappedMultitexture( void ) {
 	//
 	// now do fog
 	//
-	if ( tess.fogNum && tess.shader->fogPass ) {
+	// IneQuation: MoHAA does not use Q3's fog
+	/*if ( tess.fogNum && tess.shader->fogPass ) {
 		RB_FogPass();
-	}
+	}*/
 
 	//
 	// unlock arrays
