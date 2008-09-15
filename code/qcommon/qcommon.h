@@ -152,6 +152,11 @@ typedef struct {
 	unsigned short	port;
 } netadr_t;
 
+// wombat: gamespy tcp code
+qboolean	NET_CreateMasterSocket( void );
+qboolean	NET_SendMasterRequest( void );
+int			NET_ReceiveMasterResponse( char *buffer, int size );
+
 void		NET_Init( void );
 void		NET_Shutdown( void );
 void		NET_Restart( void );
@@ -233,7 +238,7 @@ extern int demo_protocols[];
 #define	UPDATE_SERVER_NAME	"update.quake3arena.com"
 // override on command line, config files etc.
 #ifndef MASTER_SERVER_NAME
-#define MASTER_SERVER_NAME	"master.quake3arena.com"
+#define MASTER_SERVER_NAME	"master.quake3world.com"
 #endif
 #ifndef AUTHORIZE_SERVER_NAME
 #define	AUTHORIZE_SERVER_NAME	"authorize.quake3arena.com"

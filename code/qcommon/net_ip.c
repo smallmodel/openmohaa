@@ -223,6 +223,320 @@ qboolean Sys_StringToAdr( const char *s, netadr_t *a ) {
 
 //=============================================================================
 
+// Wombat: I'm adding TCP code here for gamespy master server communication
+// might be buggy!
+#define GS_MOHAAKEY			"M5Fdwc"
+#define GS_GAMENAME			"mohaa"
+#define GS_GAMEVER			"1.6"
+#define GS_MASTER_SERVER	"master.gamespy.com"
+int tcpsock;
+
+qboolean	NET_CreateMasterSocket( void ){
+	struct sockaddr_in master_addr;
+	struct hostent *h;
+
+	tcpsock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
+
+	if ( tcpsock == -1 )
+		return qfalse;
+
+	master_addr.sin_family		= AF_INET;
+	master_addr.sin_port		= htons( 28900 );
+	master_addr.sin_addr.s_addr	= inet_addr( GS_MASTER_SERVER );
+	memset( master_addr.sin_zero, 0, sizeof(master_addr.sin_zero) );
+
+	h = gethostbyname( GS_MASTER_SERVER );
+	if (!h) {
+		close( tcpsock );
+		return qfalse;
+	}
+	master_addr.sin_addr = *((struct in_addr *)h->h_addr);
+
+	if ( connect(tcpsock, (struct sockaddr *)&master_addr, sizeof master_addr) == -1 ) {
+		close( tcpsock );
+		return qfalse;
+	}
+
+	return qtrue;
+}
+
+// some gamespy "encryption" ;-)
+// wombat: i had already begun reversing the algorithm, then i found this code by luigi
+// it is GPL so everything's fine
+// saves me a little time (although reversing it myself would have been much more exciting :-/)
+/*
+
+GSMSALG 0.3.2
+by Luigi Auriemma
+e-mail: aluigi@autistici.org
+web:    aluigi.org
+
+
+INTRODUCTION
+============
+With the name Gsmsalg I define the challenge-response algorithm needed
+to query the master servers that use the Gamespy "secure" protocol (like
+master.gamespy.com for example).
+This algorithm is not only used for this type of query but also in other
+situations like the so called "Gamespy Firewall Probe Packet" that is
+the challenge string sent by the master servers of the games that use
+the Gamespy SDK when game servers want to be included in the online
+servers list.
+
+
+HOW TO USE
+==========
+The function needs 4 parameters:
+- dst:     the destination buffer that will contain the calculated
+           response. Its length is 4/3 of the challenge size so if the
+           challenge is 6 bytes long, the response will be 8 bytes long
+           plus the final NULL byte which is required.
+- src:     the source buffer containing the challenge string received
+           from the server.
+- key:     the gamekey or any other text string used as algorithm's
+           key, usually it is the gamekey but "might" be another thing
+           in some cases. Each game has its unique Gamespy gamekey which
+           are available here:
+           http://aluigi.org/papers/gslist.cfg
+- enctype: are supported 0 (plain-text used in old games), 1 (Gamespy3D)
+           and 2 (actually the only one which can be used for any game).
+
+The return value is a pointer to the destination buffer.
+Note that the source buffer canNOT be a fixed read-only string (like
+"ABCDEF") because are made some write operations on it.
+
+
+EXAMPLE
+=======
+#include "gsmsalg.h";
+
+  char  source[7],          // 6 + NULL byte
+        dest[9];            // 6 * 4 / 3 + NULL byte
+  strcpy(source, "ABCDEF"); // the challenge received from the server
+                            // now we launch gsmsalg with the key
+                            // kbeafe of Doom 3 and enctype set to 0
+  gsseckey(dest, source, "kbeafe", 0);
+
+
+LICENSE
+=======
+    Copyright 2004,2005,2006 Luigi Auriemma
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+
+    http://www.gnu.org/licenses/gpl.txt
+
+*/
+
+unsigned char gsvalfunc(int reg) {
+    if(reg < 26) return(reg + 'A');
+    if(reg < 52) return(reg + 'G');
+    if(reg < 62) return(reg - 4);
+    if(reg == 62) return('+');
+    if(reg == 63) return('/');
+    return(0);
+}
+
+
+
+unsigned char *gsseckey(
+  unsigned char *dst,
+  unsigned char *src,
+  unsigned char *key,
+  int           enctype) {
+
+    int             i,
+                    x,
+                    y,
+                    num,
+                    num2,
+                    size,
+                    keysz;
+    unsigned char   enctmp[256],
+                    *p;
+    const static unsigned char enctype1_data[256] = /* pre-built */
+        "\x01\xba\xfa\xb2\x51\x00\x54\x80\x75\x16\x8e\x8e\x02\x08\x36\xa5"
+        "\x2d\x05\x0d\x16\x52\x07\xb4\x22\x8c\xe9\x09\xd6\xb9\x26\x00\x04"
+        "\x06\x05\x00\x13\x18\xc4\x1e\x5b\x1d\x76\x74\xfc\x50\x51\x06\x16"
+        "\x00\x51\x28\x00\x04\x0a\x29\x78\x51\x00\x01\x11\x52\x16\x06\x4a"
+        "\x20\x84\x01\xa2\x1e\x16\x47\x16\x32\x51\x9a\xc4\x03\x2a\x73\xe1"
+        "\x2d\x4f\x18\x4b\x93\x4c\x0f\x39\x0a\x00\x04\xc0\x12\x0c\x9a\x5e"
+        "\x02\xb3\x18\xb8\x07\x0c\xcd\x21\x05\xc0\xa9\x41\x43\x04\x3c\x52"
+        "\x75\xec\x98\x80\x1d\x08\x02\x1d\x58\x84\x01\x4e\x3b\x6a\x53\x7a"
+        "\x55\x56\x57\x1e\x7f\xec\xb8\xad\x00\x70\x1f\x82\xd8\xfc\x97\x8b"
+        "\xf0\x83\xfe\x0e\x76\x03\xbe\x39\x29\x77\x30\xe0\x2b\xff\xb7\x9e"
+        "\x01\x04\xf8\x01\x0e\xe8\x53\xff\x94\x0c\xb2\x45\x9e\x0a\xc7\x06"
+        "\x18\x01\x64\xb0\x03\x98\x01\xeb\x02\xb0\x01\xb4\x12\x49\x07\x1f"
+        "\x5f\x5e\x5d\xa0\x4f\x5b\xa0\x5a\x59\x58\xcf\x52\x54\xd0\xb8\x34"
+        "\x02\xfc\x0e\x42\x29\xb8\xda\x00\xba\xb1\xf0\x12\xfd\x23\xae\xb6"
+        "\x45\xa9\xbb\x06\xb8\x88\x14\x24\xa9\x00\x14\xcb\x24\x12\xae\xcc"
+        "\x57\x56\xee\xfd\x08\x30\xd9\xfd\x8b\x3e\x0a\x84\x46\xfa\x77\xb8";
+
+
+        /* 1) buffer creation with incremental data */
+
+    p = enctmp;
+    for(i = 0; i < 256; i++) {
+        *p++ = i;
+    }
+
+        /* 2) buffer scrambled with key */
+
+    keysz = strlen(key);
+    p = enctmp;
+    for(i = num = 0; i < 256; i++) {
+        num = (num + *p + key[i % keysz]) & 0xff;
+        x = enctmp[num];
+        enctmp[num] = *p;
+        *p++ = x;
+    }
+
+        /* 3) source string scrambled with the buffer */
+
+    p = src;
+    num = num2 = 0;
+    while(*p) {
+        num = (num + *p + 1) & 0xff;
+        x = enctmp[num];
+        num2 = (num2 + x) & 0xff;
+        y = enctmp[num2];
+        enctmp[num2] = x;
+        enctmp[num] = y;
+        *p++ ^= enctmp[(x + y) & 0xff];
+    }
+    size = p - src;
+
+        /* 4) enctype management */
+
+    if(enctype == 1) {
+        for(i = 0; i < size; i++) {
+            src[i] = enctype1_data[src[i]];
+        }
+
+    } else if(enctype == 2) {
+        for(i = 0; i < size; i++) {
+            src[i] ^= key[i % keysz];
+        }
+    }
+
+        /* 5) splitting of the source string from 3 to 4 bytes */
+
+    p = dst;
+    size /= 3;
+    while(size--) {
+        x = *src++;
+        y = *src++;
+        *p++ = gsvalfunc(x >> 2);
+        *p++ = gsvalfunc(((x & 3) << 4) | (y >> 4));
+        x = *src++;
+        *p++ = gsvalfunc(((y & 15) << 2) | (x >> 6));
+        *p++ = gsvalfunc(x & 63);
+    }
+    *p = 0;
+
+    return(dst);
+}
+
+
+qboolean	NET_SendMasterRequest( void ) {
+	char buffer[255];
+	char requestString[255];
+	char *ptr;
+	char encodedstring[32];
+	char string2encode[32];
+
+	if (recv( tcpsock, buffer, sizeof(buffer), 0) ==-1) {
+		close( tcpsock );
+		return qfalse;
+	}
+
+	ptr = strstr( buffer, "\\secure\\" );
+	if (!ptr) {
+		close( tcpsock );
+		return qfalse;
+	}
+	ptr += 8;
+
+	Q_strncpyz( string2encode, ptr, sizeof(string2encode) );
+
+	gsseckey( encodedstring, string2encode, GS_MOHAAKEY, 0 );
+
+	Q_snprintf( requestString, sizeof(requestString), "\\gamename\\%s\\gamever\\%s\\location\\0\\validate\\%s\\final\\\\queryid\\1.1\\", GS_GAMENAME, GS_GAMEVER, encodedstring );
+	if (send(tcpsock, requestString, strlen(requestString), 0) == -1 ) {
+		close( tcpsock );
+		return qfalse;
+	}
+
+	// Request List: we may even send a filter string to e.g. "(numplayers > 0)" but we can do that later...
+	// see "\\where\\"
+	// PS: I really wonder what "cmp" stands for. "groups" and "info2" may also be used. i have no idea!
+	Q_snprintf( requestString, sizeof(requestString), "\\list\\%s\\gamename\\%s\\final\\", "cmp", GS_GAMENAME );
+	if (send(tcpsock, requestString, strlen(requestString), 0) == -1 ) {
+		close( tcpsock );
+		return qfalse;
+	}
+
+	return qtrue;
+}
+
+int	NET_ReceiveMasterResponse( char *buffer, int size ) {
+	struct timeval timeout;
+	fd_set readfds;
+	qboolean final=0;
+	int bufPtr=0;
+
+	memset( buffer, 0, size );
+
+	timeout.tv_sec	= 0;
+	timeout.tv_usec	= 0;
+
+	while ( !final ) {
+		int recvdNum;
+
+		// ok i know this is not nice, but it's GS !!
+
+		Sleep( 10 );
+
+		FD_ZERO(&readfds);
+		FD_SET( tcpsock, &readfds );
+		if (!select( tcpsock+1, &readfds, NULL, NULL, &timeout )) {
+			//close( tcpsock );
+			//Com_DPrintf( "GS: select...\n" );
+			continue;
+		}
+
+		// well, this may be not the optimal solution...
+		recvdNum = recv( tcpsock, buffer + bufPtr, size - bufPtr, 0 );
+		if ( recvdNum == -1 ) {
+			close( tcpsock );
+			return qfalse;
+		}
+		if (!recvdNum) {
+			close( tcpsock );
+			final = qtrue;
+		}
+		bufPtr += recvdNum;
+	}
+
+	return bufPtr;
+}
+
+
+
+//=============================================================================
+
 /*
 ==================
 Sys_GetPacket

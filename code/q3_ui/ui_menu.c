@@ -41,7 +41,6 @@ MAIN MENU
 #define ID_MODS					16
 #define ID_EXIT					17
 
-#define MAIN_BANNER_MODEL				"models/mapobjects/banner/banner5.md3"
 #define MAIN_MENU_VERTICAL_SPACING		34
 
 
@@ -57,7 +56,6 @@ typedef struct {
 	menutext_s		mods;
 	menutext_s		exit;
 
-	qhandle_t		bannerModel;
 } mainmenu_t;
 
 
@@ -139,7 +137,7 @@ MainMenu_Cache
 ===============
 */
 void MainMenu_Cache( void ) {
-	s_main.bannerModel = trap_R_RegisterModel( MAIN_BANNER_MODEL );
+
 }
 
 sfxHandle_t ErrorMessage_Key(int key)
