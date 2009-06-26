@@ -699,8 +699,11 @@ void QDECL NET_OutOfBandPrint( netsrc_t sock, netadr_t adr, const char *format, 
 	string[2] = -1;
 	string[3] = -1;
 
+	// wombat: MOHAA OOB packets carry another byte to indicate the direction
+	string[4] = (char)sock;
+
 	va_start( argptr, format );
-	Q_vsnprintf( string+4, sizeof(string)-4, format, argptr );
+	Q_vsnprintf( string+(4+1), sizeof(string)-(4+1), format, argptr );
 	va_end( argptr );
 
 	// send the datagram
@@ -725,13 +728,16 @@ void QDECL NET_OutOfBandData( netsrc_t sock, netadr_t adr, byte *format, int len
 	string[2] = 0xff;
 	string[3] = 0xff;
 
+	// wombat: MOHAA OOB packets carry another byte to indicate the direction
+	string[4] = (char)sock;
+
 	for(i=0;i<len;i++) {
-		string[i+4] = format[i];
+		string[i+(4+1)] = format[i];
 	}
 
 	mbuf.data = string;
-	mbuf.cursize = len+4;
-	Huff_Compress( &mbuf, 12);
+	mbuf.cursize = len+(4+1);
+	Huff_Compress( &mbuf, (12+1));
 	// send the datagram
 	NET_SendPacket( sock, mbuf.cursize, mbuf.data, adr );
 }

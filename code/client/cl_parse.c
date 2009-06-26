@@ -32,7 +32,10 @@ char *svc_strings[256] = {
 	"svc_baseline",	
 	"svc_serverCommand",
 	"svc_download",
-	"svc_snapshot"
+	"svc_snapshot",
+	"svc_centerprint",
+	"svc_locprint",
+	"svc_cgameMessage"
 };
 
 void SHOWNET( msg_t *msg, char *s) {
@@ -655,7 +658,7 @@ CL_ParseServerMessage
 */
 void CL_ParseServerMessage( msg_t *msg ) {
 	int			cmd;
-
+	Com_Printf( "ParseServerMessage: %i\n", msg->cursize );
 	if ( cl_shownet->integer == 1 ) {
 		Com_Printf ("%i ",msg->cursize);
 	} else if ( cl_shownet->integer >= 2 ) {
@@ -713,6 +716,15 @@ void CL_ParseServerMessage( msg_t *msg ) {
 			break;
 		case svc_download:
 			CL_ParseDownload( msg );
+			break;
+		case svc_centerprint:
+			// TODO: centerprint
+			break;
+		case svc_locprint:
+			// TODO: locationprint
+			break;
+		case svc_cgameMessage:
+			// TODO: cgameMessage
 			break;
 		}
 	}

@@ -111,6 +111,7 @@ void CL_ShowIP_f(void);
 void CL_ServerStatus_f(void);
 void CL_ServerStatusResponse( netadr_t from, msg_t *msg );
 
+void CL_GamespyServers_f( void );
 /*
 ===============
 CL_CDDialog
@@ -1202,6 +1203,7 @@ void CL_Connect_f( void ) {
 
 	// if we aren't playing on a lan, we need to authenticate
 	// with the cd key
+	// wombat: no authorization in mohaa. need to send challenge to server though
 	if ( NET_IsLocalAddress( clc.serverAddress ) ) {
 		cls.state = CA_CHALLENGING;
 	} else {
@@ -1708,13 +1710,19 @@ void CL_CheckForResend( void ) {
 	switch ( cls.state ) {
 	case CA_CONNECTING:
 		// requesting a challenge
-		if ( !Sys_IsLANAddress( clc.serverAddress ) ) {
-			CL_RequestAuthorization();
-		}
+		//wombat: not authorization in mohaa
+//		if ( !Sys_IsLANAddress( clc.serverAddress ) ) {
+//			CL_RequestAuthorization();
+//		}
 		NET_OutOfBandPrint(NS_CLIENT, clc.serverAddress, "getchallenge");
 		break;
 
 	case CA_CHALLENGING:
+/*
+wombat: sending conect here: an example connect string from MOHAA looks like this:
+"connect "\challenge\-1629263210\qport\9683\protocol\8\name\wombat\rate\25000\dm_playermodel\american_ranger\snaps\20\dm_playergermanmodel\german_wehrmacht_soldier""
+*/
+
 		// sending back the challenge
 		port = Cvar_VariableValue ("net_qport");
 
@@ -1967,7 +1975,9 @@ void CL_ConnectionlessPacket( netadr_t from, msg_t *msg ) {
 	MSG_BeginReadingOOB( msg );
 	MSG_ReadLong( msg );	// skip the -1
 
-	s = MSG_ReadStringLine( msg );
+	MSG_ReadByte( msg ); // wombat: skip the direction byte
+
+	s = MSG_ReadString( msg );
 
 	Cmd_TokenizeString( s );
 
@@ -2066,6 +2076,13 @@ void CL_ConnectionlessPacket( netadr_t from, msg_t *msg ) {
 		CL_ServersResponsePacket( from, msg );
 		return;
 	}
+	// echo request from server
+	if ( !Q_stricmp(c, "droperror") ) {
+		Com_Printf( "Server dropped connection. Reason: %s", s+9 );
+		Cvar_Set("com_errorMessage", s+10 );
+		CL_Disconnect( qtrue );
+		return;
+	}
 
 	Com_DPrintf ("Unknown connectionless packet command.\n");
 }
@@ -2107,6 +2124,7 @@ void CL_PacketEvent( netadr_t from, msg_t *msg ) {
 		return;
 	}
 
+	// wombat: seems sequenced packet gets screwed here in the following call *somewhere* :-/
 	if (!CL_Netchan_Process( &clc.netchan, msg) ) {
 		return;		// out of order, duplicated, etc
 	}
@@ -2784,6 +2802,8 @@ void CL_Init( void ) {
 	Cmd_AddCommand ("reconnect", CL_Reconnect_f);
 	Cmd_AddCommand ("localservers", CL_LocalServers_f);
 	Cmd_AddCommand ("globalservers", CL_GlobalServers_f);
+	// wombat: gamespy
+	Cmd_AddCommand ("gamespyservers", CL_GamespyServers_f);
 	Cmd_AddCommand ("rcon", CL_Rcon_f);
 	Cmd_AddCommand ("setenv", CL_Setenv_f );
 	Cmd_AddCommand ("ping", CL_Ping_f );
@@ -2851,6 +2871,7 @@ void CL_Shutdown( void ) {
 	Cmd_RemoveCommand ("connect");
 	Cmd_RemoveCommand ("localservers");
 	Cmd_RemoveCommand ("globalservers");
+	Cmd_RemoveCommand ("gamespyservers");
 	Cmd_RemoveCommand ("rcon");
 	Cmd_RemoveCommand ("setenv");
 	Cmd_RemoveCommand ("ping");
@@ -3252,6 +3273,153 @@ void CL_LocalServers_f( void ) {
 	}
 }
 
+// wombat:
+/*
+==================
+CL_GlobalServers_f
+==================
+*/
+// currently about 1000 mohaa servers at a time. when set higher, buffer must be increased!
+#define MAX_GAMESPYSERVERS	1500
+
+void CL_GamespyServers_f( void ) {
+	char buffer[10240];
+	int bytesRead;
+
+	int				i, count, max, total;
+	serverAddress_t addresses[MAX_GAMESPYSERVERS];
+	int				numservers;
+	byte*			buffptr;
+	byte*			buffend;
+
+//	if ( Cmd_Argc() < 1) {
+//		Com_Printf( "usage: gamespyservers [keywords]\n");
+//		return;
+//	}
+
+	cls.masterNum = 0;
+
+	Com_Printf( "Requesting servers from the GameSpy master...\n");
+
+	// reset the list, waiting for response
+	// -1 is used to distinguish a "no response"
+
+	cls.numglobalservers = -1;
+	cls.pingUpdateSource = AS_GLOBAL;
+
+	if (!NET_CreateMasterSocket()) {
+		Com_DPrintf( "GS: could not create socket.\n" );
+		return;
+	}
+	if (!NET_SendMasterRequest()) {
+		Com_DPrintf( "GS: could not send master request.\n" );
+		return;
+	}
+	bytesRead = NET_ReceiveMasterResponse( buffer, sizeof(buffer) );
+	if (!bytesRead) {
+		Com_DPrintf( "GS: Error in Response.\n" );
+		return;
+	}
+	// now we should have gotten the mohaa server list from gamespy in buffer :-)
+
+	cls.masterNum = 0;
+
+	if (cls.numglobalservers == -1) {
+		// state to detect lack of servers or lack of response
+		cls.numglobalservers = 0;
+		cls.numGlobalServerAddresses = 0;
+	}
+
+	if (cls.nummplayerservers == -1) {
+		cls.nummplayerservers = 0;
+	}
+
+	// parse through server response string
+	numservers = 0;
+	buffptr    = buffer;
+	buffend    = buffptr + bytesRead;
+
+	while (buffptr+1 < buffend) {
+		if ( buffptr >= buffend - 6 ) {
+			break;
+		}
+
+		// parse out ip
+		addresses[numservers].ip[0] = *buffptr++;
+		addresses[numservers].ip[1] = *buffptr++;
+		addresses[numservers].ip[2] = *buffptr++;
+		addresses[numservers].ip[3] = *buffptr++;
+
+		// parse out port
+		// wombat: in the Com_DPrintf the port is printed wrong (wrong byte-order) somehow...
+		addresses[numservers].port = (*buffptr++)<<8;
+		addresses[numservers].port += (*buffptr++);
+		addresses[numservers].port = BigShort( addresses[numservers].port );
+
+		Com_DPrintf( "server: %d ip: %d.%d.%d.%d:%d\n",numservers,
+				addresses[numservers].ip[0],
+				addresses[numservers].ip[1],
+				addresses[numservers].ip[2],
+				addresses[numservers].ip[3],
+				addresses[numservers].port );
+
+		numservers++;
+		if (numservers >= MAX_SERVERSPERPACKET) {
+			break;
+		}
+
+		// parse out "\\final\\"
+		if (buffptr[0] == '\\' && buffptr[1] == 'f' && buffptr[2] == 'i' && buffptr[3] == 'n' && buffptr[4] == 'a' && buffptr[6] == 'l' && buffptr[6] == '\\') {
+			break;
+		}
+	}
+
+	if (cls.masterNum == 0) {
+		count = cls.numglobalservers;
+		max = MAX_GLOBAL_SERVERS;
+	} else {
+		count = cls.nummplayerservers;
+		max = MAX_OTHER_SERVERS;
+	}
+
+	for (i = 0; i < numservers && count < max; i++) {
+		// build net address
+		serverInfo_t *server = (cls.masterNum == 0) ? &cls.globalServers[count] : &cls.mplayerServers[count];
+
+		CL_InitServerInfo( server, &addresses[i] );
+		// advance to next slot
+		count++;
+	}
+
+	// if getting the global list
+	if (cls.masterNum == 0) {
+		if ( cls.numGlobalServerAddresses < MAX_GLOBAL_SERVERS ) {
+			// if we couldn't store the servers in the main list anymore
+			for (; i < numservers && count >= max; i++) {
+				serverAddress_t *addr;
+				// just store the addresses in an additional list
+				addr = &cls.globalServerAddresses[cls.numGlobalServerAddresses++];
+				addr->ip[0] = addresses[i].ip[0];
+				addr->ip[1] = addresses[i].ip[1];
+				addr->ip[2] = addresses[i].ip[2];
+				addr->ip[3] = addresses[i].ip[3];
+				addr->port  = addresses[i].port;
+			}
+		}
+	}
+
+	if (cls.masterNum == 0) {
+		cls.numglobalservers = count;
+		total = count + cls.numGlobalServerAddresses;
+	} else {
+		cls.nummplayerservers = count;
+		total = count;
+	}
+
+	Com_Printf("%d servers parsed (total %d)\n", numservers, total);
+}
+
+
 /*
 ==================
 CL_GlobalServers_f
@@ -3501,7 +3669,7 @@ void CL_Ping_f( void ) {
 
 	CL_SetServerInfoByAddress(pingptr->adr, NULL, 0);
 
-	NET_OutOfBandPrint( NS_CLIENT, to, "getinfo xxx" );
+	NET_OutOfBandPrint( NS_CLIENT, to, "\x02getinfo" );
 }
 
 /*

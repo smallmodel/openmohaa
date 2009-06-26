@@ -418,11 +418,11 @@ startagain:
 						token = COM_ParseExt(&text, qfalse);
 					}*/ else if (!Q_stricmp(token, "surface")) {
 						token = COM_ParseExt(&text, qfalse);
-						for (i = 0; i < out->numSurfs; i++) {
+						for (i = 0; i < out->numSurfaces; i++) {			// wombat: i think numSurfs should be numSurfaces
 							if (!Q_stricmp(token, out->surfs[i].name))
 								break;
 						}
-						if (i >= out->numSurfs) {
+						if (i >= out->numSurfaces) {
 							COM_ParseError("WARNING: no surface named \"%s\"", token);
 							continue;
 						}
@@ -512,11 +512,13 @@ startagain:
 						break;
 					case 2:
 						break;
-				} else {
+				}
+				//wombat: else gives compile error
+/*				else {
 					COM_ParseError("ERROR: unknown token \"%s\"", token);
 					Z_Free(file);
 					return NULL;
-				}
+				}*/
 				continue;
 		}
 	}

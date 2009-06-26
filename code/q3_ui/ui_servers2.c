@@ -31,7 +31,8 @@ MULTIPLAYER MENU (SERVER BROWSER)
 
 #include "ui_local.h"
 
-
+// wombat
+#define MAX_GAMESPYSERVERS		128
 #define MAX_GLOBALSERVERS		128
 #define MAX_PINGREQUESTS		32
 #define MAX_ADDRESSLENGTH		64
@@ -47,8 +48,7 @@ MULTIPLAYER MENU (SERVER BROWSER)
 #define ART_ARROWS_UP			"menu/art/arrows_vert_top"
 #define ART_ARROWS_DOWN			"menu/art/arrows_vert_bot"
 #define ART_UNKNOWNMAP			"menu/art/unknownmap"
-#define ART_REMOVE0				"menu/art/delete_0"
-#define ART_REMOVE1				"menu/art/delete_1"
+
 #define ART_PUNKBUSTER		"menu/art/pblogo"
 
 #define ID_MASTER			10
@@ -71,9 +71,10 @@ MULTIPLAYER MENU (SERVER BROWSER)
 #define GR_LETTERS			31
 
 #define AS_LOCAL			0
-#define AS_MPLAYER			1
+#define AS_MPLAYER			99
 #define AS_GLOBAL			2
 #define AS_FAVORITES		3
+#define AS_GAMESPY			1
 
 #define SORT_HOST			0
 #define SORT_MAP			1
@@ -89,6 +90,7 @@ MULTIPLAYER MENU (SERVER BROWSER)
 
 static const char *master_items[] = {
 	"Local",
+//	"Gamespy",
 	"Internet",
 	"Favorites",
 	NULL
@@ -196,7 +198,7 @@ typedef struct {
 	menutext_s			status;
 	menutext_s			statusbar;
 
-	menubitmap_s		remove;
+	menubutton_s		remove;
 	menubutton_s		back;
 	menubutton_s		refresh;
 	menubutton_s		specify;
@@ -223,6 +225,9 @@ typedef struct {
 
 static arenaservers_t	g_arenaservers;
 
+// wombat
+static servernode_t		g_gamespyserverlist[MAX_GAMESPYSERVERS];
+static int				g_numgamespyservers;
 
 static servernode_t		g_globalserverlist[MAX_GLOBALSERVERS];
 static int				g_numglobalservers;
@@ -375,7 +380,7 @@ static void ArenaServers_UpdateMenu( void ) {
 		// servers found
 		if( g_arenaservers.refreshservers && ( g_arenaservers.currentping <= g_arenaservers.numqueriedservers ) ) {
 			// show progress
-			Com_sprintf( g_arenaservers.status.string, MAX_STATUSLENGTH, "%d of %d Arena Servers.", g_arenaservers.currentping, g_arenaservers.numqueriedservers);
+			Com_sprintf( g_arenaservers.status.string, MAX_STATUSLENGTH, "%d of %d Battle Servers.", g_arenaservers.currentping, g_arenaservers.numqueriedservers);
 			g_arenaservers.statusbar.string  = "Press SPACE to stop";
 			qsort( g_arenaservers.serverlist, *g_arenaservers.numservers, sizeof( servernode_t ), ArenaServers_Compare);
 		}
@@ -392,7 +397,7 @@ static void ArenaServers_UpdateMenu( void ) {
 			g_arenaservers.punkbuster.generic.flags &= ~QMF_GRAYED;
 
 			// update status bar
-			if( g_servertype == AS_GLOBAL || g_servertype == AS_MPLAYER ) {
+			if( g_servertype == AS_GLOBAL || g_servertype == AS_MPLAYER || g_servertype == AS_GAMESPY ) {
 				g_arenaservers.statusbar.string = quake3worldMessage;
 			}
 			else {
@@ -427,7 +432,7 @@ static void ArenaServers_UpdateMenu( void ) {
 			}
 
 			// update status bar
-			if( g_servertype == AS_GLOBAL || g_servertype == AS_MPLAYER ) {
+			if( g_servertype == AS_GLOBAL || g_servertype == AS_MPLAYER || g_servertype == AS_GAMESPY ) {
 				g_arenaservers.statusbar.string = quake3worldMessage;
 			}
 			else {
@@ -1001,6 +1006,11 @@ static void ArenaServers_StartRefresh( void )
 		return;
 	}
 
+	if( g_servertype == AS_GAMESPY ) {
+		trap_Cmd_ExecuteText( EXEC_APPEND, "gamespyservers\n" );
+		return;
+	}
+
 	if( g_servertype == AS_GLOBAL || g_servertype == AS_MPLAYER ) {
 		if( g_servertype == AS_GLOBAL ) {
 			i = 0;
@@ -1044,10 +1054,10 @@ static void ArenaServers_StartRefresh( void )
 		protocol[0] = '\0';
 		trap_Cvar_VariableStringBuffer( "debug_protocol", protocol, sizeof(protocol) );
 		if (strlen(protocol)) {
-			trap_Cmd_ExecuteText( EXEC_APPEND, va( "globalservers %d %s%s\n", i, protocol, myargs ));
+			trap_Cmd_ExecuteText( EXEC_APPEND, va( "gamespyservers %d %s%s\n", i, protocol, myargs ));
 		}
 		else {
-			trap_Cmd_ExecuteText( EXEC_APPEND, va( "globalservers %d %d%s\n", i, (int)trap_Cvar_VariableValue( "protocol" ), myargs ) );
+			trap_Cmd_ExecuteText( EXEC_APPEND, va( "gamespyservers %d %d%s\n", i, (int)trap_Cvar_VariableValue( "protocol" ), myargs ) );
 		}
 	}
 }
@@ -1104,6 +1114,18 @@ void ArenaServers_SetType( int type )
 		g_arenaservers.serverlist = g_localserverlist;
 		g_arenaservers.numservers = &g_numlocalservers;
 		g_arenaservers.maxservers = MAX_LOCALSERVERS;
+		break;
+
+	//wombat
+	case AS_GAMESPY:
+		g_arenaservers.remove.generic.flags |= (QMF_INACTIVE|QMF_HIDDEN);
+//		g_arenaservers.serverlist = g_gamespyserverlist;
+//		g_arenaservers.numservers = &g_numgamespyservers;
+//		g_arenaservers.maxservers = MAX_GAMESPYSERVERS;
+		// use the same list for GameSpy/Q3 master servers for now...
+		g_arenaservers.serverlist = g_globalserverlist;
+		g_arenaservers.numservers = &g_numglobalservers;
+		g_arenaservers.maxservers = MAX_GLOBALSERVERS;
 		break;
 
 	case AS_GLOBAL:
@@ -1339,7 +1361,7 @@ static void ArenaServers_MenuInit( void ) {
 	g_arenaservers.banner.generic.flags = QMF_CENTER_JUSTIFY;
 	g_arenaservers.banner.generic.x	    = 320;
 	g_arenaservers.banner.generic.y	    = 16;
-	g_arenaservers.banner.string  		= "MOHAA Servers";
+	g_arenaservers.banner.string  		= "OpenMOHAA Servers";
 	g_arenaservers.banner.style  	    = UI_CENTER;
 	g_arenaservers.banner.color  	    = color_white;
 
@@ -1458,16 +1480,14 @@ static void ArenaServers_MenuInit( void ) {
 	g_arenaservers.statusbar.style	        = UI_CENTER|UI_SMALLFONT;
 	g_arenaservers.statusbar.color	        = text_color_normal;
 
-	g_arenaservers.remove.generic.type		= MTYPE_BITMAP;
-	g_arenaservers.remove.generic.name		= ART_REMOVE0;
-	g_arenaservers.remove.generic.flags		= QMF_LEFT_JUSTIFY|QMF_PULSEIFFOCUS;
+	g_arenaservers.remove.generic.type		= MTYPE_BUTTON;
+	g_arenaservers.remove.generic.flags		= QMF_LEFT_JUSTIFY|QMF_HIGHLIGHT_IF_FOCUS;
 	g_arenaservers.remove.generic.callback	= ArenaServers_Event;
 	g_arenaservers.remove.generic.id		= ID_REMOVE;
 	g_arenaservers.remove.generic.x			= 450;
 	g_arenaservers.remove.generic.y			= 86;
-	g_arenaservers.remove.width				= 96;
-	g_arenaservers.remove.height			= 48;
-	g_arenaservers.remove.focuspic			= ART_REMOVE1;
+	g_arenaservers.remove.string			= "Remove";
+	g_arenaservers.remove.style				= UI_LEFT;
 
 	g_arenaservers.back.generic.type		= MTYPE_BUTTON;
 	g_arenaservers.back.generic.flags		= QMF_LEFT_JUSTIFY|QMF_HIGHLIGHT_IF_FOCUS;
@@ -1512,7 +1532,7 @@ static void ArenaServers_MenuInit( void ) {
 	g_arenaservers.go.generic.x				= 640;
 	g_arenaservers.go.generic.y				= 480-50;
 	g_arenaservers.go.string				= "Connect";
-	g_arenaservers.go.style					= UI_LEFT;
+	g_arenaservers.go.style					= UI_RIGHT;
 
 	g_arenaservers.punkbuster.generic.type			= MTYPE_SPINCONTROL;
 	g_arenaservers.punkbuster.generic.name			= "Punkbuster:";
@@ -1562,6 +1582,7 @@ static void ArenaServers_MenuInit( void ) {
 
 	g_servertype = Com_Clamp( 0, 3, ui_browserMaster.integer );
 	// hack to get rid of MPlayer stuff
+	// wombat: screw mplayer, we'Ve got gamespy now
 	value = g_servertype;
 	if (value >= 1)
 		value--;

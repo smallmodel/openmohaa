@@ -140,8 +140,9 @@ typedef enum {
 } netadrtype_t;
 
 typedef enum {
-	NS_CLIENT,
-	NS_SERVER
+	NS_MASTER,
+	NS_SERVER,
+	NS_CLIENT
 } netsrc_t;
 
 typedef struct {
@@ -228,20 +229,20 @@ PROTOCOL
 ==============================================================
 */
 
-#define	PROTOCOL_VERSION	68
+#define	PROTOCOL_VERSION	8
 // 1.31 - 67
 
 // maintain a list of compatible protocols for demo playing
 // NOTE: that stuff only works with two digits protocols
 extern int demo_protocols[];
 
-#define	UPDATE_SERVER_NAME	"update.quake3arena.com"
+#define	UPDATE_SERVER_NAME	"updatemoh.2015.com"
 // override on command line, config files etc.
 #ifndef MASTER_SERVER_NAME
-#define MASTER_SERVER_NAME	"master.quake3world.com"
+#define MASTER_SERVER_NAME	"master.2015.com"
 #endif
 #ifndef AUTHORIZE_SERVER_NAME
-#define	AUTHORIZE_SERVER_NAME	"authorize.quake3arena.com"
+#define	AUTHORIZE_SERVER_NAME	"authorize.2015.com"
 #endif
 
 #define	PORT_MASTER			27950
@@ -268,9 +269,11 @@ enum svc_ops_e {
 	svc_serverCommand,			// [string] to be executed by client game module
 	svc_download,				// [short] size [size bytes]
 	svc_snapshot,
+	svc_centerprint,
+	svc_locprint,
+	svc_cgameMessage,
 	svc_EOF
 };
-
 
 //
 // client to server
