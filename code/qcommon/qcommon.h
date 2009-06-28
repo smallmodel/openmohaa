@@ -86,6 +86,9 @@ int		MSG_ReadChar (msg_t *sb);
 int		MSG_ReadByte (msg_t *sb);
 int		MSG_ReadShort (msg_t *sb);
 int		MSG_ReadLong (msg_t *sb);
+
+float MSG_ReadCoord( msg_t *msg );
+
 float	MSG_ReadFloat (msg_t *sb);
 char	*MSG_ReadString (msg_t *sb);
 char	*MSG_ReadBigString (msg_t *sb);
@@ -102,6 +105,9 @@ void MSG_ReadDeltaUsercmdKey( msg_t *msg, int key, usercmd_t *from, usercmd_t *t
 
 void MSG_WriteDeltaEntity( msg_t *msg, struct entityState_s *from, struct entityState_s *to
 						   , qboolean force );
+
+void MSG_ReadSounds (msg_t *msg, server_sound_t *sounds, int *snapshot_number_of_sounds);
+
 void MSG_ReadDeltaEntity( msg_t *msg, entityState_t *from, entityState_t *to, 
 						 int number );
 

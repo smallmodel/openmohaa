@@ -221,6 +221,7 @@ void CL_ParseSnapshot( msg_t *msg ) {
 	newSnap.serverCommandNum = clc.serverCommandSequence;
 
 	newSnap.serverTime = MSG_ReadLong( msg );
+	newSnap.serverTimeResidual = MSG_ReadByte( msg );
 
 	// if we were just unpaused, we can only *now* really let the
 	// change come into effect or the client hangs.
@@ -282,6 +283,8 @@ void CL_ParseSnapshot( msg_t *msg ) {
 	// read packet entities
 	SHOWNET( msg, "packet entities" );
 	CL_ParsePacketEntities( msg, old, &newSnap );
+
+	MSG_ReadSounds( msg, newSnap.sounds, &newSnap.number_of_sounds );
 
 	// if not valid, dump the entire thing now that it has
 	// been properly read
@@ -639,7 +642,7 @@ void CL_ParseCommandString( msg_t *msg ) {
 
 	seq = MSG_ReadLong( msg );
 	s = MSG_ReadString( msg );
-
+	Com_Printf("s c string seq %i, string %s\n", seq, s);
 	// see if we have already executed stored it off
 	if ( clc.serverCommandSequence >= seq ) {
 		return;
@@ -648,6 +651,33 @@ void CL_ParseCommandString( msg_t *msg ) {
 
 	index = seq & (MAX_RELIABLE_COMMANDS-1);
 	Q_strncpyz( clc.serverCommands[ index ], s, sizeof( clc.serverCommands[ index ] ) );
+}
+
+
+/*
+=====================
+CL_ParseCGMessage
+
+MOHAA does this inside its cgame. its some big function with a 37-switch case
+but unless we properly read the CG message, we don't know when the message
+hase finished :-(
+=====================
+*/
+void CL_ParseCGMessage( msg_t *msg ) {
+
+	int msgtype;
+
+	msgtype = MSG_ReadBits( msg, 6 );
+	switch ( msgtype ) {
+		case 1:
+			MSG_ReadCoord(msg);
+			break;
+		case 2:
+		case 5:
+		default: //unknown message
+			Com_Error(ERR_DROP, "CL_ParseCGMessage: Unknown CG Message %i", msgtype);
+			break;
+	}
 }
 
 
@@ -684,7 +714,7 @@ void CL_ParseServerMessage( msg_t *msg ) {
 		}
 
 		cmd = MSG_ReadByte( msg );
-
+Com_Printf( "ParseServerMessage: cmd %i\n", cmd );
 		if ( cmd == svc_EOF) {
 			SHOWNET( msg, "END OF MESSAGE" );
 			break;
@@ -724,7 +754,7 @@ void CL_ParseServerMessage( msg_t *msg ) {
 			// TODO: locationprint
 			break;
 		case svc_cgameMessage:
-			// TODO: cgameMessage
+			CL_ParseCGMessage( msg );
 			break;
 		}
 	}

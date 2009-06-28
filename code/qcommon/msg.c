@@ -411,6 +411,15 @@ int MSG_ReadLong( msg_t *msg ) {
 	return c;
 }
 
+float MSG_ReadCoord( msg_t *msg ) {
+	float test;
+
+	test = MSG_ReadBits( msg, 19 ) /16.0f;
+//sth like that i dunno
+	
+	return test;	
+}
+
 float MSG_ReadFloat( msg_t *msg ) {
 	union {
 		byte	b[4];
@@ -794,42 +803,184 @@ typedef struct {
 
 netField_t	entityStateFields[] = 
 {
-{ NETF(pos.trTime), 32 },
-{ NETF(pos.trBase[0]), 0 },
-{ NETF(pos.trBase[1]), 0 },
-{ NETF(pos.trDelta[0]), 0 },
-{ NETF(pos.trDelta[1]), 0 },
-{ NETF(pos.trBase[2]), 0 },
-{ NETF(apos.trBase[1]), 0 },
-{ NETF(pos.trDelta[2]), 0 },
-{ NETF(apos.trBase[0]), 0 },
+{ NETF(netorigin[0]), 0 },
+{ NETF(netorigin[1]), 0 },
+{ NETF(netangles[1]), 12 },
+{ NETF(frameInfo[0].time), 0 },
+{ NETF(frameInfo[1].time), 0 },
+{ NETF(bone_angles[0][0]), -13 },
+{ NETF(bone_angles[3][0]), -13 },
+{ NETF(bone_angles[1][0]), -13 },
+{ NETF(bone_angles[2][0]), -13 },
+{ NETF(netorigin[2]), 0 },
+{ NETF(frameInfo[0].weight), 0 },
+{ NETF(frameInfo[1].weight), 0 },
+{ NETF(frameInfo[2].time), 0 },
+{ NETF(frameInfo[3].time), 0 },
+{ NETF(frameInfo[0].index), 12 },
+{ NETF(frameInfo[1].index), 12 },
+{ NETF(actionWeight), 0 },
+{ NETF(frameInfo[2].weight), 0 },
+{ NETF(frameInfo[3].weight), 0 },
+{ NETF(frameInfo[2].index), 12 },
+{ NETF(frameInfo[3].index), 12 },
+{ NETF(eType), 8 },
+{ NETF(modelindex), 16 },
+{ NETF(parent), 16 },
+{ NETF(constantLight), 32 },
+{ NETF(renderfx), 32 },
+{ NETF(bone_tag[0]), -8 },
+{ NETF(bone_tag[1]), -8 },
+{ NETF(bone_tag[2]), -8 },
+{ NETF(bone_tag[3]), -8 },
+{ NETF(bone_tag[4]), -8 },
+{ NETF(scale), 0 },
+{ NETF(alpha), 0 },
+{ NETF(usageIndex), 16 },
+{ NETF(eFlags), 16 },
+{ NETF(solid), 32 },
+{ NETF(netangles[2]), 12 },
+{ NETF(netangles[0]), 12 },
+{ NETF(tag_num), 10 },
+{ NETF(bone_angles[1][2]), -13 },
+{ NETF(attach_use_angles), 1 },
+{ NETF(origin2[1]), 0 },
+{ NETF(origin2[0]), 0 },
+{ NETF(origin2[2]), 0 },
+{ NETF(bone_angles[0][2]), -13 },
+{ NETF(bone_angles[2][2]), -13 },
+{ NETF(bone_angles[3][2]), -13 },
+{ NETF(surfaces[0]), 8 },
+{ NETF(surfaces[1]), 8 },
+{ NETF(surfaces[2]), 8 },
+{ NETF(surfaces[3]), 8 },
+{ NETF(bone_angles[0][1]), -13 },
+{ NETF(surfaces[4]), 8 },
+{ NETF(surfaces[5]), 8 },
+{ NETF(posMOH.trTime), 32 },
+//{ NETF(pos.trBase[0]), 0 },
+//{ NETF(pos.trBase[1]), 0 },
+{ NETF(posMOH.trDelta[0]), 0 },
+{ NETF(posMOH.trDelta[1]), 0 },
+//{ NETF(pos.trBase[2]), 0 },
+//{ NETF(apos.trBase[1]), 0 },
+{ NETF(posMOH.trDelta[2]), 0 },
+//{ NETF(apos.trBase[0]), 0 },
+{ NETF(loopSound), 16 },
+{ NETF(loopSoundVolume), 0 },
+{ NETF(loopSoundMinDist), 0 },
+{ NETF(loopSoundMaxDist), 0 },
+{ NETF(loopSoundPitch), 0 },
+{ NETF(loopSoundFlags), 8 },
+{ NETF(attach_offset[0]), 0 },
+{ NETF(attach_offset[1]), 0 },
+{ NETF(attach_offset[2]), 0 },
+{ NETF(beam_entnum), 16 },
+{ NETF(skinNum), 16 },
+{ NETF(wasframe), 10 },
+{ NETF(frameInfo[4].index), 12 },
+{ NETF(frameInfo[5].index), 12 },
+{ NETF(frameInfo[6].index), 12 },
+{ NETF(frameInfo[7].index), 12 },
+{ NETF(frameInfo[8].index), 12 },
+{ NETF(frameInfo[9].index), 12 },
+{ NETF(frameInfo[10].index), 12 },
+{ NETF(frameInfo[11].index), 12 },
+{ NETF(frameInfo[12].index), 12 },
+{ NETF(frameInfo[13].index), 12 },
+{ NETF(frameInfo[14].index), 12 },
+{ NETF(frameInfo[15].index), 12 },
+{ NETF(frameInfo[4].time), 0 },
+{ NETF(frameInfo[5].time), 0 },
+{ NETF(frameInfo[6].time), 0 },
+{ NETF(frameInfo[7].time), 0 },
+{ NETF(frameInfo[8].time), 0 },
+{ NETF(frameInfo[9].time), 0 },
+{ NETF(frameInfo[10].time), 0 },
+{ NETF(frameInfo[11].time), 0 },
+{ NETF(frameInfo[12].time), 0 },
+{ NETF(frameInfo[13].time), 0 },
+{ NETF(frameInfo[14].time), 0 },
+{ NETF(frameInfo[15].time), 0 },
+{ NETF(frameInfo[4].weight), 0 },
+{ NETF(frameInfo[5].weight), 0 },
+{ NETF(frameInfo[6].weight), 0 },
+{ NETF(frameInfo[7].weight), 0 },
+{ NETF(frameInfo[8].weight), 0 },
+{ NETF(frameInfo[9].weight), 0 },
+{ NETF(frameInfo[10].weight), 0 },
+{ NETF(frameInfo[11].weight), 0 },
+{ NETF(frameInfo[12].weight), 0 },
+{ NETF(frameInfo[13].weight), 0 },
+{ NETF(frameInfo[14].weight), 0 },
+{ NETF(frameInfo[15].weight), 0 },
+{ NETF(bone_angles[1][1]), -13 },
+{ NETF(bone_angles[2][1]), -13 },
+{ NETF(bone_angles[3][1]), -13 },
+{ NETF(bone_angles[4][0]), -13 },
+{ NETF(bone_angles[4][1]), -13 },
+{ NETF(bone_angles[4][2]), -13 },
+{ NETF(clientNum), 8 },
+{ NETF(groundEntityNum), GENTITYNUM_BITS },
+{ NETF(shader_data[0]), 0 },
+{ NETF(shader_data[1]), 0 },
+{ NETF(shader_time), 0 },
+{ NETF(eyeVector[0]), 0 },
+{ NETF(eyeVector[1]), 0 },
+{ NETF(eyeVector[2]), 0 },
+{ NETF(surfaces[6]), 8 },
+{ NETF(surfaces[7]), 8 },
+{ NETF(surfaces[8]), 8 },
+{ NETF(surfaces[9]), 8 },
+{ NETF(surfaces[10]), 8 },
+{ NETF(surfaces[11]), 8 },
+{ NETF(surfaces[12]), 8 },
+{ NETF(surfaces[13]), 8 },
+{ NETF(surfaces[14]), 8 },
+{ NETF(surfaces[15]), 8 },
+{ NETF(surfaces[16]), 8 },
+{ NETF(surfaces[17]), 8 },
+{ NETF(surfaces[18]), 8 },
+{ NETF(surfaces[19]), 8 },
+{ NETF(surfaces[20]), 8 },
+{ NETF(surfaces[21]), 8 },
+{ NETF(surfaces[22]), 8 },
+{ NETF(surfaces[23]), 8 },
+{ NETF(surfaces[24]), 8 },
+{ NETF(surfaces[25]), 8 },
+{ NETF(surfaces[26]), 8 },
+{ NETF(surfaces[27]), 8 },
+{ NETF(surfaces[28]), 8 },
+{ NETF(surfaces[29]), 8 },
+{ NETF(surfaces[30]), 8 },
+{ NETF(surfaces[31]), 8 }
+
+/*
 { NETF(event), 10 },
 { NETF(angles2[1]), 0 },
-{ NETF(eType), 8 },
+
 { NETF(torsoAnim), 8 },
 { NETF(eventParm), 8 },
 { NETF(legsAnim), 8 },
-{ NETF(groundEntityNum), GENTITYNUM_BITS },
+
 { NETF(pos.trType), 8 },
-{ NETF(eFlags), 19 },
+
 { NETF(otherEntityNum), GENTITYNUM_BITS },
 { NETF(weapon), 8 },
-{ NETF(clientNum), 8 },
+
 { NETF(angles[1]), 0 },
 { NETF(pos.trDuration), 32 },
 { NETF(apos.trType), 8 },
 { NETF(origin[0]), 0 },
 { NETF(origin[1]), 0 },
 { NETF(origin[2]), 0 },
-{ NETF(solid), 24 },
+
 { NETF(powerups), MAX_POWERUPS },
-{ NETF(modelindex), 8 },
+
 { NETF(otherEntityNum2), GENTITYNUM_BITS },
-{ NETF(loopSound), 8 },
+
 { NETF(generic1), 8 },
-{ NETF(origin2[2]), 0 },
-{ NETF(origin2[0]), 0 },
-{ NETF(origin2[1]), 0 },
+
 { NETF(modelindex2), 8 },
 { NETF(angles[0]), 0 },
 { NETF(time), 32 },
@@ -843,8 +994,8 @@ netField_t	entityStateFields[] =
 { NETF(angles[2]), 0 },
 { NETF(angles2[0]), 0 },
 { NETF(angles2[2]), 0 },
-{ NETF(constantLight), 32 },
-{ NETF(frame), 16 }
+
+{ NETF(frame), 16 }*/
 };
 
 
@@ -967,6 +1118,72 @@ void MSG_WriteDeltaEntity( msg_t *msg, struct entityState_s *from, struct entity
 			}
 		}
 	}
+}
+
+/*
+==================
+MSG_ReadSounds
+
+read the sounds from the snapshot...
+1:1 translated from assembly code
+==================
+*/
+void MSG_ReadSounds (msg_t *msg, server_sound_t *sounds, int *snapshot_number_of_sounds) {
+
+	int		fubar;
+	int		i;
+
+	if ( MSG_ReadBits( msg, 1 ) ) {
+		fubar = MSG_ReadBits( msg, 7 );
+		if ( fubar <= 64 ) {
+
+			*snapshot_number_of_sounds = fubar;
+			if (fubar){
+				for (i=0; i<fubar; i++ ) {
+					if ( MSG_ReadBits( msg, 1 ) ) {
+						sounds[i].stop_flag = 0;
+						sounds[i].streamed = MSG_ReadBits( msg, 1 );
+						if ( MSG_ReadBits( msg, 1 ) == 1 ) {
+							sounds[i].origin[0] = MSG_ReadFloat( msg );
+							sounds[i].origin[1] = MSG_ReadFloat( msg );
+							sounds[i].origin[2] = MSG_ReadFloat( msg );
+						} else {
+							sounds[i].origin[0] = 0;
+							sounds[i].origin[2] = 0;
+							sounds[i].origin[3] = 0;
+						}
+						sounds[i].entity_number = MSG_ReadBits(msg, 11 );
+						sounds[i].channel = MSG_ReadBits(msg, 7 );
+						sounds[i].sound_index = MSG_ReadBits(msg, 9 );
+
+						if ( MSG_ReadBits( msg, 1 ) == 1 ) {
+							sounds[i].volume = MSG_ReadFloat( msg );
+						} else {
+							sounds[i].volume = -1.0f;
+						}
+
+						if ( MSG_ReadBits( msg, 1 ) == 1 ) {
+							sounds[i].min_dist = MSG_ReadFloat( msg );
+						} else {
+							sounds[i].min_dist = -1.0f;
+						}
+
+						if ( MSG_ReadBits( msg, 1 ) == 1 ) {
+							sounds[i].pitch = MSG_ReadFloat( msg );
+						} else {
+							sounds[i].pitch = 1.0f;
+						}
+
+						sounds[i].maxDist = MSG_ReadFloat( msg );
+					} else {
+						sounds[i].entity_number = MSG_ReadBits(msg, 10 );
+						sounds[i].channel = MSG_ReadBits(msg, 7 );
+					}
+				}
+			} else return;
+
+		} else return;
+	} else return;
 }
 
 /*
@@ -1112,51 +1329,95 @@ netField_t	playerStateFields[] =
 { PSF(commandTime), 32 },				
 { PSF(origin[0]), 0 },
 { PSF(origin[1]), 0 },
-{ PSF(bobCycle), 8 },
-{ PSF(velocity[0]), 0 },
-{ PSF(velocity[1]), 0 },
 { PSF(viewangles[1]), 0 },
+{ PSF(velocity[1]), 0 },
+{ PSF(velocity[0]), 0 },
 { PSF(viewangles[0]), 0 },
-{ PSF(weaponTime), -16 },
+{ PSF(pm_time), -16 },
+//{ PSF(weaponTime), -16 },
 { PSF(origin[2]), 0 },
 { PSF(velocity[2]), 0 },
-{ PSF(legsTimer), 8 },
-{ PSF(pm_time), -16 },
+{ PSF(iViewModelAnimChanged), 2 },
+{ PSF(damage_angles[0]), -13 },
+{ PSF(damage_angles[1]), -13 },
+{ PSF(damage_angles[2]), -13 },
+{ PSF(speed), 16 },
+{ PSF(delta_angles[1]), 16 },
+{ PSF(viewheight), -8 },
+{ PSF(groundEntityNum), GENTITYNUM_BITS },
+{ PSF(delta_angles[0]), 16 },
+{ PSF(iViewModelAnim), 4 },
+{ PSF(fov), 0 },
+{ PSF(current_music_mood), 0 },
+{ PSF(gravity), 16 },
+{ PSF(fallback_music_mood), 8 },
+{ PSF(music_volume), 0 },
+{ PSF(pm_flags), 16 },
+{ PSF(clientNum), 8 },
+{ PSF(fLeanAngle), 0 },
+{ PSF(blend[3]), 0 },
+{ PSF(blend[0]), 0 },
+{ PSF(pm_type), 8 },
+{ PSF(feetfalling), 8 },
+{ PSF(camera_angles[0]), 16 },
+{ PSF(camera_angles[1]), 16 },
+{ PSF(camera_angles[2]), 16 },
+{ PSF(camera_origin[0]), 0 },
+{ PSF(camera_origin[1]), 0 },
+{ PSF(camera_origin[2]), 0 },
+{ PSF(camera_posofs[0]), 0 },
+{ PSF(camera_posofs[2]), 0 },
+{ PSF(camera_time), 0 },
+{ PSF(bobCycle), 8 },
+{ PSF(delta_angles[2]), 16 },
+{ PSF(viewangles[2]), 0 },
+{ PSF(music_volume_fade_time), 0 },
+{ PSF(reverb_type), 6 },
+{ PSF(reverb_level), 0 },
+{ PSF(blend[1]), 0 },
+{ PSF(blend[2]), 0 },
+{ PSF(camera_offset[0]), 0 },
+{ PSF(camera_offset[1]), 0 },
+{ PSF(camera_offset[2]), 0 },
+{ PSF(camera_posofs[1]), 0 },
+{ PSF(camera_flags), 16 },
+
+/*
 { PSF(eventSequence), 16 },
 { PSF(torsoAnim), 8 },
 { PSF(movementDir), 4 },
 { PSF(events[0]), 8 },
 { PSF(legsAnim), 8 },
 { PSF(events[1]), 8 },
-{ PSF(pm_flags), 16 },
-{ PSF(groundEntityNum), GENTITYNUM_BITS },
+
+
 { PSF(weaponstate), 4 },
 { PSF(eFlags), 16 },
 { PSF(externalEvent), 10 },
-{ PSF(gravity), 16 },
-{ PSF(speed), 16 },
-{ PSF(delta_angles[1]), 16 },
+
+
+
 { PSF(externalEventParm), 8 },
-{ PSF(viewheight), -8 },
+
 { PSF(damageEvent), 8 },
 { PSF(damageYaw), 8 },
 { PSF(damagePitch), 8 },
 { PSF(damageCount), 8 },
 { PSF(generic1), 8 },
-{ PSF(pm_type), 8 },					
-{ PSF(delta_angles[0]), 16 },
-{ PSF(delta_angles[2]), 16 },
+
+
+
 { PSF(torsoTimer), 12 },
 { PSF(eventParms[0]), 8 },
 { PSF(eventParms[1]), 8 },
-{ PSF(clientNum), 8 },
+
 { PSF(weapon), 5 },
-{ PSF(viewangles[2]), 0 },
+
 { PSF(grapplePoint[0]), 0 },
 { PSF(grapplePoint[1]), 0 },
 { PSF(grapplePoint[2]), 0 },
 { PSF(jumppad_ent), 10 },
-{ PSF(loopSound), 16 }
+{ PSF(loopSound), 16 }*/
 };
 
 /*
@@ -1404,7 +1665,7 @@ void MSG_ReadDeltaPlayerstate (msg_t *msg, playerState_t *from, playerState_t *t
 		// parse stats
 		if ( MSG_ReadBits( msg, 1 ) ) {
 			LOG("PS_STATS");
-			bits = MSG_ReadBits (msg, MAX_STATS);
+			bits = MSG_ReadLong(msg);
 			for (i=0 ; i<MAX_STATS ; i++) {
 				if (bits & (1<<i) ) {
 					to->stats[i] = MSG_ReadShort(msg);
@@ -1412,35 +1673,46 @@ void MSG_ReadDeltaPlayerstate (msg_t *msg, playerState_t *from, playerState_t *t
 			}
 		}
 
-		// parse persistant stats
+		// parse activeItems
 		if ( MSG_ReadBits( msg, 1 ) ) {
-			LOG("PS_PERSISTANT");
-			bits = MSG_ReadBits (msg, MAX_PERSISTANT);
-			for (i=0 ; i<MAX_PERSISTANT ; i++) {
+			LOG("PS_ITEMS");
+			bits = MSG_ReadByte(msg);
+			for (i=0 ; i<MAX_ACTIVEITEMS ; i++) {
 				if (bits & (1<<i) ) {
-					to->persistant[i] = MSG_ReadShort(msg);
+					to->activeItems[i] = MSG_ReadShort(msg);
 				}
 			}
 		}
 
-		// parse ammo
+		// parse ammo_amount
+		if ( MSG_ReadBits( msg, 1 ) ) {
+			LOG("PS_AMMO_AMOUNT");
+			bits = MSG_ReadShort(msg);
+			for (i=0 ; i<MAX_AMMO_AMOUNT ; i++) {
+				if (bits & (1<<i) ) {
+					to->ammo_amount[i] = MSG_ReadShort(msg);
+				}
+			}
+		}
+
+		// parse ammo_name_index
 		if ( MSG_ReadBits( msg, 1 ) ) {
 			LOG("PS_AMMO");
-			bits = MSG_ReadBits (msg, MAX_WEAPONS);
-			for (i=0 ; i<MAX_WEAPONS ; i++) {
+			bits = MSG_ReadShort(msg);
+			for (i=0 ; i<MAX_AMMO ; i++) {
 				if (bits & (1<<i) ) {
-					to->ammo[i] = MSG_ReadShort(msg);
+					to->ammo_name_index[i] = MSG_ReadShort(msg);
 				}
 			}
 		}
 
 		// parse powerups
 		if ( MSG_ReadBits( msg, 1 ) ) {
-			LOG("PS_POWERUPS");
-			bits = MSG_ReadBits (msg, MAX_POWERUPS);
-			for (i=0 ; i<MAX_POWERUPS ; i++) {
+			LOG("PS_MAX_AMMO_AMOUNT");
+			bits = MSG_ReadShort(msg);
+			for (i=0 ; i<MAX_MAX_AMMO_AMOUNT ; i++) {
 				if (bits & (1<<i) ) {
-					to->powerups[i] = MSG_ReadLong(msg);
+					to->max_ammo_amount[i] = MSG_ReadShort(msg);
 				}
 			}
 		}

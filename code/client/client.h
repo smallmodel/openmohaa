@@ -46,7 +46,7 @@ typedef struct {
 	int				snapFlags;		// rate delayed and dropped commands
 
 	int				serverTime;		// server time the message is valid for (in msec)
-
+int serverTimeResidual;
 	int				messageNum;		// copied from netchan->incoming_sequence
 	int				deltaNum;		// messageNum the delta is from
 	int				ping;			// time from when cmdNum-1 was sent to time packet was reeceived
@@ -60,6 +60,8 @@ typedef struct {
 
 	int				serverCommandNum;		// execute all commands up to this before
 											// making the snapshot current
+int number_of_sounds;
+server_sound_t sounds[64];
 } clSnapshot_t;
 
 

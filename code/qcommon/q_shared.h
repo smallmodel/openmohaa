@@ -841,8 +841,12 @@ typedef struct {
 	vec3_t		endpos;		// final position
 	cplane_t	plane;		// surface normal at impact, transformed to world space
 	int			surfaceFlags;	// surface hit
+int shaderNum;
 	int			contents;	// contents on other side of surface hit
 	int			entityNum;	// entity the contacted sirface is a part of
+
+  int location; /* bitsize 32, bitpos 480 */
+  struct gentity_s /* id 50 */ *ent; /* bitsize 32, bitpos 512 */
 } trace_t;
 
 // trace->entityNum can also be 0 to (MAX_GENTITIES-1)
@@ -942,8 +946,27 @@ typedef struct {
 
 //=========================================================
 
+// maybe this is better put somewhere else...
+typedef struct server_sound_s {
+	float origin[3];
+	int entity_number;
+	int channel;
+	short int sound_index;
+	float volume;
+	float min_dist;
+	float maxDist;
+	float pitch;
+	qboolean stop_flag;
+	qboolean streamed;
+} server_sound_t;
+
 // bit field limits
-#define	MAX_STATS				16
+#define	MAX_STATS				32
+#define	MAX_ACTIVEITEMS			8
+#define	MAX_AMMO				16
+#define	MAX_AMMO_AMOUNT			16
+#define MAX_MAX_AMMO_AMOUNT		16
+
 #define	MAX_PERSISTANT			16
 #define	MAX_POWERUPS			16
 #define	MAX_WEAPONS				16
@@ -962,6 +985,7 @@ typedef struct {
 // playerState_t is a full superset of entityState_t as it is used by players,
 // so if a playerState_t is transmitted, the entityState_t can be fully derived
 // from it.
+
 typedef struct playerState_s {
 	int			commandTime;	// cmd->serverTime of last executed command
 	int			pm_type;
@@ -985,6 +1009,8 @@ typedef struct playerState_s {
 	int			torsoTimer;		// don't change low priority animations until this runs out
 	int			torsoAnim;		// mask off ANIM_TOGGLEBIT
 
+	float vEyePos[3];
+
 	int			movementDir;	// a number 0 to 7 that represents the reletive angle
 								// of movement to the view angle (axial and diagonals)
 								// when at rest, the value will remain unchanged
@@ -1002,6 +1028,12 @@ typedef struct playerState_s {
 	int			externalEventParm;
 	int			externalEventTime;
 
+	qboolean walking;
+	qboolean groundPlane;
+	int feetfalling;
+	float falldir[3];
+	trace_t groundTrace;
+
 	int			clientNum;		// ranges from 0 to MAX_CLIENTS-1
 	int			weapon;			// copied to entityState_t->weapon
 	int			weaponstate;
@@ -1009,6 +1041,9 @@ typedef struct playerState_s {
 	vec3_t		viewangles;		// for fixed views
 	int			viewheight;
 
+	float fLeanAngle;
+	int iViewModelAnim;
+	int iViewModelAnimChanged;
 	// damage feedback
 	int			damageEvent;	// when it changes, latch the other parms
 	int			damageYaw;
@@ -1019,6 +1054,26 @@ typedef struct playerState_s {
 	int			persistant[MAX_PERSISTANT];	// stats that aren't cleared on death
 	int			powerups[MAX_POWERUPS];	// level.time that the powerup runs out
 	int			ammo[MAX_WEAPONS];
+
+	int activeItems[8];
+	int ammo_name_index[16];
+	int ammo_amount[16];
+	int max_ammo_amount[16];
+	int current_music_mood;
+	int fallback_music_mood;
+	float music_volume;
+	float music_volume_fade_time;
+	int reverb_type;
+	float reverb_level;
+	float blend[4];
+	float fov;
+	float camera_origin[3];
+	float camera_angles[3];
+	float camera_time;
+	float camera_offset[3];
+	float camera_posofs[3];
+	int camera_flags;
+	float damage_angles[3];
 
 	int			generic1;
 	int			loopSound;
@@ -1092,6 +1147,17 @@ typedef struct {
 	vec3_t	trDelta;			// velocity, etc
 } trajectory_t;
 
+typedef struct frameInfo_s {
+	int index;
+	float time;
+	float weight;
+} frameInfo_t;
+
+typedef struct trajectoryMOH_s {
+  int trTime;
+  float trDelta[3];
+} trajectoryMOH_t;
+
 // entityState_t is the information conveyed from the server
 // in an update message about entities that the client will
 // need to render in some way
@@ -1107,11 +1173,17 @@ typedef struct entityState_s {
 	trajectory_t	pos;	// for calculating position
 	trajectory_t	apos;	// for calculating angles
 
+	trajectoryMOH_t posMOH;
+
 	int		time;
 	int		time2;
 
+	float netorigin[3];
+
 	vec3_t	origin;
 	vec3_t	origin2;
+
+	float netangles[3];
 
 	vec3_t	angles;
 	vec3_t	angles2;
@@ -1124,9 +1196,33 @@ typedef struct entityState_s {
 	int		constantLight;	// r + (g<<8) + (b<<16) + (intensity<<24)
 	int		loopSound;		// constantly loop this sound
 
+  float loopSoundVolume;
+  float loopSoundMinDist;
+  float loopSoundMaxDist;
+  float loopSoundPitch;
+  int loopSoundFlags;
+  int parent;
+  int tag_num;
+  qboolean attach_use_angles;
+  float attach_offset[3];
+  int beam_entnum;
+
 	int		modelindex;
 	int		modelindex2;
+
+  int usageIndex;
+  int skinNum;
+  int wasframe;
+  frameInfo_t frameInfo[16];
+  float actionWeight;
+  int bone_tag[5];
+  float bone_angles[5][3];
+  float bone_quat[5][4];
+  byte surfaces[32];
+
 	int		clientNum;		// 0 to (MAX_CLIENTS - 1), for players and corpses
+
+
 	int		frame;
 
 	int		solid;			// for client side prediction, trap_linkentity sets this properly
@@ -1141,6 +1237,15 @@ typedef struct entityState_s {
 	int		torsoAnim;		// mask off ANIM_TOGGLEBIT
 
 	int		generic1;
+
+
+  float scale;
+  float alpha;
+  int renderfx;
+  float shader_data[2];
+  float shader_time;
+  float quat[4];
+  float eyeVector[3];
 } entityState_t;
 
 typedef enum {
