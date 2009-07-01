@@ -87,7 +87,9 @@ int		MSG_ReadByte (msg_t *sb);
 int		MSG_ReadShort (msg_t *sb);
 int		MSG_ReadLong (msg_t *sb);
 
+void MSG_ReadDir( msg_t *msg, vec3_t dir );
 float MSG_ReadCoord( msg_t *msg );
+void MSG_GetNullEntityState(entityState_t *nullState);
 
 float	MSG_ReadFloat (msg_t *sb);
 char	*MSG_ReadString (msg_t *sb);
@@ -110,6 +112,8 @@ void MSG_ReadSounds (msg_t *msg, server_sound_t *sounds, int *snapshot_number_of
 
 void MSG_ReadDeltaEntity( msg_t *msg, entityState_t *from, entityState_t *to, 
 						 int number );
+
+void MSG_WriteDeltaEyeInfo (msg_t  *msg, usereyes_t *from, usereyes_t *to);
 
 void MSG_WriteDeltaPlayerstate( msg_t *msg, struct playerState_s *from, struct playerState_s *to );
 void MSG_ReadDeltaPlayerstate( msg_t *msg, struct playerState_s *from, struct playerState_s *to );
@@ -182,7 +186,7 @@ qboolean	NET_GetLoopPacket (netsrc_t sock, netadr_t *net_from, msg_t *net_messag
 void		NET_Sleep(int msec);
 
 
-#define	MAX_MSGLEN				16384		// max length of a message, which may
+#define	MAX_MSGLEN				49152		// max length of a message, which may
 											// be fragmented into multiple packets
 
 #define MAX_DOWNLOAD_WINDOW			8		// max of eight download frames

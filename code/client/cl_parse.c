@@ -466,7 +466,7 @@ void CL_ParseGamestate( msg_t *msg ) {
 	cl.gameState.dataCount = 1;	// leave a 0 at the beginning for uninitialized configstrings
 	while ( 1 ) {
 		cmd = MSG_ReadByte( msg );
-
+		Com_DPrintf( "CL_ParseGamestate: cmd %i\n", cmd );
 		if ( cmd == svc_EOF ) {
 			break;
 		}
@@ -478,7 +478,7 @@ void CL_ParseGamestate( msg_t *msg ) {
 			if ( i < 0 || i >= MAX_CONFIGSTRINGS ) {
 				Com_Error( ERR_DROP, "configstring > MAX_CONFIGSTRINGS" );
 			}
-			s = MSG_ReadBigString( msg );
+			s = MSG_ReadString( msg );
 			len = strlen( s );
 
 			if ( len + 1 + cl.gameState.dataCount > MAX_GAMESTATE_CHARS ) {
@@ -494,7 +494,8 @@ void CL_ParseGamestate( msg_t *msg ) {
 			if ( newnum < 0 || newnum >= MAX_GENTITIES ) {
 				Com_Error( ERR_DROP, "Baseline number out of range: %i", newnum );
 			}
-			Com_Memset (&nullstate, 0, sizeof(nullstate));
+			//Com_Memset (&nullstate, 0, sizeof(nullstate));
+			MSG_GetNullEntityState(&nullstate);
 			es = &cl.entityBaselines[ newnum ];
 			MSG_ReadDeltaEntity( msg, &nullstate, es, newnum );
 		} else {
@@ -653,7 +654,6 @@ void CL_ParseCommandString( msg_t *msg ) {
 	Q_strncpyz( clc.serverCommands[ index ], s, sizeof( clc.serverCommands[ index ] ) );
 }
 
-
 /*
 =====================
 CL_ParseCGMessage
@@ -666,18 +666,208 @@ hase finished :-(
 void CL_ParseCGMessage( msg_t *msg ) {
 
 	int msgtype;
+	vec3_t vecStart, vecTmp, vecEnd, vecArray[64];
+	int iCount, iLarge;
+	int i, iTemp;
+	char strBuffer[512];
 
 	msgtype = MSG_ReadBits( msg, 6 );
-	switch ( msgtype ) {
-		case 1:
-			MSG_ReadCoord(msg);
-			break;
-		case 2:
-		case 5:
-		default: //unknown message
-			Com_Error(ERR_DROP, "CL_ParseCGMessage: Unknown CG Message %i", msgtype);
-			break;
-	}
+	do {
+		Com_DPrintf( "CL_ParseCGMessage: command type %i\n", msgtype ); 
+		switch ( msgtype ) {
+			case 1:
+				vecTmp[0] = MSG_ReadCoord(msg);
+				vecTmp[1] = MSG_ReadCoord(msg);
+				vecTmp[2] = MSG_ReadCoord(msg);
+			case 2:
+			case 5:
+				vecStart[0] = MSG_ReadCoord(msg);
+				vecStart[1] = MSG_ReadCoord(msg);
+				vecStart[2] = MSG_ReadCoord(msg);
+				if ( msgtype != 1 ) {
+					vecTmp[0] = vecTmp[0];
+					vecTmp[1] = vecTmp[1];
+					vecTmp[2] = vecTmp[1];
+				}
+				vecArray[0][0] = MSG_ReadCoord(msg);
+				vecArray[0][1] = MSG_ReadCoord(msg);
+				vecArray[0][2] = MSG_ReadCoord(msg);
+
+				iLarge = MSG_ReadBits( msg, 1 );
+				break;
+			case 3:
+			case 4:
+				if ( msgtype == 3 )
+					iTemp = 0;
+				else {
+					vecTmp[0] = MSG_ReadCoord(msg);
+					vecTmp[1] = MSG_ReadCoord(msg);
+					vecTmp[2] = MSG_ReadCoord(msg);
+					iTemp = MSG_ReadBits( msg, 6 );
+				}
+				vecStart[0] = MSG_ReadCoord(msg);
+				vecStart[1] = MSG_ReadCoord(msg);
+				vecStart[2] = MSG_ReadCoord(msg);
+
+				iLarge = MSG_ReadBits( msg, 1 );
+				iCount = MSG_ReadBits( msg, 6 );
+
+				// this check is missing in MOHAA code, so this has buffer overflow risk in AA
+				if ( iCount > 64 )
+					Com_Error( ERR_DROP, "CG message type 4 sent too many data.\n" );
+				for (i=0;i<iCount;i++) {
+					vecArray[i][0] = MSG_ReadCoord(msg);
+					vecArray[i][1] = MSG_ReadCoord(msg);
+					vecArray[i][2] = MSG_ReadCoord(msg);
+				}
+				break;
+			case 6:
+			case 7:
+			case 8:
+			case 9:
+			case 10:
+				vecStart[0] = MSG_ReadCoord(msg);
+				vecStart[1] = MSG_ReadCoord(msg);
+				vecStart[2] = MSG_ReadCoord(msg);
+
+				MSG_ReadDir( msg, vecEnd );
+				iLarge = MSG_ReadBits( msg, 1 );
+				switch (msgtype) {
+					case 6:
+						break;
+					case 7:
+						break;
+					case 8:
+						break;
+					case 9:
+						break;
+					case 10:
+						break;
+					default:
+						break;
+				}
+				break;
+			case 11:
+				vecStart[0] = MSG_ReadCoord(msg);
+				vecStart[1] = MSG_ReadCoord(msg);
+				vecStart[2] = MSG_ReadCoord(msg);
+				vecEnd[0] = MSG_ReadCoord(msg);
+				vecEnd[1] = MSG_ReadCoord(msg);
+				vecEnd[2] = MSG_ReadCoord(msg);
+				break;
+			case 12:
+			case 13:
+				vecStart[0] = MSG_ReadCoord(msg);
+				vecStart[1] = MSG_ReadCoord(msg);
+				vecStart[2] = MSG_ReadCoord(msg);
+				break;
+			case 14:
+			default: //unknown message
+				Com_Error(ERR_DROP, "CL_ParseCGMessage: Unknown CG Message %i", msgtype);
+				break;
+			case 15:
+			case 16:
+			case 17:
+			case 18:
+			case 19:
+			case 20:
+			case 21:
+			case 22:
+				vecStart[0] = MSG_ReadCoord(msg);
+				vecStart[1] = MSG_ReadCoord(msg);
+				vecStart[2] = MSG_ReadCoord(msg);
+				MSG_ReadDir( msg, vecEnd );
+				break;
+			case 23:
+			case 24:
+				vecStart[0] = MSG_ReadCoord(msg);
+				vecStart[1] = MSG_ReadCoord(msg);
+				vecStart[2] = MSG_ReadCoord(msg);
+				MSG_ReadByte( msg );
+				//something with debris of crates or windows *sigh*
+				break;
+			case 25:
+				vecTmp[0] = MSG_ReadCoord(msg);
+				vecTmp[1] = MSG_ReadCoord(msg);
+				vecTmp[2] = MSG_ReadCoord(msg);
+				vecStart[0] = MSG_ReadCoord(msg);
+				vecStart[1] = MSG_ReadCoord(msg);
+				vecStart[2] = MSG_ReadCoord(msg);
+
+				vecArray[0][0] = MSG_ReadCoord(msg);
+				vecArray[0][1] = MSG_ReadCoord(msg);
+				vecArray[0][2] = MSG_ReadCoord(msg);
+
+				iLarge = MSG_ReadBits( msg, 1 );
+				break;
+			case 26:
+				vecTmp[0] = 0;
+				vecTmp[1] = 0;
+				vecTmp[2] = 0;
+				vecStart[0] = MSG_ReadCoord(msg);
+				vecStart[1] = MSG_ReadCoord(msg);
+				vecStart[2] = MSG_ReadCoord(msg);
+
+				vecArray[0][0] = MSG_ReadCoord(msg);
+				vecArray[0][1] = MSG_ReadCoord(msg);
+				vecArray[0][2] = MSG_ReadCoord(msg);
+
+				iLarge = MSG_ReadBits( msg, 1 );
+				break;
+			case 27:
+				iCount = MSG_ReadByte( msg );
+
+				Q_strncpyz( strBuffer, MSG_ReadString( msg ), 512 );
+				// HUD drawing...
+				break;
+			case 28:
+				iCount = MSG_ReadByte( msg );
+				MSG_ReadBits( msg, 2 );
+				// HUD drawing...
+				break;
+			case 29:
+				iCount = MSG_ReadByte( msg );
+				MSG_ReadShort( msg );
+				MSG_ReadShort( msg );
+				MSG_ReadShort( msg );
+				MSG_ReadShort( msg );
+				break;
+			case 30:
+				iCount = MSG_ReadByte( msg );
+				MSG_ReadBits( msg, 1 );
+				break;
+			case 31:
+				iCount = MSG_ReadByte( msg );
+				i = MSG_ReadByte( msg );
+				i = MSG_ReadByte( msg );
+				i = MSG_ReadByte( msg );
+				break;
+			case 32:
+				iCount = MSG_ReadByte( msg );
+				i = MSG_ReadByte( msg );
+				break;
+			case 33:
+				iCount = MSG_ReadByte( msg );
+				Q_strncpyz( strBuffer, MSG_ReadString( msg ), 512 );
+				break;
+			case 34:
+				iCount = MSG_ReadByte( msg );
+				Q_strncpyz( strBuffer, MSG_ReadString( msg ), 512 );
+				break;
+			case 35:
+			case 36:
+				break;
+			case 37:
+				vecStart[0] = MSG_ReadCoord(msg);
+				vecStart[1] = MSG_ReadCoord(msg);
+				vecStart[2] = MSG_ReadCoord(msg);
+
+				iLarge = MSG_ReadBits( msg, 1 );
+				i = MSG_ReadBits( msg, 6 );
+				MSG_ReadString( msg );
+				break;
+		}
+	} while ( MSG_ReadBits(msg,1) );
 }
 
 
@@ -714,7 +904,7 @@ void CL_ParseServerMessage( msg_t *msg ) {
 		}
 
 		cmd = MSG_ReadByte( msg );
-Com_Printf( "ParseServerMessage: cmd %i\n", cmd );
+		Com_DPrintf( "CL_ParseServerMessage: cmd %i\n", cmd );
 		if ( cmd == svc_EOF) {
 			SHOWNET( msg, "END OF MESSAGE" );
 			break;

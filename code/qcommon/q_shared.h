@@ -928,7 +928,7 @@ typedef enum {
 #define	MAX_SOUNDS			256		// so they cannot be blindly increased
 
 
-#define	MAX_CONFIGSTRINGS	1024
+#define	MAX_CONFIGSTRINGS	2736
 
 // these are the only configstrings that the system reserves, all the
 // other ones are strictly for servergame to clientgame communication
@@ -937,7 +937,7 @@ typedef enum {
 
 #define	RESERVED_CONFIGSTRINGS	2	// game can't modify below this, only the system can
 
-#define	MAX_GAMESTATE_CHARS	16000
+#define	MAX_GAMESTATE_CHARS	32000
 typedef struct {
 	int			stringOffsets[MAX_CONFIGSTRINGS];
 	char		stringData[MAX_GAMESTATE_CHARS];
@@ -959,6 +959,11 @@ typedef struct server_sound_s {
 	qboolean stop_flag;
 	qboolean streamed;
 } server_sound_t;
+
+typedef struct usereyes_s {
+  signed char ofs[3];
+  float angles[2];
+}usereyes_t;
 
 // bit field limits
 #define	MAX_STATS				32
@@ -1119,8 +1124,10 @@ typedef struct playerState_s {
 // usercmd_t is sent to the server each client frame
 typedef struct usercmd_s {
 	int				serverTime;
-	int				angles[3];
-	int 			buttons;
+	byte msec;
+	short unsigned int buttons;
+	short int		angles[3];
+//	int 			buttons;
 	byte			weapon;           // weapon
 	signed char	forwardmove, rightmove, upmove;
 } usercmd_t;

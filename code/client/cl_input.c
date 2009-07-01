@@ -695,6 +695,7 @@ void CL_WritePacket( void ) {
 	int			packetNum;
 	int			oldPacketNum;
 	int			count, key;
+	usereyes_t	eyeInfo;
 
 	// don't send anything if playing back a demo
 	if ( clc.demoplaying || cls.state == CA_CINEMATIC ) {
@@ -756,6 +757,8 @@ void CL_WritePacket( void ) {
 		// write the command count
 		MSG_WriteByte( &buf, count );
 
+		Com_Memset( &eyeInfo, 0, sizeof(eyeInfo) );
+		MSG_WriteDeltaEyeInfo( &buf, &eyeInfo, &eyeInfo );
 		// use the checksum feed in the key
 		key = clc.checksumFeed;
 		// also use the message acknowledge
