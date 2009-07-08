@@ -613,7 +613,7 @@ SV_ConSay_f
 */
 static void SV_ConSay_f(void) {
 	char	*p;
-	char	text[1024];
+	char	text[2048];
 
 	// make sure server is running
 	if ( !com_sv_running->integer ) {

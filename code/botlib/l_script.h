@@ -173,7 +173,7 @@ typedef struct token_s
 //script file
 typedef struct script_s
 {
-	char filename[1024];			//file name of the script
+	char filename[2048];			//file name of the script
 	char *buffer;					//buffer containing the script
 	char *script_p;					//current pointer in the script
 	char *end_p;					//pointer to the end of the script

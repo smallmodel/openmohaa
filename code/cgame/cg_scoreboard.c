@@ -79,7 +79,7 @@ CG_DrawScoreboard
 =================
 */
 static void CG_DrawClientScore( int y, score_t *score, float *color, float fade, qboolean largeFormat ) {
-	char	string[1024];
+	char	string[2048];
 	vec3_t	headAngles;
 	clientInfo_t	*ci;
 	int iconx, headx;

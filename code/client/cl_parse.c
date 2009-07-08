@@ -466,7 +466,7 @@ void CL_ParseGamestate( msg_t *msg ) {
 	cl.gameState.dataCount = 1;	// leave a 0 at the beginning for uninitialized configstrings
 	while ( 1 ) {
 		cmd = MSG_ReadByte( msg );
-		Com_DPrintf( "CL_ParseGamestate: cmd %i\n", cmd );
+
 		if ( cmd == svc_EOF ) {
 			break;
 		}
@@ -643,7 +643,7 @@ void CL_ParseCommandString( msg_t *msg ) {
 
 	seq = MSG_ReadLong( msg );
 	s = MSG_ReadString( msg );
-	Com_Printf("s c string seq %i, string %s\n", seq, s);
+
 	// see if we have already executed stored it off
 	if ( clc.serverCommandSequence >= seq ) {
 		return;
@@ -669,7 +669,7 @@ void CL_ParseCGMessage( msg_t *msg ) {
 	vec3_t vecStart, vecTmp, vecEnd, vecArray[64];
 	int iCount, iLarge;
 	int i, iTemp;
-	char strBuffer[512];
+	char strBuffer[2048];
 
 	msgtype = MSG_ReadBits( msg, 6 );
 	do {
@@ -864,7 +864,7 @@ void CL_ParseCGMessage( msg_t *msg ) {
 
 				iLarge = MSG_ReadBits( msg, 1 );
 				i = MSG_ReadBits( msg, 6 );
-				MSG_ReadString( msg );
+				Com_Printf( "string read: \"%s\"\n", MSG_ReadString( msg ) );
 				break;
 		}
 	} while ( MSG_ReadBits(msg,1) );

@@ -230,7 +230,7 @@ char *PunctuationFromNum(script_t *script, int num)
 //===========================================================================
 void QDECL ScriptError(script_t *script, char *str, ...)
 {
-	char text[1024];
+	char text[2048];
 	va_list ap;
 
 	if (script->flags & SCFL_NOERRORS) return;
@@ -256,7 +256,7 @@ void QDECL ScriptError(script_t *script, char *str, ...)
 //===========================================================================
 void QDECL ScriptWarning(script_t *script, char *str, ...)
 {
-	char text[1024];
+	char text[2048];
 	va_list ap;
 
 	if (script->flags & SCFL_NOWARNINGS) return;

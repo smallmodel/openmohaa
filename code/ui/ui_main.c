@@ -896,7 +896,7 @@ void UI_LoadMenus(const char *menuFile, qboolean reset) {
 }
 
 void UI_Load(void) {
-	char lastName[1024];
+	char lastName[2048];
   menuDef_t *menu = Menu_GetFocused();
 	char *menuSet = UI_Cvar_VariableString("ui_menuFiles");
 	if (menu && menu->window.name) {
@@ -1844,7 +1844,7 @@ static void UI_DrawKeyBindStatus(rectDef_t *rect, float scale, vec4_t color, int
 
 static void UI_DrawGLInfo(rectDef_t *rect, float scale, vec4_t color, int textStyle) {
 	char * eptr;
-	char buff[1024];
+	char buff[2048];
 	const char *lines[64];
 	int y, numLines, i;
 
@@ -2685,7 +2685,7 @@ void UI_ServersSort(int column, qboolean force) {
 /*
 static void UI_StartSinglePlayer(void) {
 	int i,j, k, skill;
-	char buff[1024];
+	char buff[2048];
 	i = trap_Cvar_VariableValue( "ui_currentTier" );
   if (i < 0 || i >= tierCount) {
     i = 0;
@@ -3070,7 +3070,7 @@ static void UI_Update(const char *name) {
 
 static void UI_RunMenuScript(char **args) {
 	const char *name, *name2;
-	char buff[1024];
+	char buff[2048];
 
 	if (String_Parse(args, &name)) {
 		if (Q_stricmp(name, "StartServer") == 0) {
@@ -3486,7 +3486,7 @@ static int UI_MapCountByGameType(qboolean singlePlayer) {
 }
 
 qboolean UI_hasSkinForBase(const char *base, const char *team) {
-	char	test[1024];
+	char	test[2048];
 
 	Com_sprintf( test, sizeof( test ), "models/players/%s/%s/lower_default.skin", base, team );
 
@@ -4193,7 +4193,7 @@ static void UI_UpdatePendingPings( void ) {
 
 static const char *UI_FeederItemText(float feederID, int index, int column, qhandle_t *handle) {
 	static char info[MAX_STRING_CHARS];
-	static char hostname[1024];
+	static char hostname[2048];
 	static char clientBuff[32];
 	static int lastColumn = -1;
 	static int lastTime = 0;
@@ -5264,7 +5264,7 @@ void Text_PaintCenter_AutoWrapped(float x, float y, float xmax, float ystep, flo
 	int width;
 	char *s1,*s2,*s3;
 	char c_bcp;
-	char buf[1024];
+	char buf[2048];
 
 	if (!str || str[0]=='\0')
 		return;

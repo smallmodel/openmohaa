@@ -419,12 +419,17 @@ void MSG_ReadDir( msg_t *msg, vec3_t dir ) {
 }
 
 float MSG_ReadCoord( msg_t *msg ) {
-	float test;
+	float	sign = 1.0f;
+	int		read;
+	float	rtn;
 
-	test = MSG_ReadBits( msg, 19 ) /16.0f;
-//sth like that i dunno
+	read = MSG_ReadBits( msg, 24 );
+	if ( read & 262144 )
+		sign = -1.0f;
+	read &= 4294705151;
+	rtn =  sign * *(float*)(&read) /16.0f;
 	
-	return test;	
+	return rtn;	
 }
 
 float MSG_ReadFloat( msg_t *msg ) {
@@ -442,7 +447,35 @@ float MSG_ReadFloat( msg_t *msg ) {
 	return dat.f;	
 }
 
+// this is ReadString as MOHAA does it. original ReadString is below
 char *MSG_ReadString( msg_t *msg ) {
+	static char	string[MAX_STRING_CHARS];
+	int		l,c;
+	
+	l = 0;
+	do {
+		c = MSG_ReadByte(msg);		// use ReadByte so -1 is out of bounds
+		if ( c <= 0 ) {
+			break;
+		}
+		// translate all fmt spec to avoid crash bugs
+		if ( c == '%' ) {
+			c = '.';
+		}
+		// don't allow higher ascii values
+		if ( c > 127 ) {
+			c = '.';
+		}
+
+		string[l] = c;
+		l++;
+	} while (l < sizeof(string)-1);
+	
+	string[l] = 0;
+	
+	return string;
+}
+char *MSG_ReadStringQ( msg_t *msg ) {
 	static char	string[MAX_STRING_CHARS];
 	int		l,c;
 	
@@ -505,7 +538,8 @@ char *MSG_ReadStringLine( msg_t *msg ) {
 	l = 0;
 	do {
 		c = MSG_ReadByte(msg);		// use ReadByte so -1 is out of bounds
-		if (c == -1 || c == 0 || c == '\n') {
+		if (c <= 0 || c == '\n') {
+		//if (c == -1 || c == 0 || c == '\n') { //Q3
 			break;
 		}
 		// translate all fmt spec to avoid crash bugs
@@ -528,7 +562,7 @@ char *MSG_ReadStringLine( msg_t *msg ) {
 
 void MSG_GetNullEntityState(entityState_t *nullState) {
 
-	Com_Memset( nullState, 0, sizeof(nullState) );
+	Com_Memset( nullState, 0, sizeof(entityState_t) );
 	nullState->alpha = 1.0f;
 	nullState->scale = 1.0f;
 	nullState->parent = ENTITYNUM_NONE;
@@ -842,7 +876,7 @@ netField_t	entityStateFields[] =
 { NETF(frameInfo[3].time), 0, 2 },
 { NETF(frameInfo[0].index), 12, 0 },
 { NETF(frameInfo[1].index), 12, 0 },
-{ NETF(actionWeight), 0, 4 },
+{ NETF(actionWeight), 0, 3 },
 { NETF(frameInfo[2].weight), 0, 3 },
 { NETF(frameInfo[3].weight), 0, 3 },
 { NETF(frameInfo[2].index), 12, 0 },
@@ -1232,6 +1266,9 @@ void MSG_ReadDeltaEntity( msg_t *msg, entityState_t *from, entityState_t *to,
 	int			print;
 	int			trunc;
 	int			startBit, endBit;
+	int			bits;
+	int			result;
+	float		tmp;
 
 	if ( number < 0 || number >= MAX_GENTITIES) {
 		Com_Error( ERR_DROP, "Bad delta entity number: %i", number );
@@ -1273,15 +1310,18 @@ void MSG_ReadDeltaEntity( msg_t *msg, entityState_t *from, entityState_t *to,
 	}
 
 	to->number = number;
-
+Com_DPrintf( "===\nMSG_ReadDeltaEnt: entnum %i, count %i\n===\n", number, lc );
 	for ( i = 0, field = entityStateFields ; i < lc ; i++, field++ ) {
 		fromF = (int *)( (byte *)from + field->offset );
 		toF = (int *)( (byte *)to + field->offset );
-
+//Com_DPrintf( "field %s\n", field->name );
 		if ( ! MSG_ReadBits( msg, 1 ) ) {
 			// no change
 			*toF = *fromF;
+//Com_DPrintf( "NO CHANGE " );
+//Com_DPrintf( "value int %i, float %f\n", *toF, *(float *)toF );
 		} else {
+//Com_DPrintf( "type %i, ", field->type );
 			switch (field->type) {
 				case 0:
 					if ( field->bits == 0 ) {
@@ -1318,10 +1358,69 @@ void MSG_ReadDeltaEntity( msg_t *msg, entityState_t *from, entityState_t *to,
 						}
 					}
 					break;
-				case 1:
+				case 1: // angles, what a mess! it wouldnt surprise me if something goes wrong here ;)
+					tmp = 1.0f;
+					if ( field->bits < 0 ) {
+						if ( MSG_ReadBits( msg, 1 ) )
+							tmp = -1.0f;
+						bits = - field->bits -1;
+					}
+					else bits = field->bits;
+
+					result = MSG_ReadBits( msg, bits );
+					if ( field->bits == 12 )
+						*(float *)toF = result * 0.087890625f * tmp;
+					else if ( field->bits == 8 )
+						*(float *)toF = result * 1.411764705882353f * tmp;
+					else if ( field->bits == 16 )
+						*(float *)toF = result * 0.0054931640625f * tmp;
+					else
+						*(float *)toF = result * (1 << bits) * tmp / 360.0f;
+					break;
+				case 2: // time
+					*(float *)toF = MSG_ReadBits( msg, 15 ) * 0.0099999998f;
+					break;
+				case 3: // nasty!
+					tmp = MSG_ReadBits( msg, 8 ) / 255.0f;
+					if ( !(tmp > 0.0f) )
+						*(float *)toF = 0.0f;
+					else if ( tmp >= 1.0f )
+						*(float *)toF = 0.0f;
+					*(float *)toF = tmp;
+					// FPU instructions yay
+					break;
+				case 4:
+					*(float *)toF = MSG_ReadBits( msg, 10 ) *0.0099999998f;
+					break;
+				case 5:
+					tmp = MSG_ReadBits( msg, 8 ) / 255.0f;
+					if ( !(tmp > 0.0f) )
+						*(float *)toF = 0.0f;
+					else if ( tmp >= 1.0f )
+						*(float *)toF = 0.0f;
+					*(float *)toF = tmp;
+					break;
+				case 6:
+					tmp = 1.0f;
+					bits = MSG_ReadBits( msg, 19 );
+					if ( bits & 262144 ) // test for 1 bit
+						tmp = -1.0f;
+					bits &= 4294705151;	// remove that bit
+					*(float *)toF = tmp * bits / 16.0f;
+					break;
+				case 7:
+					tmp = 1.0f;
+					bits = MSG_ReadBits( msg, 17 );
+					if ( bits & 65536 ) // test for 1 bit
+						tmp = -1.0f;
+					bits &= 4294901759;	// remove that bit
+					*(float *)toF = tmp * bits / 8.0f;
+					break;
+				default:
+					Com_Error( ERR_DROP, "MSG_ReadDeltaEntity: unrecognized entity field type %i for field\n", i );
 					break;
 			}
-
+//Com_DPrintf( "value int %i, float %f\n", *toF, *(float *)toF );
 //			pcount[i]++;
 		}
 	}
@@ -1410,7 +1509,7 @@ netField_t	playerStateFields[] =
 { PSF(camera_offset[1]), 0, 0 },
 { PSF(camera_offset[2]), 0, 0 },
 { PSF(camera_posofs[1]), 0, 6 },
-{ PSF(camera_flags), 16, 0, 0 },
+{ PSF(camera_flags), 16, 0, 0 }
 
 /*
 { PSF(eventSequence), 16 },

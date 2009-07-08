@@ -991,7 +991,7 @@ Key_Bind_f
 void Key_Bind_f (void)
 {
 	int			i, c, b;
-	char		cmd[1024];
+	char		cmd[2048];
 
 	c = Cmd_Argc();
 
@@ -1098,8 +1098,8 @@ CL_AddKeyUpCommands
 */
 void CL_AddKeyUpCommands( int key, char *kb, unsigned time) {
 	int i;
-	char button[1024], *buttonPtr;
-	char	cmd[1024];
+	char button[2048], *buttonPtr;
+	char	cmd[2048];
 	qboolean keyevent;
 
 	if ( !kb ) {
@@ -1144,7 +1144,7 @@ Called by the system for both key up and key down events
 */
 void CL_KeyEvent (int key, qboolean down, unsigned time) {
 	char	*kb;
-	char	cmd[1024];
+	char	cmd[2048];
 
 	// update auto-repeat status and BUTTON_ANY status
 	keys[key].down = down;
@@ -1278,7 +1278,7 @@ void CL_KeyEvent (int key, qboolean down, unsigned time) {
 			}
 		} else if (kb[0] == '+') {
 			int i;
-			char button[1024], *buttonPtr;
+			char button[2048], *buttonPtr;
 			buttonPtr = button;
 			for ( i = 0; ; i++ ) {
 				if ( kb[i] == ';' || !kb[i] ) {

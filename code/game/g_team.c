@@ -103,7 +103,7 @@ const char *TeamColorString(int team) {
 
 // NULL for everyone
 void QDECL PrintMsg( gentity_t *ent, const char *fmt, ... ) {
-	char		msg[1024];
+	char		msg[2048];
 	va_list		argptr;
 	char		*p;
 	
@@ -1064,7 +1064,7 @@ Format:
 ==================
 */
 void TeamplayInfoMessage( gentity_t *ent ) {
-	char		entry[1024];
+	char		entry[2048];
 	char		string[8192];
 	int			stringlength;
 	int			i, j;

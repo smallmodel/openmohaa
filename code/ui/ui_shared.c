@@ -505,7 +505,7 @@ PC_Script_Parse
 =================
 */
 qboolean PC_Script_Parse(int handle, const char **out) {
-	char script[1024];
+	char script[2048];
 	pc_token_t token;
 
 	memset(script, 0, sizeof(script));
@@ -1262,7 +1262,7 @@ int scriptCommandCount = sizeof(commandList) / sizeof(commandDef_t);
 
 
 void Item_RunScript(itemDef_t *item, const char *s) {
-  char script[1024], *p;
+  char script[2048], *p;
   int i;
   qboolean bRan;
   memset(script, 0, sizeof(script));
@@ -1298,10 +1298,10 @@ void Item_RunScript(itemDef_t *item, const char *s) {
 
 
 qboolean Item_EnableShowViaCvar(itemDef_t *item, int flag) {
-  char script[1024], *p;
+  char script[2048], *p;
   memset(script, 0, sizeof(script));
   if (item && item->enableCvar && *item->enableCvar && item->cvarTest && *item->cvarTest) {
-		char buff[1024];
+		char buff[2048];
 	  DC->getCVarString(item->cvarTest, buff, sizeof(buff));
 
     Q_strcat(script, 1024, item->enableCvar);
@@ -1947,7 +1947,7 @@ int Item_Multi_CountSettings(itemDef_t *item) {
 }
 
 int Item_Multi_FindCvarByValue(itemDef_t *item) {
-	char buff[1024];
+	char buff[2048];
 	float value = 0;
 	int i;
 	multiDef_t *multiPtr = (multiDef_t*)item->typeData;
@@ -1973,7 +1973,7 @@ int Item_Multi_FindCvarByValue(itemDef_t *item) {
 }
 
 const char *Item_Multi_Setting(itemDef_t *item) {
-	char buff[1024];
+	char buff[2048];
 	float value = 0;
 	int i;
 	multiDef_t *multiPtr = (multiDef_t*)item->typeData;
@@ -2027,7 +2027,7 @@ qboolean Item_Multi_HandleKey(itemDef_t *item, int key) {
 }
 
 qboolean Item_TextField_HandleKey(itemDef_t *item, int key) {
-	char buff[1024];
+	char buff[2048];
 	int len;
 	itemDef_t *newItem = NULL;
 	editFieldDef_t *editPtr = (editFieldDef_t*)item->typeData;
@@ -2831,9 +2831,9 @@ void Item_TextColor(itemDef_t *item, vec4_t *newColor) {
 }
 
 void Item_Text_AutoWrapped_Paint(itemDef_t *item) {
-	char text[1024];
+	char text[2048];
 	const char *p, *textPtr, *newLinePtr;
-	char buff[1024];
+	char buff[2048];
 	int width, height, len, textWidth, newLine, newLineWidth;
 	float y;
 	vec4_t color;
@@ -2904,9 +2904,9 @@ void Item_Text_AutoWrapped_Paint(itemDef_t *item) {
 }
 
 void Item_Text_Wrapped_Paint(itemDef_t *item) {
-	char text[1024];
+	char text[2048];
 	const char *p, *start, *textPtr;
-	char buff[1024];
+	char buff[2048];
 	int width, height;
 	float x, y;
 	vec4_t color;
@@ -2949,7 +2949,7 @@ void Item_Text_Wrapped_Paint(itemDef_t *item) {
 }
 
 void Item_Text_Paint(itemDef_t *item) {
-	char text[1024];
+	char text[2048];
 	const char *textPtr;
 	int height, width;
 	vec4_t color;
@@ -3024,7 +3024,7 @@ void Item_Text_Paint(itemDef_t *item) {
 //void			trap_Cvar_VariableStringBuffer( const char *var_name, char *buffer, int bufsize );
 
 void Item_TextField_Paint(itemDef_t *item) {
-	char buff[1024];
+	char buff[2048];
 	vec4_t newColor, lowLight;
 	int offset;
 	menuDef_t *parent = (menuDef_t*)item->parent;

@@ -1095,7 +1095,7 @@ static qboolean ParseStage( shaderStage_t *stage, char **text )
 		//
 		else if ( !Q_stricmp( token, "tcMod" ) )
 		{
-			char buffer[1024] = "";
+			char buffer[2048] = "";
 
 			while ( 1 )
 			{

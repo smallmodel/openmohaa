@@ -141,7 +141,7 @@ BotTeam
 ==================
 */
 int BotTeam(bot_state_t *bs) {
-	char info[1024];
+	char info[2048];
 
 	if (bs->client < 0 || bs->client >= MAX_CLIENTS) {
 		//BotAI_Print(PRT_ERROR, "BotCTFTeam: client out of range\n");
@@ -2766,7 +2766,7 @@ BotSameTeam
 ==================
 */
 int BotSameTeam(bot_state_t *bs, int entnum) {
-	char info1[1024], info2[1024];
+	char info1[2048], info2[2048];
 
 	if (bs->client < 0 || bs->client >= MAX_CLIENTS) {
 		//BotAI_Print(PRT_ERROR, "BotSameTeam: client out of range\n");
@@ -3673,7 +3673,7 @@ BotMapScripts
 ==================
 */
 void BotMapScripts(bot_state_t *bs) {
-	char info[1024];
+	char info[2048];
 	char mapname[128];
 	int i, shootbutton;
 	float aim_accuracy;

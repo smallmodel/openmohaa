@@ -1085,7 +1085,7 @@ void CL_Setenv_f( void ) {
 	int argc = Cmd_Argc();
 
 	if ( argc > 2 ) {
-		char buffer[1024];
+		char buffer[2048];
 		int i;
 
 		strcpy( buffer, Cmd_Argv(1) );
@@ -1646,7 +1646,7 @@ and determine if we need to download them
 =================
 */
 void CL_InitDownloads(void) {
-  char missingfiles[1024];
+  char missingfiles[2048];
 
   if ( !(cl_allowDownload->integer & DLF_ENABLE) )
   {
@@ -3430,7 +3430,7 @@ void CL_GlobalServers_f( void ) {
 	int			i;
 	int			count;
 	char		*buffptr;
-	char		command[1024];
+	char		command[2048];
 
 	if ( Cmd_Argc() < 3) {
 		Com_Printf( "usage: globalservers <master# 0-1> <protocol> [keywords]\n");

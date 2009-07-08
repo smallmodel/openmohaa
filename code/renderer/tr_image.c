@@ -3813,7 +3813,7 @@ static void LoadPNG(const char *name, byte **pic, int *width, int *height)
      *  palette with 256 RGBA entries
      */
 
-    uint8_t OutPal[1024];
+    uint8_t OutPal[2048];
 
     /*
      *  transparent colour from the tRNS chunk

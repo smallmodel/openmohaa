@@ -162,7 +162,7 @@ typedef int		clipHandle_t;
 
 // the game guarantees that no string from the network will ever
 // exceed MAX_STRING_CHARS
-#define	MAX_STRING_CHARS	1024	// max length of a string passed to Cmd_TokenizeString
+#define	MAX_STRING_CHARS	2048	// max length of a string passed to Cmd_TokenizeString
 #define	MAX_STRING_TOKENS	1024	// max tokens resulting from Cmd_TokenizeString
 #define	MAX_TOKEN_CHARS		1024	// max length of an individual token
 
@@ -170,7 +170,7 @@ typedef int		clipHandle_t;
 #define	MAX_INFO_KEY		  1024
 #define	MAX_INFO_VALUE		1024
 
-#define	BIG_INFO_STRING		8192  // used for system info key only
+#define	BIG_INFO_STRING		4096  // used for system info key only
 #define	BIG_INFO_KEY		  8192
 #define	BIG_INFO_VALUE		8192
 
@@ -924,8 +924,8 @@ typedef enum {
 #define	ENTITYNUM_MAX_NORMAL	(MAX_GENTITIES-2)
 
 
-#define	MAX_MODELS			256		// these are sent over the net as 8 bits
-#define	MAX_SOUNDS			256		// so they cannot be blindly increased
+#define	MAX_MODELS			1024		// these are sent over the net as 8 bits
+#define	MAX_SOUNDS			512		// so they cannot be blindly increased
 
 
 #define	MAX_CONFIGSTRINGS	2736

@@ -286,7 +286,7 @@ Sys_Error
 void Sys_Error( const char *error, ... )
 {
 	va_list argptr;
-	char    string[1024];
+	char    string[2048];
 
 	CL_Shutdown ();
 
@@ -307,7 +307,7 @@ Sys_Warn
 void Sys_Warn( char *warning, ... )
 {
 	va_list argptr;
-	char    string[1024];
+	char    string[2048];
 
 	va_start (argptr,warning);
 	Q_vsnprintf (string, sizeof(string), warning, argptr);

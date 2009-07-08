@@ -1807,7 +1807,7 @@ static void CG_DrawCenterString( void ) {
 	y = cg.centerPrintY - cg.centerPrintLines * BIGCHAR_HEIGHT / 2;
 
 	while ( 1 ) {
-		char linebuffer[1024];
+		char linebuffer[2048];
 
 		for ( l = 0; l < 50; l++ ) {
 			if ( !start[l] || start[l] == '\n' ) {

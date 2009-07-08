@@ -962,7 +962,7 @@ BotAI
 */
 int BotAI(int client, float thinktime) {
 	bot_state_t *bs;
-	char buf[1024], *args;
+	char buf[2048], *args;
 	int j;
 
 	trap_EA_ResetInput(client);

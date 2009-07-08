@@ -339,7 +339,7 @@ void RE_RegisterFont(const char *fontName, int pointSize, fontInfo_t *font) {
 #endif
   void *faceData;
 	int i, len;
-  char name[1024];
+  char name[2048];
 	float dpi = 72;											//
 	float glyphScale =  72.0f / dpi; 		// change the scale to be relative to 1 based on 72 dpi ( so dpi of 144 means a scale of .5 )
 

@@ -25,7 +25,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // because games can change separately from the main system version, we need a
 // second version that must match between game and cgame
 
-#define	GAME_VERSION		BASEGAME "-1"
+//#define	GAME_VERSION		BASEGAME "-1"
+#define	GAME_VERSION		"mohaa-base-1"
 
 #define	DEFAULT_GRAVITY		800
 #define	GIB_HEALTH			-40
@@ -58,7 +59,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 // CS_SERVERINFO and CS_SYSTEMINFO are defined in q_shared.h
 #define	CS_MUSIC				2
-#define	CS_MESSAGE				3		// from the map worldspawn's message field
+#define	CS_MESSAGE				2		// from the map worldspawn's message field
 #define	CS_MOTD					4		// g_motd string for server message of the day
 #define	CS_WARMUP				5		// server time when the match will be restarted
 #define	CS_SCORES1				6
@@ -73,8 +74,16 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define	CS_TEAMVOTE_YES			16
 #define	CS_TEAMVOTE_NO			18
 
-#define	CS_GAME_VERSION			20
-#define	CS_LEVEL_START_TIME		21		// so the timer only shows the current level
+#define CS_SOUNDTRACK			8
+#define CS_FOGINFO				9
+#define CS_SKYINFO				10
+
+#define	CS_GAME_VERSION			11
+#define	CS_LEVEL_START_TIME		12		// so the timer only shows the current level
+
+#define CS_OBJECTIVES			13
+
+
 #define	CS_INTERMISSION			22		// when 1, fraglimit/timelimit has been hit and intermission will start in a second or two
 #define CS_FLAGSTATUS			23		// string indicating flag status in CTF
 #define CS_SHADERSTATE			24
@@ -83,10 +92,19 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define	CS_ITEMS				27		// string of 0's and 1's that tell which items are present
 
 #define	CS_MODELS				32
-#define	CS_SOUNDS				(CS_MODELS+MAX_MODELS)
-#define	CS_PLAYERS				(CS_SOUNDS+MAX_SOUNDS)
+#define CS_SOUNDS				1077
+#define CS_PLAYERS				1684
+//#define	CS_SOUNDS				(CS_MODELS+MAX_MODELS)
+//#define	CS_PLAYERS				(CS_SOUNDS+MAX_SOUNDS)
 #define CS_LOCATIONS			(CS_PLAYERS+MAX_CLIENTS)
 #define CS_PARTICLES			(CS_LOCATIONS+MAX_LOCATIONS)
+
+#define CS_WEAPONS				1749
+#define CS_UNKNOWN				1876
+#define CS_SPECTATORS			1878
+#define CS_ALLIES				1879
+#define CS_AXIS					1880
+
 
 #define CS_MAX					(CS_PARTICLES+MAX_LOCATIONS)
 
@@ -94,14 +112,21 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #error overflow: (CS_MAX) > MAX_CONFIGSTRINGS
 #endif
 
+
 typedef enum {
-	GT_FFA,				// free for all
-	GT_TOURNAMENT,		// one on one tournament
 	GT_SINGLE_PLAYER,	// single player ffa
+	GT_FFA,				// free for all
+	GT_TEAM,			// team deathmatch
+	GT_TEAM_ROUNDS,
+	GT_OBJECTIVE,
+
+
+	GT_TOURNAMENT,		// one on one tournament
+	
 
 	//-- team games go after this --
 
-	GT_TEAM,			// team deathmatch
+	
 	GT_CTF,				// capture the flag
 	GT_1FCTF,
 	GT_OBELISK,

@@ -172,7 +172,7 @@ void Con_Dump_f (void)
 	int		l, x, i;
 	short	*line;
 	fileHandle_t	f;
-	char	buffer[1024];
+	char	buffer[2048];
 
 	if (Cmd_Argc() != 2)
 	{

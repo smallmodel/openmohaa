@@ -416,7 +416,7 @@ int CG_LastAttacker( void ) {
 
 void QDECL CG_Printf( const char *msg, ... ) {
 	va_list		argptr;
-	char		text[1024];
+	char		text[2048];
 
 	va_start (argptr, msg);
 	vsprintf (text, msg, argptr);
@@ -427,7 +427,7 @@ void QDECL CG_Printf( const char *msg, ... ) {
 
 void QDECL CG_Error( const char *msg, ... ) {
 	va_list		argptr;
-	char		text[1024];
+	char		text[2048];
 
 	va_start (argptr, msg);
 	vsprintf (text, msg, argptr);
@@ -438,7 +438,7 @@ void QDECL CG_Error( const char *msg, ... ) {
 
 void QDECL Com_Error( int level, const char *error, ... ) {
 	va_list		argptr;
-	char		text[1024];
+	char		text[2048];
 
 	va_start (argptr, error);
 	vsprintf (text, error, argptr);
@@ -449,7 +449,7 @@ void QDECL Com_Error( int level, const char *error, ... ) {
 
 void QDECL Com_Printf( const char *msg, ... ) {
 	va_list		argptr;
-	char		text[1024];
+	char		text[2048];
 
 	va_start (argptr, msg);
 	vsprintf (text, msg, argptr);
@@ -535,6 +535,7 @@ static void CG_RegisterSounds( void ) {
 	char	items[MAX_ITEMS+1];
 	char	name[MAX_QPATH];
 	const char	*soundName;
+	char	buffer[MAX_STRING_CHARS];
 
 	// voice commands
 #ifdef MISSIONPACK
@@ -717,7 +718,10 @@ static void CG_RegisterSounds( void ) {
 		if ( soundName[0] == '*' ) {
 			continue;	// custom sound
 		}
-		cgs.gameSounds[i] = trap_S_RegisterSound( soundName, qfalse );
+		Q_strncpyz( buffer, soundName, sizeof(buffer) );
+		if (buffer[strlen( buffer )-1] == '0')
+			buffer[strlen( buffer )-1] = 0;
+		cgs.gameSounds[i] = trap_S_RegisterSound( buffer, qfalse );
 	}
 
 	// FIXME: only needed with item
@@ -1751,7 +1755,7 @@ CG_LoadHudMenu();
 =================
 */
 void CG_LoadHudMenu( void ) {
-	char buff[1024];
+	char buff[2048];
 	const char *hudSet;
 
 	cgDC.registerShaderNoMip = &trap_R_RegisterShaderNoMip;
@@ -1852,6 +1856,7 @@ Will perform callbacks to make the loading info screen update.
 */
 void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum ) {
 	const char	*s;
+	int i;
 
 	// clear everything
 	memset( &cgs, 0, sizeof( cgs ) );
@@ -1889,7 +1894,9 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum ) {
 
 	// get the gamestate from the client system
 	trap_GetGameState( &cgs.gameState );
-
+	for (i=0;i<MAX_CONFIGSTRINGS;i++ ){
+		CG_Printf( "CG %i: \"%s\"\n", i, CG_ConfigString(i) );
+	}
 	// check version
 	s = CG_ConfigString( CS_GAME_VERSION );
 	if ( strcmp( s, GAME_VERSION ) ) {

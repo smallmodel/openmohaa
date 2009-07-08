@@ -238,7 +238,7 @@ intptr_t vmMain( int command, int arg0, int arg1, int arg2, int arg3, int arg4, 
 
 void QDECL G_Printf( const char *fmt, ... ) {
 	va_list		argptr;
-	char		text[1024];
+	char		text[2048];
 
 	va_start (argptr, fmt);
 	vsprintf (text, fmt, argptr);
@@ -249,7 +249,7 @@ void QDECL G_Printf( const char *fmt, ... ) {
 
 void QDECL G_Error( const char *fmt, ... ) {
 	va_list		argptr;
-	char		text[1024];
+	char		text[2048];
 
 	va_start (argptr, fmt);
 	vsprintf (text, fmt, argptr);
@@ -316,7 +316,7 @@ void G_FindTeams( void ) {
 
 void G_RemapTeamShaders( void ) {
 #ifdef MISSIONPACK
-	char string[1024];
+	char string[2048];
 	float f = level.time * 0.001;
 	Com_sprintf( string, sizeof(string), "team_icon/%s_red", g_redteam.string );
 	AddRemap("textures/ctf2/redteam01", string, f);
@@ -536,7 +536,7 @@ void G_ShutdownGame( int restart ) {
 
 void QDECL Com_Error ( int level, const char *error, ... ) {
 	va_list		argptr;
-	char		text[1024];
+	char		text[2048];
 
 	va_start (argptr, error);
 	vsprintf (text, error, argptr);
@@ -547,7 +547,7 @@ void QDECL Com_Error ( int level, const char *error, ... ) {
 
 void QDECL Com_Printf( const char *msg, ... ) {
 	va_list		argptr;
-	char		text[1024];
+	char		text[2048];
 
 	va_start (argptr, msg);
 	vsprintf (text, msg, argptr);
@@ -1079,7 +1079,7 @@ Print to the logfile with a time stamp if it is open
 */
 void QDECL G_LogPrintf( const char *fmt, ... ) {
 	va_list		argptr;
-	char		string[1024];
+	char		string[2048];
 	int			min, tens, sec;
 
 	sec = level.time / 1000;
