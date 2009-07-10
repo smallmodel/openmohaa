@@ -671,8 +671,8 @@ void CL_ParseCGMessage( msg_t *msg ) {
 	int i, iTemp;
 	char strBuffer[2048];
 
-	msgtype = MSG_ReadBits( msg, 6 );
 	do {
+		msgtype = MSG_ReadBits( msg, 6 );
 		Com_DPrintf( "CL_ParseCGMessage: command type %i\n", msgtype ); 
 		switch ( msgtype ) {
 			case 1:
@@ -870,6 +870,27 @@ void CL_ParseCGMessage( msg_t *msg ) {
 	} while ( MSG_ReadBits(msg,1) );
 }
 
+/*
+=====================
+CL_ParseLocationprint
+=====================
+*/
+void CL_ParseLocationprint( msg_t *msg ) {
+	int x, y;
+
+	x = MSG_ReadShort( msg );
+	y = MSG_ReadShort( msg );
+	Com_Printf( "locationprint received: \"%s\" at x=%i, y=%i\n", MSG_ReadString(msg), x, y );
+}
+
+/*
+=====================
+CL_ParseCenterprint
+=====================
+*/
+void CL_ParseCenterprint( msg_t *msg ) {
+	Com_Printf( "centerprint received: \"%s\"\n", MSG_ReadString( msg ) );
+}
 
 /*
 =====================
@@ -938,10 +959,10 @@ void CL_ParseServerMessage( msg_t *msg ) {
 			CL_ParseDownload( msg );
 			break;
 		case svc_centerprint:
-			// TODO: centerprint
+			CL_ParseCenterprint( msg );
 			break;
 		case svc_locprint:
-			// TODO: locationprint
+			CL_ParseLocationprint( msg );
 			break;
 		case svc_cgameMessage:
 			CL_ParseCGMessage( msg );

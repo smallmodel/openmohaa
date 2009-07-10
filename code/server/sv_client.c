@@ -82,11 +82,14 @@ void SV_GetChallenge( netadr_t from ) {
 	}
 
 	// if they are on a lan address, send the challengeResponse immediately
-	if ( Sys_IsLANAddress( from ) ) {
+
+	// we send the challengeResponse immediately as there is no AUTH server for us
+	// it's also way more cool this way :)
+//	if ( Sys_IsLANAddress( from ) ) {
 		challenge->pingTime = svs.time;
 		NET_OutOfBandPrint( NS_SERVER, from, "challengeResponse %i", challenge->challenge );
 		return;
-	}
+//	}
 
 	// look up the authorize server's IP
 	if ( !svs.authorizeAddress.ip[0] && svs.authorizeAddress.type != NA_BAD ) {
@@ -1571,6 +1574,7 @@ void SV_ExecuteClientMessage( client_t *cl, msg_t *msg ) {
 	// read optional clientCommand strings
 	do {
 		c = MSG_ReadByte( msg );
+		Com_DPrintf( "SV_ExecuteClientMessage: %i\n", c );
 		if ( c == clc_EOF ) {
 			break;
 		}

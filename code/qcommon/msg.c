@@ -427,7 +427,7 @@ float MSG_ReadCoord( msg_t *msg ) {
 	if ( read & 262144 )
 		sign = -1.0f;
 	read &= 4294705151;
-	rtn =  sign * *(float*)(&read) /16.0f;
+	rtn =  sign * read /16.0f;
 	
 	return rtn;	
 }
@@ -1310,7 +1310,7 @@ void MSG_ReadDeltaEntity( msg_t *msg, entityState_t *from, entityState_t *to,
 	}
 
 	to->number = number;
-Com_DPrintf( "===\nMSG_ReadDeltaEnt: entnum %i, count %i\n===\n", number, lc );
+//Com_DPrintf( "===\nMSG_ReadDeltaEnt: entnum %i, count %i\n===\n", number, lc );
 	for ( i = 0, field = entityStateFields ; i < lc ; i++, field++ ) {
 		fromF = (int *)( (byte *)from + field->offset );
 		toF = (int *)( (byte *)to + field->offset );
@@ -1477,7 +1477,7 @@ netField_t	playerStateFields[] =
 { PSF(delta_angles[0]), 16, 0 },
 { PSF(iViewModelAnim), 4, 0 },
 { PSF(fov), 0, 0 },
-{ PSF(current_music_mood), 0, 0 },
+{ PSF(current_music_mood), 8, 0 },
 { PSF(gravity), 16, 0 },
 { PSF(fallback_music_mood), 8, 0 },
 { PSF(music_volume), 0, 0 },
@@ -1509,7 +1509,7 @@ netField_t	playerStateFields[] =
 { PSF(camera_offset[1]), 0, 0 },
 { PSF(camera_offset[2]), 0, 0 },
 { PSF(camera_posofs[1]), 0, 6 },
-{ PSF(camera_flags), 16, 0, 0 }
+{ PSF(camera_flags), 16, 0 }
 
 /*
 { PSF(eventSequence), 16 },
@@ -1735,6 +1735,10 @@ void MSG_ReadDeltaPlayerstate (msg_t *msg, playerState_t *from, playerState_t *t
 	int			trunc;
 	playerState_t	dummy;
 
+//	int			bits;
+	int			result;
+	float		tmp;
+
 	if ( !from ) {
 		from = &dummy;
 		Com_Memset( &dummy, 0, sizeof( dummy ) );
@@ -1758,40 +1762,85 @@ void MSG_ReadDeltaPlayerstate (msg_t *msg, playerState_t *from, playerState_t *t
 
 	numFields = sizeof( playerStateFields ) / sizeof( playerStateFields[0] );
 	lc = MSG_ReadByte(msg);
-
+//Com_DPrintf( "===\nMSG_ReadDeltaPlayerstate: count %i\n===\n", lc );
 	for ( i = 0, field = playerStateFields ; i < lc ; i++, field++ ) {
 		fromF = (int *)( (byte *)from + field->offset );
 		toF = (int *)( (byte *)to + field->offset );
-
+//Com_DPrintf( "field %s ", field->name );
 		if ( ! MSG_ReadBits( msg, 1 ) ) {
 			// no change
 			*toF = *fromF;
+//Com_DPrintf( "NO CHANGE " );
+//Com_DPrintf( "value int %i, float %f\n", *toF, *(float *)toF );
 		} else {
-			if ( field->bits == 0 ) {
-				// float
-				if ( MSG_ReadBits( msg, 1 ) == 0 ) {
-					// integral float
-					trunc = MSG_ReadBits( msg, FLOAT_INT_BITS );
-					// bias to allow equal parts positive and negative
-					trunc -= FLOAT_INT_BIAS;
-					*(float *)toF = trunc; 
-					if ( print ) {
-						Com_Printf( "%s:%i ", field->name, trunc );
+//Com_DPrintf( "type %i, ", field->type );
+			switch ( field->type ) {
+				case 0:
+					if ( field->bits == 0 ) {
+						// float
+						if ( MSG_ReadBits( msg, 1 ) == 0 ) {
+							// integral float
+							trunc = MSG_ReadBits( msg, FLOAT_INT_BITS );
+							// bias to allow equal parts positive and negative
+							trunc -= FLOAT_INT_BIAS;
+							*(float *)toF = trunc; 
+							if ( print ) {
+								Com_Printf( "%s:%i ", field->name, trunc );
+							}
+						} else {
+							// full floating point value
+							*toF = MSG_ReadBits( msg, 32 );
+							if ( print ) {
+								Com_Printf( "%s:%f ", field->name, *(float *)toF );
+							}
+						}
+					} else {
+						// integer
+						*toF = MSG_ReadBits( msg, field->bits );
+						if ( print ) {
+							Com_Printf( "%s:%i ", field->name, *toF );
+						}
 					}
-				} else {
-					// full floating point value
-					*toF = MSG_ReadBits( msg, 32 );
-					if ( print ) {
-						Com_Printf( "%s:%f ", field->name, *(float *)toF );
+					break;
+				case 1:
+					tmp = 1.0f;
+					if ( field->bits < 0 ) {
+						if ( MSG_ReadBits( msg, 1 ) )
+							tmp = -1.0f;
+						bits = - field->bits -1;
 					}
-				}
-			} else {
-				// integer
-				*toF = MSG_ReadBits( msg, field->bits );
-				if ( print ) {
-					Com_Printf( "%s:%i ", field->name, *toF );
-				}
+					else bits = field->bits;
+
+					result = MSG_ReadBits( msg, bits );
+					if ( field->bits == 12 )
+						*(float *)toF = result * 0.087890625f * tmp;
+					else if ( field->bits == 8 )
+						*(float *)toF = result * 1.411764705882353f * tmp;
+					else if ( field->bits == 16 )
+						*(float *)toF = result * 0.0054931640625f * tmp;
+					else
+						*(float *)toF = result * (1 << bits) * tmp / 360.0f;
+					break;
+				case 6:
+					tmp = 1.0f;
+					bits = MSG_ReadBits( msg, 19 );
+					if ( bits & 262144 ) // test for 1 bit
+						tmp = -1.0f;
+					bits &= 4294705151;	// remove that bit
+					*(float *)toF = tmp * bits / 16.0f;
+					break;
+				case 7:
+					tmp = 1.0f;
+					bits = MSG_ReadBits( msg, 17 );
+					if ( bits & 65536 ) // test for 1 bit
+						tmp = -1.0f;
+					bits &= 4294901759;	// remove that bit
+					*(float *)toF = tmp * bits / 8.0f;
+					break;
+				default:
+					break;
 			}
+//Com_DPrintf( "value int %i, float %f\n", *toF, *(float *)toF );
 		}
 	}
 	for ( i=lc,field = &playerStateFields[lc];i<numFields; i++, field++) {

@@ -1125,8 +1125,8 @@ typedef struct playerState_s {
 typedef struct usercmd_s {
 	int				serverTime;
 	byte msec;
-	short unsigned int buttons;
-	short int		angles[3];
+	int buttons;
+	int		angles[3];
 //	int 			buttons;
 	byte			weapon;           // weapon
 	signed char	forwardmove, rightmove, upmove;

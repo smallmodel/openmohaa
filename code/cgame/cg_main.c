@@ -1894,10 +1894,10 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum ) {
 
 	// get the gamestate from the client system
 	trap_GetGameState( &cgs.gameState );
-	for (i=0;i<MAX_CONFIGSTRINGS;i++ ){
+/*	for (i=0;i<MAX_CONFIGSTRINGS;i++ ){
 		CG_Printf( "CG %i: \"%s\"\n", i, CG_ConfigString(i) );
 	}
-	// check version
+*/	// check version
 	s = CG_ConfigString( CS_GAME_VERSION );
 	if ( strcmp( s, GAME_VERSION ) ) {
 		CG_Error( "Client/Server game mismatch: %s/%s", GAME_VERSION, s );

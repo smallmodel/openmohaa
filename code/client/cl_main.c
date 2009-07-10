@@ -2124,7 +2124,6 @@ void CL_PacketEvent( netadr_t from, msg_t *msg ) {
 		return;
 	}
 
-	// wombat: seems sequenced packet gets screwed here in the following call *somewhere* :-/
 	if (!CL_Netchan_Process( &clc.netchan, msg) ) {
 		return;		// out of order, duplicated, etc
 	}

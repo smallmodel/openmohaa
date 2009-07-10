@@ -516,8 +516,10 @@ void SV_ConnectionlessPacket( netadr_t from, msg_t *msg ) {
 	MSG_BeginReadingOOB( msg );
 	MSG_ReadLong( msg );		// skip the -1 marker
 
-	if (!Q_strncmp("connect", (char *) &msg->data[4], 7)) {
-		Huff_Decompress(msg, 12);
+	MSG_ReadByte( msg );		// skip the direction byte
+
+	if (!Q_strncmp("connect", (char *) &msg->data[5], 7)) {
+		Huff_Decompress(msg, 13);
 	}
 
 	s = MSG_ReadStringLine( msg );
