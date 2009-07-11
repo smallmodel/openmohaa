@@ -673,7 +673,7 @@ void CL_ParseCGMessage( msg_t *msg ) {
 
 	do {
 		msgtype = MSG_ReadBits( msg, 6 );
-		Com_DPrintf( "CL_ParseCGMessage: command type %i\n", msgtype ); 
+//Com_DPrintf( "CL_ParseCGMessage: command type %i\n", msgtype ); 
 		switch ( msgtype ) {
 			case 1:
 				vecTmp[0] = MSG_ReadCoord(msg);
@@ -899,7 +899,7 @@ CL_ParseServerMessage
 */
 void CL_ParseServerMessage( msg_t *msg ) {
 	int			cmd;
-	Com_Printf( "ParseServerMessage: %i\n", msg->cursize );
+//Com_Printf( "ParseServerMessage: %i\n", msg->cursize );
 	if ( cl_shownet->integer == 1 ) {
 		Com_Printf ("%i ",msg->cursize);
 	} else if ( cl_shownet->integer >= 2 ) {
@@ -925,7 +925,7 @@ void CL_ParseServerMessage( msg_t *msg ) {
 		}
 
 		cmd = MSG_ReadByte( msg );
-		Com_DPrintf( "CL_ParseServerMessage: cmd %i\n", cmd );
+//		Com_DPrintf( "CL_ParseServerMessage: cmd %i\n", cmd );
 		if ( cmd == svc_EOF) {
 			SHOWNET( msg, "END OF MESSAGE" );
 			break;

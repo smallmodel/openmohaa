@@ -423,7 +423,7 @@ float MSG_ReadCoord( msg_t *msg ) {
 	int		read;
 	float	rtn;
 
-	read = MSG_ReadBits( msg, 24 );
+	read = MSG_ReadBits( msg, 19 );
 	if ( read & 262144 )
 		sign = -1.0f;
 	read &= 4294705151;
@@ -860,16 +860,16 @@ typedef struct {
 
 netField_t	entityStateFields[] = 
 {
-{ NETF(netorigin[0]), 0, 6 },
-{ NETF(netorigin[1]), 0, 6 },
-{ NETF(netangles[1]), 12, 1 },
+{ NETF(origin[0]), 0, 6 },
+{ NETF(origin[1]), 0, 6 },
+{ NETF(angles[1]), 12, 1 },
 { NETF(frameInfo[0].time), 0, 2 },
 { NETF(frameInfo[1].time), 0, 2 },
 { NETF(bone_angles[0][0]), -13, 1 },
 { NETF(bone_angles[3][0]), -13, 1 },
 { NETF(bone_angles[1][0]), -13, 1 },
 { NETF(bone_angles[2][0]), -13, 1 },
-{ NETF(netorigin[2]), 0, 6 },
+{ NETF(origin[2]), 0, 6 },
 { NETF(frameInfo[0].weight), 0, 3 },
 { NETF(frameInfo[1].weight), 0, 3},
 { NETF(frameInfo[2].time), 0, 2 },
@@ -896,8 +896,8 @@ netField_t	entityStateFields[] =
 { NETF(usageIndex), 16, 0 },
 { NETF(eFlags), 16, 0 },
 { NETF(solid), 32, 0 },
-{ NETF(netangles[2]), 12, 1 },
-{ NETF(netangles[0]), 12, 1 },
+{ NETF(angles[2]), 12, 1 },
+{ NETF(angles[0]), 12, 1 },
 { NETF(tag_num), 10, 0 },
 { NETF(bone_angles[1][2]), -13, 1 },
 { NETF(attach_use_angles), 1, 0 },
@@ -914,14 +914,14 @@ netField_t	entityStateFields[] =
 { NETF(bone_angles[0][1]), -13, 1 },
 { NETF(surfaces[4]), 8, 0 },
 { NETF(surfaces[5]), 8, 0 },
-{ NETF(posMOH.trTime), 32, 0 },
+{ NETF(pos.trTime), 32, 0 },
 //{ NETF(pos.trBase[0]), 0, 0 },
 //{ NETF(pos.trBase[1]), 0, 0 },
-{ NETF(posMOH.trDelta[0]), 0, 7 },
-{ NETF(posMOH.trDelta[1]), 0, 7 },
+{ NETF(pos.trDelta[0]), 0, 7 },
+{ NETF(pos.trDelta[1]), 0, 7 },
 //{ NETF(pos.trBase[2]), 0, 0 },
 //{ NETF(apos.trBase[1]), 0, 0 },
-{ NETF(posMOH.trDelta[2]), 0, 7 },
+{ NETF(pos.trDelta[2]), 0, 7 },
 //{ NETF(apos.trBase[0]), 0, 0 },
 { NETF(loopSound), 16, 0 },
 { NETF(loopSoundVolume), 0, 0 },
@@ -1189,58 +1189,57 @@ void MSG_ReadSounds (msg_t *msg, server_sound_t *sounds, int *snapshot_number_of
 
 	int		fubar;
 	int		i;
-
-	if ( MSG_ReadBits( msg, 1 ) ) {
+//Com_DPrintf( "=== MSG_ReadSounds " );
+	if ( MSG_ReadBits(msg, 1) ) {
 		fubar = MSG_ReadBits( msg, 7 );
+//Com_DPrintf( "%i entries ", fubar );
 		if ( fubar <= 64 ) {
-
 			*snapshot_number_of_sounds = fubar;
-			if (fubar){
-				for (i=0; i<fubar; i++ ) {
-					if ( MSG_ReadBits( msg, 1 ) ) {
-						sounds[i].stop_flag = 0;
-						sounds[i].streamed = MSG_ReadBits( msg, 1 );
-						if ( MSG_ReadBits( msg, 1 ) == 1 ) {
-							sounds[i].origin[0] = MSG_ReadFloat( msg );
-							sounds[i].origin[1] = MSG_ReadFloat( msg );
-							sounds[i].origin[2] = MSG_ReadFloat( msg );
-						} else {
-							sounds[i].origin[0] = 0;
-							sounds[i].origin[2] = 0;
-							sounds[i].origin[3] = 0;
-						}
-						sounds[i].entity_number = MSG_ReadBits(msg, 11 );
-						sounds[i].channel = MSG_ReadBits(msg, 7 );
-						sounds[i].sound_index = MSG_ReadBits(msg, 9 );
-
-						if ( MSG_ReadBits( msg, 1 ) == 1 ) {
-							sounds[i].volume = MSG_ReadFloat( msg );
-						} else {
-							sounds[i].volume = -1.0f;
-						}
-
-						if ( MSG_ReadBits( msg, 1 ) == 1 ) {
-							sounds[i].min_dist = MSG_ReadFloat( msg );
-						} else {
-							sounds[i].min_dist = -1.0f;
-						}
-
-						if ( MSG_ReadBits( msg, 1 ) == 1 ) {
-							sounds[i].pitch = MSG_ReadFloat( msg );
-						} else {
-							sounds[i].pitch = 1.0f;
-						}
-
-						sounds[i].maxDist = MSG_ReadFloat( msg );
+			for (i=0; i<fubar; i++ ) {
+				if ( MSG_ReadBits(msg, 1) == 1 ) {
+					sounds[i].entity_number = MSG_ReadBits(msg, 10 );
+					sounds[i].channel = MSG_ReadBits(msg, 7 );
+				} else {
+					sounds[i].stop_flag = 0;
+					sounds[i].streamed = MSG_ReadBits( msg, 1 );
+					if ( MSG_ReadBits(msg, 1) == 1 ) {
+						sounds[i].origin[0] = MSG_ReadFloat( msg );
+						sounds[i].origin[1] = MSG_ReadFloat( msg );
+						sounds[i].origin[2] = MSG_ReadFloat( msg );
 					} else {
-						sounds[i].entity_number = MSG_ReadBits(msg, 10 );
-						sounds[i].channel = MSG_ReadBits(msg, 7 );
+						sounds[i].origin[0] = 0;
+						sounds[i].origin[2] = 0;
+						sounds[i].origin[3] = 0;
 					}
-				}
-			} else return;
+					sounds[i].entity_number = MSG_ReadBits(msg, 11 );
+					sounds[i].channel = MSG_ReadBits(msg, 7 );
+					sounds[i].sound_index = MSG_ReadBits(msg, 9 );
 
-		} else return;
-	} else return;
+					if ( MSG_ReadBits(msg, 1) == 1 ) {
+						sounds[i].volume = MSG_ReadFloat( msg );
+					} else {
+						sounds[i].volume = -1.0f;
+					}
+
+					if ( MSG_ReadBits(msg, 1) == 1 ) {
+						sounds[i].min_dist = MSG_ReadFloat( msg );
+					} else {
+						sounds[i].min_dist = -1.0f;
+					}
+
+					if ( MSG_ReadBits( msg, 1 ) == 1 ) {
+						sounds[i].pitch = MSG_ReadFloat( msg );
+					} else {
+						sounds[i].pitch = 1.0f;
+					}
+
+					sounds[i].maxDist = MSG_ReadFloat( msg );
+				}
+			}
+
+		}
+	}
+//Com_DPrintf( "\n" );
 }
 
 /*
