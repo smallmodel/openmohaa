@@ -697,6 +697,34 @@ qboolean	BG_CanItemBeGrabbed( int gametype, const entityState_t *ent, const play
 // entityState_t->eType
 //
 typedef enum {
+	ET_MODELANIM_SKEL,
+	ET_MODELANIM,
+	ET_VEHICLE,
+	ET_PLAYER,
+	ET_ITEM,
+	ET_GENERAL,
+	ET_MISSILE,
+	ET_MOVER,
+	ET_BEAM,
+	ET_MULTIBEAM,
+	ET_PORTAL,
+	ET_EVENT_ONLY,
+	ET_RAIN,
+	ET_LEAF,
+	ET_SPEAKER,
+	ET_PUSH_TRIGGER,
+	ET_TELEPORT_TRIGGER,
+	ET_DECAL,
+	ET_EMITTER,
+	ET_ROPE,
+	ET_EVENTS,
+	ET_EXEC_COMMANDS
+} entityType_t;
+// dummy defs, we dont have these kind of entities available but they would give errors in fgame when deleted
+#define	ET_INVISIBLE	101
+#define	ET_GRAPPLE		102
+#define	ET_TEAM			103
+/*typedef enum {
 	ET_GENERAL,
 	ET_PLAYER,
 	ET_ITEM,
@@ -714,7 +742,7 @@ typedef enum {
 	ET_EVENTS				// any of the EV_* events can be added freestanding
 							// by setting eType to ET_EVENTS + eventNum
 							// this avoids having to set eFlags and eventNum
-} entityType_t;
+} entityType_t;*/
 
 
 

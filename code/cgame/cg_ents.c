@@ -231,7 +231,8 @@ static void CG_Item( centity_t *cent ) {
 	float			frac;
 	float			scale;
 	weaponInfo_t	*wi;
-
+// wombat: this is a TODO...
+return;
 	es = &cent->currentState;
 	if ( es->modelindex >= bg_numItems ) {
 		CG_Error( "Bad item index %i on entity", es->modelindex );
@@ -945,7 +946,19 @@ static void CG_AddCEntity( centity_t *cent ) {
 	default:
 		CG_Error( "Bad entity type: %i\n", cent->currentState.eType );
 		break;
-	case ET_INVISIBLE:
+	case ET_MODELANIM_SKEL:
+	case ET_MODELANIM:
+	case ET_VEHICLE:
+	case ET_MULTIBEAM:
+	case ET_EVENT_ONLY:
+	case ET_RAIN:
+	case ET_LEAF:
+	case ET_DECAL:
+	case ET_EMITTER:
+	case ET_ROPE:
+	case ET_EVENTS:
+	case ET_EXEC_COMMANDS:
+//	case ET_INVISIBLE:
 	case ET_PUSH_TRIGGER:
 	case ET_TELEPORT_TRIGGER:
 		break;
@@ -973,12 +986,12 @@ static void CG_AddCEntity( centity_t *cent ) {
 	case ET_SPEAKER:
 		CG_Speaker( cent );
 		break;
-	case ET_GRAPPLE:
+/*	case ET_GRAPPLE:
 		CG_Grapple( cent );
 		break;
 	case ET_TEAM:
 		CG_TeamBase( cent );
-		break;
+		break;*/
 	}
 }
 

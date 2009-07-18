@@ -3272,7 +3272,7 @@ void CL_LocalServers_f( void ) {
 	}
 }
 
-// wombat:
+// wombat: this Gamespy stuff must be revised as soon as we actually need it...
 /*
 ==================
 CL_GlobalServers_f

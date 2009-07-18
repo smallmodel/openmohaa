@@ -675,12 +675,12 @@ void CL_ParseCGMessage( msg_t *msg ) {
 		msgtype = MSG_ReadBits( msg, 6 );
 //Com_DPrintf( "CL_ParseCGMessage: command type %i\n", msgtype ); 
 		switch ( msgtype ) {
-			case 1:
+			case 1: // BulletTracer (visible?)
 				vecTmp[0] = MSG_ReadCoord(msg);
 				vecTmp[1] = MSG_ReadCoord(msg);
 				vecTmp[2] = MSG_ReadCoord(msg);
-			case 2:
-			case 5:
+			case 2: // BulletTracer (invisible?)
+			case 5: // BubbleTrail
 				vecStart[0] = MSG_ReadCoord(msg);
 				vecStart[1] = MSG_ReadCoord(msg);
 				vecStart[2] = MSG_ReadCoord(msg);
@@ -695,16 +695,14 @@ void CL_ParseCGMessage( msg_t *msg ) {
 
 				iLarge = MSG_ReadBits( msg, 1 );
 				break;
-			case 3:
-			case 4:
-				if ( msgtype == 3 )
+			case 3: // BulletTracer multiple times
+				vecTmp[0] = MSG_ReadCoord(msg);
+				vecTmp[1] = MSG_ReadCoord(msg);
+				vecTmp[2] = MSG_ReadCoord(msg);
+				iTemp = MSG_ReadBits( msg, 6 );
+			case 4: // BulletTracer multiple times
+				if ( msgtype == 4 )
 					iTemp = 0;
-				else {
-					vecTmp[0] = MSG_ReadCoord(msg);
-					vecTmp[1] = MSG_ReadCoord(msg);
-					vecTmp[2] = MSG_ReadCoord(msg);
-					iTemp = MSG_ReadBits( msg, 6 );
-				}
 				vecStart[0] = MSG_ReadCoord(msg);
 				vecStart[1] = MSG_ReadCoord(msg);
 				vecStart[2] = MSG_ReadCoord(msg);
@@ -721,11 +719,11 @@ void CL_ParseCGMessage( msg_t *msg ) {
 					vecArray[i][2] = MSG_ReadCoord(msg);
 				}
 				break;
-			case 6:
-			case 7:
-			case 8:
-			case 9:
-			case 10:
+			case 6: // wall impact
+			case 7: // flesh impact
+			case 8: // flesh impact (?)
+			case 9: // wall impact (?)
+			case 10: // wall impact (?)
 				vecStart[0] = MSG_ReadCoord(msg);
 				vecStart[1] = MSG_ReadCoord(msg);
 				vecStart[2] = MSG_ReadCoord(msg);
@@ -765,7 +763,7 @@ void CL_ParseCGMessage( msg_t *msg ) {
 			default: //unknown message
 				Com_Error(ERR_DROP, "CL_ParseCGMessage: Unknown CG Message %i", msgtype);
 				break;
-			case 15:
+			case 15: // MakeEffect
 			case 16:
 			case 17:
 			case 18:
@@ -786,7 +784,7 @@ void CL_ParseCGMessage( msg_t *msg ) {
 				MSG_ReadByte( msg );
 				//something with debris of crates or windows *sigh*
 				break;
-			case 25:
+			case 25: // Bullet tracer
 				vecTmp[0] = MSG_ReadCoord(msg);
 				vecTmp[1] = MSG_ReadCoord(msg);
 				vecTmp[2] = MSG_ReadCoord(msg);
@@ -800,7 +798,7 @@ void CL_ParseCGMessage( msg_t *msg ) {
 
 				iLarge = MSG_ReadBits( msg, 1 );
 				break;
-			case 26:
+			case 26: // Bullet tracer
 				vecTmp[0] = 0;
 				vecTmp[1] = 0;
 				vecTmp[2] = 0;
@@ -846,7 +844,7 @@ void CL_ParseCGMessage( msg_t *msg ) {
 				iCount = MSG_ReadByte( msg );
 				i = MSG_ReadByte( msg );
 				break;
-			case 33:
+			case 33: // some string
 				iCount = MSG_ReadByte( msg );
 				Q_strncpyz( strBuffer, MSG_ReadString( msg ), 512 );
 				break;

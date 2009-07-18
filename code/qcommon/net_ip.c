@@ -496,6 +496,7 @@ int	NET_ReceiveMasterResponse( char *buffer, int size ) {
 	fd_set readfds;
 	qboolean final=0;
 	int bufPtr=0;
+	int count=0;
 
 	memset( buffer, 0, size );
 
@@ -505,15 +506,18 @@ int	NET_ReceiveMasterResponse( char *buffer, int size ) {
 	while ( !final ) {
 		int recvdNum;
 
-		// ok i know this is not nice, but it's GS !!
-
-		Sleep( 10 );
-
 		FD_ZERO(&readfds);
 		FD_SET( tcpsock, &readfds );
+		timeout.tv_sec = 0;
+		timeout.tv_usec = 50000;
 		if (!select( tcpsock+1, &readfds, NULL, NULL, &timeout )) {
 			//close( tcpsock );
 			//Com_DPrintf( "GS: select...\n" );
+			count++;
+			if ( count == 100 ){
+				Com_DPrintf( "No GS Master Response after 5 seconds\n" );
+				break;
+			}
 			continue;
 		}
 
