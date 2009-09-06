@@ -127,6 +127,9 @@ typedef struct client_s {
 	int				challenge;
 
 	usercmd_t		lastUsercmd;
+
+	usereyes_t lastEyeinfo;
+
 	int				lastMessageNum;		// for delta compression
 	int				lastClientCommand;	// reliable client message sequence
 	char			lastClientCommandString[MAX_STRING_CHARS];
@@ -169,6 +172,13 @@ typedef struct client_s {
 
 	int				oldServerTime;
 	qboolean			csUpdated[MAX_CONFIGSTRINGS+1];	
+
+  server_sound_t server_sounds[64];
+  int number_of_server_sounds;
+  qboolean locprint;
+  int XOffset;
+  int YOffset;
+  char centerprint[256];
 } client_t;
 
 //=============================================================================

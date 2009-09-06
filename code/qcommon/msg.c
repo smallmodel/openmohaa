@@ -286,6 +286,10 @@ void MSG_WriteShort( msg_t *sb, int c ) {
 	MSG_WriteBits( sb, c, 16 );
 }
 
+void MSG_WriteSVC( msg_t *sb, int c ) {
+	MSG_WriteBits( sb, c, 8 );
+}
+
 void MSG_WriteLong( msg_t *sb, int c ) {
 	MSG_WriteBits( sb, c, 32 );
 }
@@ -1080,6 +1084,8 @@ void MSG_WriteDeltaEntity( msg_t *msg, struct entityState_s *from, struct entity
 	int			trunc;
 	float		fullFloat;
 	int			*fromF, *toF;
+	float tmp;
+	int bits;
 
 	numFields = sizeof(entityStateFields)/sizeof(entityStateFields[0]);
 
@@ -1144,36 +1150,134 @@ void MSG_WriteDeltaEntity( msg_t *msg, struct entityState_s *from, struct entity
 
 		MSG_WriteBits( msg, 1, 1 );	// changed
 
-		if ( field->bits == 0 ) {
-			// float
-			fullFloat = *(float *)toF;
-			trunc = (int)fullFloat;
+		switch ( field->type ) {
+			case 0: // normal style
+			if ( field->bits == 0 ) {
+				// float
+				fullFloat = *(float *)toF;
+				trunc = (int)fullFloat;
 
-			if (fullFloat == 0.0f) {
-					MSG_WriteBits( msg, 0, 1 );
-					oldsize += FLOAT_INT_BITS;
-			} else {
-				MSG_WriteBits( msg, 1, 1 );
-				if ( trunc == fullFloat && trunc + FLOAT_INT_BIAS >= 0 && 
-					trunc + FLOAT_INT_BIAS < ( 1 << FLOAT_INT_BITS ) ) {
-					// send as small integer
-					MSG_WriteBits( msg, 0, 1 );
-					MSG_WriteBits( msg, trunc + FLOAT_INT_BIAS, FLOAT_INT_BITS );
+				if (fullFloat == 0.0f) {
+						MSG_WriteBits( msg, 0, 1 );
+						oldsize += FLOAT_INT_BITS;
 				} else {
-					// send as full floating point value
 					MSG_WriteBits( msg, 1, 1 );
-					MSG_WriteBits( msg, *toF, 32 );
+					if ( trunc == fullFloat && trunc + FLOAT_INT_BIAS >= 0 && 
+						trunc + FLOAT_INT_BIAS < ( 1 << FLOAT_INT_BITS ) ) {
+						// send as small integer
+						MSG_WriteBits( msg, 0, 1 );
+						MSG_WriteBits( msg, trunc + FLOAT_INT_BIAS, FLOAT_INT_BITS );
+					} else {
+						// send as full floating point value
+						MSG_WriteBits( msg, 1, 1 );
+						MSG_WriteBits( msg, *toF, 32 );
+					}
+				}
+			} else {
+				if (*toF == 0) {
+					MSG_WriteBits( msg, 0, 1 );
+				} else {
+					MSG_WriteBits( msg, 1, 1 );
+					// integer
+					MSG_WriteBits( msg, *toF, field->bits );
 				}
 			}
-		} else {
-			if (*toF == 0) {
-				MSG_WriteBits( msg, 0, 1 );
-			} else {
-				MSG_WriteBits( msg, 1, 1 );
-				// integer
-				MSG_WriteBits( msg, *toF, field->bits );
-			}
+			break;
+			case 1: // angles, what a mess! it wouldnt surprise me if something goes wrong here ;)
+				tmp = *(float *)to;
+				if ( field->bits < 0 ) {
+					if ( tmp < 0.0f ) {
+						MSG_WriteBits( msg, 1, 1 );
+						tmp = -tmp;
+					}
+					else {
+						MSG_WriteBits( msg, 0, 1 );
+					}
+					bits = ~field->bits;
+				}
+				else bits = field->bits;
+
+				if ( bits == 12 ) {
+					tmp = tmp * 4096.0f / 360.0f;
+					MSG_WriteBits( msg, ((int)tmp) & 4095, 12 );
+				}
+				else if ( bits == 8 ) {
+					tmp = tmp * 256.0f / 360.0f;
+					MSG_WriteBits( msg, ((int)tmp) & 255, 8 );
+				}
+				else if ( bits == 16 ) {
+					tmp = tmp * 65536.0f / 360.0f;
+					MSG_WriteBits( msg, ((int)tmp) & 65535, 16 );
+				}
+				else {
+					tmp = tmp * (1<<(byte)bits) / 360.0f;
+					MSG_WriteBits( msg, ((int)tmp) & ((1<<(byte)bits) -1), bits );
+				}
+				break;
+			case 2: // time
+				tmp = *(float *)to;
+				bits = tmp * 100.0f;
+				if ( bits < 0 )
+					bits = 0;
+				else if ( bits > 32767 )
+					bits = 32767;
+				MSG_WriteBits( msg, bits, 15 );
+				break;
+			case 3: // nasty!
+				tmp = *(float *)to;
+
+				bits = (tmp * 255.0f) + 0.5f;
+				if ( bits < 0 )
+					bits = 0;
+				else if ( bits > 255 )
+					bits = 255;
+				MSG_WriteBits( msg, bits, 8 );
+				break;
+			case 4:
+				tmp = *(float *)to;
+				bits = tmp * 100.0f;
+				if ( bits < 0 )
+					bits = 0;
+				else if ( bits > 1023 )
+					bits = 1023;
+				MSG_WriteBits( msg, bits, 10 );
+				break;
+			case 5:
+				tmp = *(float *)to;
+
+				bits = (tmp * 255.0f) + 0.5f;
+				if ( bits < 0 )
+					bits = 0;
+				else if ( bits > 255 )
+					bits = 255;
+				MSG_WriteBits( msg, bits, 8 );
+				break;
+			case 6:
+				tmp = *(float *)to;
+
+				bits = tmp * 16.0f;
+				if ( tmp < 0 )
+					bits = ((-bits) & 262143) | 262144;
+				else
+					bits = bits & 262143;
+				MSG_WriteBits( msg, bits, 19 );
+				break;
+			case 7:
+				tmp = *(float *)to;
+
+				bits = tmp * 8.0f;
+				if ( tmp < 0 )
+					bits = ((-bits) & 65535) | 65536;
+				else
+					bits = bits & 65535;
+				MSG_WriteBits( msg, bits, 17 );
+				break;
+			default:
+				Com_Error( ERR_DROP, "MSG_WriteDeltaEntity: unrecognized entity field type %i for field %i\n", field->bits, i );
+				break;
 		}
+
+
 	}
 }
 
@@ -1189,10 +1293,10 @@ void MSG_ReadSounds (msg_t *msg, server_sound_t *sounds, int *snapshot_number_of
 
 	int		fubar;
 	int		i;
-//Com_DPrintf( "=== MSG_ReadSounds " );
+
 	if ( MSG_ReadBits(msg, 1) ) {
 		fubar = MSG_ReadBits( msg, 7 );
-//Com_DPrintf( "%i entries ", fubar );
+
 		if ( fubar <= 64 ) {
 			*snapshot_number_of_sounds = fubar;
 			for (i=0; i<fubar; i++ ) {
@@ -1230,7 +1334,8 @@ void MSG_ReadSounds (msg_t *msg, server_sound_t *sounds, int *snapshot_number_of
 					if ( MSG_ReadBits( msg, 1 ) == 1 ) {
 						sounds[i].pitch = MSG_ReadFloat( msg );
 					} else {
-						sounds[i].pitch = 1.0f;
+						sounds[i].pitch = -1.0f; // here might be a BUG, since in MSG_WriteSounds
+						// the corresponding constant is +1.0f. if i didnt make a mistake
 					}
 
 					sounds[i].maxDist = MSG_ReadFloat( msg );
@@ -1239,7 +1344,88 @@ void MSG_ReadSounds (msg_t *msg, server_sound_t *sounds, int *snapshot_number_of
 
 		}
 	}
-//Com_DPrintf( "\n" );
+}
+
+/*
+==================
+MSG_WriteSounds
+
+read the sounds from the snapshot...
+1:1 translated from assembly code
+==================
+*/
+void MSG_WriteSounds (msg_t *msg, server_sound_t *sounds, int snapshot_number_of_sounds) {
+
+	int		i;
+
+	if ( !snapshot_number_of_sounds ) {
+		MSG_WriteBits( msg, 0, 1 );
+	}
+	else {
+		MSG_WriteBits( msg, 1, 1 );
+		MSG_WriteBits( msg, snapshot_number_of_sounds, 7 );
+
+		for ( i=0; i < snapshot_number_of_sounds; i++ ) {
+			if (!sounds[i].stop_flag) {
+				MSG_WriteBits( msg, 0, 1 );
+				MSG_WriteBits( msg, sounds[i].streamed, 1 );
+
+				if ( sounds[i].origin[0] == 0.0f && sounds[i].origin[1] == 0.0f && sounds[i].origin[2] == 0.0f )
+					MSG_WriteBits( msg, 0, 1 );
+				else {
+					MSG_WriteBits( msg, 1, 1 );
+					MSG_WriteFloat( msg, sounds[i].origin[0] );
+					MSG_WriteFloat( msg, sounds[i].origin[1] );
+					MSG_WriteFloat( msg, sounds[i].origin[2] );
+				}
+				MSG_WriteBits( msg, sounds[i].entity_number, 11 );
+				MSG_WriteBits( msg, sounds[i].channel, 7 );
+				MSG_WriteBits( msg, sounds[i].sound_index, 9 );
+
+				if ( -1.0f >= sounds[i].volume ){ //volume ranges from -1.0 to -infty??
+					MSG_WriteBits( msg, 1, 1 );
+					MSG_WriteFloat( msg, sounds[i].volume );
+				} else MSG_WriteBits( msg, 0, 1 );
+
+				if ( -1.0f >= sounds[i].min_dist ){
+					MSG_WriteBits( msg, 1, 1 );
+					MSG_WriteFloat( msg, sounds[i].min_dist );
+				} else MSG_WriteBits( msg, 0, 1 );
+
+				if ( -1.0f >= sounds[i].pitch ){
+					MSG_WriteBits( msg, 1, 1 );
+					MSG_WriteFloat( msg, sounds[i].min_dist );
+				} else MSG_WriteBits( msg, 0, 1 );
+
+				MSG_WriteFloat( msg, sounds[i].maxDist );
+			}
+			else {
+				MSG_WriteBits( msg, 1, 1 );
+				MSG_WriteBits( msg, sounds[i].entity_number, 10 );
+				MSG_WriteBits( msg, sounds[i].channel, 7 );
+			}
+		}
+	}
+}
+
+void MSG_ReadDeltaEyeInfo(msg_t *msg, usereyes_t *from, usereyes_t *to) {
+
+	if ( MSG_ReadBits( msg, 1 ) ) {
+		to->ofs[0] = MSG_ReadDelta( msg, from->ofs[0], 8 );
+		to->ofs[1] = MSG_ReadDelta( msg, from->ofs[1], 8 );
+		to->ofs[2] = MSG_ReadDelta( msg, from->ofs[2], 8 );
+
+		to->angles[0] = MSG_ReadDeltaFloat( msg, from->angles[0] );
+		to->angles[1] = MSG_ReadDeltaFloat( msg, from->angles[1] );
+	} else {
+		to->angles[0] = from->angles[0];
+		to->angles[1] = from->angles[1];
+
+		to->ofs[0] = from->ofs[0];
+		to->ofs[1] = from->ofs[1];
+		to->ofs[2] = from->ofs[2];
+	}
+
 }
 
 /*
@@ -1309,18 +1495,14 @@ void MSG_ReadDeltaEntity( msg_t *msg, entityState_t *from, entityState_t *to,
 	}
 
 	to->number = number;
-//Com_DPrintf( "===\nMSG_ReadDeltaEnt: entnum %i, count %i\n===\n", number, lc );
+
 	for ( i = 0, field = entityStateFields ; i < lc ; i++, field++ ) {
 		fromF = (int *)( (byte *)from + field->offset );
 		toF = (int *)( (byte *)to + field->offset );
-//Com_DPrintf( "field %s\n", field->name );
 		if ( ! MSG_ReadBits( msg, 1 ) ) {
 			// no change
 			*toF = *fromF;
-//Com_DPrintf( "NO CHANGE " );
-//Com_DPrintf( "value int %i, float %f\n", *toF, *(float *)toF );
 		} else {
-//Com_DPrintf( "type %i, ", field->type );
 			switch (field->type) {
 				case 0:
 					if ( field->bits == 0 ) {
@@ -1362,16 +1544,16 @@ void MSG_ReadDeltaEntity( msg_t *msg, entityState_t *from, entityState_t *to,
 					if ( field->bits < 0 ) {
 						if ( MSG_ReadBits( msg, 1 ) )
 							tmp = -1.0f;
-						bits = - field->bits -1;
+						bits = ~field->bits;
 					}
 					else bits = field->bits;
 
 					result = MSG_ReadBits( msg, bits );
-					if ( field->bits == 12 )
+					if ( bits == 12 )
 						*(float *)toF = result * 0.087890625f * tmp;
-					else if ( field->bits == 8 )
+					else if ( bits == 8 )
 						*(float *)toF = result * 1.411764705882353f * tmp;
-					else if ( field->bits == 16 )
+					else if ( bits == 16 )
 						*(float *)toF = result * 0.0054931640625f * tmp;
 					else
 						*(float *)toF = result * (1 << bits) * tmp / 360.0f;
@@ -1381,11 +1563,12 @@ void MSG_ReadDeltaEntity( msg_t *msg, entityState_t *from, entityState_t *to,
 					break;
 				case 3: // nasty!
 					tmp = MSG_ReadBits( msg, 8 ) / 255.0f;
-					if ( !(tmp > 0.0f) )
+					if ( tmp < 0.0f )
 						*(float *)toF = 0.0f;
-					else if ( tmp >= 1.0f )
-						*(float *)toF = 0.0f;
-					*(float *)toF = tmp;
+					else if ( tmp > 1.0f )
+						*(float *)toF = 1.0f;
+					else
+						*(float *)toF = tmp;
 					// FPU instructions yay
 					break;
 				case 4:
@@ -1393,11 +1576,12 @@ void MSG_ReadDeltaEntity( msg_t *msg, entityState_t *from, entityState_t *to,
 					break;
 				case 5:
 					tmp = MSG_ReadBits( msg, 8 ) / 255.0f;
-					if ( !(tmp > 0.0f) )
+					if ( tmp < 0.0f )
 						*(float *)toF = 0.0f;
-					else if ( tmp >= 1.0f )
-						*(float *)toF = 0.0f;
-					*(float *)toF = tmp;
+					else if ( tmp > 1.0f )
+						*(float *)toF = 1.0f;
+					else
+						*(float *)toF = tmp;
 					break;
 				case 6:
 					tmp = 1.0f;
@@ -1419,7 +1603,7 @@ void MSG_ReadDeltaEntity( msg_t *msg, entityState_t *from, entityState_t *to,
 					Com_Error( ERR_DROP, "MSG_ReadDeltaEntity: unrecognized entity field type %i for field\n", i );
 					break;
 			}
-//Com_DPrintf( "value int %i, float %f\n", *toF, *(float *)toF );
+
 //			pcount[i]++;
 		}
 	}
@@ -1580,6 +1764,7 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, struct playerState_s *from, struct p
 	int				*fromF, *toF;
 	float			fullFloat;
 	int				trunc, lc;
+	int bits;
 
 	if (!from) {
 		from = &dummy;
@@ -1615,24 +1800,88 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, struct playerState_s *from, struct p
 		MSG_WriteBits( msg, 1, 1 );	// changed
 //		pcount[i]++;
 
-		if ( field->bits == 0 ) {
-			// float
-			fullFloat = *(float *)toF;
-			trunc = (int)fullFloat;
+		switch ( field->type ) {
+			case 0:
+				if ( field->bits == 0 ) {
+					// float
+					fullFloat = *(float *)toF;
+					trunc = (int)fullFloat;
 
-			if ( trunc == fullFloat && trunc + FLOAT_INT_BIAS >= 0 && 
-				trunc + FLOAT_INT_BIAS < ( 1 << FLOAT_INT_BITS ) ) {
-				// send as small integer
-				MSG_WriteBits( msg, 0, 1 );
-				MSG_WriteBits( msg, trunc + FLOAT_INT_BIAS, FLOAT_INT_BITS );
-			} else {
-				// send as full floating point value
-				MSG_WriteBits( msg, 1, 1 );
-				MSG_WriteBits( msg, *toF, 32 );
-			}
-		} else {
-			// integer
-			MSG_WriteBits( msg, *toF, field->bits );
+					if ( trunc == fullFloat && trunc + FLOAT_INT_BIAS >= 0 && 
+						trunc + FLOAT_INT_BIAS < ( 1 << FLOAT_INT_BITS ) ) {
+						// send as small integer
+						MSG_WriteBits( msg, 0, 1 );
+						MSG_WriteBits( msg, trunc + FLOAT_INT_BIAS, FLOAT_INT_BITS );
+					} else {
+						// send as full floating point value
+						MSG_WriteBits( msg, 1, 1 );
+						MSG_WriteBits( msg, *toF, 32 );
+					}
+				} else {
+					// integer
+					MSG_WriteBits( msg, *toF, field->bits );
+				}
+				break;
+			case 1:
+				fullFloat = *(float *)toF;
+				if ( field->bits < 0 ) {
+					if ( 0.0f > fullFloat ) {
+						MSG_WriteBits( msg, 1, 1 );
+						fullFloat = - fullFloat;
+					}
+					else {
+						MSG_WriteBits( msg, 0, 1 );
+					}
+
+					bits = ~field->bits;
+				} else bits = field->bits;
+				if ( bits == 12 ) {
+					fullFloat = fullFloat * 4096.0f / 360.0f;
+					trunc = (int)fullFloat & 4095;
+					MSG_WriteBits( msg, trunc, 12 );
+				}
+				else if ( bits == 16 ) {
+					fullFloat = fullFloat * 65536.0f / 360.0f;
+					trunc = (int)fullFloat & 65535;
+					MSG_WriteBits( msg, trunc, 16 );
+				}
+				else if ( bits == 8 ) {
+					fullFloat = fullFloat * 256.0f / 360.0f;
+					trunc = (int)fullFloat & 255;
+					MSG_WriteBits( msg, trunc, 8 );
+				}
+				else {
+					fullFloat = fullFloat * (1<<bits) / 360.0f;
+					trunc = (int)fullFloat & ((1<<bits)-1);
+					MSG_WriteBits( msg, trunc, bits );
+				}
+				break;
+			case 6:
+				fullFloat = *(float *)toF;
+				fullFloat = fullFloat * 16.0f;
+				trunc = fullFloat;
+
+				if ( 0.0f > fullFloat )
+					trunc = ((-trunc)&262143)|262144;
+				else
+					trunc = trunc & 262143;
+
+				MSG_WriteBits( msg, trunc, 19 );
+				break;
+			case 7:
+				fullFloat = *(float *)toF;
+				fullFloat = fullFloat * 8.0f;
+				trunc = fullFloat;
+
+				if ( 0.0f > fullFloat )
+					trunc = ((-trunc)&65535)|65536;
+				else
+					trunc = trunc & 65535;
+
+				MSG_WriteBits( msg, trunc, 17 );
+				break;
+			default:
+					break;
 		}
 	}
 	c = msg->cursize - c;

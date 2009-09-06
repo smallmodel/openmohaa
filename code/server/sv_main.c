@@ -404,6 +404,7 @@ void SVC_Info( netadr_t from ) {
 	Info_SetValueForKey( infostring, "sv_maxclients", 
 		va("%i", sv_maxclients->integer - sv_privateClients->integer ) );
 	Info_SetValueForKey( infostring, "gametype", va("%i", sv_gametype->integer ) );
+	Info_SetValueForKey( infostring, "gametypestring", "OPENMOHAA" );
 	Info_SetValueForKey( infostring, "pure", va("%i", sv_pure->integer ) );
 
 	if( sv_minPing->integer ) {

@@ -71,6 +71,9 @@ void MSG_WriteBits( msg_t *msg, int value, int bits );
 void MSG_WriteChar (msg_t *sb, int c);
 void MSG_WriteByte (msg_t *sb, int c);
 void MSG_WriteShort (msg_t *sb, int c);
+
+void MSG_WriteSVC( msg_t *sb, int c );
+
 void MSG_WriteLong (msg_t *sb, int c);
 void MSG_WriteFloat (msg_t *sb, float f);
 void MSG_WriteString (msg_t *sb, const char *s);
@@ -109,6 +112,9 @@ void MSG_WriteDeltaEntity( msg_t *msg, struct entityState_s *from, struct entity
 						   , qboolean force );
 
 void MSG_ReadSounds (msg_t *msg, server_sound_t *sounds, int *snapshot_number_of_sounds);
+void MSG_WriteSounds (msg_t *msg, server_sound_t *sounds, int snapshot_number_of_sounds);
+
+void MSG_ReadDeltaEyeInfo(msg_t *msg, usereyes_t *from, usereyes_t *to);
 
 void MSG_ReadDeltaEntity( msg_t *msg, entityState_t *from, entityState_t *to, 
 						 int number );
@@ -139,7 +145,7 @@ NET
 
 #define	PORT_ANY			-1
 
-#define	MAX_RELIABLE_COMMANDS	64			// max string commands buffered for restransmit
+#define	MAX_RELIABLE_COMMANDS	512			// max string commands buffered for restransmit
 
 typedef enum {
 	NA_BOT,

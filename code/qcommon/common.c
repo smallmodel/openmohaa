@@ -36,10 +36,13 @@ int demo_protocols[] =
 
 #define MAX_NUM_ARGVS	50
 
-#define MIN_DEDICATED_COMHUNKMEGS 1
-#define MIN_COMHUNKMEGS		56
-#define DEF_COMHUNKMEGS		64
-#define DEF_COMZONEMEGS		24
+//wombat: i had to increase these quite a bit
+//to keep up with larger client_t.
+//i reckon this has bad effect on memory usage
+#define MIN_DEDICATED_COMHUNKMEGS 128
+#define MIN_COMHUNKMEGS		128
+#define DEF_COMHUNKMEGS		128
+#define DEF_COMZONEMEGS		96
 #define XSTRING(x)				STRING(x)
 #define STRING(x)					#x
 #define DEF_COMHUNKMEGS_S	XSTRING(DEF_COMHUNKMEGS)

@@ -46,8 +46,12 @@ DLL file at http://www.libsdl.org/
 Now run openmohaa with start parameters:
 +set sv_pure 0 +set vm_cgame 0 +set vm_game 0 +set vm_ui 0 +developer 1
 
-Open up the console and type for example map dm/mohdm1 and run around it.
-There's not much more you can do there yet. Enjoy!
+The best way for testing is starting a dedicated server with the
+original MOHAA binaries and joining the game with the openmohaa client.
+The network code has been adopted from MOHAA to ensure compatibility,
+but it only works for the client until now.
+The openmohaa server netcode is not yet finished, but even if it works
+the original MOHAA server will be the better choice until fgame code is done.
 
 Developing
 =======================

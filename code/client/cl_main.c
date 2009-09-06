@@ -1977,7 +1977,7 @@ void CL_ConnectionlessPacket( netadr_t from, msg_t *msg ) {
 
 	MSG_ReadByte( msg ); // wombat: skip the direction byte
 
-	s = MSG_ReadString( msg );
+	s = MSG_ReadStringLine( msg );
 
 	Cmd_TokenizeString( s );
 
@@ -3256,7 +3256,7 @@ void CL_LocalServers_f( void ) {
 	// The 'xxx' in the message is a challenge that will be echoed back
 	// by the server.  We don't care about that here, but master servers
 	// can use that to prevent spoofed server responses from invalid ip
-	message = "\377\377\377\377getinfo xxx";
+	message = "\377\377\377\377\x02getinfo xxx";
 
 	// send each message twice in case one is dropped
 	for ( i = 0 ; i < 2 ; i++ ) {

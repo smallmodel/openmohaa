@@ -152,7 +152,7 @@ static void SV_WriteSnapshotToClient( client_t *client, msg_t *msg ) {
 		}
 	}
 
-	MSG_WriteByte (msg, svc_snapshot);
+	MSG_WriteSVC(msg, svc_snapshot);
 
 	// NOTE, MRE: now sent at the start of every message from server to client
 	// let the client know which reliable clientCommands we have received
@@ -169,8 +169,14 @@ static void SV_WriteSnapshotToClient( client_t *client, msg_t *msg ) {
 		// the time it doesn't really matter.
 		MSG_WriteLong (msg, sv.time + client->oldServerTime);
 	} else {
+		// WOMBAT: note that MOHAA always goes into this else.
+		// therefore we are deviating from the MOHAA protocol but i don't think this is a problem
 		MSG_WriteLong (msg, sv.time);
 	}
+
+	if ( sv.timeResidual > 254 )
+		MSG_WriteByte( msg, 255 );
+	else MSG_WriteByte( msg, sv.timeResidual );
 
 	// what we are delta'ing from
 	MSG_WriteByte (msg, lastframe);
@@ -186,8 +192,13 @@ static void SV_WriteSnapshotToClient( client_t *client, msg_t *msg ) {
 	MSG_WriteByte (msg, snapFlags);
 
 	// send over the areabits
-	MSG_WriteByte (msg, frame->areabytes);
-	MSG_WriteData (msg, frame->areabits, frame->areabytes);
+	if ( frame->areabytes > 255 ) {
+		Com_DPrintf( "WARNING: area bytes exceeds 255!  Bad!  Bad!" ); // 2015 are funny! (sry about copy+paste)
+		MSG_WriteByte( msg, 0 );
+	} else {
+		MSG_WriteByte (msg, frame->areabytes);
+		MSG_WriteData (msg, frame->areabits, frame->areabytes);
+	}
 
 	// delta encode the playerstate
 	if ( oldframe ) {
@@ -199,10 +210,25 @@ static void SV_WriteSnapshotToClient( client_t *client, msg_t *msg ) {
 	// delta encode the entities
 	SV_EmitPacketEntities (oldframe, frame, msg);
 
+	MSG_WriteSounds( msg, client->server_sounds, client->number_of_server_sounds );
+
+	if ( client->centerprint ) {
+		if ( client->locprint ) {
+			MSG_WriteSVC( msg, svc_locprint );
+			MSG_WriteShort( msg, client->XOffset );
+			MSG_WriteShort( msg, client->YOffset );
+			MSG_WriteString( msg, client->centerprint );
+		}
+		else {
+			MSG_WriteSVC( msg, svc_centerprint );
+			MSG_WriteString( msg, client->centerprint );
+		}
+	}
+
 	// padding for rate debugging
 	if ( sv_padPackets->integer ) {
 		for ( i = 0 ; i < sv_padPackets->integer ; i++ ) {
-			MSG_WriteByte (msg, svc_nop);
+			MSG_WriteSVC(msg, svc_nop);
 		}
 	}
 }
@@ -220,7 +246,7 @@ void SV_UpdateServerCommandsToClient( client_t *client, msg_t *msg ) {
 
 	// write any unacknowledged serverCommands
 	for ( i = client->reliableAcknowledge + 1 ; i <= client->reliableSequence ; i++ ) {
-		MSG_WriteByte( msg, svc_serverCommand );
+		MSG_WriteSVC( msg, svc_serverCommand );
 		MSG_WriteLong( msg, i );
 		MSG_WriteString( msg, client->reliableCommands[ i & (MAX_RELIABLE_COMMANDS-1) ] );
 	}

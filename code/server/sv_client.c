@@ -553,6 +553,10 @@ void SV_SendClientGameState( client_t *client ) {
 	msg_t		msg;
 	byte		msgBuffer[MAX_MSGLEN];
 
+	if ( client->state != CS_CONNECTED && Cvar_VariableValue( "g_gametype" ) == 0 ) {
+		Com_Printf( "SV_SendClientGameState: Aborting\nASK WOMBAT WHY\n" );
+		return;
+	}
  	Com_DPrintf ("SV_SendClientGameState() for %s\n", client->name);
 	Com_DPrintf( "Going from CS_CONNECTED to CS_PRIMED for %s\n", client->name );
 	client->state = CS_PRIMED;
@@ -577,26 +581,27 @@ void SV_SendClientGameState( client_t *client ) {
 	SV_UpdateServerCommandsToClient( client, &msg );
 
 	// send the gamestate
-	MSG_WriteByte( &msg, svc_gamestate );
+	MSG_WriteSVC( &msg, svc_gamestate );
 	MSG_WriteLong( &msg, client->reliableSequence );
 
 	// write the configstrings
 	for ( start = 0 ; start < MAX_CONFIGSTRINGS ; start++ ) {
 		if (sv.configstrings[start][0]) {
-			MSG_WriteByte( &msg, svc_configstring );
+			MSG_WriteSVC( &msg, svc_configstring );
 			MSG_WriteShort( &msg, start );
-			MSG_WriteBigString( &msg, sv.configstrings[start] );
+			MSG_WriteString( &msg, sv.configstrings[start] );
 		}
 	}
 
 	// write the baselines
-	Com_Memset( &nullstate, 0, sizeof( nullstate ) );
+	//Com_Memset( &nullstate, 0, sizeof( nullstate ) );
+	MSG_GetNullEntityState( &nullstate );
 	for ( start = 0 ; start < MAX_GENTITIES; start++ ) {
 		base = &sv.svEntities[start].baseline;
 		if ( !base->number ) {
 			continue;
 		}
-		MSG_WriteByte( &msg, svc_baseline );
+		MSG_WriteSVC( &msg, svc_baseline );
 		MSG_WriteDeltaEntity( &msg, &nullstate, base, qtrue );
 	}
 
@@ -1424,6 +1429,8 @@ static void SV_UserMove( client_t *cl, msg_t *msg, qboolean delta ) {
 	key ^= cl->messageAcknowledge;
 	// also use the last acknowledged server command in the key
 	key ^= Com_HashKey(cl->reliableCommands[ cl->reliableAcknowledge & (MAX_RELIABLE_COMMANDS-1) ], 32);
+
+	MSG_ReadDeltaEyeInfo( msg, &cl->lastEyeinfo, &cl->lastEyeinfo );
 
 	Com_Memset( &nullcmd, 0, sizeof(nullcmd) );
 	oldcmd = &nullcmd;
