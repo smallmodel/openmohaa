@@ -156,8 +156,10 @@ static void Button_Draw( menutext_s *b )
 	else if ( b->style & UI_RIGHT )
 		x -= w + 1;
 
-	if (b->generic.flags & QMF_GRAYED)
+	if (b->generic.flags & QMF_GRAYED) {
 		butcol = &colorMdGrey;
+		style = UI_LEFT;
+	}
 	else if ((b->generic.flags & QMF_HIGHLIGHT) || (b->generic.flags & QMF_HIGHLIGHT_IF_FOCUS)){
 		if ((b->generic.flags & QMF_HIGHLIGHT) ||(Menu_ItemAtCursor( b->generic.parent ) == b)){
 			butcol = &color_green;

@@ -1886,6 +1886,7 @@ void RE_LoadWorldMap( const char *name ) {
 	dheader_t	*header;
 	byte		*buffer;
 	byte		*startMarker;
+	lump_t emptyLump;
 
 	if ( tr.worldMapLoaded ) {
 		ri.Error( ERR_DROP, "ERROR: attempted to redundantly load world map\n" );
@@ -1935,7 +1936,6 @@ void RE_LoadWorldMap( const char *name ) {
 	}
 
 	// create fake "empty" fog lump to at least work around the fog lump error
-	lump_t emptyLump;
 	emptyLump.filelen = 0;
 	emptyLump.fileofs = header->lumps[0].fileofs;
 	// load into heap
