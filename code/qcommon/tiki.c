@@ -25,507 +25,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define TIKI_FILE_HASH_SIZE		1024
 static	tiki_t					*hashTable[TIKI_FILE_HASH_SIZE];
 
-static int						numDefines = 0;
-static	tikiDefine_t			defines[TIKI_MAX_DEFINES];
-
-static int						numIncludes = 0;
-static	tikiInclude_t			includes[TIKI_MAX_INCLUDES];
-
-/*
-===============================
-SK* FILES LOADING
-===============================
-*/
-
-void TIKI_AppendSKD(tiki_t *out, char *fname) {
-
-}
-
-/*
-===============================
-TIKI FILES LOADING AND PARSING
-===============================
-*/
-
-/*
-NOTE: There is a lot of room for optimization of this code. For instance,
-caching and reusing the already preprocessed files would give elaborate model
-trees (such as humans - both players and actors) a major speed boost in terms
-of loading times. Also, some string comparisions could be replaced with
-hashing.
-*/
-
-/*
-===================
-TIKI_Preprocess_r
-
-A simple, C-like preprocessor that supports macros ($define name expansion) and
-includes ($include path/to/file), although with certain limitations (e.g.
-nested or multi-line macros are not supported). Processing is done in 2 passes.
-The first one analyses the file and computes the amount of memory required to
-accomodate the final, processed file, the second one performs the actual
-copying and substitution.
-===================
-*/
-static char *TIKI_Preprocess_r(const char *parentFname, const char *fname) {
-	static int		recursionLvl = 0;
-	char			*buf, *output = NULL, *out, *p, *q, *r;
-	int				quotes = 0, line = 0;
-	tikiDefine_t	*def;
-	tikiInclude_t	*inc;
-	int				len, i;
-	char			temp[MAX_QPATH];
-	qboolean		comment = qfalse;
-
-	recursionLvl++;
-	if (recursionLvl > TIKI_MAX_RECURSION_LEVEL) {
-		Com_Printf("WARNING: TIKI_Preprocess: TIKI_MAX_RECURSION_LEVEL (%d) exceeded in \"%s\"\n",
-			TIKI_MAX_RECURSION_LEVEL, parentFname);
-		goto finished;
-	}
-
-	len = FS_ReadFile(fname, (void **)&buf);
-	if (!buf) {
-		Com_Printf("WARNING: TIKI_Preprocess: Failed to load \"%s\" included from \"%s\"\n", fname, parentFname);
-		goto finished;
-	}
-
-	// first pass - analysis
-	for (p = buf; *p; p++) {
-		if (comment) {
-			if (*p == '\n' || *p == 0)
-				comment = qfalse;
-			continue;
-		} else if (*p == '/' && *(p + 1) == '/') {
-			comment = qtrue;
-			continue;
-		}
-		if (*p == '\"' && p > buf && *(p - 1) != '\\')	// allow for string escaping
-			quotes++;
-		else if (*p == '$' && !(quotes & 1)) {
-			q = p;
-			p++;
-			if (!Q_stricmpn(p, "define", 6)) {
-				if (numDefines >= TIKI_MAX_DEFINES - 1) {
-					Com_Printf("WARNING: TIKI_Preprocess: TIKI_MAX_DEFINES (%d) exceeded at line %d in \"%s\"\n",
-						TIKI_MAX_DEFINES, line, fname);
-					output = NULL;
-					goto finished;
-				}
-
-				p += 6;
-				// skip whitespaces
-				while (*p <= ' ') {
-					if (*p == '\n') {
-						Com_Printf("WARNING: TIKI_Preprocess: Error in macro definition: Unexpected end of line at line %d in \"%s\"\n",
-							line, fname);
-						output = NULL;
-						goto finished;
-					}
-					p++;
-				}
-
-				def = &defines[numDefines];
-				numDefines++;
-				def->file = (char *)fname;
-				def->line = line;
-				out = def->macro;
-
-				// copy macro name
-				while (*p && *p > ' ' && out < def->macro + sizeof(def->macro))
-					*out++ = *p++;
-				if (out >= def->macro + sizeof(def->macro))
-					out = def->macro + sizeof(def->macro) - 1;
-				*out = 0;	// ensure null termination
-				def->macroLen = strlen(def->macro);
-				if (*p == '\n') {
-					Com_Printf("WARNING: TIKI_Preprocess: Error in macro definition: Unexpected end of line at line %d in \"%s\"\n",
-						line, fname);
-					output = NULL;
-					goto finished;
-				}
-
-				// skip whitespaces
-				while (*p <= ' ') {
-					if (*p == '\n') {
-						Com_Printf("WARNING: TIKI_Preprocess: Error in macro definition: Unexpected end of line at line %d in \"%s\"\n",
-							line, fname);
-						output = NULL;
-						goto finished;
-					}
-					p++;
-				}
-
-				// copy macro expansion
-				out = def->expansion;
-				while (*p && *p != '\n' && out < def->expansion + sizeof(def->expansion))
-					*out++ = *p++;
-				def->expLen = strlen(def->expansion);
-				// subtract the definition from the target file size
-				len -= (p - q);
-				continue;	// return to the loop
-			}
-			if (!Q_stricmpn(p, "include", 7)) {
-				p += 7;
-				// skip whitespaces
-				while (*p <= ' ') {
-					if (*p == '\n') {
-						Com_Printf("WARNING: TIKI_Preprocess: Error in macro definition: Unexpected end of line at line %d in \"%s\"\n",
-							line, fname);
-						output = NULL;
-						goto finished;
-					}
-					p++;
-				}
-
-				out = temp;
-				while (*p && *p > ' ' && out < temp + sizeof(temp))
-					*out++ = *p++;
-				if (out >= temp + sizeof(temp))
-					out = temp + sizeof(temp) - 1;
-				*out = 0;
-				for (i = 0; i < numIncludes; i++) {
-					if (!Q_stricmp(includes[i].file, temp))
-						goto skip;	// this file is already being included somewhere, no need to use another slot
-				}
-
-				// this file hasn't been included in the current tree yet, use a slot
-				if (numIncludes >= TIKI_MAX_INCLUDES - 1) {
-					Com_Printf("WARNING: TIKI_Preprocess: TIKI_MAX_INCLUDES (%d) exceeded at line %d in \"%s\"\n",
-						TIKI_MAX_INCLUDES, line, fname);
-					output = NULL;
-					goto finished;
-				}
-
-				inc = &includes[numIncludes];
-				numIncludes++;
-				Q_strncpyz(inc->file, temp, sizeof(inc->file));
-				inc->fileLen = strlen(inc->file);
-				inc->data = TIKI_Preprocess_r(fname, temp);
-				if (!inc->data) {
-					Com_Printf("WARNING: TIKI_Preprocess: Failed to include file \"%s\" at line %d in \"%s\"\n",
-						temp, line, fname);
-					output = NULL;
-					goto finished;
-				}
-				inc->dataLen = strlen(inc->data);
-				// subtract the inclusion from the target file size
-				len -= (p - q);
-				// add the included file's length to the target file size
-				len += inc->dataLen;
-skip:
-				continue;	// return to the loop
-			}
-			// neither a define nor an include, so it may be an instance of a macro
-			for (i = 0; i < numDefines; i++) {
-				if (!Q_strncmp(defines[i].macro, p, defines[i].macroLen) && p[defines[i].macroLen] == '$') {	// all macro instances must end with a $
-					p += defines[i].macroLen + 1;
-					len += (defines[i].expLen - defines[i].macroLen);
-					break;
-				}
-			}
-		}
-		if (*p == '\n')
-			line++;
-	}
-
-	// allocate memory for the processed file
-	out = output = Z_Malloc(len + 1);
-
-	line = 0;
-	// second pass - actual processing
-	// no error checking here - if there were any, they'd be detected in the first pass anyway
-	comment = qfalse;
-	for (p = buf; *p;) {
-		if (comment) {
-			if (*p == '\n' || *p == 0)
-				comment = qfalse;
-			else
-				p++;
-			continue;
-		} else if (*p == '/' && *(p + 1) == '/') {
-			comment = qtrue;
-			p++;
-			continue;
-		}
-		if (*p == '\"' && p > buf && *(p - 1) != '\\')	// allow for string escaping
-			quotes++;
-		else if (*p == '$' && !(quotes & 1)) {
-			q = p;
-			p++;
-			if (!Q_stricmpn(p, "define", 6)) {	// just skip it
-				p += 6;
-				// skip whitespaces
-				while (*p <= ' ')
-					p++;
-				// skip macro name
-				while (*p && *p > ' ')
-					p++;
-				// skip whitespaces
-				while (*p <= ' ')
-					p++;
-				// skip macro expansion
-				while (*p && *p != '\n')
-					p++;
-				continue;	// return to the loop
-			}
-			if (!Q_stricmpn(p, "include", 7)) {
-				p += 7;
-				// skip whitespaces
-				while (*p <= ' ')
-					p++;
-
-				// read the filename, choose the include and copy it
-				r = temp;
-				while (*p && *p > ' ' && r < temp + sizeof(temp))
-					*r++ = *p++;
-				if (r >= temp + sizeof(temp))
-					r = temp + sizeof(temp) - 1;
-				*r = 0;
-				for (i = 0; i < numIncludes; i++) {
-					if (!Q_stricmp(includes[i].file, temp)) {
-						q = includes[i].data;
-						while (*q)
-							*out++ = *q++;
-						break;
-					}
-				}
-				continue;	// return to the loop
-			}
-			// neither a define nor an include, so it may be an instance of
-			// a macro
-			// this also makes sure that macros are only substituted if the
-			// instance appears after the definition; the check is irrelevant
-			// if the current file is different than the one the macro was
-			// defined in (i.e. we're further down the tree and inherited the
-			// define by inclusion)
-			for (i = 0; i < numDefines; i++) {
-				if (p[defines[i].macroLen] == '$' // all macro instances must end with a $
-					&& (fname != defines[i].file || line > defines[i].line)
-					&& !Q_strncmp(defines[i].macro, p, defines[i].macroLen)) {
-					// skip the macro instance in the input
-					p += defines[i].macroLen + 1;
-					q = defines[i].expansion;
-					while (*q)
-						*out++ = *q++;
-					break;
-				}
-			}
-		}
-		if (*p == '\n')
-			line++;
-		*out++ = *p++;
-	}
-	*out = 0;
-
-	// we no longer need the original
-	FS_FreeFile(buf);
-
-finished:
-	recursionLvl--;
-	if (recursionLvl == 0) {
-		//memset(&defines[0], 0, sizeof(defines));
-		numDefines = 0;
-		for (i = 0; i < numIncludes; i++)
-			Z_Free(includes[i].data);
-		//memset(&includes[0], 0, sizeof(includes));
-		numIncludes = 0;
-	}
-	return output;
-}
-
-static tiki_t *TIKI_Load(const char *fname) {
-	char			*token, *text;
-	char			path[MAX_QPATH] = {0};
-	char			temp[MAX_QPATH];
-	int				i, level = 0;
-	enum {
-		SECTION_ROOT,
-		SECTION_SETUP,
-		SECTION_INIT,
-		SECTION_ANIMATIONS
-	}				section = SECTION_ROOT;
-	tiki_t			*out = NULL;
-	char			*file = TIKI_Preprocess_r(fname, fname);
-	tikiAnim_t		**anims;
-
-#if 0
-	FILE *f = fopen("preprocessed.tik", "w");
-	fwrite(file, strlen(file), 1, f);
-	fclose(f);
-#endif
-
-	if (*(int *)(file) != TIKI_IDENT) {
-		Com_Printf("WARNING: TIKI_Load: invalid ident in file %s\n", fname);
-		Z_Free(file);
-		return NULL;
-	}
-
-	out = Hunk_Alloc(sizeof(*out), h_high);
-	memset(out, 0, sizeof(*out));
-	Q_strncpyz(out->name, fname, sizeof(out->name));
-
-	COM_BeginParseSession(fname);
-	text = file;
-	while (1) {
-		token = COM_ParseExt(&text, qfalse);
-
-		if (!text)
-			break;
-
-startagain:
-		switch (section) {
-			case SECTION_ROOT:
-				if (!Q_stricmp(token, "setup"))
-					section = SECTION_SETUP;
-				else if (!Q_stricmp(token, "init"))
-					section = SECTION_INIT;
-				else if (!Q_stricmp(token, "animations"))
-					section = SECTION_ANIMATIONS;
-				else {
-					COM_ParseError("ERROR: unknown token \"%s\"", token);
-					Z_Free(file);
-					return NULL;
-				}
-				continue;
-			case SECTION_SETUP:	// this section contains information about the modules that make up the model
-				if (token[0] == '{') {
-					level++;
-					token++;
-					goto startagain;
-				}
-				if (token[0] == '}') {
-					level--;
-					if (level == 0)
-						section = SECTION_ROOT;
-					token++;
-					goto startagain;
-				}
-				if (level == 1) {
-					if (!Q_stricmp(token, "scale")) {
-						token = COM_ParseExt(&text, qfalse);
-						out->scale = atof(token);
-						continue;
-					} else if (!Q_stricmp(token, "path")) {
-						token = COM_ParseExt(&text, qfalse);
-						Q_strncpyz(path, token, sizeof(path));
-						continue;
-					}
-					// implementation of the ones below is questionable, they're never used in MoHAA
-					/*else if (!Q_stricmp(token, "origin")) {
-						token = COM_ParseExt(&text, qfalse);
-					} else if (!Q_stricmp(token, "lightoffset")) {
-						token = COM_ParseExt(&text, qfalse);
-					}*/ else if (!Q_stricmp(token, "surface")) {
-						token = COM_ParseExt(&text, qfalse);
-						for (i = 0; i < out->numSurfaces; i++) {			// wombat: i think numSurfs should be numSurfaces
-							if (!Q_stricmp(token, out->surfs[i].name))
-								break;
-						}
-						if (i >= out->numSurfaces) {
-							COM_ParseError("WARNING: no surface named \"%s\"", token);
-							continue;
-						}
-						token = COM_ParseExt(&text, qfalse);
-						if (!Q_stricmp(token, "shader")) {
-							token = COM_ParseExt(&text, qfalse);
-							Q_strncpyz(out->surfShaders[i], token, sizeof(out->surfShaders[i]));
-							continue;
-						}
-						// again, questionable, never used in MoHAA
-						/*else if (!Q_stricmp(token, "flags")) {
-							continue;
-						} else if (!Q_stricmp(token, "damage")) {
-							continue;
-						}*/ else {
-							COM_ParseError("WARNING: unknown surface token \"%s\" in surface %s", token, out->surfs[i].name);
-							continue;
-						}
-					} else if (!Q_stricmp(token, "skelmodel")) {
-						token = COM_ParseExt(&text, qfalse);
-						Com_sprintf(temp, sizeof(temp), "%s/%s", path, token);
-						TIKI_AppendSKD(out, temp);
-						continue;
-					} else {
-						COM_ParseError("ERROR: unknown token \"%s\"", token);
-						Z_Free(file);
-						return NULL;
-					}
-				} else {
-					COM_ParseError("ERROR: unknown token \"%s\"", token);
-					Z_Free(file);
-					return NULL;
-				}
-				continue;
-			case SECTION_INIT:	// this section contains script commands to be executed by the game scripting engine on entity initialization
-				if (level == 0 && token[0] == '{') {
-					level++;
-					token++;
-				} else {
-					COM_ParseError("ERROR: unknown token \"%s\"", token);
-					Z_Free(file);
-					return NULL;
-				}
-				text -= strlen(token);
-				token = text;
-				while (level > 0) {
-					if (*token == '{') {
-						level++;
-						token++;
-						continue;
-					}
-					if (*token == '}') {
-						level--;
-						out->init = Hunk_Alloc(token - text + 1, h_high);
-						Q_strncpyz(out->init, text, token - text + 1);
-						text = token + 1;
-						if (level == 0) {
-							section = SECTION_ROOT;
-							goto startagain;
-						}
-						continue;
-					}
-					if (!*token) {
-						COM_ParseError("ERROR: unexpected end of file");
-						Z_Free(file);
-						return NULL;
-					}
-					token++;
-				}
-				continue;
-			case SECTION_ANIMATIONS:
-				if (token[0] == '{') {
-					level++;
-					token++;
-					goto startagain;
-				}
-				if (token[0] == '}') {
-					level--;
-					if (level == 0)
-						section = SECTION_ROOT;
-					token++;
-					goto startagain;
-				}
-				switch (level) {
-					case 1:
-						token = COM_ParseExt(&text, qfalse);
-						break;
-					case 2:
-						break;
-				}
-				//wombat: else gives compile error
-/*				else {
-					COM_ParseError("ERROR: unknown token \"%s\"", token);
-					Z_Free(file);
-					return NULL;
-				}*/
-				continue;
-		}
-	}
-
-	Z_Free(file);
-	return out;
-}
 
 // copied over from renderer/tr_shader.c
 #ifdef __GNUCC__
@@ -551,27 +50,956 @@ static long generateHashValue(const char *fname, const int size) {
 	return hash;
 }
 
-qhandle_t TIKI_RegisterModel(const char *fname) {
-	tiki_t	*tiki;
-	int		hash = generateHashValue(fname, TIKI_FILE_HASH_SIZE);
+// bones... called every frame from cgame, animated by CG_ModelAnim, then passed to renderer with refEntities
+#define MAX_GLOBAL_BONES 1024
+static bone_t globalBones[MAX_GLOBAL_BONES];
+static bone_t *currBone = globalBones;
+bone_t *TIKI_GetBones(int numBones)
+{
+	bone_t *tmp = currBone;
+	currBone+=numBones;
+	return tmp;
+}
+void TIKI_ResetBones()//called every frame before CG_AddPackEntities
+{
+	currBone = globalBones;
+}
+/*
+===============================
+ANIMATION CODE
+===============================
+*/
+int TIKI_FindPosChannel(tikiAnim_t *anim, int globalBoneName)
+{
+	int i;
+	for(i = 0; i < anim->numPosChannels; i++) {
+		if(anim->posChannelNames[i] == globalBoneName)
+			return i;
+	}
+	return -1;
+}
+int TIKI_FindRotChannel(tikiAnim_t *anim, int globalBoneName)
+{
+	int i;
+	for(i = 0; i < anim->numRotChannels; i++) {
+		if(anim->rotChannelNames[i] == globalBoneName)
+			return i;
+	}
+	return -1;
+}
+void TIKI_FindAndCopyPosChannel(tikiAnim_t *anim, int globalBoneName, tikiFrame_t *frame, vec3_t out)
+{
+	int i;
+	for(i = 0; i < anim->numPosChannels; i++) {
+		if(anim->posChannelNames[i] == globalBoneName)
+		{
+			VectorCopy(frame->posChannels[i],out);
+			return;
+		}
+	}
+	VectorSet(out,0,0,0);
+}
+void TIKI_FindAndCopyRotChannel(tikiAnim_t *anim, int globalBoneName, tikiFrame_t *frame, quat_t out)
+{
+	int i;
+	for(i = 0; i < anim->numRotChannels; i++) {
+		if(anim->rotChannelNames[i] == globalBoneName)
+		{
+			VectorCopy(frame->rotChannels[i],out);
+			out[3] = frame->rotChannels[i][3];
+			return;
+		}
+	}
+	out[0] = 1;
+	VectorSet(&out[1],0,0,0);
+}
+void TIKI_SetChannels(tiki_t *tiki, int animIndex, float animTime, float animWeight, bone_t *bones)
+{
+	int i;
+	skdJointType_t **ptr;
+	tikiAnim_t *anim;
+	tikiFrame_t *frame;
+	//bone_t		*bone;
 
+///	int rot, pos;
+
+//	bone = bones;
+
+	if(tiki->numAnims <= animIndex) {
+		Com_Printf("TIKI_SetChannels: animIndex %i out of range %i\n",animIndex,tiki->numAnims);
+		return;
+	}
+	ptr = (skdJointType_t **)tiki->bones;
+	anim = tiki->anims[animIndex];
+	frame = anim->frames;
+	for(i = 0; i < tiki->numBones; i++)
+	{
+		switch(**ptr)
+		{
+			case JT_ROTATION:
+
+			break;
+			case JT_POSROT_SKC:
+				//rot = TIKI_FindRotChannel(anim,tiki->boneNames[i]);
+				//pos = TIKI_FindRotChannel(anim,tiki->boneNames[i]);
+				TIKI_FindAndCopyPosChannel(anim,tiki->boneNames[i],frame,bones->p);
+				TIKI_FindAndCopyRotChannel(anim,tiki->boneNames[i],frame,bones->q);
+
+			break;
+		}
+		ptr++;
+		bones++;
+	}
+}
+void TIKI_Animate(tiki_t *tiki, bone_t *bones)
+{
+	int i;
+	tikiBonePosRot_t	*posrot, *bone;
+	tikiBoneRotation_t	*rot;
+	tikiBoneShoulder_t	*should;
+	tikiBoneElbow_t		*elbow;
+	tikiBoneWrist_t		*wrist;
+	tikiBoneHoseRot_t	*hose;
+	tikiBoneAVRot_t		*av;
+
+	for(i = 0; i < tiki->numBones;i++) {
+		bone = (tikiBonePosRot_t*) tiki->bones[i];
+
+		if(bone->parentIndex==-1)
+		{
+			QuatInverse(bones[i].q);
+		}
+		else
+		{
+			switch(*(int*)tiki->bones[i])
+			{
+#if 0 //TODO		
+				case JT_ROTATION:
+				{
+					quat_t	pos,res/*,que*/,temp;
+					rot = (tikiBoneRotation_t*)tiki->bones[i];
+					//const_ofs instead of channel p
+					VectorCopy(rot->const_offset,pos);
+					pos[3]=0;
+					QuaternionMultiply(temp,pos,bones[rot->parentIndex].q);
+					QuatInverse(bones[rot->parentIndex].q);
+					QuaternionMultiply(res,bones[rot->parentIndex].q,temp);
+					QuatInverse(bones[rot->parentIndex].q);
+					bones[i].p[0] = res[0] +bones[rot->parentIndex].p[0];
+					bones[i].p[1] = res[1] +bones[rot->parentIndex].p[1];
+					bones[i].p[2] = res[2] +bones[rot->parentIndex].p[2];
+					QuatInverse(bones[i].q);
+					QuatCopy(bones[i].q,temp);
+					QuatInverse(bones[i].q);
+					QuaternionMultiply(bones[i].q,temp,bones[rot->parentIndex].q);
+					QuatNormalize(bones[i].q);
+				}
+				break;
+#endif
+				case JT_POSROT_SKC:
+				{
+					quat_t	pos,res,temp;
+					posrot = (tikiBonePosRot_t*)tiki->bones[i];
+					VectorCopy(bones[i].p,pos);
+					pos[3]=0;
+					QuaternionMultiply(temp,pos,bones[posrot->parentIndex].q);
+					QuatInverse(bones[posrot->parentIndex].q);
+					QuaternionMultiply(res,bones[posrot->parentIndex].q,temp);
+					QuatInverse(bones[posrot->parentIndex].q);
+					bones[i].p[0] = res[0] +bones[posrot->parentIndex].p[0];
+					bones[i].p[1] = res[1] +bones[posrot->parentIndex].p[1];
+					bones[i].p[2] = res[2] +bones[posrot->parentIndex].p[2];
+					QuatCopy(bones[i].q,temp);
+					QuatInverse(temp);
+					QuaternionMultiply(bones[i].q,temp,bones[posrot->parentIndex].q);
+					QuatNormalize(bones[i].q);
+
+				}
+				break;
+#if 0 //TODO	
+				case JT_SHOULDER:
+				{
+					//Com_Printf("should %i",tiki->name);
+					quat_t	pos,res,temp;
+					should = (tikiBoneShoulder_t*)tiki->bones[i];
+					//const_ofs instead of channel p
+					VectorCopy(should->const_offset,pos);
+
+					//we're using its rotfk channel instead of rot
+					pos[3]=0;
+					QuaternionMultiply(temp,pos,bones[should->parentIndex].q);
+					QuatInverse(bones[should->parentIndex].q);
+					QuaternionMultiply(res,bones[should->parentIndex].q,temp);
+					QuatInverse(bones[should->parentIndex].q);
+					bones[i].p[0] = res[0] +bones[should->parentIndex].p[0];
+					bones[i].p[1] = res[1] +bones[should->parentIndex].p[1];
+					bones[i].p[2] = res[2] +bones[should->parentIndex].p[2];
+					QuatInverse(bones[i].q);
+					QuatCopy(bones[i].q,temp);
+					QuatInverse(bones[i].q);
+					QuaternionMultiply(bones[i].q,temp,bones[should->parentIndex].q);
+					QuatNormalize(bones[i].q);
+
+				}
+				break;
+				case JT_ELBOW:
+				{
+					quat_t	pos,res,temp;
+
+
+					elbow = (tikiBoneElbow_t*)tiki->bones[i];
+					//Com_Printf("elb %i",tiki->name);
+
+					//const_ofs instead of channel p
+					VectorCopy(elbow->const_offset,pos);
+
+					//like in ikshoulder,
+					//we're using rotfk channel instead of rot ???
+					pos[3]=0;
+					QuaternionMultiply(temp,pos,bones[elbow->parentIndex].q);
+					QuatInverse(bones[elbow->parentIndex].q);
+					QuaternionMultiply(res,bones[elbow->parentIndex].q,temp);
+					QuatInverse(bones[elbow->parentIndex].q);
+					bones[i].p[0] = res[0] +bones[elbow->parentIndex].p[0];
+					bones[i].p[1] = res[1] +bones[elbow->parentIndex].p[1];
+					bones[i].p[2] = res[2] +bones[elbow->parentIndex].p[2];
+					QuatInverse(bones[i].q);
+					QuatCopy(bones[i].q,temp);
+					QuatInverse(bones[i].q);
+					QuaternionMultiply(bones[i].q,temp,bones[elbow->parentIndex].q);
+					QuatNormalize(bones[i].q);
+				}
+				break;
+				case JT_WRIST:
+				{
+					quat_t	pos,res,temp;
+					wrist = (tikiBoneWrist_t*) tiki->bones[i];
+
+					//const_ofs instead of channel p
+					VectorCopy(wrist->const_offset,pos);
+					//Com_Printf("wrist  %i",tiki->name);
+					//like in ikshoulder, nad elbow
+					//we're using its rotfk channel instead of rot
+					pos[3]=0;
+					QuaternionMultiply(temp,pos,bones[wrist->parentIndex].q);
+					QuatInverse(bones[wrist->parentIndex].q);
+					QuaternionMultiply(res,bones[wrist->parentIndex].q,temp);
+					QuatInverse(bones[wrist->parentIndex].q);
+					bones[i].p[0] = res[0] +bones[wrist->parentIndex].p[0];
+					bones[i].p[1] = res[1] +bones[wrist->parentIndex].p[1];
+					bones[i].p[2] = res[2] +bones[wrist->parentIndex].p[2];
+					QuatInverse(bones[i].q);
+					QuatCopy(bones[i].q,temp);
+					QuatInverse(bones[i].q);
+					QuaternionMultiply(bones[i].q,temp,bones[wrist->parentIndex].q);
+					QuatNormalize(bones[i].q);
+				}
+				break;
+				case JT_HOSEROT:
+				{
+				//	quat_t	re;
+					hose = (tikiBoneHoseRot_t*)tiki->bones[i];
+			//		Com_Printf("hoserot const ofs %f %f %f for ",hose->const_offset[0],hose->const_offset[1],hose->const_offset[2]);
+#if 0
+					quat_t	pos,res,que,temp;
+					//const_ofs instead of channel p
+					VectorCopy(hose->const_offset,pos);
+					pos[3]=0;
+					QuaternionMultiply(temp,pos,bones[hose->parentIndex].q);
+					QuatInverse(bones[hose->parentIndex].q);
+					QuaternionMultiply(res,bones[hose->parentIndex].q,temp);
+					QuatInverse(bones[hose->parentIndex].q);
+					bones[i].p[0] = res[0] +bones[hose->parentIndex].p[0];
+					bones[i].p[1] = res[1] +bones[hose->parentIndex].p[1];
+					bones[i].p[2] = res[2] +bones[hose->parentIndex].p[2];
+					QuaternionBuild(temp,bones[i].q[0],bones[i].q[1],bones[i].q[2]);
+					QuaternionMultiply(bones[i].q,temp,bones[hose->parentIndex].q);
+					QuatNormalize(bones[i].q);
+#else
+#if 1
+					QuatCopy(bones[hose->targetIndex].q,bones[i].q);
+					VectorCopy(bones[hose->targetIndex].p,bones[i].p); 
+
+#else
+					//const_ofs instead of channel p
+					VectorCopy(hose->const_offset,pos);
+					pos[3]=0;
+					QuaternionMultiply(temp,pos,bones[hose->parentIndex].q);
+					QuatInverse(bones[hose->parentIndex].q);
+					QuaternionMultiply(res,bones[hose->parentIndex].q,temp);
+					QuatInverse(bones[hose->parentIndex].q);
+					bones[i].p[0] = res[0] +bones[hose->parentIndex].p[0];
+					bones[i].p[1] = res[1] +bones[hose->parentIndex].p[1];
+					bones[i].p[2] = res[2] +bones[hose->parentIndex].p[2];
+					QuaternionBuild(temp,bones[i].q[0],bones[i].q[1],bones[i].q[2]);
+					QuaternionMultiply(bones[i].q,temp,bones[hose->parentIndex].q);
+					QuatNormalize(bones[i].q);
+
+					//first do all for parent,  then inerpolate with target?
+					QuatCopy(res,bones[i].q);
+
+					bones[i].p[0] = bones[i].p[0] + 0.5*(bones[hose->targetIndex].p[0]-bones[i].p[0]);
+					bones[i].p[1] = bones[i].p[1] + 0.5*(bones[hose->targetIndex].p[1]-bones[i].p[1]);
+					bones[i].p[2] = bones[i].p[2] + 0.5*(bones[hose->targetIndex].p[2]-bones[i].p[2]);
+
+				///	QuatSlerp(bones[i].q,res,bones[hose->targetIndex].q,0.5);
+					QuatNormalize(bones[i].q);
+
+					//interpJoint->p.X = position1.X + animTime*(position2.X - position1.X);
+					//QuatNormalize(bones[i].q);
+
+				///	Com_Printf("slerp %f %f %f %f",bones[i].q[0],bones[i].q[1],bones[i].q[2],bones[i].q[3]);
+#endif
+#endif
+
+				}
+				break;
+				case JT_AVROT:
+				{
+					quat_t	pos,res,temp;
+					av = (tikiBoneAVRot_t*) tiki->bones[i];
+#if 0
+					quat_t	pos,res,que,temp;
+					//const_ofs instead of channel p
+					VectorCopy(av->const_offset,pos);
+					pos[3]=0;
+					QuaternionMultiply(temp,pos,bones[av->parentIndex].q);
+					QuatInverse(bones[av->parentIndex].q);
+					QuaternionMultiply(res,bones[av->parentIndex].q,temp);
+					QuatInverse(bones[av->parentIndex].q);
+					bones[i].p[0] = res[0] +bones[av->parentIndex].p[0];
+					bones[i].p[1] = res[1] +bones[av->parentIndex].p[1];
+					bones[i].p[2] = res[2] +bones[av->parentIndex].p[2];
+					QuaternionBuild(temp,bones[i].q[0],bones[i].q[1],bones[i].q[2]);
+					QuaternionMultiply(bones[i].q,temp,bones[av->parentIndex].q);
+					QuatNormalize(bones[i].q);
+
+	//				QuatCopy(bones[av->parentIndex].q,bones[i].q);
+	//				VectorCopy(bones[av->parentIndex].p,bones[i].p);
+
+#else
+					QuatSlerp(bones[av->m_reference1].q,bones[av->m_reference2].q,av->m_bone2weight,bones[i].q);
+					/*
+					bones[i].p[0] = bones[av->m_reference1].p[0] + av->m_bone2weight*(bones[av->m_reference2].p[0] - bones[av->m_reference1].p[0]);
+					bones[i].p[1] = bones[av->m_reference1].p[1] + av->m_bone2weight*(bones[av->m_reference2].p[1] - bones[av->m_reference1].p[1]);
+					bones[i].p[2] = bones[av->m_reference1].p[2] + av->m_bone2weight*(bones[av->m_reference2].p[2] - bones[av->m_reference1].p[2]);
+					*/
+					VectorCopy(av->const_offset,pos);
+					pos[3]=0;
+					QuaternionMultiply(temp,pos,bones[av->parentIndex].q);
+					QuatInverse(bones[av->parentIndex].q);
+					QuaternionMultiply(res,bones[av->parentIndex].q,temp);
+					QuatInverse(bones[av->parentIndex].q);
+					bones[i].p[0] = res[0] +bones[av->parentIndex].p[0];
+					bones[i].p[1] = res[1] +bones[av->parentIndex].p[1];
+					bones[i].p[2] = res[2] +bones[av->parentIndex].p[2];
+#endif
+				}
+				break;
+#endif
+				default:
+					Com_Error(ERR_DROP,"TIKI_Animate: unsupported bone type %i",*((int**)tiki->bones)[i]);
+				break;
+			}
+		}
+	}
+}
+
+/*
+===============================
+SK* FILES LOADING
+===============================
+*/
+typedef struct boneName_s
+{
+	char *name;
+	struct boneName_s *next;
+} boneName_t;
+#define TIKI_BONE_HASH_SIZE 128
+boneName_t globalBoneNames[1024];
+boneName_t *freeBoneName = globalBoneNames;
+boneName_t *boneHashTable[TIKI_BONE_HASH_SIZE];
+int	TIKI_RegisterBoneName(char *boneName) {
+	boneName_t	*bone;
+	int		hash = generateHashValue(boneName, TIKI_BONE_HASH_SIZE);
+
+	for (bone = boneHashTable[hash]; bone; bone = bone->next) {
+		if (!Q_stricmp(bone->name, boneName))
+			return bone - globalBoneNames;
+	}
+	freeBoneName++;
+	bone = freeBoneName;
+	if (boneHashTable[hash]) {
+	//	boneHashTable[hash]->prev = bone;
+		bone->next = boneHashTable[hash];
+	}
+	boneHashTable[hash] = bone;
+	bone->name = Hunk_Alloc(strlen(boneName)+1,h_low);
+	strcpy(bone->name,boneName);
+	return bone - globalBoneNames;
+}
+
+int TIKI_GetLocalBoneIndex(tiki_t *out, char *boneName) {
+	int b;
+	int globalIndex;
+	if(!strcmp(boneName,"worldbone")) {
+		return -1;
+	}
+	globalIndex = TIKI_RegisterBoneName(boneName);
+	for(b = 0; b < out->numBones; b++) {
+		if(out->boneNames[b]==globalIndex)
+			return b;
+	}
+	Com_Error(ERR_DROP,"TIKI_GetLocalBoneIndex failed for tiki %s, boneName %s \n",out->name,boneName);
+	return -1;
+}
+
+
+void TIKI_MergeSKD(tiki_t *out, char *fname) {
+
+}
+
+void TIKI_AppendSKD(tiki_t *out, char *fname) {
+	int				filesize;
+	char			*buf;
+	skdHeader_t		*header;
+	skdBone_t		*bone;
+	skdSurface_t	*surf;
+	float			*ptr;
+	int				i,j,k;
+	skdVertex_t		*vert;
+	skdWeight_t		*weight;
+	tikiBonePosRot_t*posrot;
+	tikiBoneRotation_t*rot;
+	tikiBoneShoulder_t	*should;
+	tikiBoneElbow_t		*elbow;
+	tikiBoneWrist_t		*wrist;
+	tikiBoneHoseRot_t	*hose;
+	tikiBoneAVRot_t		*av;
+
+	//Com_Printf("TIKI_AppendSKD for %s, skd name  %s\n", out->name, fname);
+	filesize = FS_ReadFile(fname, (void **)&buf);
+	if(!buf) {
+		Com_Printf ("IKI_AppendSkd: couldn't load %s\n", fname);
+		return;
+	}
+	header = (skdHeader_t *)buf;
+	if (header->version != SKD_VERSION) {
+		Com_Printf( "TIKI_AppendSKD: %s has wrong version (%i should be %i)\n",
+				 fname, header->version, SKD_VERSION);
+		return;
+	}
+	if (header->ident != SKD_IDENT) {
+		Com_Printf( "TIKI_AppendSKD: %s has wrong ident (%s should be %s)\n",
+				 fname, header->ident, SKD_IDENT);
+		return;
+	}
+	//Com_Printf("SKD file %s data, ident %i, v %i, nae %s, nbones %i, surfs %i ",fname, header->ident,header->version,header->name,header->numBones, header->numSurfaces);
+	//Com_Printf("ofs bones %i , surfaces %i, boxes %i, end %i, lods %i, morpgh %i",header->ofsBones, header->ofsSurfaces, header->ofsBoxes,header->ofsEnd,header->ofsLODs, header->ofsMorphTargets);
+
+	//names array
+	out->boneNames = Hunk_Alloc((header->numBones*4),h_high);
+	bone = (skdBone_t *) ( (byte *)header + header->ofsBones );
+	for ( i = 0 ; i < header->numBones ; i++) {
+		out->boneNames[i] = TIKI_RegisterBoneName(bone->name);
+//		Com_Printf("TIKI_RegisterBoneName returned %i for bone name %s\n",out->boneNames[i],bone->name);
+		bone = (skdBone_t *)( (byte *)bone + bone->ofsEnd );
+	}
+
+	out->numBones = header->numBones;
+	out->bones = Hunk_Alloc(header->numBones*sizeof(int),h_high);
+	bone = (skdBone_t *) ( (byte *)header + header->ofsBones );
+	for ( i = 0 ; i < header->numBones ; i++) {
+		switch(bone->jointType)	{
+			case JT_ROTATION:
+			{
+				out->bones[i] = Hunk_Alloc(sizeof(tikiBoneRotation_t),h_low);
+				rot = (tikiBoneRotation_t*)out->bones[i];
+				rot->type=bone->jointType;
+				rot->parentIndex = TIKI_GetLocalBoneIndex(out,bone->parent);
+				ptr = (float *) ( (byte *)bone + sizeof(skdBone_t) );
+				VectorScale(ptr,out->scale,ptr);
+				VectorCopy(ptr,rot->const_offset);
+			}
+			break;
+			case JT_POSROT_SKC:
+			{
+				out->bones[i] = Hunk_Alloc(sizeof(tikiBonePosRot_t),h_low);
+				posrot = (tikiBonePosRot_t*)out->bones[i];
+				posrot->type=bone->jointType;
+				posrot->parentIndex = TIKI_GetLocalBoneIndex(out,bone->parent);
+			}
+			break;
+			case JT_SHOULDER:
+			{
+				out->bones[i] = Hunk_Alloc(sizeof(tikiBoneShoulder_t),h_low);
+				should = (tikiBoneShoulder_t*)out->bones[i];
+				should->type=bone->jointType;
+				should->parentIndex = TIKI_GetLocalBoneIndex(out,bone->parent);
+				ptr = (float *) ( (byte *)bone + sizeof(skdBone_t) );
+				ptr+=(4);
+				VectorScale(ptr,out->scale,ptr);
+				VectorCopy(ptr,should->const_offset);
+			}
+			break;
+			case JT_ELBOW: //
+			{
+				out->bones[i] = Hunk_Alloc(sizeof(tikiBoneElbow_t),h_low);
+				elbow = (tikiBoneElbow_t*)out->bones[i];
+				elbow->type=bone->jointType;
+				elbow->parentIndex = TIKI_GetLocalBoneIndex(out,bone->parent);
+				ptr = (float *) ( (byte *)bone + sizeof(skdBone_t) );
+				VectorScale(ptr,out->scale,ptr);
+				VectorCopy(ptr,elbow->const_offset);
+			}
+			break;
+			case JT_WRIST: //
+			{
+				out->bones[i] = Hunk_Alloc(sizeof(tikiBoneWrist_t),h_low);
+				wrist = (tikiBoneWrist_t*)out->bones[i];
+				wrist->type=bone->jointType;
+				wrist->parentIndex = TIKI_GetLocalBoneIndex(out,bone->parent);
+				ptr = (float *) ( (byte *)bone + sizeof(skdBone_t) );
+				VectorScale(ptr,out->scale,ptr);
+				VectorCopy(ptr,wrist->const_offset);
+				
+			}
+			break;
+			case JT_HOSEROT:
+			{
+				char*txt;
+				out->bones[i] = Hunk_Alloc(sizeof(tikiBoneHoseRot_t),h_low);
+				hose = (tikiBoneHoseRot_t*)out->bones[i];
+				hose->type=bone->jointType;
+				hose->parentIndex = TIKI_GetLocalBoneIndex(out,bone->parent);
+				ptr = (float *) ( (byte *)bone + sizeof(skdBone_t) );
+				ptr+=(42/4);
+				txt = (char*)ptr;
+			//	Com_Printf("\n HOSEref <%s>\n",txt);
+				hose->targetIndex = TIKI_GetLocalBoneIndex(out,txt);
+				ptr = (float *) ( (byte *)bone + sizeof(skdBone_t) );
+		//		Com_Printf("HOSEROT TYPE %f \n",*ptr); //1, 0.5
+				ptr++;
+				hose->angle=*ptr;
+			//	Com_Printf("HOSEROT ANGLE %f \n",*ptr);
+				ptr+=2;//12
+				VectorCopy(ptr,hose->const_offset);
+				VectorScale(hose->const_offset,out->scale,hose->const_offset);
+			}
+			break;
+			case JT_AVROT: //
+			{
+				int size;
+				out->bones[i] = Hunk_Alloc(sizeof(tikiBoneAVRot_t),h_low);
+				av = (tikiBoneAVRot_t*)out->bones[i];
+				av->type=bone->jointType;
+				av->parentIndex = TIKI_GetLocalBoneIndex(out,bone->parent);
+				ptr = (float *) ( (byte *)bone + sizeof(skdBone_t) );
+//				Com_Printf("AVROT data weight %f offs %f %f %f unknown %f %f %f %f", ptr[0],ptr[1],ptr[2],ptr[3],ptr[4],ptr[5],ptr[6],ptr[7],ptr[8]);
+				av->m_bone2weight = *ptr;
+				ptr++;
+				VectorScale(ptr,out->scale,ptr);
+				VectorCopy(ptr,av->const_offset);
+				ptr+=3;
+				ptr+=3; //skip 1 1 1
+				size = (int)bone + (int)bone->ofsEnd - (int)ptr;
+				Com_Printf("reference 1 %s ",(char*)ptr);
+				av->m_reference1 = TIKI_GetLocalBoneIndex(out,(char*)ptr); 
+				while(*(char*)ptr != 0)
+					((char*)ptr)++;
+				((char*)ptr)++;
+				Com_Printf("reference 2 %s\n",(char*)ptr);
+				av->m_reference2 = TIKI_GetLocalBoneIndex(out,(char*)ptr); 
+			}
+			break;
+			default:
+				Com_Error(1,"unkwno nbone type %i",bone->jointType);
+			break;
+		}
+		bone = (skdBone_t *)( (byte *)bone + bone->ofsEnd );
+	}
+
+	out->numSurfaces = header->numSurfaces;
+	out->surfs = Hunk_Alloc( header->ofsBoxes-header->ofsSurfaces, h_low );
+	memcpy(out->surfs,( ((byte *)header) + header->ofsSurfaces ),header->ofsBoxes-header->ofsSurfaces);
+	surf = out->surfs;
+	for ( i = 0 ; i < header->numSurfaces ; i++) {
+		surf->ident = 12; //SF_SKD;
+		vert = (skdVertex_t *) ( (byte *)surf + surf->ofsVerts );
+		for ( j = 0 ; j < surf->numVerts ; j++) {
+			weight = (skdWeight_t *) ( (byte *)vert + sizeof(skdVertex_t)+(sizeof(skdMorph_t)*vert->numMorphs));
+			for ( k = 0 ; k < vert->numWeights ; k++) {
+				VectorScale(weight->offset,out->scale,weight->offset);
+				if(weight->boneWeight<0 || weight->boneWeight>1) {
+					Com_Error(ERR_DROP, "invalid bone weight %f in %s \n",weight->boneWeight,out->name);
+				}
+				weight = (skdWeight_t *) ( (byte *)weight + sizeof(skdWeight_t));
+			}
+			vert = (skdVertex_t *) ( (byte *)vert + sizeof(skdVertex_t) + vert->numWeights*sizeof(skdWeight_t) + vert->numMorphs*sizeof(skdMorph_t) );
+		}
+		if(i+1 == header->numSurfaces) {
+			surf->ofsEnd = 0;
+		}
+		surf = (skdSurface_t *)( (byte *)surf + surf->ofsEnd );
+	}
+	FS_FreeFile(buf);
+}
+
+tikiAnim_t *TIKI_CacheAnim(char *fname, float scale) {
+	int				filesize;
+	char			*buf,*c;
+	skcHeader_t		*header;
+	skcFrame_t		*frame;
+	int				i,j;
+	tikiAnim_t		*anim;
+	char			channelTypes[256];
+	int				nameIndexes[256];
+	int				*channelNames;
+
+	//Com_Printf("TIKI_CacheAnim for %s, \n",  fname);
+	filesize = FS_ReadFile(fname, (void **)&buf);
+	if(!buf) {
+		Com_Printf ("TIKI_CacheAnim: couldn't load %s\n", fname);
+		return 0;
+	}
+	header = (skcHeader_t *)buf;
+	if (header->version != SKC_VERSION) {
+		Com_Printf( "TIKI_CacheAnim: %s has wrong version (%i should be %i)\n",
+				 fname, header->version, SKC_VERSION);
+		return 0;
+	}
+	if (header->ident != SKC_IDENT) {
+		Com_Printf( "TIKI_CacheAnim: %s has wrong ident (%s should be %s)\n",
+				 fname, header->ident, SKC_IDENT);
+		return 0;
+	}
+
+	anim = Hunk_Alloc( sizeof(*anim),h_high);
+	strcpy(anim->fname,fname);
+	anim->frameTime = header->frameTime;
+	anim->numFrames = header->numFrames;
+
+	c = ( (byte *)header + header->ofsChannels );
+	for(i = 0; i < header->numChannels; i++) {
+		int len = strlen(c);
+		if(!memcmp((c+(len-3)),"pos",3)) {
+			channelTypes[i] = 'p';
+			anim->numPosChannels++;
+			c[len-4]=0;
+			nameIndexes[i] = TIKI_RegisterBoneName(c);
+		}
+		else if(!memcmp((c+(len-2)),"FK",2)) {
+			channelTypes[i] = 'f';
+			anim->numRotFKChannels++;
+			c[len-6]=0;
+			nameIndexes[i] = TIKI_RegisterBoneName(c);
+		}
+		else if(!memcmp((c+(len-3)),"rot",3)) {
+			channelTypes[i] = 'r';
+			anim->numRotChannels++;
+			c[len-4]=0;
+			nameIndexes[i] = TIKI_RegisterBoneName(c);
+		}
+		c+=32;
+	}
+	channelNames = Hunk_Alloc(header->numChannels*4,h_high);
+	anim->posChannelNames = channelNames;
+	anim->rotChannelNames = channelNames + anim->numPosChannels;
+	anim->rotFKChannelNames = anim->rotChannelNames + anim->numRotChannels;
+
+	anim->numPosChannels = 0;
+	anim->numRotChannels = 0;
+	anim->numRotFKChannels = 0;
+	for(i = 0; i < header->numChannels; i++) {
+		if(channelTypes[i] == 'p') {
+			anim->posChannelNames[anim->numPosChannels] = nameIndexes[i];
+			anim->numPosChannels++;
+		}
+		else if(channelTypes[i] == 'r')	{
+			anim->rotChannelNames[anim->numRotChannels] = nameIndexes[i];
+			anim->numRotChannels++;
+		}
+		else if(channelTypes[i] == 'f')	{
+			anim->rotFKChannelNames[anim->numRotFKChannels] = nameIndexes[i];
+			anim->numRotFKChannels++;
+		}
+	}
+
+	anim->frames = Hunk_Alloc(header->numFrames*sizeof(tikiFrame_t),h_low );
+	for(i = 0; i < header->numFrames; i++) {
+		anim->frames[i].posChannels = Hunk_Alloc(sizeof(vec3_t)*anim->numPosChannels,h_high);
+		anim->frames[i].rotChannels = Hunk_Alloc(sizeof(quat_t)*anim->numRotChannels,h_high);
+		if(anim->numRotFKChannels)
+			anim->frames[i].rotFKChannels = Hunk_Alloc(sizeof(quat_t)*anim->numRotFKChannels,h_high);
+	}
+	frame = (skcFrame_t *)( (byte *)header + sizeof(*header) );
+	for(i = 0; i < header->numFrames; i++) {
+		float *values = (float*)((byte *)header+frame->ofsValues);
+		anim->numPosChannels = 0;
+		anim->numRotChannels = 0;
+		anim->numRotFKChannels = 0;
+		for(j = 0; j < header->numChannels; j++) {
+			if(channelTypes[j] == 'p')	{
+				VectorScale(values,scale,anim->frames[i].posChannels[anim->numPosChannels]);
+				anim->numPosChannels++;
+			}
+			else if(channelTypes[j] == 'r')	{
+				VectorCopy(values,anim->frames[i].rotChannels[anim->numRotChannels]);
+				anim->frames[i].rotChannels[anim->numRotChannels][3] = values[3]; 
+				anim->numRotChannels++;
+			}
+			else if(channelTypes[j] == 'f')	{
+				VectorCopy(values,anim->frames[i].rotFKChannels[anim->numRotFKChannels]);
+				anim->frames[i].rotChannels[anim->numRotFKChannels][3] = values[3];
+				anim->numRotFKChannels++;
+			}
+			values += 4;
+		}
+		frame++;
+	}
+
+
+
+	FS_FreeFile(buf);
+	return anim;
+}
+/*
+===============================
+TIKI FILES LOADING AND PARSING
+===============================
+*/
+int TIKI_CompareAnimName(const void *v1, const void *v2) {
+	tikiAnim_t *anim1;
+	tikiAnim_t *anim2;
+	anim1 = *(tikiAnim_t**)v1;
+	anim2 = *(tikiAnim_t**)v2;
+	return strcmp((anim1)->alias,(anim2)->alias);
+}
+char	*sections[] = {
+	"SECTION_ROOT",
+	"SECTION_SETUP",
+	"SECTION_INIT",
+	"SECTION_ANIMATIONS"
+};
+
+static tiki_t *TIKI_Load(const char *fname) {
+	tiki_t			*out;
+	char			*buf,*text, *token;
+	char			tmp[128], tmp2[128];
+	char			path[128];
+	skdSurface_t	*sf;
+	int				len;
+	int				i, j, level = 0;
+	tikiAnim_t		*anim;
+	tikiAnim_t		*anims[1024];
+	struct
+	{
+		char surface[64];
+		char shader[64];
+	} surfShaders[32];
+	int numSurfShaders;
+	enum {
+		SECTION_ROOT,
+		SECTION_SETUP,
+		SECTION_INIT,
+		SECTION_ANIMATIONS
+	}				section = SECTION_ROOT;
+	len = FS_ReadFile(fname, (void **)&buf);
+	if (!buf) {
+		Com_Printf("WARNING: TIKI_Load: Failed to open \"%s\"\n", fname);
+		return 0;
+	}
+	numSurfShaders = 0;
+
+	out = Hunk_Alloc(sizeof(*out), h_high);
+	strcpy(out->name,fname);
+	text = buf;
+	COM_BeginParseSession(fname);
+	token = COM_ParseExt(&text, qtrue);
+	if(Q_stricmp(token,"TIKI")) {
+		Com_Printf("WARNING: TIKI_Load: tiki file %s has wrong ident %s, should be TIKI\n",fname,token);
+		goto again;
+	}
+
+	while (*token) {
+		token = COM_ParseExt(&text, qtrue);
+again:
+		if(*token==0)
+			token = COM_ParseExt(&text, qtrue);
+
+		if (!Q_stricmp(token, "path")) {
+			token = COM_ParseExt(&text, qtrue);
+			strcpy(path,token);
+		}
+		else if(token[0]=='}') {
+			level--;
+			if(level == 0) {
+				section = SECTION_ROOT;
+			}
+			token++;
+			goto again;
+		}
+		else {
+			switch (section) {
+				case SECTION_ROOT: 
+					if (!Q_stricmp(token, "setup"))	{
+						token = COM_ParseExt(&text, qtrue);
+						if(token[0]!='{')
+							Com_Error(1,"expected { to follow setup, found %s",token);
+						token++;
+						level++;
+						section = SECTION_SETUP;
+						goto again;
+					}
+					else if (!Q_stricmp(token, "init")) {
+						token = COM_ParseExt(&text, qtrue);
+						if(token[0]!='{')
+							Com_Error(1,"expected { to follow init, found %s",token);
+						token++;
+						level++;
+						section = SECTION_INIT;
+						goto again;
+					}
+					else if (!Q_stricmp(token, "animations")) {
+						token = COM_ParseExt(&text, qtrue);
+						if(token[0]!='{')
+							Com_Error(1,"expected { to follow animations, found %s",token);
+						token++;
+						level++;
+						section = SECTION_ANIMATIONS;
+						goto again;
+					}
+					else {
+						Com_Printf("Unknown token %s in section %s of file %s\n",token,sections[section],fname);
+					}
+				break;
+				case SECTION_SETUP:
+					if (!Q_stricmp(token, "skelmodel")) {
+						token = COM_ParseExt(&text, qtrue);
+						strcpy(tmp,path);
+						i = strlen(tmp);
+						if(tmp[i-1] != '/')
+							strcat(tmp,"/");
+						strcat(tmp,token);
+						if(out->surfs == 0)
+							TIKI_AppendSKD(out,tmp);
+					}
+					else if (!Q_stricmp(token, "surface")) {
+						token = COM_ParseExt(&text, qtrue);
+						strcpy(tmp,token);
+						token = COM_ParseExt(&text, qtrue);
+						if (!Q_stricmp(token, "shader")) {
+							strcpy(surfShaders[numSurfShaders].surface,tmp);
+							token = COM_ParseExt(&text, qtrue);
+							strcpy(surfShaders[numSurfShaders].shader,token);
+
+							numSurfShaders++;
+						}
+					}
+					else if (!Q_stricmp(token, "scale")) {
+						token = COM_ParseExt(&text, qtrue);
+						out->scale = atof(token);
+					}
+					else {
+						Com_Printf("Unknown token %s in section %s of file %s\n",token,sections[section],fname);
+					}
+				break;
+				case SECTION_INIT:
+					/*if (!Q_stricmp(token, "skelmodel")) {
+						token = COM_ParseExt(&text, qtrue);
+					}
+					else
+					{
+						Com_Printf("Unknown token %s in section %s of file %s\n",token,sections[section],fname);
+					}*/
+				break;
+				case SECTION_ANIMATIONS:
+					strcpy(tmp,token);
+					token = COM_ParseExt(&text, qtrue);
+					strcpy(tmp2,path);
+					i = strlen(tmp2);
+					if(tmp2[i-1] != '/')
+						strcat(tmp2,"/");
+					strcat(tmp2,token);
+					anim = TIKI_CacheAnim(tmp2,out->scale);
+					if(anim)
+					{
+						strcpy(anim->alias,tmp);
+						anims[out->numAnims] = anim;
+						out->numAnims++;
+					}
+					while(1) {
+						token = COM_ParseExt(&text, qfalse);
+						if(!*token)
+							break;
+					}
+					token = COM_ParseExt(&text, qtrue);
+					if(token[0] == '{')	{
+						int animLevel = 1;
+						while(animLevel) {
+							token = COM_ParseExt(&text, qtrue);
+							if(token[0] == '}')
+								animLevel--;
+							if(token[0] == '{')
+								animLevel++;
+						}
+					}
+					else {
+						if(*token==0)
+							break;
+						goto again;
+					}
+
+				break;
+			}
+		}
+	}
+
+
+	qsort(anims,out->numAnims,sizeof(tikiAnim_t*),TIKI_CompareAnimName);
+	out->anims = Hunk_Alloc(sizeof(tikiAnim_t*)*out->numAnims,h_high);
+	memcpy(out->anims,anims,sizeof(tikiAnim_t*)*out->numAnims);
+
+
+
+
+	out->surfShaders = Hunk_Alloc(sizeof(qhandle_t)*out->numSurfaces,h_high);
+	sf = out->surfs;
+	for(i = 0; i < out->numSurfaces; i++) {
+		for(j = 0; j < numSurfShaders; j++) {
+			if(!Q_stricmp(sf->name,surfShaders[j].surface)) {
+				out->surfShaders[i] = RE_RegisterShader(surfShaders[j].shader);
+			}
+		}
+		sf = (skdSurface_t*)(((byte*)sf)+sf->ofsEnd);
+	}
+	FS_FreeFile(buf);
+	return out;
+}
+
+tiki_t	*TIKI_RegisterModel(const char *fname) {
+	tiki_t	*tiki;
+	int		hash;
+	if(!*fname)
+		return 0;
+	hash = generateHashValue(fname, TIKI_FILE_HASH_SIZE);
 	// see if the TIKI is already loaded
 	for (tiki = hashTable[hash]; tiki; tiki = tiki->next) {
 		if (!Q_stricmp(tiki->name, fname))
 			// match found
-			return (qhandle_t)tiki;
+			return tiki;
 	}
 	tiki = TIKI_Load(fname);
 	if (!tiki) {
 		Com_Printf("WARNING: TIKI_Load: Failed to load \"%s\"\n", fname);
-		return -1;
+		return 0;
 	}
 	if (hashTable[hash]) {
 		hashTable[hash]->prev = tiki;
 		tiki->next = hashTable[hash];
 	}
 	hashTable[hash] = tiki;
-	return (qhandle_t)tiki;
+	return tiki;
 }
 
 /*

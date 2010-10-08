@@ -1422,5 +1422,8 @@ void (*rb_surfaceTable[SF_NUM_SURFACE_TYPES])( void *) = {
 	(void(*)(void*))RB_SurfaceEntity,		// SF_ENTITY
 	(void(*)(void*))RB_SurfaceDisplayList,	// SF_DISPLAY_LIST
 	// IneQuation was here
-	(void(*)(void*))RB_SurfaceTerrainPatch	// SF_TERRAIN_PATCH
+	(void(*)(void*))RB_SurfaceTerrainPatch,	// SF_TERRAIN_PATCH
+	// su44 was here
+	(void(*)(void*))RB_SurfaceSKD,	// SF_SKD
+	(void(*)(void*))RB_SurfaceSkeleton //SF_SKELETON
 };

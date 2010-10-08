@@ -177,30 +177,18 @@ qhandle_t RE_RegisterModel( const char *name ) {
 #endif
 
 	// IneQuation: TIKI support
-	/*if (!Q_stricmp(fext, "tiki")) {
-		int filesize;
-
-		filesize = ri.FS_ReadFile(name, (void **)&buf);
-		if (!buf) {
-			ri.Printf(PRINT_WARNING,"RE_RegisterModel: couldn't load %s\n", name);
-			mod->type = MOD_BAD;
-			return 0;
-		}
-
-		ident = LittleLong(*(unsigned *)buf);
-		if(ident == TIKI_IDENT)
-			loaded = R_LoadTIKI(mod, buf, filesize, name);
-
-		ri.FS_FreeFile (buf);
-
-		if (!loaded) {
+	if (!Q_stricmp(fext, "tik")) {
+		tiki_t *tiki;
+		tiki = TIKI_RegisterModel(name);
+		if (!tiki) {
 			ri.Printf(PRINT_WARNING,"RE_RegisterModel: couldn't load TIKI file %s\n", name);
 			mod->type = MOD_BAD;
 			return 0;
 		}
-
+		mod->type = MOD_TIKI;
+		mod->tiki = tiki;
 		return mod->index;
-	}*/
+	}
 
 	fext = defex;
 

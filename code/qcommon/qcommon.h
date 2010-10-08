@@ -24,6 +24,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define _QCOMMON_H_
 
 #include "../qcommon/cm_public.h"
+#include "../qcommon/tiki_public.h"
 
 //Ignore __attribute__ on non-gcc platforms
 #ifndef __GNUC__

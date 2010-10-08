@@ -1,6 +1,6 @@
 /*
 ===========================================================================
-Copyright (C) 2008 Leszek Godlewski
+Copyright (C) 2009-2010 su44
 
 This file is part of OpenMoHAA source code.
 
@@ -20,14 +20,30 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ===========================================================================
 */
 
-#include "q_shared.h"
+#include "cg_local.h"
 
-// animation flags
-#define TAF_DELTADRIVEN				0x1
-#define TAF_AUTOSTEPS_RUN			0x2
-#define TAF_AUTOSTEPS_WALK			0x4
+void CG_ModelAnim( centity_t *cent ) {
+	refEntity_t ent;
+	entityState_t *s1;
+	tiki_t *tiki;
+	
+	s1 = &cent->currentState;
 
-typedef struct tiki_s tiki_t;
-tiki_t*	TIKI_RegisterModel(const char *fname);
-void TIKI_SetChannels(tiki_t *tiki, int animIndex, float animTime, float animWeight, bone_t *bones);
-void TIKI_Animate(tiki_t *tiki, bone_t *bones);
+	memset(&ent,0,sizeof(ent));
+//	AnglesToAxis(cent->lerpAngles,ent.axis);
+//	VectorCopy(cent->lerpOrigin,ent.origin);
+	AnglesToAxis(cent->currentState.angles,ent.axis);
+	VectorCopy(cent->currentState.origin,ent.origin);
+
+	ent.hModel = cgs.gameModels[s1->modelindex];
+	
+	tiki = cgs.gameTIKIs[s1->modelindex];
+	if(tiki && tiki->numAnims) {
+		ent.bones = trap_TIKI_GetBones(tiki->numBones);
+		trap_TIKI_SetChannels(tiki,s1->frameInfo[0].index,s1->frameInfo[0].time,s1->frameInfo[0].weight,ent.bones);
+		trap_TIKI_Animate(tiki,ent.bones);
+	}
+
+	trap_R_AddRefEntityToScene(&ent);
+}
+

@@ -758,10 +758,10 @@ void CL_ParseCGMessage( msg_t *msg ) {
 				vecStart[1] = MSG_ReadCoord(msg);
 				vecStart[2] = MSG_ReadCoord(msg);
 				break;
-			case 14:
 			default: //unknown message
 				Com_Error(ERR_DROP, "CL_ParseCGMessage: Unknown CG Message %i", msgtype);
 				break;
+			case 14:
 			case 15: // MakeEffect
 			case 16:
 			case 17:

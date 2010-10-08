@@ -347,11 +347,12 @@ static void CG_TouchTriggerPrediction( void ) {
 	for ( i = 0 ; i < cg_numTriggerEntities ; i++ ) {
 		cent = cg_triggerEntities[ i ];
 		ent = &cent->currentState;
-
+/*
 		if ( ent->eType == ET_ITEM && !spectator ) {
 			CG_TouchItem( cent );
 			continue;
 		}
+*/
 
 		if ( ent->solid != SOLID_BMODEL ) {
 			continue;

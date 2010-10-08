@@ -496,13 +496,21 @@ typedef struct {
 } skdSurface_t;
 
 typedef enum {
-	JT_24BYTES1,
+	JT_ROTATION, //24 bytes
 	JT_POSROT_SKC,
-	JT_40BYTES1,
-	JT_24BYTES2,
-	JT_24BYTES3,
-	JT_40BYTES2,
-	JT_28BYTES
+	JT_SHOULDER, //40 bytes
+	JT_ELBOW, //24 bytes
+	JT_WRIST, //24 bytes
+	JT_HOSEROT, //40 bytes
+	JT_AVROT, //28 bytes
+	JT_ZERO,
+	JT_NUMBONETYPES, 
+
+	JT_WORLD,
+	JT_HOSEROTBOTH,
+	JT_HOSEROTPARENT,
+	JT_POSROTFK,
+	JT_MAX = 0x7fffffff			// ensures that sizeof( skdJointType_t ) == sizeof( int )
 } skdJointType_t;
 
 typedef struct {
@@ -526,12 +534,8 @@ typedef struct {
 	int			ofsBones;		// char	name[ MAX_QPATH ]
 	int			ofsSurfaces;			// skdFrame_t[numFrames]
 
-	// each level of detail has completely separate sets of surfaces
-	int			numLODs;
-	int			ofsLODs;
-
 	int			ofsEnd;				// end of file
-	int			lodIndex[8];
+	int			lodIndex[10];
 	int			numBoxes;
 	int			ofsBoxes;
 	int			numMorphTargets;
@@ -561,7 +565,8 @@ typedef struct {
 	/*int			i1;
 	int			ofsBones;*/
 	float		unknown;
-	int			numChannels;
+	//int			numChannels;
+	int			ofsValues;
 } skcFrame_t;
 
 typedef struct {

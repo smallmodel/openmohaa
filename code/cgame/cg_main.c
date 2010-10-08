@@ -1060,6 +1060,12 @@ static void CG_RegisterGraphics( void ) {
 			break;
 		}
 		cgs.gameModels[i] = trap_R_RegisterModel( modelName );
+		if( modelName[0] != '*')	{
+			cgs.gameTIKIs[i] = trap_TIKI_RegisterModel( modelName );
+			if(cgs.gameTIKIs[i] == 0) {
+				CG_Printf("CG_RegisterGraphics: failed to load  tiki file  %s (%i)\n",modelName,i);
+			}
+		}
 	}
 
 #ifdef MISSIONPACK

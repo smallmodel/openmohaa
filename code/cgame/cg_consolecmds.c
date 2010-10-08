@@ -575,4 +575,8 @@ void CG_InitConsoleCommands( void ) {
 	trap_AddCommand ("stats");
 	trap_AddCommand ("teamtask");
 	trap_AddCommand ("loaddefered");	// spelled wrong, but not changing for demo
+	// su44
+	trap_AddCommand ("join_team"); // join_team allies / axis
+	trap_AddCommand ("auto_join_team");
+	trap_AddCommand ("primarydmweapon"); // primarydmweapon rifle / smg / mg / heavy / shotgun
 }

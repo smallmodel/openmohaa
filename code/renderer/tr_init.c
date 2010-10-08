@@ -160,7 +160,8 @@ int		max_polyverts;
 cvar_t	*ter_maxlod;		// this is a little hack to allow us to feed on MoHAA's terrain settings, has a diff. meaning than the one in MoHAA
 cvar_t	*ter_lodgapbase;	// for testing purposes
 cvar_t	*ter_constlod;		// overrides all the above, for testing purposes; valid range: 0-3, inclusive
-
+// su44
+cvar_t	*r_showSkeleton;
 static void AssertCvarRange( cvar_t *cv, float minVal, float maxVal, qboolean shouldBeIntegral )
 {
 	if ( shouldBeIntegral )
@@ -1036,6 +1037,8 @@ void R_Register( void )
 	ter_maxlod = ri.Cvar_Get("ter_maxlod", "6", CVAR_ARCHIVE);	// IneQuation
 	ter_lodgapbase = ri.Cvar_Get("ter_lodgapbase", "2048", CVAR_ARCHIVE);	// IneQuation
 	ter_constlod = ri.Cvar_Get("ter_constlod", "-1", CVAR_ARCHIVE);	// IneQuation
+
+	r_showSkeleton = ri.Cvar_Get("r_showSkeleton", "0", CVAR_ARCHIVE | CVAR_CHEAT);	// su44
 
 	// make sure all the commands added here are also
 	// removed in R_Shutdown

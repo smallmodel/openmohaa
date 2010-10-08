@@ -946,6 +946,7 @@ static void CG_AddCEntity( centity_t *cent ) {
 	default:
 		CG_Error( "Bad entity type: %i\n", cent->currentState.eType );
 		break;
+#if 0
 	case ET_MODELANIM_SKEL:
 	case ET_MODELANIM:
 	case ET_VEHICLE:
@@ -992,6 +993,20 @@ static void CG_AddCEntity( centity_t *cent ) {
 	case ET_TEAM:
 		CG_TeamBase( cent );
 		break;*/
+#else
+	case ET_GENERAL:
+		CG_ModelAnim( cent );
+		//CG_General( cent );
+		break;
+	case ET_VEHICLE:
+	case ET_ITEM:
+	case ET_MODELANIM:
+	case ET_PLAYER:
+		CG_ModelAnim( cent );
+		break;
+	case ET_RAIN:
+		break;
+#endif
 	}
 }
 

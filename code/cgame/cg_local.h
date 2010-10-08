@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../qcommon/q_shared.h"
 #include "../renderer/tr_types.h"
 #include "../game/bg_public.h"
+#include "../qcommon/tiki_local.h"
 #include "cg_public.h"
 
 
@@ -1034,6 +1035,7 @@ typedef struct {
 	//
 	qhandle_t		gameModels[MAX_MODELS];
 	sfxHandle_t		gameSounds[MAX_SOUNDS];
+	tiki_t	*		gameTIKIs[MAX_MODELS];
 
 	int				numInlineModels;
 	qhandle_t		inlineDrawModel[MAX_MODELS];
@@ -1461,6 +1463,10 @@ void CG_Respawn( void );
 void CG_TransitionPlayerState( playerState_t *ps, playerState_t *ops );
 void CG_CheckChangedPredictableEvents( playerState_t *ps );
 
+//
+// cg_modelanim.c
+//
+void CG_ModelAnim( centity_t *cent );
 
 //===============================================
 
@@ -1635,6 +1641,12 @@ int			trap_R_Text_Width(fontInfo_t *font, const char *text, int limit, qboolean 
 int			trap_R_Text_Height(fontInfo_t *font, const char *text, int limit, qboolean useColourCodes);
 void		trap_R_Text_Paint(fontInfo_t *font, float x, float y, float scale, float alpha, const char *text, float adjust, int limit, qboolean useColourCodes, qboolean is640);
 void		trap_R_Text_PaintChar(fontInfo_t *font, float x, float y, float scale, int c, qboolean is640);
+// su44
+tiki_t*		trap_TIKI_RegisterModel( const char *fname );
+bone_t*		trap_TIKI_GetBones( int numBones );
+void		trap_TIKI_SetChannels( struct tiki_s *tiki, int animIndex, float animTime, float animWeight, bone_t *bones );
+void		trap_TIKI_Animate( struct tiki_s *tiki, bone_t *bones );
+
 
 typedef enum {
   SYSTEM_PRINT,

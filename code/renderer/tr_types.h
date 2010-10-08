@@ -104,6 +104,8 @@ typedef struct {
 	// extra sprite information
 	float		radius;
 	float		rotation;
+
+	bone_t		*bones;
 } refEntity_t;
 
 

@@ -42,7 +42,7 @@ refimport_t	ri;
 // entities that will have procedurally generated surfaces will just
 // point at this for their sorting surface
 surfaceType_t	entitySurface = SF_ENTITY;
-
+surfaceType_t	skeletonSurface = SF_SKELETON;
 /*
 =================
 R_CullLocalBox
@@ -1214,6 +1214,15 @@ void R_AddEntitySurfaces (void) {
 #endif
 				case MOD_BRUSH:
 					R_AddBrushModelSurfaces( ent );
+					break;
+				case MOD_TIKI:
+					if(!r_showSkeleton->integer)
+						R_AddTIKISurfaces( ent );
+					else
+					{
+						ent->e.renderfx |= RF_DEPTHHACK;
+						R_AddDrawSurf( (void *)&skeletonSurface, tr.defaultShader, 0 /*fogNum*/, qfalse );
+					}
 					break;
 				case MOD_BAD:		// null model axis
 					if ( (ent->e.renderfx & RF_THIRD_PERSON) && !tr.viewParms.isPortal) {

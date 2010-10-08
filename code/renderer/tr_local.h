@@ -29,6 +29,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../qcommon/qcommon.h"
 #include "tr_public.h"
 #include "qgl.h"
+#include "../qcommon/tiki_public.h"
 
 #define GL_INDEX_TYPE		GL_UNSIGNED_INT
 typedef unsigned int glIndex_t;
@@ -534,6 +535,9 @@ typedef enum {
 
 	// IneQuation was here
 	SF_TERRAIN_PATCH,
+	// su44 was here
+	SF_SKD,
+	SF_SKELETON, // only if r_showSkeleton->integer!=0
 
 	SF_NUM_SURFACE_TYPES,
 	SF_MAX = 0x7fffffff			// ensures that sizeof( surfaceType_t ) == sizeof( int )
@@ -772,6 +776,7 @@ typedef enum {
 	MOD_BRUSH,
 	MOD_MESH,
 	MOD_MD4,
+	MOD_TIKI,
 #ifdef RAVENMD4
 	MOD_MDR
 #endif
@@ -786,7 +791,7 @@ typedef struct model_s {
 	bmodel_t	*bmodel;			// only if type == MOD_BRUSH
 	md3Header_t	*md3[MD3_MAX_LODS];	// only if type == MOD_MESH
 	void	*md4;				// only if type == (MOD_MD4 | MOD_MDR)
-
+	tiki_t	*tiki;
 	int			 numLods;
 } model_t;
 
@@ -1142,6 +1147,8 @@ extern	cvar_t	*r_GLlibCoolDownMsec;
 extern	cvar_t	*ter_maxlod;		// IneQuation: control terrain level of detail; valid range: 3-6, inclusive
 extern	cvar_t	*ter_lodgapbase;	// for testing purposes
 extern	cvar_t	*ter_constlod;		// overrides the above, for testing; valid range: 0-3, inclusive
+// su44
+extern	cvar_t	*r_showSkeleton;
 
 //====================================================================
 
@@ -1520,6 +1527,11 @@ void RB_SurfaceAnim( md4Surface_t *surfType );
 void R_MDRAddAnimSurfaces( trRefEntity_t *ent );
 void RB_MDRSurfaceAnim( md4Surface_t *surface );
 #endif
+void R_AddTIKISurfaces( trRefEntity_t *ent );
+void RB_SurfaceSKD( skdSurface_t *sf );
+
+void R_AddTIKIDebugSkeleton( trRefEntity_t *ent );
+void RB_SurfaceSkeleton( skdSurface_t *sf );
 
 /*
 =============================================================

@@ -459,3 +459,19 @@ void trap_R_Text_Paint(fontInfo_t *font, float x, float y, float scale, float al
 void trap_R_Text_PaintChar(fontInfo_t *font, float x, float y, float scale, int c, qboolean is640) {
 	syscall(CG_R_TEXT_PAINTCHAR, font, PASSFLOAT(x), PASSFLOAT(y), PASSFLOAT(scale), c, is640);
 }
+
+tiki_t* trap_TIKI_RegisterModel( const char *fname ) {
+	return syscall(CG_TIKI_REGISTERMODEL, fname);
+}
+
+bone_t* trap_TIKI_GetBones( int numBones ) {
+	return syscall(CG_TIKI_GETBONES, numBones);
+}
+
+void trap_TIKI_SetChannels( tiki_t *tiki, int animIndex, float animTime, float animWeight, bone_t *bones ) {
+	syscall(CG_TIKI_SETCHANNELS, tiki, animIndex, PASSFLOAT(animTime), PASSFLOAT(animWeight), bones);
+}
+
+void trap_TIKI_Animate( tiki_t *tiki, bone_t *bones ) {
+	syscall(CG_TIKI_ANIMATE, tiki, bones);
+}

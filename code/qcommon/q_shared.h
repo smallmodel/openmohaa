@@ -285,7 +285,10 @@ typedef float vec_t;
 typedef vec_t vec2_t[2];
 typedef vec_t vec3_t[3];
 typedef vec_t vec4_t[4];
+typedef vec_t quat_t[4]; // | x y z w |
 typedef vec_t vec5_t[5];
+typedef vec_t matrix3x3_t[9];
+typedef vec_t matrix_t[16];
 
 typedef	int	fixed4_t;
 typedef	int	fixed8_t;
@@ -449,6 +452,17 @@ typedef struct {
 #define Vector4Copy(a,b)		((b)[0]=(a)[0],(b)[1]=(a)[1],(b)[2]=(a)[2],(b)[3]=(a)[3])
 
 #define	SnapVector(v) {v[0]=((int)(v[0]));v[1]=((int)(v[1]));v[2]=((int)(v[2]));}
+
+#define DotProduct4(x,y)		((x)[0]*(y)[0]+(x)[1]*(y)[1]+(x)[2]*(y)[2]+(x)[3]*(y)[3])
+#define VectorSubtract4(a,b,c)	((c)[0]=(a)[0]-(b)[0],(c)[1]=(a)[1]-(b)[1],(c)[2]=(a)[2]-(b)[2],(c)[3]=(a)[3]-(b)[3])
+#define VectorAdd4(a,b,c)		((c)[0]=(a)[0]+(b)[0],(c)[1]=(a)[1]+(b)[1],(c)[2]=(a)[2]+(b)[2],(c)[3]=(a)[3]+(b)[3])
+#define VectorCopy4(a,b)		((b)[0]=(a)[0],(b)[1]=(a)[1],(b)[2]=(a)[2],(b)[3]=(a)[3])
+#define	VectorScale4(v, s, o)	((o)[0]=(v)[0]*(s),(o)[1]=(v)[1]*(s),(o)[2]=(v)[2]*(s),(o)[3]=(v)[3]*(s))
+#define	VectorMA4(v, s, b, o)	((o)[0]=(v)[0]+(b)[0]*(s),(o)[1]=(v)[1]+(b)[1]*(s),(o)[2]=(v)[2]+(b)[2]*(s),(o)[3]=(v)[3]+(b)[3]*(s))
+#define VectorClear4(a)			((a)[0]=(a)[1]=(a)[2]=(a)[3]=0)
+#define VectorNegate4(a,b)		((b)[0]=-(a)[0],(b)[1]=-(a)[1],(b)[2]=-(a)[2],(b)[3]=-(a)[3])
+#define VectorSet4(v,x,y,z,w)	((v)[0]=(x),(v)[1]=(y),(v)[2]=(z),(v)[3]=(w))
+
 // just in case you do't want to use the macros
 vec_t _DotProduct( const vec3_t v1, const vec3_t v2 );
 void _VectorSubtract( const vec3_t veca, const vec3_t vecb, vec3_t out );
@@ -592,6 +606,181 @@ void MakeNormalVectors( const vec3_t forward, vec3_t right, vec3_t up );
 void MatrixMultiply(float in1[3][3], float in2[3][3], float out[3][3]);
 void AngleVectors( const vec3_t angles, vec3_t forward, vec3_t right, vec3_t up);
 void PerpendicularVector( vec3_t dst, const vec3_t src );
+
+void            GetPerpendicularViewVector(const vec3_t point, const vec3_t p1, const vec3_t p2, vec3_t up);
+void            ProjectPointOntoVector(vec3_t point, vec3_t vStart, vec3_t vEnd, vec3_t vProj);
+
+float           pointToLineDistance(const vec3_t point, const vec3_t p1, const vec3_t p2);
+float           VectorMinComponent(vec3_t v);
+float           VectorMaxComponent(vec3_t v);
+
+vec_t           DistanceBetweenLineSegmentsSquared(const vec3_t sP0, const vec3_t sP1,
+												   const vec3_t tP0, const vec3_t tP1, float *s, float *t);
+vec_t           DistanceBetweenLineSegments(const vec3_t sP0, const vec3_t sP1,
+											const vec3_t tP0, const vec3_t tP1, float *s, float *t);
+
+void            MatrixIdentity(matrix_t m);
+void            MatrixClear(matrix_t m);
+void            MatrixCopy(const matrix_t in, matrix_t out);
+qboolean        MatrixCompare(const matrix_t a, const matrix_t b);
+void            MatrixTransposeIntoXMM(const matrix_t m);
+void            MatrixTranspose(const matrix_t in, matrix_t out);
+
+// invert any m4x4 using Kramer's rule.. return qtrue if matrix is singular, else return qfalse
+qboolean        MatrixInverse(matrix_t m);
+void            MatrixSetupXRotation(matrix_t m, vec_t degrees);
+void            MatrixSetupYRotation(matrix_t m, vec_t degrees);
+void            MatrixSetupZRotation(matrix_t m, vec_t degrees);
+void            MatrixSetupTranslation(matrix_t m, vec_t x, vec_t y, vec_t z);
+void            MatrixSetupScale(matrix_t m, vec_t x, vec_t y, vec_t z);
+void            MatrixSetupShear(matrix_t m, vec_t x, vec_t y);
+//void            MatrixMultiply(const matrix_t a, const matrix_t b, matrix_t out);
+void            MatrixMultiply2(matrix_t m, const matrix_t m2);
+void            MatrixMultiplyRotation(matrix_t m, vec_t pitch, vec_t yaw, vec_t roll);
+void            MatrixMultiplyZRotation(matrix_t m, vec_t degrees);
+void            MatrixMultiplyTranslation(matrix_t m, vec_t x, vec_t y, vec_t z);
+void            MatrixMultiplyScale(matrix_t m, vec_t x, vec_t y, vec_t z);
+void            MatrixMultiplyShear(matrix_t m, vec_t x, vec_t y);
+void            MatrixToAngles(const matrix_t m, vec3_t angles);
+void            MatrixFromAngles(matrix_t m, vec_t pitch, vec_t yaw, vec_t roll);
+void            MatrixFromVectorsFLU(matrix_t m, const vec3_t forward, const vec3_t left, const vec3_t up);
+void            MatrixFromVectorsFRU(matrix_t m, const vec3_t forward, const vec3_t right, const vec3_t up);
+void            MatrixFromQuat(matrix_t m, const quat_t q);
+void            MatrixFromPlanes(matrix_t m, const vec4_t left, const vec4_t right, const vec4_t bottom, const vec4_t top,
+								 const vec4_t near, const vec4_t far);
+void            MatrixToVectorsFLU(const matrix_t m, vec3_t forward, vec3_t left, vec3_t up);
+void            MatrixToVectorsFRU(const matrix_t m, vec3_t forward, vec3_t right, vec3_t up);
+void            MatrixSetupTransformFromVectorsFLU(matrix_t m, const vec3_t forward, const vec3_t left, const vec3_t up, const vec3_t origin);
+void            MatrixSetupTransformFromVectorsFRU(matrix_t m, const vec3_t forward, const vec3_t right, const vec3_t up, const vec3_t origin);
+void            MatrixSetupTransformFromRotation(matrix_t m, const matrix_t rot, const vec3_t origin);
+void            MatrixSetupTransformFromQuat(matrix_t m, const quat_t quat, const vec3_t origin);
+void            MatrixAffineInverse(const matrix_t in, matrix_t out);
+void            MatrixTransformNormal(const matrix_t m, const vec3_t in, vec3_t out);
+void            MatrixTransformNormal2(const matrix_t m, vec3_t inout);
+void            MatrixTransformPoint(const matrix_t m, const vec3_t in, vec3_t out);
+void            MatrixTransformPoint2(const matrix_t m, vec3_t inout);
+void            MatrixTransform4(const matrix_t m, const vec4_t in, vec4_t out);
+void            MatrixTransformPlane(const matrix_t m, const vec4_t in, vec4_t out);
+void            MatrixTransformPlane2(const matrix_t m, vec3_t inout);
+void            MatrixPerspectiveProjection(matrix_t m, vec_t left, vec_t right, vec_t bottom, vec_t top, vec_t near, vec_t far);
+void            MatrixPerspectiveProjectionLH(matrix_t m, vec_t left, vec_t right, vec_t bottom, vec_t top, vec_t near, vec_t far);
+void            MatrixPerspectiveProjectionRH(matrix_t m, vec_t left, vec_t right, vec_t bottom, vec_t top, vec_t near, vec_t far);
+void            MatrixPerspectiveProjectionFovYAspectLH(matrix_t m, vec_t fov, vec_t aspect, vec_t near, vec_t far);
+void            MatrixPerspectiveProjectionFovXYLH(matrix_t m, vec_t fovX, vec_t fovY, vec_t near, vec_t far);
+void            MatrixPerspectiveProjectionFovXYRH(matrix_t m, vec_t fovX, vec_t fovY, vec_t near, vec_t far);
+void            MatrixPerspectiveProjectionFovXYInfiniteRH(matrix_t m, vec_t fovX, vec_t fovY, vec_t near);
+void            MatrixOrthogonalProjection(matrix_t m, vec_t left, vec_t right, vec_t bottom, vec_t top, vec_t near, vec_t far);
+
+void			MatrixOrthogonalProjectionLH(matrix_t m, vec_t left, vec_t right, vec_t bottom, vec_t top, vec_t near, vec_t far);
+void			MatrixOrthogonalProjectionRH(matrix_t m, vec_t left, vec_t right, vec_t bottom, vec_t top, vec_t near, vec_t far);
+
+void			MatrixPlaneReflection(matrix_t m, const vec4_t plane);
+
+void            MatrixLookAtLH(matrix_t output, const vec3_t pos, const vec3_t dir, const vec3_t up);
+void            MatrixLookAtRH(matrix_t m, const vec3_t eye, const vec3_t dir, const vec3_t up);
+void            MatrixScaleTranslateToUnitCube(matrix_t m, const vec3_t mins, const vec3_t maxs);
+void            MatrixCrop(matrix_t m, const vec3_t mins, const vec3_t maxs);
+
+static ID_INLINE void AnglesToMatrix(const vec3_t angles, matrix_t m)
+{
+	MatrixFromAngles(m, angles[PITCH], angles[YAW], angles[ROLL]);
+}
+
+
+#define QuatSet(q,x,y,z,w)	((q)[0]=(x),(q)[1]=(y),(q)[2]=(z),(q)[3]=(w))
+#define QuatCopy(a,b)		((b)[0]=(a)[0],(b)[1]=(a)[1],(b)[2]=(a)[2],(b)[3]=(a)[3])
+
+#define QuatCompare(a,b)	((a)[0]==(b)[0] && (a)[1]==(b)[1] && (a)[2]==(b)[2] && (a)[3]==(b)[3])
+
+static ID_INLINE void QuatClear(quat_t q)
+{
+	q[0] = 0;
+	q[1] = 0;
+	q[2] = 0;
+	q[3] = 1;
+}
+
+/*
+static ID_INLINE int QuatCompare(const quat_t a, const quat_t b)
+{
+	if(a[0] != b[0] || a[1] != b[1] || a[2] != b[2] || a[3] != b[3])
+	{
+		return 0;
+	}
+	return 1;
+}
+*/
+
+static ID_INLINE void QuatCalcW(quat_t q)
+{
+#if 1
+	vec_t           term = 1.0f - (q[0] * q[0] + q[1] * q[1] + q[2] * q[2]);
+
+	if(term < 0.0)
+		q[3] = 0.0;
+	else
+		q[3] = -sqrt(term);
+#else
+	q[3] = sqrt(fabs(1.0f - (q[0] * q[0] + q[1] * q[1] + q[2] * q[2])));
+#endif
+}
+
+static ID_INLINE void QuatInverse(quat_t q)
+{
+	q[0] = -q[0];
+	q[1] = -q[1];
+	q[2] = -q[2];
+}
+
+static ID_INLINE void QuatAntipodal(quat_t q)
+{
+	q[0] = -q[0];
+	q[1] = -q[1];
+	q[2] = -q[2];
+	q[3] = -q[3];
+}
+
+static ID_INLINE vec_t QuatLength(const quat_t q)
+{
+	return (vec_t) sqrt(q[0] * q[0] + q[1] * q[1] + q[2] * q[2] + q[3] * q[3]);
+}
+
+vec_t           QuatNormalize(quat_t q);
+
+void            QuatFromAngles(quat_t q, vec_t pitch, vec_t yaw, vec_t roll);
+
+static ID_INLINE void AnglesToQuat(const vec3_t angles, quat_t q)
+{
+	QuatFromAngles(q, angles[PITCH], angles[YAW], angles[ROLL]);
+}
+
+void            QuatFromMatrix(quat_t q, const matrix_t m);
+void            QuatToVectorsFLU(const quat_t quat, vec3_t forward, vec3_t left, vec3_t up);
+void            QuatToVectorsFRU(const quat_t quat, vec3_t forward, vec3_t right, vec3_t up);
+void            QuatToAxis(const quat_t q, vec3_t axis[3]);
+void            QuatToAngles(const quat_t q, vec3_t angles);
+
+// Quaternion multiplication, analogous to the matrix multiplication routines.
+
+// qa = rotate by qa, then qb
+void            QuatMultiply0(quat_t qa, const quat_t qb);
+
+// qc = rotate by qa, then qb
+void            QuatMultiply1(const quat_t qa, const quat_t qb, quat_t qc);
+
+// qc = rotate by qa, then by inverse of qb
+void            QuatMultiply2(const quat_t qa, const quat_t qb, quat_t qc);
+
+// qc = rotate by inverse of qa, then by qb
+void            QuatMultiply3(const quat_t qa, const quat_t qb, quat_t qc);
+
+// qc = rotate by inverse of qa, then by inverse of qb
+void            QuatMultiply4(const quat_t qa, const quat_t qb, quat_t qc);
+
+void QuaternionMultiply( quat_t output, quat_t first, quat_t second );
+
+void            QuatSlerp(const quat_t from, const quat_t to, float frac, quat_t out);
+void            QuatTransformVector(const quat_t q, const vec3_t in, vec3_t out);
 int Q_isnan( float x );
 
 
@@ -867,7 +1056,10 @@ typedef struct {
 	int		numPoints;
 } markFragment_t;
 
-
+typedef struct {
+	vec3_t p;
+	quat_t q;
+} bone_t;
 
 typedef struct {
 	vec3_t		origin;

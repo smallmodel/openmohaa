@@ -626,6 +626,17 @@ intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 		re.Text_PaintChar(VMA(1), VMF(2), VMF(3), VMF(4), args[5], args[6]);
 		return 0;
 
+	// su44
+	case CG_TIKI_REGISTERMODEL:
+		return TIKI_RegisterModel(VMA(1));
+	case CG_TIKI_GETBONES:
+		return TIKI_GetBones(VMA(1));
+	case CG_TIKI_SETCHANNELS:
+		TIKI_SetChannels(VMA(1),args[2],VMF(3),VMF(4),VMA(5));
+		return 0;
+	case CG_TIKI_ANIMATE:
+		TIKI_Animate(VMA(1),VMA(2));
+		return 0;
 
 	case CG_MEMSET:
 		Com_Memset( VMA(1), args[2], args[3] );
@@ -808,6 +819,7 @@ CL_CGameRendering
 =====================
 */
 void CL_CGameRendering( stereoFrame_t stereo ) {
+	TIKI_ResetBones(); // su44 maybe I should put this somewhere else...
 	VM_Call( cgvm, CG_DRAW_ACTIVE_FRAME, cl.serverTime, stereo, clc.demoplaying );
 	VM_Debug( 0 );
 }

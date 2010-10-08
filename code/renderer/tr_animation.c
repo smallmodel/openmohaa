@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 #include "tr_local.h"
+#include "../qcommon/tiki_local.h"
 
 /*
 
@@ -656,3 +657,217 @@ void MC_UnCompress(float mat[3][4],const unsigned char * comp)
 	mat[2][2]=((float)(val))*MC_SCALE_VECT;
 }
 #endif
+
+/*
+==============
+RB_SurfaceSkeleton
+==============
+*/
+void RB_SurfaceSkeleton( skdSurface_t *sf ) {
+	int i;
+	tiki_t		*tiki;
+	if(!backEnd.currentEntity->e.bones)
+		return;
+	tiki = R_GetModelByHandle(backEnd.currentEntity->e.hModel)->tiki;
+	if(r_showSkeleton->integer==1) {
+		vec3_t forward,right,up,angles;
+		bone_t	*bones;
+		tikiBonePosRot_t*bone;
+
+		bones = backEnd.currentEntity->e.bones;
+		GL_Bind(tr.whiteImage);
+		qglLineWidth(3);
+		qglBegin(GL_LINES);
+		for (i = 0; i < tiki->numBones; i++) {
+			QuatToAngles(bones[i].q,angles);
+			AngleVectors(angles, forward, right, up);
+			bone = (tikiBonePosRot_t*)tiki->bones[i];
+			
+
+			if(bone->parentIndex==-1) {
+				// draw bone
+				qglColor3f(1, 1, 1);
+				qglVertex3f(0, 0, 0);
+				qglVertex3fv(bones[i].p);
+				
+				// draw bone axis
+				qglColor3f(1, 0, 0);
+				qglVertex3f(0, 0, 0);
+				qglVertex3fv(forward);
+				qglVertex3fv(forward);
+				qglVertex3fv(bones[i].p);
+				
+				qglColor3f(0, 1, 0);
+				qglVertex3f(0, 0, 0);
+				qglVertex3fv(right);
+				qglVertex3fv(right);
+				qglVertex3fv(bones[i].p);
+				
+				qglColor3f(0, 0, 1);
+				qglVertex3f(0, 0, 0);
+				qglVertex3fv(up);
+				qglVertex3fv(up);
+				qglVertex3fv(bones[i].p);
+			}
+			else {
+					// draw bone
+				qglColor3f(1, 1, 1);
+				qglVertex3fv(bones[bone->parentIndex].p);
+				qglVertex3fv(bones[i].p);
+				
+				// draw bone axis
+				qglColor3f(1, 0, 0);
+				qglVertex3fv(bones[bone->parentIndex].p);
+				VectorAdd(bones[bone->parentIndex].p, forward, forward);
+				qglVertex3fv(forward);
+				qglVertex3fv(forward);
+				qglVertex3fv(bones[i].p);
+				
+				qglColor3f(0, 1, 0);
+				qglVertex3fv(bones[bone->parentIndex].p);
+				VectorAdd(bones[bone->parentIndex].p, right, right);
+				qglVertex3fv(right);
+				qglVertex3fv(right);
+				qglVertex3fv(bones[i].p);
+				
+				qglColor3f(0, 0, 1);
+				qglVertex3fv(bones[bone->parentIndex].p);
+				VectorAdd(bones[bone->parentIndex].p, up, up);
+				qglVertex3fv(up);
+				qglVertex3fv(up);
+				qglVertex3fv(bones[i].p);
+			}
+
+		}
+		qglEnd();
+		qglLineWidth(1);
+		return;
+	}
+	else if(r_showSkeleton->integer==2) {
+		bone_t	*bones;
+		tikiBonePosRot_t*bone;
+
+		bones =backEnd.currentEntity->e.bones;
+		GL_Bind(tr.whiteImage);
+		qglLineWidth(3);
+		qglBegin(GL_LINES);
+		for (i = 0; i < tiki->numBones; i++) {
+			bone = (tikiBonePosRot_t*)tiki->bones[i];
+			if(bone->parentIndex>0)	{
+				qglColor3f(1, 1, 1);
+				qglVertex3fv(bones[bone->parentIndex].p);
+				qglVertex3fv(bones[i].p);
+			}
+
+		}
+		qglEnd();
+
+		
+
+		qglBegin(GL_LINES);
+		for (i = 0; i < tiki->numBones; i++) {
+			vec3_t up,down,front;
+			VectorCopy(bones[i].p,up);
+			up[1]+=5;
+			VectorCopy(bones[i].p,down);
+			down[1]+=5;
+			VectorCopy(bones[i].p,front);
+			front[0]+=5;
+			bone = (tikiBonePosRot_t*)tiki->bones[i];
+			qglColor3f(1, 0, 1);
+			qglVertex3fv(front);
+			qglVertex3fv(bones[i].p);
+			qglVertex3fv(down);
+			qglVertex3fv(bones[i].p);
+			qglVertex3fv(up);
+			qglVertex3fv(bones[i].p);
+			//qglIndexi(
+
+		}
+		qglEnd();
+		qglLineWidth(1);
+		return;
+	}
+}
+/*
+==============
+R_AddTIKISurfaces
+==============
+*/
+void R_AddTIKISurfaces( trRefEntity_t *ent ) {
+	int i;
+	skdSurface_t *sf;
+	tiki_t		*tiki = tr.currentModel->tiki;
+	sf = tiki->surfs;
+	for(i = 0; i < tiki->numSurfaces; i++) {
+		R_AddDrawSurf( (void *)sf, R_GetShaderByHandle(tiki->surfShaders[i]), 0 /*fogNum*/, qfalse );
+		sf = (skdSurface_t*)(((byte*)sf)+sf->ofsEnd);
+	}
+}
+
+/*
+=============
+RB_SurfaceSKD
+=============
+*/
+void RB_SurfaceSKD( skdSurface_t *sf ) {
+	tiki_t	*tiki;
+	int i,j;
+	int baseIndex;
+	int baseVertex;
+	int numIndexes;
+	int *triangles;
+	skdVertex_t *vert;
+	skdWeight_t *weight;
+
+	tiki = R_GetModelByHandle(backEnd.currentEntity->e.hModel)->tiki;
+
+	if(!backEnd.currentEntity->e.bones) {
+//		ri.Printf(PRINT_DEVELOPER,"RB_SurfaceSKD: tiki %s has null bones ptr\n",tiki->name);
+		return;
+	}
+
+
+	triangles = (int*)(((byte*)sf)+sf->ofsTriangles);
+	numIndexes = sf->numTriangles*3;
+
+	RB_CHECKOVERFLOW(sf->numVerts,numIndexes);
+
+
+	baseIndex = tess.numIndexes;
+	baseVertex = tess.numVertexes;
+	for (i = 0 ; i < numIndexes ; i++) {
+		tess.indexes[baseIndex+i] = baseVertex + triangles[i];
+	}
+	tess.numIndexes += numIndexes;
+
+	vert = (skdVertex_t*)(((byte*)sf)+sf->ofsVerts);
+	for(i = 0; i < sf->numVerts; i++) {
+		weight = (skdWeight_t*)(((byte*)vert)+sizeof(*vert)+sizeof(skdMorph_t)*vert->numMorphs);
+#if 0
+		VectorCopy(weight->offset,tess.xyz[baseVertex+i]);
+#else
+		VectorCopy(vert->normal,tess.normal[baseVertex+i]);
+		tess.texCoords[baseVertex+i][0][0] = vert->texCoords[0];
+		tess.texCoords[baseVertex+i][0][1] = vert->texCoords[1];
+		tess.xyz[baseVertex + i][0] = tess.xyz[baseVertex + i][1] = tess.xyz[baseVertex + i][2] = 0;
+		for(j = 0; j < vert->numWeights; j++) {
+			quat_t qua, que,res;
+			qua[0] = weight->offset[0];
+			qua[1] = weight->offset[1];
+			qua[2] = weight->offset[2];
+			qua[3] = 0;
+			QuaternionMultiply(que,qua,backEnd.currentEntity->e.bones[weight->boneIndex].q);
+			QuatInverse(backEnd.currentEntity->e.bones[weight->boneIndex].q);
+			QuaternionMultiply(res,backEnd.currentEntity->e.bones[weight->boneIndex].q,que);
+			QuatInverse(backEnd.currentEntity->e.bones[weight->boneIndex].q);
+			tess.xyz[baseVertex + i][0] += (backEnd.currentEntity->e.bones[weight->boneIndex].p[0] + res[0])*weight->boneWeight;
+			tess.xyz[baseVertex + i][1] += (backEnd.currentEntity->e.bones[weight->boneIndex].p[1] + res[1])*weight->boneWeight;
+			tess.xyz[baseVertex + i][2] += (backEnd.currentEntity->e.bones[weight->boneIndex].p[2] + res[2])*weight->boneWeight;
+			weight++;
+		}
+#endif
+		vert = (skdVertex_t*)(((byte*)vert)+sizeof(*vert)+sizeof(skdWeight_t)*vert->numWeights+sizeof(skdMorph_t)*vert->numMorphs);
+	}
+	tess.numVertexes+= sf->numVerts;
+}

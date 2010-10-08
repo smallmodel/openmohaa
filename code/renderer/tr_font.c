@@ -756,7 +756,8 @@ void RE_Text_PaintChar(fontInfo_t *font, float x, float y, float scale, int c, q
 	glyph = &font->glyphs[c];
 	if (c != '\n' && glyph->imageWidth == 0 && glyph->imageHeight == 0) {
 		glyph = &font->glyphs['?'];
-		ri.Printf(PRINT_WARNING, "RE_Text_PaintChar: no #%d character in font %s!\n", (int)c, font->name);
+		// this is so annoying..
+		//ri.Printf(PRINT_WARNING, "RE_Text_PaintChar: no #%d character in font %s!\n", (int)c, font->name);
 	}
 	RE_StretchPic(x * xscale, y*yscale - font->glyphScale * glyph->top,
 		glyph->imageWidth * font->glyphScale * scale * xscale,

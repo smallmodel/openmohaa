@@ -995,6 +995,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="..\..\code\cgame\cg_modelanim.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\code\cgame\cg_newDraw.c"
 				>
 				<FileConfiguration
