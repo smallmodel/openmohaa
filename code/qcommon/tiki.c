@@ -177,7 +177,7 @@ void TIKI_SetChannels(tiki_t *tiki, int animIndex, float animTime, float animWei
 		bones++;
 	}
 }
-#if 1
+
 void TIKI_Animate(tiki_t *tiki, bone_t *bones)
 {
 	int i;
@@ -441,300 +441,6 @@ void TIKI_Animate(tiki_t *tiki, bone_t *bones)
 #endif
 }
 
-#else
-static	tiki_t *currentTiki;
-static	bone_t *currentBones;
-byte	bonesReady[1024];
-void TIKI_CalculateBone(int i) {
-	tikiBonePosRot_t	*posrot, *bone;
-	tikiBoneRotation_t	*rot;
-	tikiBoneShoulder_t	*should;
-	tikiBoneElbow_t		*elbow;
-	tikiBoneWrist_t		*wrist;
-	tikiBoneHoseRot_t	*hose;
-	tikiBoneAVRot_t		*av;
-
-	if(bonesReady[i])
-		return;
-	bone = currentTiki->bones[i];
-	bonesReady[i] = 1;
-	if(bone->parentIndex==-1) {
-		QuatInverse(currentBones[i].q);
-	}
-	else {
-		if(bonesReady[bone->parentIndex] == 0) {
-			TIKI_CalculateBone(bone->parentIndex);
-		}
-			switch(*(int*)currentTiki->bones[i])
-			{
-#if 1 //TODO		
-				case JT_ROTATION:
-				{
-					quat_t	pos,res,temp;
-					rot = (tikiBoneRotation_t*)currentTiki->bones[i];
-					//const_ofs instead of channel p
-					VectorCopy(rot->const_offset,pos);
-					pos[3]=0;
-					QuaternionMultiply(temp,pos,currentBones[rot->parentIndex].q);
-					QuatInverse(currentBones[rot->parentIndex].q);
-					QuaternionMultiply(res,currentBones[rot->parentIndex].q,temp);
-					QuatInverse(currentBones[rot->parentIndex].q);
-					currentBones[i].p[0] = res[0] + currentBones[rot->parentIndex].p[0];
-					currentBones[i].p[1] = res[1] + currentBones[rot->parentIndex].p[1];
-					currentBones[i].p[2] = res[2] + currentBones[rot->parentIndex].p[2];
-					QuatCopy(currentBones[i].q,temp);
-					QuatInverse(temp);
-					QuaternionMultiply(currentBones[i].q,temp,currentBones[rot->parentIndex].q);
-					QuatNormalize(currentBones[i].q);
-
-				}
-				break;
-#endif
-				case JT_POSROT_SKC:
-				{
-					quat_t	pos,res,temp;
-					posrot = (tikiBonePosRot_t*)currentTiki->bones[i];
-					VectorCopy(currentBones[i].p,pos);
-					pos[3]=0;
-					QuaternionMultiply(temp,pos,currentBones[posrot->parentIndex].q);
-					QuatInverse(currentBones[posrot->parentIndex].q);
-					QuaternionMultiply(res,currentBones[posrot->parentIndex].q,temp);
-					QuatInverse(currentBones[posrot->parentIndex].q);
-					currentBones[i].p[0] = res[0] +currentBones[posrot->parentIndex].p[0];
-					currentBones[i].p[1] = res[1] +currentBones[posrot->parentIndex].p[1];
-					currentBones[i].p[2] = res[2] +currentBones[posrot->parentIndex].p[2];
-					QuatCopy(currentBones[i].q,temp);
-					QuatInverse(temp);
-					QuaternionMultiply(currentBones[i].q,temp,currentBones[posrot->parentIndex].q);
-					QuatNormalize(currentBones[i].q);
-
-				}
-				break;
-#if 1 //TODO	
-				case JT_SHOULDER:
-				{
-					//Com_Printf("should %i",currentTiki->name);
-					quat_t	pos,res,temp;
-					should = (tikiBoneShoulder_t*)currentTiki->bones[i];
-					//const_ofs instead of channel p
-					VectorCopy(should->const_offset,pos);
-
-					//we're using its rotfk channel instead of rot
-					pos[3]=0;
-					QuaternionMultiply(temp,pos,currentBones[should->parentIndex].q);
-					QuatInverse(currentBones[should->parentIndex].q);
-					QuaternionMultiply(res,currentBones[should->parentIndex].q,temp);
-					QuatInverse(currentBones[should->parentIndex].q);
-					currentBones[i].p[0] = res[0] +currentBones[should->parentIndex].p[0];
-					currentBones[i].p[1] = res[1] +currentBones[should->parentIndex].p[1];
-					currentBones[i].p[2] = res[2] +currentBones[should->parentIndex].p[2];
-					QuatInverse(currentBones[i].q);
-					QuatCopy(currentBones[i].q,temp);
-					QuatInverse(currentBones[i].q);
-					QuaternionMultiply(currentBones[i].q,temp,currentBones[should->parentIndex].q);
-					QuatNormalize(currentBones[i].q);
-
-				}
-				break;
-				case JT_ELBOW:
-				{
-					quat_t	pos,res,temp;
-
-
-					elbow = (tikiBoneElbow_t*)currentTiki->bones[i];
-					//Com_Printf("elb %i",currentTiki->name);
-
-					//const_ofs instead of channel p
-					VectorCopy(elbow->const_offset,pos);
-
-					//like in ikshoulder,
-					//we're using rotfk channel instead of rot ???
-					pos[3]=0;
-					QuaternionMultiply(temp,pos,currentBones[elbow->parentIndex].q);
-					QuatInverse(currentBones[elbow->parentIndex].q);
-					QuaternionMultiply(res,currentBones[elbow->parentIndex].q,temp);
-					QuatInverse(currentBones[elbow->parentIndex].q);
-					currentBones[i].p[0] = res[0] +currentBones[elbow->parentIndex].p[0];
-					currentBones[i].p[1] = res[1] +currentBones[elbow->parentIndex].p[1];
-					currentBones[i].p[2] = res[2] +currentBones[elbow->parentIndex].p[2];
-					QuatInverse(currentBones[i].q);
-					QuatCopy(currentBones[i].q,temp);
-					QuatInverse(currentBones[i].q);
-					QuaternionMultiply(currentBones[i].q,temp,currentBones[elbow->parentIndex].q);
-					QuatNormalize(currentBones[i].q);
-				}
-				break;
-				case JT_WRIST:
-				{
-					quat_t	pos,res,temp;
-					wrist = (tikiBoneWrist_t*) currentTiki->bones[i];
-
-					//const_ofs instead of channel p
-					VectorCopy(wrist->const_offset,pos);
-					//Com_Printf("wrist  %i",currentTiki->name);
-					//like in ikshoulder, nad elbow
-					//we're using its rotfk channel instead of rot
-					pos[3]=0;
-					QuaternionMultiply(temp,pos,currentBones[wrist->parentIndex].q);
-					QuatInverse(currentBones[wrist->parentIndex].q);
-					QuaternionMultiply(res,currentBones[wrist->parentIndex].q,temp);
-					QuatInverse(currentBones[wrist->parentIndex].q);
-					currentBones[i].p[0] = res[0] +currentBones[wrist->parentIndex].p[0];
-					currentBones[i].p[1] = res[1] +currentBones[wrist->parentIndex].p[1];
-					currentBones[i].p[2] = res[2] +currentBones[wrist->parentIndex].p[2];
-					QuatInverse(currentBones[i].q);
-					QuatCopy(currentBones[i].q,temp);
-					QuatInverse(currentBones[i].q);
-					QuaternionMultiply(currentBones[i].q,temp,currentBones[wrist->parentIndex].q);
-					QuatNormalize(currentBones[i].q);
-				}
-				break;
-				case JT_HOSEROT:
-				{
-				quat_t	pos,res,que,temp;
-					hose = (tikiBoneHoseRot_t*)currentTiki->bones[i];
-			//		Com_Printf("hoserot const ofs %f %f %f for ",hose->const_offset[0],hose->const_offset[1],hose->const_offset[2]);
-#if 0
-	
-					//const_ofs instead of channel p
-
-					VectorCopy(hose->const_offset,pos);
-
-					pos[3]=0;
-					QuaternionMultiply(temp,pos,currentBones[hose->parentIndex].q);
-					QuatInverse(currentBones[hose->parentIndex].q);
-					QuaternionMultiply(res,currentBones[hose->parentIndex].q,temp);
-					QuatInverse(currentBones[hose->parentIndex].q);
-					currentBones[i].p[0] = res[0] +currentBones[hose->parentIndex].p[0];
-					currentBones[i].p[1] = res[1] +currentBones[hose->parentIndex].p[1];
-					currentBones[i].p[2] = res[2] +currentBones[hose->parentIndex].p[2];
-					QuatInverse(currentBones[i].q);
-					QuatCopy(currentBones[i].q,temp);
-					QuatInverse(currentBones[i].q);
-					QuaternionMultiply(currentBones[i].q,temp,currentBones[hose->parentIndex].q);
-					QuatNormalize(currentBones[i].q);
-#else
-#if 1
-		if(bonesReady[hose->targetIndex] == 0) {
-			TIKI_CalculateBone(hose->targetIndex);
-		}
-					QuatCopy(currentBones[hose->targetIndex].q,currentBones[i].q);
-					VectorCopy(currentBones[hose->targetIndex].p,currentBones[i].p); 
-
-#else
-					//const_ofs instead of channel p
-					VectorCopy(hose->const_offset,pos);
-					pos[3]=0;
-					QuaternionMultiply(temp,pos,currentBones[hose->parentIndex].q);
-					QuatInverse(currentBones[hose->parentIndex].q);
-					QuaternionMultiply(res,currentBones[hose->parentIndex].q,temp);
-					QuatInverse(currentBones[hose->parentIndex].q);
-					currentBones[i].p[0] = res[0] +currentBones[hose->parentIndex].p[0];
-					currentBones[i].p[1] = res[1] +currentBones[hose->parentIndex].p[1];
-					currentBones[i].p[2] = res[2] +currentBones[hose->parentIndex].p[2];
-					QuaternionBuild(temp,currentBones[i].q[0],currentBones[i].q[1],currentBones[i].q[2]);
-					QuaternionMultiply(currentBones[i].q,temp,currentBones[hose->parentIndex].q);
-					QuatNormalize(currentBones[i].q);
-
-					//first do all for parent,  then inerpolate with target?
-					QuatCopy(res,currentBones[i].q);
-
-					currentBones[i].p[0] = currentBones[i].p[0] + 0.5*(currentBones[hose->targetIndex].p[0]-currentBones[i].p[0]);
-					currentBones[i].p[1] = currentBones[i].p[1] + 0.5*(currentBones[hose->targetIndex].p[1]-currentBones[i].p[1]);
-					currentBones[i].p[2] = currentBones[i].p[2] + 0.5*(currentBones[hose->targetIndex].p[2]-currentBones[i].p[2]);
-
-				///	QuatSlerp(currentBones[i].q,res,currentBones[hose->targetIndex].q,0.5);
-					QuatNormalize(currentBones[i].q);
-
-					//interpJoint->p.X = position1.X + animTime*(position2.X - position1.X);
-					//QuatNormalize(currentBones[i].q);
-
-				///	Com_Printf("slerp %f %f %f %f",currentBones[i].q[0],currentBones[i].q[1],currentBones[i].q[2],currentBones[i].q[3]);
-#endif
-#endif
-
-				}
-				break;
-				case JT_AVROT:
-				{
-					quat_t	pos,res,temp;
-					av = (tikiBoneAVRot_t*) currentTiki->bones[i];
-#if 0
-					quat_t	pos,res,que,temp;
-					//const_ofs instead of channel p
-					VectorCopy(av->const_offset,pos);
-					pos[3]=0;
-					QuaternionMultiply(temp,pos,currentBones[av->parentIndex].q);
-					QuatInverse(currentBones[av->parentIndex].q);
-					QuaternionMultiply(res,currentBones[av->parentIndex].q,temp);
-					QuatInverse(currentBones[av->parentIndex].q);
-					currentBones[i].p[0] = res[0] +currentBones[av->parentIndex].p[0];
-					currentBones[i].p[1] = res[1] +currentBones[av->parentIndex].p[1];
-					currentBones[i].p[2] = res[2] +currentBones[av->parentIndex].p[2];
-					QuaternionBuild(temp,currentBones[i].q[0],currentBones[i].q[1],currentBones[i].q[2]);
-					QuaternionMultiply(currentBones[i].q,temp,currentBones[av->parentIndex].q);
-					QuatNormalize(currentBones[i].q);
-
-	//				QuatCopy(currentBones[av->parentIndex].q,currentBones[i].q);
-	//				VectorCopy(currentBones[av->parentIndex].p,currentBones[i].p);
-
-#else
-		if(bonesReady[av->m_reference1] == 0) {
-			TIKI_CalculateBone(av->m_reference1);
-		}
-		if(bonesReady[av->m_reference2] == 0) {
-			TIKI_CalculateBone(av->m_reference2);
-		}
-					QuatSlerp(currentBones[av->m_reference1].q,currentBones[av->m_reference2].q,av->m_bone2weight,currentBones[i].q);
-					/*
-					currentBones[i].p[0] = currentBones[av->m_reference1].p[0] + av->m_bone2weight*(currentBones[av->m_reference2].p[0] - currentBones[av->m_reference1].p[0]);
-					currentBones[i].p[1] = currentBones[av->m_reference1].p[1] + av->m_bone2weight*(currentBones[av->m_reference2].p[1] - currentBones[av->m_reference1].p[1]);
-					currentBones[i].p[2] = currentBones[av->m_reference1].p[2] + av->m_bone2weight*(currentBones[av->m_reference2].p[2] - currentBones[av->m_reference1].p[2]);
-					*/
-					VectorCopy(av->const_offset,pos);
-					pos[3]=0;
-					QuaternionMultiply(temp,pos,currentBones[av->parentIndex].q);
-					QuatInverse(currentBones[av->parentIndex].q);
-					QuaternionMultiply(res,currentBones[av->parentIndex].q,temp);
-					QuatInverse(currentBones[av->parentIndex].q);
-					currentBones[i].p[0] = res[0] +currentBones[av->parentIndex].p[0];
-					currentBones[i].p[1] = res[1] +currentBones[av->parentIndex].p[1];
-					currentBones[i].p[2] = res[2] +currentBones[av->parentIndex].p[2];
-#endif
-				}
-				break;
-#endif
-				default:
-					Com_Error(ERR_DROP,"TIKI_Animate: unsupported bone type %i",*((int**)currentTiki->bones)[i]);
-				break;
-			}
-		}
-}
-void TIKI_Animate(tiki_t *tiki, bone_t *bones) {
-	int i;
-	tikiBonePosRot_t	*posrot, *bone;
-	tikiBoneRotation_t	*rot;
-	tikiBoneShoulder_t	*should;
-	tikiBoneElbow_t		*elbow;
-	tikiBoneWrist_t		*wrist;
-	tikiBoneHoseRot_t	*hose;
-	tikiBoneAVRot_t		*av;
-	memset(bonesReady,0,1024);
-	currentTiki = tiki;
-	currentBones = bones;
-	for(i = 0; i < tiki->numBones;i++) {
-		TIKI_CalculateBone(i);
-	}
-#if 1
-	if(tiki->numAnims>456) {
-		for(i = 0; i < tiki->numBones; i++)	{
-			Com_Printf("bone %i of %i (%s) - %f %f %f\n",i,tiki->numBones,TIKI_GetBoneNameFromIndex(tiki->boneNames[i]),bones[i].p[0],bones[i].p[1],bones[i].p[2]);
-		}
-	}
-#endif
-}
-
-#endif
 /*
 ===============================
 SK* FILES LOADING
@@ -798,8 +504,9 @@ qboolean TIKI_HasBone(tiki_t *out, int globalBoneName) {
 	}
 	return qfalse;
 }
-#if 0 //there must be a silly bug in code below...
-// it screws the bone order and/or weight indexes?
+#if 1
+// what a mess!
+// but at least now it works...
 void TIKI_MergeSKD(tiki_t *out, char *fname) {
 	int				filesize;
 	char			*buf;
@@ -867,138 +574,140 @@ void TIKI_MergeSKD(tiki_t *out, char *fname) {
 					Com_Printf("Bone %s parent in tiki %s, in file %s\n",bone->name,
 						TIKI_GetBoneNameFromIndex(out->boneNames[thisBonenOutLocalParentIndex]),TIKI_GetBoneNameFromIndex(thisBoneParentName));
 					//__asm int 3
-					((tikiBonePosRot_t*)out->bones[thisBoneInOutIndex])->parentIndex = thisBoneParentName;
+					///((tikiBonePosRot_t*)out->bones[thisBoneInOutIndex])->parentIndex = thisBoneParentName;
 				}
 			}
 		}
 		bone = (skdBone_t *)( (byte *)bone + bone->ofsEnd );
 	}
-	newBoneNames = Z_Malloc((numAddBones + out->numBones)*4);
-	memcpy(newBoneNames,out->boneNames,out->numBones*4);
-	memcpy(&newBoneNames[out->numBones],addBonesIndexes,numAddBones*4);
-	Z_Free(out->boneNames);
-	out->boneNames = newBoneNames;
+	if(numAddBones) {
+	//	return;
+		newBoneNames = Z_Malloc((numAddBones + out->numBones)*4);
+		memcpy(newBoneNames,out->boneNames,out->numBones*4);
+		memcpy(&newBoneNames[out->numBones],addBonesIndexes,numAddBones*4);
+		Z_Free(out->boneNames);
+		out->boneNames = newBoneNames;
 
-	newBoneList = Z_Malloc((out->numBones + numAddBones)*4);
-	memcpy(newBoneList,out->bones,out->numBones*4);
-	Z_Free(out->bones);
-	out->bones = newBoneList;
-	newBoneList+=out->numBones;
-	out->numBones+=numAddBones;
-	
-	bone = (skdBone_t *) ( (byte *)header + header->ofsBones );
-	for ( i = 0 ; i < header->numBones ; i++) {
-		if(notInBoneList[i]==qfalse) { //bone i is not present in out->bones array, we have to load it from this skd file
-			if(TIKI_RegisterBoneName(bone->name)!=headerBoneNames[i])
-				__asm int 3
+		newBoneList = Z_Malloc((out->numBones + numAddBones)*4);
+		memcpy(newBoneList,out->bones,out->numBones*4);
+		Z_Free(out->bones);
+		out->bones = newBoneList;
+		newBoneList+=out->numBones;
+		out->numBones+=numAddBones;
+		
+		bone = (skdBone_t *) ( (byte *)header + header->ofsBones );
+		for ( i = 0 ; i < header->numBones ; i++) {
+			if(notInBoneList[i]==qfalse) { //bone i is not present in out->bones array, we have to load it from this skd file
+				if(TIKI_RegisterBoneName(bone->name)!=headerBoneNames[i])
+					__asm int 3
 
-			switch(bone->jointType)	{
-				case JT_ROTATION:
-				{
-					*newBoneList = Hunk_Alloc(sizeof(tikiBoneRotation_t),h_low);
-					rot = (tikiBoneRotation_t*)out->bones[i];
-					rot->type=bone->jointType;
-					rot->parentIndex = TIKI_GetLocalBoneIndex(out,bone->parent);
-					ptr = (float *) ( (byte *)bone + sizeof(skdBone_t) );
-					VectorScale(ptr,out->scale,rot->const_offset);
-				}
-				break;
-				case JT_POSROT_SKC:
-				{
-					*newBoneList = Hunk_Alloc(sizeof(tikiBonePosRot_t),h_low);
-					posrot = (tikiBonePosRot_t*)out->bones[i];
-					posrot->type=bone->jointType;
-					posrot->parentIndex = TIKI_GetLocalBoneIndex(out,bone->parent);
-				}
-				break;
-				case JT_SHOULDER:
-				{
-					*newBoneList = Hunk_Alloc(sizeof(tikiBoneShoulder_t),h_low);
-					should = (tikiBoneShoulder_t*)out->bones[i];
-					should->type=bone->jointType;
-					should->parentIndex = TIKI_GetLocalBoneIndex(out,bone->parent);
-					ptr = (float *) ( (byte *)bone + sizeof(skdBone_t) );
-					ptr+=(4);
-					VectorScale(ptr,out->scale,should->const_offset);
-				}
-				break;
-				case JT_ELBOW: //
-				{
-					*newBoneList = Hunk_Alloc(sizeof(tikiBoneElbow_t),h_low);
-					elbow = (tikiBoneElbow_t*)out->bones[i];
-					elbow->type=bone->jointType;
-					elbow->parentIndex = TIKI_GetLocalBoneIndex(out,bone->parent);
-					ptr = (float *) ( (byte *)bone + sizeof(skdBone_t) );
-					VectorScale(ptr,out->scale,ptr);
-					VectorCopy(ptr,elbow->const_offset);
-				}
-				break;
-				case JT_WRIST: //
-				{
-					*newBoneList = Hunk_Alloc(sizeof(tikiBoneWrist_t),h_low);
-					wrist = (tikiBoneWrist_t*)out->bones[i];
-					wrist->type=bone->jointType;
-					wrist->parentIndex = TIKI_GetLocalBoneIndex(out,bone->parent);
-					ptr = (float *) ( (byte *)bone + sizeof(skdBone_t) );
-					VectorScale(ptr,out->scale,wrist->const_offset);
-				}
-				break;
-				case JT_HOSEROT:
-				{
-					char*txt;
-					*newBoneList = Hunk_Alloc(sizeof(tikiBoneHoseRot_t),h_low);
-					hose = (tikiBoneHoseRot_t*)out->bones[i];
-					hose->type=bone->jointType;
-					hose->parentIndex = TIKI_GetLocalBoneIndex(out,bone->parent);
-					ptr = (float *) ( (byte *)bone + sizeof(skdBone_t) );
-					ptr+=(42/4);
-					txt = (char*)ptr;
-				//	Com_Printf("\n HOSEref <%s>\n",txt);
-					hose->targetIndex = TIKI_GetLocalBoneIndex(out,txt);
-					ptr = (float *) ( (byte *)bone + sizeof(skdBone_t) );
-			//		Com_Printf("HOSEROT TYPE %f \n",*ptr); //1, 0.5
-					ptr++;
-					hose->angle=*ptr;
-				//	Com_Printf("HOSEROT ANGLE %f \n",*ptr);
-					ptr+=2;//12
-					VectorCopy(ptr,hose->const_offset);
-					VectorScale(hose->const_offset,out->scale,hose->const_offset);
-				}
-				break;
-				case JT_AVROT: //
-				{
-					int size;
-					*newBoneList = Hunk_Alloc(sizeof(tikiBoneAVRot_t),h_low);
-					av = (tikiBoneAVRot_t*)out->bones[i];
-					av->type=bone->jointType;
-					av->parentIndex = TIKI_GetLocalBoneIndex(out,bone->parent);
-					ptr = (float *) ( (byte *)bone + sizeof(skdBone_t) );
-	//				Com_Printf("AVROT data weight %f offs %f %f %f unknown %f %f %f %f", ptr[0],ptr[1],ptr[2],ptr[3],ptr[4],ptr[5],ptr[6],ptr[7],ptr[8]);
-					av->m_bone2weight = *ptr;
-					ptr++;
-					VectorScale(ptr,out->scale,ptr);
-					VectorCopy(ptr,av->const_offset);
-					ptr+=3;
-					ptr+=3; //skip 1 1 1
-					size = (int)bone + (int)bone->ofsEnd - (int)ptr;
-					Com_Printf("reference 1 %s ",(char*)ptr);
-					av->m_reference1 = TIKI_GetLocalBoneIndex(out,(char*)ptr); 
-					while(*(char*)ptr != 0)
+				switch(bone->jointType)	{
+					case JT_ROTATION:
+					{
+						*newBoneList = Hunk_Alloc(sizeof(tikiBoneRotation_t),h_low);
+						rot = (tikiBoneRotation_t*)*newBoneList;
+						rot->type=bone->jointType;
+						rot->parentIndex = TIKI_GetLocalBoneIndex(out,bone->parent);
+						ptr = (float *) ( (byte *)bone + sizeof(skdBone_t) );
+						VectorScale(ptr,out->scale,rot->const_offset);
+					}
+					break;
+					case JT_POSROT_SKC:
+					{
+						*newBoneList = Hunk_Alloc(sizeof(tikiBonePosRot_t),h_low);
+						posrot = (tikiBonePosRot_t*)*newBoneList;
+						posrot->type=bone->jointType;
+						posrot->parentIndex = TIKI_GetLocalBoneIndex(out,bone->parent);
+					}
+					break;
+					case JT_SHOULDER:
+					{
+						*newBoneList = Hunk_Alloc(sizeof(tikiBoneShoulder_t),h_low);
+						should = (tikiBoneShoulder_t*)*newBoneList;
+						should->type=bone->jointType;
+						should->parentIndex = TIKI_GetLocalBoneIndex(out,bone->parent);
+						ptr = (float *) ( (byte *)bone + sizeof(skdBone_t) );
+						ptr+=(4);
+						VectorScale(ptr,out->scale,should->const_offset);
+					}
+					break;
+					case JT_ELBOW: //
+					{
+						*newBoneList = Hunk_Alloc(sizeof(tikiBoneElbow_t),h_low);
+						elbow = (tikiBoneElbow_t*)*newBoneList;
+						elbow->type=bone->jointType;
+						elbow->parentIndex = TIKI_GetLocalBoneIndex(out,bone->parent);
+						ptr = (float *) ( (byte *)bone + sizeof(skdBone_t) );
+						VectorScale(ptr,out->scale,ptr);
+						VectorCopy(ptr,elbow->const_offset);
+					}
+					break;
+					case JT_WRIST: //
+					{
+						*newBoneList = Hunk_Alloc(sizeof(tikiBoneWrist_t),h_low);
+						wrist = (tikiBoneWrist_t*)*newBoneList;
+						wrist->type=bone->jointType;
+						wrist->parentIndex = TIKI_GetLocalBoneIndex(out,bone->parent);
+						ptr = (float *) ( (byte *)bone + sizeof(skdBone_t) );
+						VectorScale(ptr,out->scale,wrist->const_offset);
+					}
+					break;
+					case JT_HOSEROT:
+					{
+						char*txt;
+						*newBoneList = Hunk_Alloc(sizeof(tikiBoneHoseRot_t),h_low);
+						hose = (tikiBoneHoseRot_t*)*newBoneList;
+						hose->type=bone->jointType;
+						hose->parentIndex = TIKI_GetLocalBoneIndex(out,bone->parent);
+						ptr = (float *) ( (byte *)bone + sizeof(skdBone_t) );
+						ptr+=(42/4);
+						txt = (char*)ptr;
+					//	Com_Printf("\n HOSEref <%s>\n",txt);
+						hose->targetIndex = TIKI_GetLocalBoneIndex(out,txt);
+						ptr = (float *) ( (byte *)bone + sizeof(skdBone_t) );
+				//		Com_Printf("HOSEROT TYPE %f \n",*ptr); //1, 0.5
+						ptr++;
+						hose->angle=*ptr;
+					//	Com_Printf("HOSEROT ANGLE %f \n",*ptr);
+						ptr+=2;//12
+						VectorCopy(ptr,hose->const_offset);
+						VectorScale(hose->const_offset,out->scale,hose->const_offset);
+					}
+					break;
+					case JT_AVROT: //
+					{
+						int size;
+						*newBoneList = Hunk_Alloc(sizeof(tikiBoneAVRot_t),h_low);
+						av = (tikiBoneAVRot_t*)*newBoneList;
+						av->type=bone->jointType;
+						av->parentIndex = TIKI_GetLocalBoneIndex(out,bone->parent);
+						ptr = (float *) ( (byte *)bone + sizeof(skdBone_t) );
+		//				Com_Printf("AVROT data weight %f offs %f %f %f unknown %f %f %f %f", ptr[0],ptr[1],ptr[2],ptr[3],ptr[4],ptr[5],ptr[6],ptr[7],ptr[8]);
+						av->m_bone2weight = *ptr;
+						ptr++;
+						VectorScale(ptr,out->scale,ptr);
+						VectorCopy(ptr,av->const_offset);
+						ptr+=3;
+						ptr+=3; //skip 1 1 1
+						size = (int)bone + (int)bone->ofsEnd - (int)ptr;
+						Com_Printf("reference 1 %s ",(char*)ptr);
+						av->m_reference1 = TIKI_GetLocalBoneIndex(out,(char*)ptr); 
+						while(*(char*)ptr != 0)
+							((char*)ptr)++;
 						((char*)ptr)++;
-					((char*)ptr)++;
-					Com_Printf("reference 2 %s\n",(char*)ptr);
-					av->m_reference2 = TIKI_GetLocalBoneIndex(out,(char*)ptr); 
+						Com_Printf("reference 2 %s\n",(char*)ptr);
+						av->m_reference2 = TIKI_GetLocalBoneIndex(out,(char*)ptr); 
+					}
+					break;
+					default:
+						Com_Error(1,"unkwno nbone type %i",bone->jointType);
+					break;
 				}
-				break;
-				default:
-					Com_Error(1,"unkwno nbone type %i",bone->jointType);
-				break;
+				newBoneList++;
 			}
-			newBoneList++;
+			bone = (skdBone_t *)( (byte *)bone + bone->ofsEnd );
 		}
-		bone = (skdBone_t *)( (byte *)bone + bone->ofsEnd );
 	}
-
 	outSurfacesSize = 0; // size of out->surfaces
 	surf = out->surfs;
 	for ( i = 0; i < out->numSurfaces; i++) {
@@ -1008,7 +717,7 @@ void TIKI_MergeSKD(tiki_t *out, char *fname) {
 	
 	outSurfs = Z_Malloc(outSurfacesSize+(header->ofsBoxes-header->ofsSurfaces));
 	memcpy(outSurfs,out->surfs,outSurfacesSize);
-	//out->numSurfaces+=header->numSurfaces;
+	out->numSurfaces+=header->numSurfaces;
 	Z_Free(out->surfs);
 	out->surfs = outSurfs;
 
@@ -1487,7 +1196,7 @@ again:
 						strcat(tmp,token);
 						if(out->surfs == 0)
 							TIKI_AppendSKD(out,tmp);
-#if 0
+#if 1
 						else
 							TIKI_MergeSKD(out,tmp);
 #endif
