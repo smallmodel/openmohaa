@@ -867,9 +867,12 @@ static void CG_RegisterGraphics( void ) {
 	cgs.media.tracerShader = trap_R_RegisterShader( "gfx/misc/tracer" );
 	cgs.media.selectShader = trap_R_RegisterShader( "gfx/2d/select" );
 
-	for ( i = 0 ; i < NUM_CROSSHAIRS ; i++ ) {
-		cgs.media.crosshairShader[i] = trap_R_RegisterShader( va("gfx/2d/crosshair%c", 'a'+i) );
-	}
+//	for ( i = 0 ; i < NUM_CROSSHAIRS ; i++ ) {
+//		cgs.media.crosshairShader[i] = trap_R_RegisterShader( va("gfx/2d/crosshair%c", 'a'+i) );
+//	}
+	cgs.media.crosshairShader[0] = trap_R_RegisterShader( "gfx/2d/BLANK" );
+	cgs.media.crosshairShader[1] = trap_R_RegisterShader( "textures/hud/crosshair" );
+	cgs.media.crosshairShader[2] = trap_R_RegisterShader( "gfx/2d/crosshair" );
 
 	cgs.media.backTileShader = trap_R_RegisterShader( "gfx/2d/backtile" );
 	cgs.media.noammoShader = trap_R_RegisterShader( "icons/noammo" );

@@ -383,7 +383,7 @@ void Preferences_Cache( void ) {
 */
 // we'll only use the 2 from mohaa
 	//0 seems to be NO crosshair ?!
-	s_preferences.crosshairShader[0] = trap_R_RegisterShaderNoMip( "textures/hud/crosshair.tga" );
+	s_preferences.crosshairShader[0] = trap_R_RegisterShaderNoMip( "gfx/2d/BLANK.tga" );
 	s_preferences.crosshairShader[1] = trap_R_RegisterShaderNoMip( "textures/hud/crosshair.tga" );
 	s_preferences.crosshairShader[2] = trap_R_RegisterShaderNoMip( "gfx/2d/crosshair.tga" );
 }

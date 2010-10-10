@@ -1,0 +1,32 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "openmohaa", "openmohaa.vcxproj", "{A9E3E13B-C83E-48AC-91EA-4942B0FF723A}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cgame", "..\cgame\cgame.vcxproj", "{D198C7F1-A045-455F-98F1-610AF58541A7}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ui", "ui\ui.vcxproj", "{02990457-FD92-4996-BCF4-90092A7C75C5}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A9E3E13B-C83E-48AC-91EA-4942B0FF723A}.Debug|Win32.ActiveCfg = Debug|Win32
+		{A9E3E13B-C83E-48AC-91EA-4942B0FF723A}.Debug|Win32.Build.0 = Debug|Win32
+		{A9E3E13B-C83E-48AC-91EA-4942B0FF723A}.Release|Win32.ActiveCfg = Release|Win32
+		{A9E3E13B-C83E-48AC-91EA-4942B0FF723A}.Release|Win32.Build.0 = Release|Win32
+		{D198C7F1-A045-455F-98F1-610AF58541A7}.Debug|Win32.ActiveCfg = Debug|Win32
+		{D198C7F1-A045-455F-98F1-610AF58541A7}.Debug|Win32.Build.0 = Debug|Win32
+		{D198C7F1-A045-455F-98F1-610AF58541A7}.Release|Win32.ActiveCfg = Release|Win32
+		{D198C7F1-A045-455F-98F1-610AF58541A7}.Release|Win32.Build.0 = Release|Win32
+		{02990457-FD92-4996-BCF4-90092A7C75C5}.Debug|Win32.ActiveCfg = Debug|Win32
+		{02990457-FD92-4996-BCF4-90092A7C75C5}.Debug|Win32.Build.0 = Debug|Win32
+		{02990457-FD92-4996-BCF4-90092A7C75C5}.Release|Win32.ActiveCfg = Release|Win32
+		{02990457-FD92-4996-BCF4-90092A7C75C5}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
