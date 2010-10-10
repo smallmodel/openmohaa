@@ -282,12 +282,12 @@ static void CG_NextOrder_f( void ) {
 
 
 static void CG_ConfirmOrder_f (void ) {
-	trap_SendConsoleCommand(va("cmd vtell %d %s\n", cgs.acceptLeader, VOICECHAT_YES));
-	trap_SendConsoleCommand("+button5; wait; -button5");
-	if (cg.time < cgs.acceptOrderTime) {
-		trap_SendClientCommand(va("teamtask %d\n", cgs.acceptTask));
-		cgs.acceptOrderTime = 0;
-	}
+//	trap_SendConsoleCommand(va("cmd vtell %d %s\n", cgs.acceptLeader, VOICECHAT_YES));
+//	trap_SendConsoleCommand("+button5; wait; -button5"); //button5 is leanright in mohaa
+//	if (cg.time < cgs.acceptOrderTime) {
+//		trap_SendClientCommand(va("teamtask %d\n", cgs.acceptTask));
+//		cgs.acceptOrderTime = 0;
+//	}
 }
 
 static void CG_DenyOrder_f (void ) {
@@ -579,4 +579,5 @@ void CG_InitConsoleCommands( void ) {
 	trap_AddCommand ("join_team"); // join_team allies / axis
 	trap_AddCommand ("auto_join_team");
 	trap_AddCommand ("primarydmweapon"); // primarydmweapon rifle / smg / mg / heavy / shotgun
+	trap_AddCommand ("spectator");
 }

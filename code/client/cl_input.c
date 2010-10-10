@@ -36,7 +36,7 @@ input sources (say, mouse button 1 and the control key) can both press the
 same button, but the button should only be released when both of the
 pressing key have been released.
 
-When a key event issues a button command (+forward, +attack, etc), it appends
+When a key event issues a button command (+forward, +attackprimary, etc), it appends
 its key number as argv(1) so it can be matched up with the release.
 
 argv(2) will be set to the time the event happened, which allows exact
@@ -316,9 +316,9 @@ void CL_KeyMove( usercmd_t *cmd ) {
 	//
 	if ( in_speed.active ^ cl_run->integer ) {
 		movespeed = 127;
-		cmd->buttons &= ~BUTTON_WALKING;
-	} else {
 		cmd->buttons |= BUTTON_WALKING;
+	} else {
+		cmd->buttons &= ~BUTTON_WALKING;
 		movespeed = 64;
 	}
 
@@ -487,9 +487,9 @@ void CL_CmdButtons( usercmd_t *cmd ) {
 		in_buttons[i].wasPressed = qfalse;
 	}
 
-	if ( Key_GetCatcher( ) ) {
-		cmd->buttons |= BUTTON_TALK;
-	}
+//	if ( Key_GetCatcher( ) ) {
+//		cmd->buttons |= BUTTON_TALK; // su44: is there a TALK button in MoHAA?
+//	}
 
 	// allow the game to know if any key at all is
 	// currently pressed, even if it isn't bound to anything
@@ -865,20 +865,18 @@ void CL_InitInput( void ) {
 	Cmd_AddCommand ("-moveright", IN_MoverightUp);
 	Cmd_AddCommand ("+speed", IN_SpeedDown);
 	Cmd_AddCommand ("-speed", IN_SpeedUp);
-	Cmd_AddCommand ("+attack", IN_Button0Down);
-	Cmd_AddCommand ("-attack", IN_Button0Up);
-	Cmd_AddCommand ("+button0", IN_Button0Down);
-	Cmd_AddCommand ("-button0", IN_Button0Up);
-	Cmd_AddCommand ("+button1", IN_Button1Down);
-	Cmd_AddCommand ("-button1", IN_Button1Up);
-	Cmd_AddCommand ("+use", IN_Button2Down);	// IneQuation
-	Cmd_AddCommand ("-use", IN_Button2Up);
-	Cmd_AddCommand ("+button3", IN_Button3Down);
-	Cmd_AddCommand ("-button3", IN_Button3Up);
-	Cmd_AddCommand ("+button4", IN_Button4Down);
-	Cmd_AddCommand ("-button4", IN_Button4Up);
-	Cmd_AddCommand ("+button5", IN_Button5Down);
-	Cmd_AddCommand ("-button5", IN_Button5Up);
+	Cmd_AddCommand ("+attackprimary", IN_Button0Down);
+	Cmd_AddCommand ("-attackprimary", IN_Button0Up);
+	Cmd_AddCommand ("+attacksecondary", IN_Button1Down);
+	Cmd_AddCommand ("-attacksecondary", IN_Button1Up);
+//	Cmd_AddCommand ("+speed", IN_Button2Down);	
+//	Cmd_AddCommand ("-speed", IN_Button2Up);
+	Cmd_AddCommand ("+use", IN_Button3Down);
+	Cmd_AddCommand ("-use", IN_Button3Up);
+	Cmd_AddCommand ("+leanleft", IN_Button4Down);
+	Cmd_AddCommand ("-leanleft", IN_Button4Up);
+	Cmd_AddCommand ("+leanright", IN_Button5Down);
+	Cmd_AddCommand ("-leanright", IN_Button5Up);
 	Cmd_AddCommand ("+button6", IN_Button6Down);
 	Cmd_AddCommand ("-button6", IN_Button6Up);
 	Cmd_AddCommand ("+button7", IN_Button7Down);

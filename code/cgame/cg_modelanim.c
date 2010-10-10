@@ -33,8 +33,14 @@ void CG_ModelAnim( centity_t *cent ) {
 	memset(&ent,0,sizeof(ent));
 
 	// player model
-	if (s1->number == cg.snap->ps.clientNum) {
-		ent.renderfx |= RF_THIRD_PERSON;	// only draw from mirrors
+	if ( cent->currentState.number == cg.snap->ps.clientNum) {
+		if (!cg.renderingThirdPerson) {
+			ent.renderfx = RF_THIRD_PERSON;			// only draw in mirrors
+		} else {
+			if (cg_cameraMode.integer) {
+				return;
+			}
+		}
 	}
 
 
