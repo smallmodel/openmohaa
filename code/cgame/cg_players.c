@@ -673,7 +673,7 @@ static void CG_LoadClientInfo( int clientNum, clientInfo_t *ci ) {
 		if ( cg_buildScript.integer ) {
 			CG_Error( "CG_RegisterClientModelname( %s, %s, %s, %s %s ) failed", ci->modelName, ci->skinName, ci->headModelName, ci->headSkinName, teamname );
 		}
-
+#if 0 //su44 - we're not using Quake III models anymore
 		// fall back to default team name
 		if( cgs.gametype >= GT_TEAM) {
 			// keep skin name
@@ -690,6 +690,7 @@ static void CG_LoadClientInfo( int clientNum, clientInfo_t *ci ) {
 				CG_Error( "DEFAULT_MODEL (%s) failed to register", DEFAULT_MODEL );
 			}
 		}
+#endif
 		modelloaded = qfalse;
 	}
 

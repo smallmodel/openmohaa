@@ -384,7 +384,9 @@ qboolean S_AL_BufferInit( void )
 	numSfx = 0;
 
 	// Load the default sound, and lock it
-	default_sfx = S_AL_BufferFind("sound/feedback/hit.wav");
+	//default_sfx = S_AL_BufferFind("sound/feedback/hit.wav");
+	// su44: use MoHAA sound instead
+	default_sfx = S_AL_BufferFind("sound/menu/apply.wav"); //should be in mohaa/main/pak3.pk3
 	S_AL_BufferUse(default_sfx);
 	knownSfx[default_sfx].isLocked = qtrue;
 
