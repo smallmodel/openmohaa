@@ -718,6 +718,24 @@ static void SV_KillServer_f( void ) {
 	SV_Shutdown( "killserver" );
 }
 
+
+/*
+=================
+SV_TIKI_f
+=================
+*/
+static void SV_TIKI_f( void ) {
+	char		*fname;
+	fname = Cmd_Argv(1);
+	if(TIKI_RegisterModel(fname)==0)
+	{
+		char tmp[128];
+		strcpy(tmp,"models/");
+		strcat(tmp,fname);
+		TIKI_RegisterModel(tmp);
+	}
+}
+
 //===========================================================
 
 /*
@@ -751,6 +769,7 @@ void SV_AddOperatorCommands( void ) {
 	Cmd_AddCommand ("spdevmap", SV_Map_f);
 #endif
 	Cmd_AddCommand ("killserver", SV_KillServer_f);
+	Cmd_AddCommand ("tiki", SV_TIKI_f); //su44
 	if( com_dedicated->integer ) {
 		Cmd_AddCommand ("say", SV_ConSay_f);
 	}

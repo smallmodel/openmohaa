@@ -1216,6 +1216,9 @@ void R_AddEntitySurfaces (void) {
 					R_AddBrushModelSurfaces( ent );
 					break;
 				case MOD_TIKI:
+					if ( (ent->e.renderfx & RF_THIRD_PERSON) && !tr.viewParms.isPortal) {
+						continue;
+					}
 					if(!r_showSkeleton->integer)
 						R_AddTIKISurfaces( ent );
 					else

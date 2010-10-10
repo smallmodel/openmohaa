@@ -799,6 +799,11 @@ void R_AddTIKISurfaces( trRefEntity_t *ent ) {
 	skdSurface_t *sf;
 	tiki_t		*tiki = tr.currentModel->tiki;
 	sf = tiki->surfs;
+#if 1
+	if(!strcmp("models/weapons/steilhandgranate.tik",tiki->name)) {	
+		ri.Printf(0,"..");
+	}
+#endif
 	for(i = 0; i < tiki->numSurfaces; i++) {
 		R_AddDrawSurf( (void *)sf, R_GetShaderByHandle(tiki->surfShaders[i]), 0 /*fogNum*/, qfalse );
 		sf = (skdSurface_t*)(((byte*)sf)+sf->ofsEnd);
