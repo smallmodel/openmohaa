@@ -175,7 +175,7 @@ typedef struct tiki_s {
 //	int				lodIndex[8];
 	int				numIncludes;
 	struct tiki_s	**includes;
-	struct tiki_s	*prev, *next;
+	struct tiki_s	*next;
 } tiki_t;
 
 #endif // TIKI_LOCAL_H

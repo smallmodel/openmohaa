@@ -99,7 +99,6 @@ void TIKI_FindAndCopyPosChannel(tikiAnim_t *anim, int globalBoneName, tikiFrame_
 			return;
 		}
 	}
-	//VectorSet(out,0,0,0);
 }
 void TIKI_FindAndCopyRotChannel(tikiAnim_t *anim, int globalBoneName, tikiFrame_t *frame, quat_t out) {
 	int i;
@@ -110,9 +109,6 @@ void TIKI_FindAndCopyRotChannel(tikiAnim_t *anim, int globalBoneName, tikiFrame_
 			return;
 		}
 	}
-	Com_Printf("Cannot find channel %s in animation %s (%s)\n",TIKI_GetBoneNameFromIndex(globalBoneName),anim->alias,anim->fname);
-	//VectorSet(out,0,0,0);
-	//out[3] = 1;
 }
 void TIKI_FindAndCopyRotFKChannel(tikiAnim_t *anim, int globalBoneName, tikiFrame_t *frame, quat_t out) {
 	int i;
@@ -123,19 +119,12 @@ void TIKI_FindAndCopyRotFKChannel(tikiAnim_t *anim, int globalBoneName, tikiFram
 			return;
 		}
 	}
-	//VectorSet(out,0,0,0);
-	//out[3] = 1;
 }
 void TIKI_SetChannels(tiki_t *tiki, int animIndex, float animTime, float animWeight, bone_t *bones) {
 	int i;
 	skdJointType_t **ptr;
 	tikiAnim_t *anim;
 	tikiFrame_t *frame;
-	//bone_t		*bone;
-
-///	int rot, pos;
-
-//	bone = bones;
 
 	if(tiki->numAnims <= animIndex) {
 		Com_Printf("TIKI_SetChannels: animIndex %i out of range %i\n",animIndex,tiki->numAnims);
@@ -144,6 +133,16 @@ void TIKI_SetChannels(tiki_t *tiki, int animIndex, float animTime, float animWei
 	ptr = (skdJointType_t **)tiki->bones;
 	anim = tiki->anims[animIndex];
 	frame = anim->frames;
+#if 1
+	// su44: just a silly hack...
+	// TODO: interpolate between frames.
+	i = 1;
+	while(animTime > 0 && i != anim->numFrames) {
+		animTime-=anim->frameTime;
+		frame++;
+		i++;
+	}
+#endif
 	for(i = 0; i < tiki->numBones; i++)	{
 		switch(**ptr) {
 			case JT_ROTATION:
@@ -197,8 +196,7 @@ void TIKI_Animate(tiki_t *tiki, bone_t *bones)
 		else {
 
 			switch(*(int*)tiki->bones[i])
-			{
-#if 1 //TODO		
+			{	
 				case JT_ROTATION:
 				{
 					quat_t	pos,res,temp;
@@ -220,7 +218,6 @@ void TIKI_Animate(tiki_t *tiki, bone_t *bones)
 
 				}
 				break;
-#endif
 				case JT_POSROT_SKC:
 				{
 					quat_t	pos,res,temp;
@@ -240,8 +237,7 @@ void TIKI_Animate(tiki_t *tiki, bone_t *bones)
 					QuatNormalize(bones[i].q);
 
 				}
-				break;
-#if 1 //TODO	
+				break;	
 				case JT_SHOULDER:
 				{
 					//Com_Printf("should %i",tiki->name);
@@ -322,91 +318,18 @@ void TIKI_Animate(tiki_t *tiki, bone_t *bones)
 				break;
 				case JT_HOSEROT:
 				{
-				quat_t	pos,res,que,temp;
 					hose = (tikiBoneHoseRot_t*)tiki->bones[i];
 			//		Com_Printf("hoserot const ofs %f %f %f for ",hose->const_offset[0],hose->const_offset[1],hose->const_offset[2]);
-#if 0
-	
-					//const_ofs instead of channel p
 
-					VectorCopy(hose->const_offset,pos);
-
-					pos[3]=0;
-					QuaternionMultiply(temp,pos,bones[hose->parentIndex].q);
-					QuatInverse(bones[hose->parentIndex].q);
-					QuaternionMultiply(res,bones[hose->parentIndex].q,temp);
-					QuatInverse(bones[hose->parentIndex].q);
-					bones[i].p[0] = res[0] +bones[hose->parentIndex].p[0];
-					bones[i].p[1] = res[1] +bones[hose->parentIndex].p[1];
-					bones[i].p[2] = res[2] +bones[hose->parentIndex].p[2];
-					QuatInverse(bones[i].q);
-					QuatCopy(bones[i].q,temp);
-					QuatInverse(bones[i].q);
-					QuaternionMultiply(bones[i].q,temp,bones[hose->parentIndex].q);
-					QuatNormalize(bones[i].q);
-#else
-#if 1
 					QuatCopy(bones[hose->targetIndex].q,bones[i].q);
 					VectorCopy(bones[hose->targetIndex].p,bones[i].p); 
-
-#else
-					//const_ofs instead of channel p
-					VectorCopy(hose->const_offset,pos);
-					pos[3]=0;
-					QuaternionMultiply(temp,pos,bones[hose->parentIndex].q);
-					QuatInverse(bones[hose->parentIndex].q);
-					QuaternionMultiply(res,bones[hose->parentIndex].q,temp);
-					QuatInverse(bones[hose->parentIndex].q);
-					bones[i].p[0] = res[0] +bones[hose->parentIndex].p[0];
-					bones[i].p[1] = res[1] +bones[hose->parentIndex].p[1];
-					bones[i].p[2] = res[2] +bones[hose->parentIndex].p[2];
-					QuaternionBuild(temp,bones[i].q[0],bones[i].q[1],bones[i].q[2]);
-					QuaternionMultiply(bones[i].q,temp,bones[hose->parentIndex].q);
-					QuatNormalize(bones[i].q);
-
-					//first do all for parent,  then inerpolate with target?
-					QuatCopy(res,bones[i].q);
-
-					bones[i].p[0] = bones[i].p[0] + 0.5*(bones[hose->targetIndex].p[0]-bones[i].p[0]);
-					bones[i].p[1] = bones[i].p[1] + 0.5*(bones[hose->targetIndex].p[1]-bones[i].p[1]);
-					bones[i].p[2] = bones[i].p[2] + 0.5*(bones[hose->targetIndex].p[2]-bones[i].p[2]);
-
-				///	QuatSlerp(bones[i].q,res,bones[hose->targetIndex].q,0.5);
-					QuatNormalize(bones[i].q);
-
-					//interpJoint->p.X = position1.X + animTime*(position2.X - position1.X);
-					//QuatNormalize(bones[i].q);
-
-				///	Com_Printf("slerp %f %f %f %f",bones[i].q[0],bones[i].q[1],bones[i].q[2],bones[i].q[3]);
-#endif
-#endif
-
 				}
 				break;
 				case JT_AVROT:
 				{
 					quat_t	pos,res,temp;
 					av = (tikiBoneAVRot_t*) tiki->bones[i];
-#if 0
-					quat_t	pos,res,que,temp;
-					//const_ofs instead of channel p
-					VectorCopy(av->const_offset,pos);
-					pos[3]=0;
-					QuaternionMultiply(temp,pos,bones[av->parentIndex].q);
-					QuatInverse(bones[av->parentIndex].q);
-					QuaternionMultiply(res,bones[av->parentIndex].q,temp);
-					QuatInverse(bones[av->parentIndex].q);
-					bones[i].p[0] = res[0] +bones[av->parentIndex].p[0];
-					bones[i].p[1] = res[1] +bones[av->parentIndex].p[1];
-					bones[i].p[2] = res[2] +bones[av->parentIndex].p[2];
-					QuaternionBuild(temp,bones[i].q[0],bones[i].q[1],bones[i].q[2]);
-					QuaternionMultiply(bones[i].q,temp,bones[av->parentIndex].q);
-					QuatNormalize(bones[i].q);
 
-	//				QuatCopy(bones[av->parentIndex].q,bones[i].q);
-	//				VectorCopy(bones[av->parentIndex].p,bones[i].p);
-
-#else
 					QuatSlerp(bones[av->m_reference1].q,bones[av->m_reference2].q,av->m_bone2weight,bones[i].q);
 					/*
 					bones[i].p[0] = bones[av->m_reference1].p[0] + av->m_bone2weight*(bones[av->m_reference2].p[0] - bones[av->m_reference1].p[0]);
@@ -422,17 +345,15 @@ void TIKI_Animate(tiki_t *tiki, bone_t *bones)
 					bones[i].p[0] = res[0] +bones[av->parentIndex].p[0];
 					bones[i].p[1] = res[1] +bones[av->parentIndex].p[1];
 					bones[i].p[2] = res[2] +bones[av->parentIndex].p[2];
-#endif
 				}
 				break;
-#endif
 				default:
 					Com_Error(ERR_DROP,"TIKI_Animate: unsupported bone type %i",*((int**)tiki->bones)[i]);
 				break;
 			}
 		}
 	}
-#if 1
+#if 0
 	if(tiki->numAnims>456) {
 		for(i = 0; i < tiki->numBones; i++)	{
 			Com_Printf("bone %i of %i (%s) - %f %f %f\n",i,tiki->numBones,TIKI_GetBoneNameFromIndex(tiki->boneNames[i]),bones[i].p[0],bones[i].p[1],bones[i].p[2]);
@@ -466,7 +387,6 @@ int	TIKI_RegisterBoneName(char *boneName) {
 	freeBoneName++;
 	bone = freeBoneName;
 	if (boneHashTable[hash]) {
-	//	boneHashTable[hash]->prev = bone;
 		bone->next = boneHashTable[hash];
 	}
 	boneHashTable[hash] = bone;
@@ -504,7 +424,6 @@ qboolean TIKI_HasBone(tiki_t *out, int globalBoneName) {
 	}
 	return qfalse;
 }
-#if 1
 // what a mess!
 // but at least now it works...
 void TIKI_MergeSKD(tiki_t *out, char *fname) {
@@ -550,38 +469,19 @@ void TIKI_MergeSKD(tiki_t *out, char *fname) {
 		return;
 	}
 
-
-
 	numAddBones = 0;
 	//first check do we have to realloc the bones?
 	bone = (skdBone_t *) ( (byte *)header + header->ofsBones );
 	for ( i = 0 ; i < header->numBones ; i++) {
-		//int tmpBoneName
 		headerBoneNames[i] = TIKI_RegisterBoneName(bone->name);
 		notInBoneList[i] = TIKI_HasBone(out,headerBoneNames[i]);
 		if(notInBoneList[i]==qfalse) {
 			addBonesIndexes[numAddBones] = headerBoneNames[i];
 			numAddBones++;
 		}
-		else {
-			int thisBoneParentName = TIKI_RegisterBoneName(bone->parent);
-			if(TIKI_HasBone(out,thisBoneParentName)) {
-				int thisBoneInOutIndex;
-				int thisBonenOutLocalParentIndex;
-				thisBoneInOutIndex = TIKI_GetLocalBoneIndex2(out,headerBoneNames[i]);
-				thisBonenOutLocalParentIndex = ((tikiBonePosRot_t*)out->bones[thisBoneInOutIndex])->parentIndex;
-				if(out->boneNames[thisBonenOutLocalParentIndex] != thisBoneParentName) {
-					Com_Printf("Bone %s parent in tiki %s, in file %s\n",bone->name,
-						TIKI_GetBoneNameFromIndex(out->boneNames[thisBonenOutLocalParentIndex]),TIKI_GetBoneNameFromIndex(thisBoneParentName));
-					//__asm int 3
-					///((tikiBonePosRot_t*)out->bones[thisBoneInOutIndex])->parentIndex = thisBoneParentName;
-				}
-			}
-		}
 		bone = (skdBone_t *)( (byte *)bone + bone->ofsEnd );
 	}
 	if(numAddBones) {
-	//	return;
 		newBoneNames = Z_Malloc((numAddBones + out->numBones)*4);
 		memcpy(newBoneNames,out->boneNames,out->numBones*4);
 		memcpy(&newBoneNames[out->numBones],addBonesIndexes,numAddBones*4);
@@ -598,9 +498,6 @@ void TIKI_MergeSKD(tiki_t *out, char *fname) {
 		bone = (skdBone_t *) ( (byte *)header + header->ofsBones );
 		for ( i = 0 ; i < header->numBones ; i++) {
 			if(notInBoneList[i]==qfalse) { //bone i is not present in out->bones array, we have to load it from this skd file
-				if(TIKI_RegisterBoneName(bone->name)!=headerBoneNames[i])
-					__asm int 3
-
 				switch(bone->jointType)	{
 					case JT_ROTATION:
 					{
@@ -631,7 +528,7 @@ void TIKI_MergeSKD(tiki_t *out, char *fname) {
 						VectorScale(ptr,out->scale,should->const_offset);
 					}
 					break;
-					case JT_ELBOW: //
+					case JT_ELBOW:
 					{
 						*newBoneList = Hunk_Alloc(sizeof(tikiBoneElbow_t),h_low);
 						elbow = (tikiBoneElbow_t*)*newBoneList;
@@ -642,7 +539,7 @@ void TIKI_MergeSKD(tiki_t *out, char *fname) {
 						VectorCopy(ptr,elbow->const_offset);
 					}
 					break;
-					case JT_WRIST: //
+					case JT_WRIST:
 					{
 						*newBoneList = Hunk_Alloc(sizeof(tikiBoneWrist_t),h_low);
 						wrist = (tikiBoneWrist_t*)*newBoneList;
@@ -690,12 +587,12 @@ void TIKI_MergeSKD(tiki_t *out, char *fname) {
 						ptr+=3;
 						ptr+=3; //skip 1 1 1
 						size = (int)bone + (int)bone->ofsEnd - (int)ptr;
-						Com_Printf("reference 1 %s ",(char*)ptr);
+						//Com_Printf("reference 1 %s ",(char*)ptr);
 						av->m_reference1 = TIKI_GetLocalBoneIndex(out,(char*)ptr); 
 						while(*(char*)ptr != 0)
 							((char*)ptr)++;
 						((char*)ptr)++;
-						Com_Printf("reference 2 %s\n",(char*)ptr);
+						//Com_Printf("reference 2 %s\n",(char*)ptr);
 						av->m_reference2 = TIKI_GetLocalBoneIndex(out,(char*)ptr); 
 					}
 					break;
@@ -736,40 +633,17 @@ void TIKI_MergeSKD(tiki_t *out, char *fname) {
 			}
 			vert = (skdVertex_t *) ( (byte *)vert + sizeof(skdVertex_t) + vert->numWeights*sizeof(skdWeight_t) + vert->numMorphs*sizeof(skdMorph_t) );
 		}
-		//if(i+1 == header->numSurfaces) {
-		//	surf->ofsEnd = 0;
-		//}
 		surf = (skdSurface_t *)( (byte *)surf + surf->ofsEnd );
 	}
-
-
-
-
 	FS_FreeFile(buf);
-
-
-#if 1
+#if 0
 	surf = out->surfs;
 	for ( i = 0; i < out->numSurfaces ; i++) {
 		Com_Printf("Surf %i of %i - %s \n",i,out->numSurfaces,surf->name);
 		surf = (skdSurface_t *)( (byte *)surf + surf->ofsEnd );
 	}
 #endif
-#if 1
-	//check for duplicate bones (in case that something went wrong)
-	for(i = 0; i < out->numBones; i++) {
-		for(j = 0; j < out->numBones; j++) {
-			if(i != j) {
-				if(out->boneNames[i] == out->boneNames[j])  {
-					Com_Printf("Tiki %s has duplicated bone %s (nameIndex %i) local indexes: %i, %i\n",
-						out->name,TIKI_GetBoneNameFromIndex(out->boneNames[i]),out->boneNames[i],i,j);
-				}
-			}
-		}
-	}
-#endif
 }
-#endif
 void TIKI_AppendSKD(tiki_t *out, char *fname) {
 	int				filesize;
 	char			*buf;
@@ -851,7 +725,7 @@ void TIKI_AppendSKD(tiki_t *out, char *fname) {
 				VectorScale(ptr,out->scale,should->const_offset);
 			}
 			break;
-			case JT_ELBOW: //
+			case JT_ELBOW:
 			{
 				out->bones[i] = Hunk_Alloc(sizeof(tikiBoneElbow_t),h_low);
 				elbow = (tikiBoneElbow_t*)out->bones[i];
@@ -861,7 +735,7 @@ void TIKI_AppendSKD(tiki_t *out, char *fname) {
 				VectorScale(ptr,out->scale,elbow->const_offset);
 			}
 			break;
-			case JT_WRIST: //
+			case JT_WRIST:
 			{
 				out->bones[i] = Hunk_Alloc(sizeof(tikiBoneWrist_t),h_low);
 				wrist = (tikiBoneWrist_t*)out->bones[i];
@@ -907,12 +781,12 @@ void TIKI_AppendSKD(tiki_t *out, char *fname) {
 				ptr+=3;
 				ptr+=3; //skip 1 1 1
 				size = (int)bone + (int)bone->ofsEnd - (int)ptr;
-				Com_Printf("reference 1 %s ",(char*)ptr);
+	//			Com_Printf("reference 1 %s ",(char*)ptr);
 				av->m_reference1 = TIKI_GetLocalBoneIndex(out,(char*)ptr); 
 				while(*(char*)ptr != 0)
 					((char*)ptr)++;
 				((char*)ptr)++;
-				Com_Printf("reference 2 %s\n",(char*)ptr);
+	//			Com_Printf("reference 2 %s\n",(char*)ptr);
 				av->m_reference2 = TIKI_GetLocalBoneIndex(out,(char*)ptr); 
 			}
 			break;
@@ -941,9 +815,6 @@ void TIKI_AppendSKD(tiki_t *out, char *fname) {
 			}
 			vert = (skdVertex_t *) ( (byte *)vert + sizeof(skdVertex_t) + vert->numWeights*sizeof(skdWeight_t) + vert->numMorphs*sizeof(skdMorph_t) );
 		}
-		//if(i+1 == header->numSurfaces) {
-		//	surf->ofsEnd = 0;
-		//}
 		surf = (skdSurface_t *)( (byte *)surf + surf->ofsEnd );
 	}
 	FS_FreeFile(buf);
@@ -1061,9 +932,6 @@ tikiAnim_t *TIKI_CacheAnim(char *fname, float scale) {
 		}
 		frame++;
 	}
-
-
-
 	FS_FreeFile(buf);
 	return anim;
 }
@@ -1124,7 +992,7 @@ static tiki_t *TIKI_Load(const char *fname) {
 	COM_BeginParseSession(fname);
 	token = COM_ParseExt(&text, qtrue);
 	if(Q_stricmp(token,"TIKI")) {
-		Com_Printf("WARNING: TIKI_Load: tiki file %s has wrong ident %s, should be TIKI\n",fname,token);
+	//	Com_Printf("WARNING: TIKI_Load: tiki file %s has wrong ident %s, should be TIKI\n",fname,token);
 		goto again;
 	}
 
@@ -1225,8 +1093,7 @@ again:
 					/*if (!Q_stricmp(token, "skelmodel")) {
 						token = COM_ParseExt(&text, qtrue);
 					}
-					else
-					{
+					else {
 						Com_Printf("Unknown token %s in section %s of file %s\n",token,sections[section],fname);
 					}*/
 				break;
@@ -1345,7 +1212,6 @@ tiki_t	*TIKI_RegisterModel(const char *fname) {
 		return 0;
 	}
 	if (hashTable[hash]) {
-		hashTable[hash]->prev = tiki;
 		tiki->next = hashTable[hash];
 	}
 	hashTable[hash] = tiki;

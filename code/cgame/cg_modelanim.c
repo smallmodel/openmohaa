@@ -21,7 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 #include "cg_local.h"
-//translate bone_s b to pos/rot coordinate space. (treate pos/rot as parent bone)
+//translate bone_s b to pos/rot coordinates space. (treat pos/rot as parent bone orientation)
 void CG_BoneLocal2World(bone_t *b, vec3_t pos, vec3_t rot, vec3_t outPos, vec3_t outRot) {
 	quat_t q,qpos,res,tmp;
 	quat_t outQuat;

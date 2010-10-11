@@ -799,7 +799,7 @@ void R_AddTIKISurfaces( trRefEntity_t *ent ) {
 	skdSurface_t *sf;
 	tiki_t		*tiki = tr.currentModel->tiki;
 	sf = tiki->surfs;
-#if 1
+#if 0
 	if(!strcmp("models/weapons/steilhandgranate.tik",tiki->name)) {	
 		ri.Printf(0,"..");
 	}
