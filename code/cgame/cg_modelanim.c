@@ -21,13 +21,56 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 #include "cg_local.h"
+//translate bone_s b to pos/rot coordinate space. (treate pos/rot as parent bone)
+void CG_BoneLocal2World(bone_t *b, vec3_t pos, vec3_t rot, vec3_t outPos, vec3_t outRot) {
+	quat_t q,qpos,res,tmp;
+	quat_t outQuat;
+#if 0
+	QuatFromAngles(q,rot[0],rot[1],rot[2]);
+#else
+	matrix_t m;
+	MatrixFromAngles(m,rot[0],rot[1],rot[2]);
+	QuatFromMatrix(q,m);
+#endif
+	VectorCopy(b->p,qpos);
+	qpos[3] = 0;
 
+
+	QuaternionMultiply(tmp,qpos,q);
+
+	QuatInverse(q);
+	QuaternionMultiply(res,q,tmp);
+	QuatInverse(q);
+
+	outPos[0] = res[0] + pos[0];
+	outPos[1] = res[1] + pos[1];
+	outPos[2] = res[2] + pos[2];
+
+	QuaternionMultiply(outQuat,b->q,q);
+	QuatNormalize(outQuat);
+#if 0
+	QuatToAngles(outQuat, outRot);
+#else
+	MatrixFromQuat(m,outQuat);
+	MatrixToAngles(m,outRot);
+#endif
+}
+void CG_AttachEntity(refEntity_t *e, centity_t *parent, int boneIndex) {
+	bone_t *b;
+	vec3_t a;
+	if(parent->bones==0)
+		return;
+	b = &parent->bones[boneIndex];
+//	CG_BoneLocal2World(b,parent->lerpOrigin,parent->lerpAngles,e->origin,e->axis);
+	CG_BoneLocal2World(b,parent->currentState.origin,parent->currentState.angles,e->origin,a);
+	AnglesToAxis(a,e->axis);
+}
 void CG_ModelAnim( centity_t *cent ) {
 	refEntity_t ent;
 	entityState_t *s1;
 	tiki_t *tiki;
 	int i;
-	
+	cent->bones = 0;
 	s1 = &cent->currentState;
 
 	memset(&ent,0,sizeof(ent));
@@ -43,11 +86,14 @@ void CG_ModelAnim( centity_t *cent ) {
 		}
 	}
 
-
-//	AnglesToAxis(cent->lerpAngles,ent.axis);
-//	VectorCopy(cent->lerpOrigin,ent.origin);
-	AnglesToAxis(cent->currentState.angles,ent.axis);
-	VectorCopy(cent->currentState.origin,ent.origin);
+	if(s1->tag_num != -1 && s1->parent != 1023) {
+		CG_AttachEntity(&ent,&cg_entities[s1->parent],s1->tag_num);
+	} else {
+	//	AnglesToAxis(cent->lerpAngles,ent.axis);
+	//	VectorCopy(cent->lerpOrigin,ent.origin);
+		AnglesToAxis(cent->currentState.angles,ent.axis);
+		VectorCopy(cent->currentState.origin,ent.origin);
+	}
 
 	ent.hModel = cgs.gameModels[s1->modelindex];
 	
@@ -55,7 +101,7 @@ void CG_ModelAnim( centity_t *cent ) {
 	if(tiki && tiki->numAnims) {
 		int idleIndex = 0;
 		ent.bones = trap_TIKI_GetBones(tiki->numBones);
-
+		cent->bones = ent.bones;
 #if 0
 		for(i = 0; i < tiki->numAnims; i++) {
 			if(!Q_stricmp(tiki->anims[i]->alias,"unarmed_stand_idle")) {
@@ -76,13 +122,6 @@ void CG_ModelAnim( centity_t *cent ) {
 			}
 		}
 		trap_TIKI_Animate(tiki,ent.bones);
-#if 0
-		if(idleIndex!=0) {
-			for(i = 0; i < tiki->numBones; i++)	{
-				Com_Printf("bone %i of %i - %f %f %f\n",i,tiki->numBones,ent.bones[i].p[0],ent.bones[i].p[1],ent.bones[i].p[2]);
-			}
-		}
-#endif
 	}
 
 	trap_R_AddRefEntityToScene(&ent);

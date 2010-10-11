@@ -570,6 +570,7 @@ void MSG_GetNullEntityState(entityState_t *nullState) {
 	nullState->alpha = 1.0f;
 	nullState->scale = 1.0f;
 	nullState->parent = ENTITYNUM_NONE;
+	nullState->tag_num = -1; // su44
 	nullState->constantLight = -1;
 	nullState->renderfx = 16;
 	nullState->bone_tag[4] = -1;
