@@ -614,6 +614,13 @@ float           pointToLineDistance(const vec3_t point, const vec3_t p1, const v
 float           VectorMinComponent(vec3_t v);
 float           VectorMaxComponent(vec3_t v);
 
+static ID_INLINE void VectorLerp(const vec3_t from, const vec3_t to, float frac, vec3_t out)
+{
+	out[0] = from[0] + ((to[0] - from[0]) * frac);
+	out[1] = from[1] + ((to[1] - from[1]) * frac);
+	out[2] = from[2] + ((to[2] - from[2]) * frac);
+}
+
 vec_t           DistanceBetweenLineSegmentsSquared(const vec3_t sP0, const vec3_t sP1,
 												   const vec3_t tP0, const vec3_t tP1, float *s, float *t);
 vec_t           DistanceBetweenLineSegments(const vec3_t sP0, const vec3_t sP1,

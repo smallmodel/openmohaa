@@ -91,58 +91,41 @@ int TIKI_FindRotChannel(tikiAnim_t *anim, int globalBoneName) {
 	}
 	return -1;
 }
-void TIKI_FindAndCopyPosChannel(tikiAnim_t *anim, int globalBoneName, tikiFrame_t *frame, vec3_t out) {
+qboolean TIKI_FindAndCopyPosChannel(tikiAnim_t *anim, int globalBoneName, tikiFrame_t *frame, vec3_t out) {
 	int i;
 	for(i = 0; i < anim->numPosChannels; i++) {
 		if(anim->posChannelNames[i] == globalBoneName) {
 			VectorCopy(frame->posChannels[i],out);
-			return;
+			return qtrue;
 		}
 	}
+	return qfalse;
 }
-void TIKI_FindAndCopyRotChannel(tikiAnim_t *anim, int globalBoneName, tikiFrame_t *frame, quat_t out) {
+qboolean TIKI_FindAndCopyRotChannel(tikiAnim_t *anim, int globalBoneName, tikiFrame_t *frame, quat_t out) {
 	int i;
 	for(i = 0; i < anim->numRotChannels; i++) {
 		if(anim->rotChannelNames[i] == globalBoneName) {
 			VectorCopy(frame->rotChannels[i],out);
 			out[3] = frame->rotChannels[i][3];
-			return;
+			return qtrue;
 		}
 	}
+	return qfalse;
 }
-void TIKI_FindAndCopyRotFKChannel(tikiAnim_t *anim, int globalBoneName, tikiFrame_t *frame, quat_t out) {
+qboolean TIKI_FindAndCopyRotFKChannel(tikiAnim_t *anim, int globalBoneName, tikiFrame_t *frame, quat_t out) {
 	int i;
 	for(i = 0; i < anim->numRotFKChannels; i++) {
 		if(anim->rotFKChannelNames[i] == globalBoneName) {
 			VectorCopy(frame->rotFKChannels[i],out);
 			out[3] = frame->rotFKChannels[i][3];
-			return;
+			return qtrue;
 		}
 	}
+	return qfalse;
 }
-void TIKI_SetChannels(tiki_t *tiki, int animIndex, float animTime, float animWeight, bone_t *bones) {
+void TIKI_SetChannels_internal(tiki_t *tiki, bone_t *bones, tikiAnim_t *anim, tikiFrame_t *frame) {
 	int i;
-	skdJointType_t **ptr;
-	tikiAnim_t *anim;
-	tikiFrame_t *frame;
-
-	if(tiki->numAnims <= animIndex) {
-		Com_Printf("TIKI_SetChannels: animIndex %i out of range %i\n",animIndex,tiki->numAnims);
-		return;
-	}
-	ptr = (skdJointType_t **)tiki->bones;
-	anim = tiki->anims[animIndex];
-	frame = anim->frames;
-#if 1
-	// su44: just a silly hack...
-	// TODO: interpolate between frames.
-	i = 1;
-	while(animTime > 0 && i != anim->numFrames) {
-		animTime-=anim->frameTime;
-		frame++;
-		i++;
-	}
-#endif
+	int **ptr = tiki->bones;
 	for(i = 0; i < tiki->numBones; i++)	{
 		switch(**ptr) {
 			case JT_ROTATION:
@@ -175,6 +158,101 @@ void TIKI_SetChannels(tiki_t *tiki, int animIndex, float animTime, float animWei
 		ptr++;
 		bones++;
 	}
+}
+
+void TIKI_SetChannels_interpolate(tiki_t *tiki, bone_t *bones, tikiAnim_t *anim, tikiFrame_t *frame, tikiFrame_t *nextFrame, float f) {
+	int i;
+	quat_t q1,q2;
+	vec3_t v1, v2;
+	int **ptr;
+	if(f < 0 || f > 1.f)
+		__asm int 3
+	ptr = tiki->bones;
+	for(i = 0; i < tiki->numBones; i++)	{
+		switch(**ptr) {
+			case JT_ROTATION:
+				if(TIKI_FindAndCopyRotChannel(anim,tiki->boneNames[i],frame,q1)) {
+					TIKI_FindAndCopyRotChannel(anim,tiki->boneNames[i],nextFrame,q2);
+					QuatSlerp(q1,q2,f,bones->q);
+				}
+			break;
+			case JT_POSROT_SKC:
+				if(TIKI_FindAndCopyPosChannel(anim,tiki->boneNames[i],frame,v1)) {
+					TIKI_FindAndCopyPosChannel(anim,tiki->boneNames[i],nextFrame,v2);
+					VectorLerp(v1,v2,f,bones->p);
+				}
+				if(TIKI_FindAndCopyRotChannel(anim,tiki->boneNames[i],frame,q1)) {
+					TIKI_FindAndCopyRotChannel(anim,tiki->boneNames[i],nextFrame,q2);
+					QuatSlerp(q1,q2,f,bones->q);
+				}
+			break;
+			case JT_SHOULDER:		
+				if(TIKI_FindAndCopyRotFKChannel(anim,tiki->boneNames[i],frame,q1)) {
+					TIKI_FindAndCopyRotFKChannel(anim,tiki->boneNames[i],nextFrame,q2);
+					QuatSlerp(q1,q2,f,bones->q);	
+				}
+				break;
+			case JT_ELBOW:		
+				if(TIKI_FindAndCopyRotFKChannel(anim,tiki->boneNames[i],frame,q1)) {
+					TIKI_FindAndCopyRotFKChannel(anim,tiki->boneNames[i],nextFrame,q2);
+					QuatSlerp(q1,q2,f,bones->q);
+				}
+			break;
+			case JT_WRIST:
+				if(TIKI_FindAndCopyPosChannel(anim,tiki->boneNames[i],frame,v1)) {
+					TIKI_FindAndCopyPosChannel(anim,tiki->boneNames[i],nextFrame,v2);
+					VectorLerp(v1,v2,f,bones->p);
+				}
+
+				if(TIKI_FindAndCopyRotFKChannel(anim,tiki->boneNames[i],frame,q1)) {
+					TIKI_FindAndCopyRotFKChannel(anim,tiki->boneNames[i],nextFrame,q2);
+					QuatSlerp(q1,q2,f,bones->q);
+				}
+				//TIKI_FindAndCopyRotChannel(anim,tiki->boneNames[i],frame,bones->q);
+				break;
+			case JT_HOSEROT:
+			case JT_AVROT:
+				break;
+			default:
+				Com_Error(ERR_DROP,"Unknwon wbonetye %i\n",**ptr);
+				break;
+		}
+		ptr++;
+		bones++;
+	}
+}
+void TIKI_SetChannels(tiki_t *tiki, int animIndex, float animTime, float animWeight, bone_t *bones) {
+	int i;
+	skdJointType_t **ptr;
+	tikiAnim_t *anim;
+	tikiFrame_t *frame;
+
+	if(tiki->numAnims <= animIndex) {
+		Com_Printf("TIKI_SetChannels: animIndex %i out of range %i\n",animIndex,tiki->numAnims);
+		return;
+	}
+	ptr = (skdJointType_t **)tiki->bones;
+	anim = tiki->anims[animIndex];
+	frame = anim->frames;
+	if(anim->numFrames == 1) {
+		//do not interpolate
+		TIKI_SetChannels_internal(tiki,bones,anim,frame);
+		return;
+	}
+	else {
+		i = 1;
+		while(animTime > anim->frameTime) {
+			animTime-=anim->frameTime;
+			frame++;
+			i++;
+			if(i == anim->numFrames) {
+				TIKI_SetChannels_internal(tiki,bones,anim,frame); // last frame, do not interpolate
+				return;
+			}
+		}
+	}
+	//interpolate between two frames
+	TIKI_SetChannels_interpolate(tiki,bones,anim,frame,frame+1,animTime/anim->frameTime);
 }
 
 void TIKI_Animate(tiki_t *tiki, bone_t *bones)
@@ -376,7 +454,7 @@ typedef struct boneName_s
 boneName_t globalBoneNames[1024];
 boneName_t *freeBoneName = globalBoneNames;
 boneName_t *boneHashTable[TIKI_BONE_HASH_SIZE];
-int	TIKI_RegisterBoneName(char *boneName) {
+int	TIKI_RegisterBoneName(const char *boneName) {
 	boneName_t	*bone;
 	int		hash = generateHashValue(boneName, TIKI_BONE_HASH_SIZE);
 

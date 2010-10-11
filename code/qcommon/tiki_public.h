@@ -31,3 +31,4 @@ typedef struct tiki_s tiki_t;
 tiki_t*	TIKI_RegisterModel(const char *fname);
 void TIKI_SetChannels(tiki_t *tiki, int animIndex, float animTime, float animWeight, bone_t *bones);
 void TIKI_Animate(tiki_t *tiki, bone_t *bones);
+int	TIKI_RegisterBoneName(const char *boneName);
