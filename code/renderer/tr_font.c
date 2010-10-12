@@ -782,6 +782,11 @@ void RE_Text_Paint(fontInfo_t *font, float x, float y, float scale, float alpha,
 	float xscale;
 	float yscale;
 
+	if(!font) {
+		if(!registeredFontCount)
+			return;
+		font = &registeredFont[0];
+	}
 	if ( is640 ) {
 		xscale=glConfig.vidWidth/640.0f;
 		yscale=glConfig.vidHeight/480.0f;

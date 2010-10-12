@@ -224,7 +224,8 @@ void Pmove (pmove_t *pmove);
 
 
 // player_state->stats[] indexes
-// NOTE: may not have more than 16
+// NOTE: may not have more than 32
+#if 0
 typedef enum {
 	STAT_HEALTH,
 	STAT_HOLDABLE_ITEM,
@@ -237,7 +238,42 @@ typedef enum {
 	STAT_CLIENTS_READY,				// bit mask of clients wishing to exit the intermission (FIXME: configstring?)
 	STAT_MAX_HEALTH					// health / armor limit, changable by handicap
 } statIndex_t;
-
+#else
+typedef enum {
+	STAT_HEALTH,
+	STAT_MAX_HEALTH,
+	STAT_WEAPONS,
+	STAT_EQUIPPED_WEAPON,
+	STAT_AMMO,	
+	STAT_MAXAMMO,
+	STAT_CLIPAMMO,		// ammo in current weapon clip
+	STAT_MAXCLIPAMMO,	// maxammo in current weapon clip
+	STAT_INZOOM,
+	STAT_CROSSHAIR,
+	STAT_LAST_PAIN,		// Last amount of damage the player took
+	STAT_UNUSED_2,
+	STAT_BOSSHEALTH,	// if we are fighting a boss, how much health he currently has
+	STAT_CINEMATIC,		// This is set when we go into cinematics
+	STAT_ADDFADE,		// This is set when we need to do an addblend for the fade
+	STAT_LETTERBOX,		// This is set to the fraction of the letterbox
+	STAT_COMPASSNORTH,
+	STAT_OBJECTIVELEFT,
+	STAT_OBJECTIVERIGHT,
+	STAT_OBJECTIVECENTER,
+	STAT_TEAM,
+	STAT_KILLS,
+	STAT_DEATHS,
+	STAT_UNUSED_3,
+	STAT_UNUSED_4,
+	STAT_HIGHEST_SCORE,
+	STAT_ATTACKERCLIENT, 
+	STAT_INFOCLIENT,
+	STAT_INFOCLIENT_HEALTH,
+	STAT_DAMAGEDIR,
+	STAT_LAST_STAT
+} statIndex_t;
+#define STAT_DEAD_YAW 5 // su44: Is there a DEAD_YAW stat in MoHAA?
+#endif
 
 // player_state->persistant[] indexes
 // these fields are the only part of player_state that isn't

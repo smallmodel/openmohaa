@@ -530,6 +530,8 @@ static void CG_DrawStatusBar( void ) {
 	vec4_t		hcolor;
 	vec3_t		angles;
 	vec3_t		origin;
+	char tmp[32];
+	int x,y;
 
 	static float colors[4][4] = { 
 //		{ 0.2, 1.0, 0.2, 1.0 } , { 1.0, 0.2, 0.2, 1.0 }, {0.5, 0.5, 0.5, 1} };
@@ -541,12 +543,11 @@ static void CG_DrawStatusBar( void ) {
 	if ( cg_drawStatus.integer == 0 ) {
 		return;
 	}
-
-	// draw the team background
-	CG_DrawTeamBackground( 0, 420, 640, 60, 0.33f, cg.snap->ps.persistant[PERS_TEAM] );
-
 	cent = &cg_entities[cg.snap->ps.clientNum];
 	ps = &cg.snap->ps;
+#if 0
+	// draw the team background
+	CG_DrawTeamBackground( 0, 420, 640, 60, 0.33f, cg.snap->ps.persistant[PERS_TEAM] );
 
 	VectorClear( angles );
 
@@ -569,7 +570,7 @@ static void CG_DrawStatusBar( void ) {
 	} else if( cg.predictedPlayerState.powerups[PW_NEUTRALFLAG] ) {
 		CG_DrawStatusBarFlag( 185 + CHAR_WIDTH*3 + TEXT_ICON_SPACE + ICON_SIZE, TEAM_FREE );
 	}
-
+#if 0
 	if ( ps->stats[ STAT_ARMOR ] ) {
 		origin[0] = 90;
 		origin[1] = 0;
@@ -578,6 +579,7 @@ static void CG_DrawStatusBar( void ) {
 		CG_Draw3DModel( 370 + CHAR_WIDTH*3 + TEXT_ICON_SPACE, 432, ICON_SIZE, ICON_SIZE,
 					   cgs.media.armorModel, 0, origin, angles );
 	}
+#endif
 	//
 	// ammo
 	//
@@ -636,6 +638,7 @@ static void CG_DrawStatusBar( void ) {
 	//
 	// armor
 	//
+#if 0
 	value = ps->stats[STAT_ARMOR];
 	if (value > 0 ) {
 		trap_R_SetColor( colors[0] );
@@ -647,6 +650,20 @@ static void CG_DrawStatusBar( void ) {
 		}
 
 	}
+#endif
+#else
+x = 580;
+y = 350;
+	sprintf(tmp,"%i",ps->stats[STAT_HEALTH]);
+	//Coordinates and size in 640*480 virtual screen size
+	trap_R_Text_Paint(0,x,y,1,1,tmp,0,-1,qfalse,qtrue);
+	sprintf(tmp,"%i/%i",ps->stats[STAT_CLIPAMMO],ps->stats[STAT_MAXCLIPAMMO]);
+	y+=20;
+	trap_R_Text_Paint(0,x,y,1,1,tmp,0,-1,qfalse,qtrue);
+	sprintf(tmp,"%i",ps->stats[STAT_AMMO]);
+	y+=20;
+	trap_R_Text_Paint(0,x,y,1,1,tmp,0,-1,qfalse,qtrue);
+#endif
 }
 #endif
 
@@ -1420,14 +1437,14 @@ CG_DrawHoldableItem
 */
 #ifndef MISSIONPACK
 static void CG_DrawHoldableItem( void ) { 
+#if 0
 	int		value;
-
 	value = cg.snap->ps.stats[STAT_HOLDABLE_ITEM];
 	if ( value ) {
 		CG_RegisterItemVisuals( value );
 		CG_DrawPic( 640-ICON_SIZE, (SCREEN_HEIGHT-ICON_SIZE)/2, ICON_SIZE, ICON_SIZE, cg_items[ value ].icon );
 	}
-
+#endif
 }
 #endif // MISSIONPACK
 
@@ -2481,21 +2498,21 @@ static void CG_Draw2D( void ) {
 			CG_DrawStatusBar();
 #endif
       
-			CG_DrawAmmoWarning();
+	//		CG_DrawAmmoWarning(); //su44: no ammo warnings in MoHAA
 
 #ifdef MISSIONPACK
 			CG_DrawProxWarning();
 #endif      
 			CG_DrawCrosshair();
 			CG_DrawCrosshairNames();
-			CG_DrawWeaponSelect();
+//			CG_DrawWeaponSelect();
 
 #ifndef MISSIONPACK
-			CG_DrawHoldableItem();
+//			CG_DrawHoldableItem();
 #else
 			//CG_DrawPersistantPowerup();
 #endif
-			CG_DrawReward();
+//			CG_DrawReward();
 		}
     
 		if ( cgs.gametype >= GT_TEAM ) {
@@ -2505,8 +2522,8 @@ static void CG_Draw2D( void ) {
 		}
 	}
 
-	CG_DrawVote();
-	CG_DrawTeamVote();
+//	CG_DrawVote();
+//	CG_DrawTeamVote();
 
 	CG_DrawLagometer();
 
@@ -2519,8 +2536,8 @@ static void CG_Draw2D( void ) {
 #endif
 
 #ifndef MISSIONPACK
-	CG_DrawLowerRight();
-	CG_DrawLowerLeft();
+	//CG_DrawLowerRight();
+	//CG_DrawLowerLeft();
 #endif
 
 	if ( !CG_DrawFollow() ) {

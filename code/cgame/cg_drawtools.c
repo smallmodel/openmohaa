@@ -425,9 +425,13 @@ CG_ColorForHealth
 =================
 */
 void CG_ColorForHealth( vec4_t hcolor ) {
-
+#if 0
 	CG_GetColorForHealth( cg.snap->ps.stats[STAT_HEALTH], 
 		cg.snap->ps.stats[STAT_ARMOR], hcolor );
+#else
+	CG_GetColorForHealth( cg.snap->ps.stats[STAT_HEALTH], 
+		0, hcolor );
+#endif
 }
 
 

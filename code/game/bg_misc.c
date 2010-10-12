@@ -1037,6 +1037,7 @@ This needs to be the same for client side prediction and server use.
 ================
 */
 qboolean BG_CanItemBeGrabbed( int gametype, const entityState_t *ent, const playerState_t *ps ) {
+#if 0
 	gitem_t	*item;
 #ifdef MISSIONPACK
 	int		upperBound;
@@ -1183,7 +1184,7 @@ qboolean BG_CanItemBeGrabbed( int gametype, const entityState_t *ent, const play
 #endif
          break;
 	}
-
+#endif
 	return qfalse;
 }
 
