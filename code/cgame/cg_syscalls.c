@@ -475,3 +475,11 @@ void trap_TIKI_SetChannels( tiki_t *tiki, int animIndex, float animTime, float a
 void trap_TIKI_Animate( tiki_t *tiki, bone_t *bones ) {
 	syscall(CG_TIKI_ANIMATE, tiki, bones);
 }
+
+int	trap_TIKI_GetBoneNameIndex( const char *boneName ) {
+	return syscall(CG_TIKI_GETBONENAMEINDEX, boneName);
+}
+
+void trap_SetEyeInfo( vec3_t origin, vec3_t angles ) {
+	syscall(CG_SETEYEINFO, origin, angles);
+}

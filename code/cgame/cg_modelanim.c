@@ -75,17 +75,6 @@ void CG_ModelAnim( centity_t *cent ) {
 
 	memset(&ent,0,sizeof(ent));
 
-	// player model
-	if ( cent->currentState.number == cg.snap->ps.clientNum) {
-		if (!cg.renderingThirdPerson) {
-			ent.renderfx = RF_THIRD_PERSON;			// only draw in mirrors
-		} else {
-			if (cg_cameraMode.integer) {
-				return;
-			}
-		}
-	}
-
 	if(s1->tag_num != -1 && s1->parent != 1023) {
 		CG_AttachEntity(&ent,&cg_entities[s1->parent],s1->tag_num);
 	} else {
@@ -123,7 +112,39 @@ void CG_ModelAnim( centity_t *cent ) {
 		}
 		trap_TIKI_Animate(tiki,ent.bones);
 	}
+	// player model
+	if ( cent->currentState.number == cg.snap->ps.clientNum) {
+#if 1 //calculate eye pos/rot for usereyes_t
+		if(tiki) {
+			vec3_t eyePos,eyeRot;
+#if 1
+			VectorSet(eyePos,0,0,cg.predictedPlayerState.viewheight);
 
+			VectorCopy(cg.predictedPlayerState.viewangles,eyeRot);
+			trap_SetEyeInfo(eyePos,eyeRot);
+#else
+			int eyeBoneName;
+			eyeBoneName = trap_TIKI_GetBoneNameIndex("eyes bone");//("tag_weapon_right");
+			for(i = 0; i < tiki->numBones; i++) {
+				if(tiki->boneNames[i] == eyeBoneName) {
+					CG_BoneLocal2World(ent.bones + i,ent.origin,cent->currentState.angles,eyePos,eyeRot);
+
+					VectorCopy(cg.predictedPlayerState.viewangles,eyeRot);
+					VectorSubtract(eyePos,cent->currentState.origin,eyePos);
+					trap_SetEyeInfo(eyePos,eyeRot);
+				}
+			}
+#endif
+		}
+#endif
+		if (!cg.renderingThirdPerson) {
+			ent.renderfx = RF_THIRD_PERSON;			// only draw in mirrors
+		} else {
+			if (cg_cameraMode.integer) {
+				return;
+			}
+		}
+	}
 	trap_R_AddRefEntityToScene(&ent);
 }
 

@@ -604,6 +604,34 @@ void CL_CreateNewCommands( void ) {
 	cmd = &cl.cmds[cmdNum];
 }
 
+
+/*
+=================
+CL_GetEyeInfo
+
+Create a new usereyes_t structure for this frame
+=================
+*/
+static vec3_t lastEyeAngles, lastEyeOrigin; // su44: soon I'll move it somewhere else...?
+void CL_GetEyeInfo(usereyes_t *info) {
+#if 0
+	memset(info,0,sizeof(*info));
+#else
+	info->angles[0] = lastEyeAngles[0];
+	info->angles[1] = lastEyeAngles[1];
+	VectorCopy(lastEyeOrigin,info->ofs);
+#endif
+}
+/*
+=================
+CL_SetEyeInfo
+=================
+*/
+void CL_SetEyeInfo(vec3_t origin, vec3_t angles) {
+	VectorCopy(angles,lastEyeAngles);
+	VectorCopy(origin,lastEyeOrigin);
+}
+
 /*
 =================
 CL_ReadyToSendPacket
@@ -695,7 +723,8 @@ void CL_WritePacket( void ) {
 	int			packetNum;
 	int			oldPacketNum;
 	int			count, key;
-	usereyes_t	eyeInfo;
+	usereyes_t	eyeInfo, *oldeyeInfo;
+	usereyes_t	nulleyeInfo;
 
 	// don't send anything if playing back a demo
 	if ( clc.demoplaying || cls.state == CA_CINEMATIC ) {
@@ -705,6 +734,9 @@ void CL_WritePacket( void ) {
 	Com_Memset( &nullcmd, 0, sizeof(nullcmd) );
 	oldcmd = &nullcmd;
 
+	Com_Memset( &nulleyeInfo, 0, sizeof(nulleyeInfo) );
+	oldeyeInfo = &nulleyeInfo;		
+		
 	MSG_Init( &buf, data, sizeof(data) );
 
 	MSG_Bitstream( &buf );
@@ -757,8 +789,8 @@ void CL_WritePacket( void ) {
 		// write the command count
 		MSG_WriteByte( &buf, count );
 
-		Com_Memset( &eyeInfo, 0, sizeof(eyeInfo) );
-		MSG_WriteDeltaEyeInfo( &buf, &eyeInfo, &eyeInfo );
+		CL_GetEyeInfo(&eyeInfo);
+		MSG_WriteDeltaEyeInfo( &buf, oldeyeInfo, &eyeInfo );
 		// use the checksum feed in the key
 		key = clc.checksumFeed;
 		// also use the message acknowledge

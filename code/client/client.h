@@ -449,6 +449,8 @@ char *Key_KeynumToString (int keynum);
 int Key_GetCatcher( void );
 void Key_SetCatcher( int catcher );
 
+void CL_GetEyeInfo(usereyes_t *info); //su44
+
 //
 // cl_parse.c
 //
