@@ -703,6 +703,7 @@ static void CG_LoadClientInfo( int clientNum, clientInfo_t *ci ) {
 		}
 	}
 
+#if 0 // su44: do not load Q3 custom sounds in OM
 	// sounds
 	dir = ci->modelName;
 	fallback = (cgs.gametype >= GT_TEAM) ? DEFAULT_TEAM_MODEL : DEFAULT_MODEL;
@@ -721,7 +722,7 @@ static void CG_LoadClientInfo( int clientNum, clientInfo_t *ci ) {
 			ci->sounds[i] = trap_S_RegisterSound( va("sound/player/%s/%s", fallback, s + 1), qfalse );
 		}
 	}
-
+#endif 
 	ci->deferred = qfalse;
 
 	// reset any existing players and bodies, because they might be in bad

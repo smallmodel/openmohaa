@@ -117,7 +117,7 @@ void CG_ModelAnim( centity_t *cent ) {
 #if 1 //calculate eye pos/rot for usereyes_t
 		if(tiki) {
 			vec3_t eyePos,eyeRot;
-#if 1
+#if 0
 			VectorSet(eyePos,0,0,cg.predictedPlayerState.viewheight);
 
 			VectorCopy(cg.predictedPlayerState.viewangles,eyeRot);

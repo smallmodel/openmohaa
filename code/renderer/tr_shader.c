@@ -899,6 +899,11 @@ static qboolean ParseStage( shaderStage_t *stage, char **text )
 			{
 				stage->rgbGen = CGEN_ONE_MINUS_VERTEX;
 			}
+			// su44: MoHAA-specific shader keyword, not supported yet
+			else if ( !Q_stricmp( token, "lightingSpherical" ) )
+			{
+				//stage->rgbGen = CGEN_ONE_MINUS_VERTEX;
+			}
 			else
 			{
 				ri.Printf( PRINT_WARNING, "WARNING: unknown rgbGen parameter '%s' in shader '%s'\n", token, shader.name );
@@ -1047,6 +1052,19 @@ static qboolean ParseStage( shaderStage_t *stage, char **text )
 				}
 				/*else
 					shader.tCoordT = atof(token);*/
+			}
+			// su44: see shader firstaid_dm
+			else if ( !Q_stricmp( token, "distFade" ) )
+			{//usage: distFade 1024 512 ???
+				//stage->alphaGen = AGEN_DISTFADE;
+				token = COM_ParseExt(text, qfalse);
+				if (token[0] == 0) {
+					ri.Printf(PRINT_WARNING, "WARNING: missing distance1 parm for alphaGen distFade in shader '%s'\n", shader.name);
+				}
+				token = COM_ParseExt(text, qfalse);
+				if (token[0] == 0) {
+					ri.Printf(PRINT_WARNING, "WARNING: missing distance2 parm for alphaGen distFade in shader '%s'\n", shader.name);
+				}
 			}
 			else
 			{

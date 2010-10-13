@@ -1226,6 +1226,7 @@ again:
 			if(!out->surfs)	{
 				out->surfs = out->includes[i]->surfs;
 				out->numSurfaces = out->includes[i]->numSurfaces;
+				out->surfShaders = out->includes[i]->surfShaders;
 			}
 #endif
 		}
@@ -1254,15 +1255,26 @@ again:
 	out->anims = Hunk_Alloc(sizeof(tikiAnim_t*)*out->numAnims,h_high);
 	memcpy(out->anims,anims,sizeof(tikiAnim_t*)*out->numAnims);
 
-	out->surfShaders = Hunk_Alloc(sizeof(qhandle_t)*out->numSurfaces,h_high);
-	sf = out->surfs;
-	for(i = 0; i < out->numSurfaces; i++) {
-		for(j = 0; j < numSurfShaders; j++) {
-			if(!Q_stricmp(sf->name,surfShaders[j].surface)) {
-				out->surfShaders[i] = RE_RegisterShader(surfShaders[j].shader);
+	if(!out->surfShaders) {
+		out->surfShaders = Hunk_Alloc(sizeof(qhandle_t)*out->numSurfaces,h_high);
+		sf = out->surfs;
+		for(i = 0; i < out->numSurfaces; i++) {
+			for(j = 0; j < numSurfShaders; j++) {
+				int testLen;
+				char *star;
+				// '*' is used in eg. models/weapons/mp40.tik
+				star = strchr(surfShaders[j].surface,'*');
+				if(star) {
+					testLen = star - surfShaders[j].surface;
+				} else {
+					testLen = strlen(surfShaders[j].surface)+1;
+				}
+				if(!Q_stricmpn(sf->name,surfShaders[j].surface,testLen)) {
+					out->surfShaders[i] = RE_RegisterShader(surfShaders[j].shader);
+				}
 			}
+			sf = (skdSurface_t*)(((byte*)sf)+sf->ofsEnd);
 		}
-		sf = (skdSurface_t*)(((byte*)sf)+sf->ofsEnd);
 	}
 	FS_FreeFile(buf);
 	return out;

@@ -537,6 +537,7 @@ static void CG_RegisterSounds( void ) {
 	const char	*soundName;
 	char	buffer[MAX_STRING_CHARS];
 
+#if 0 // su44: do not register Q3 sounds
 	// voice commands
 #ifdef MISSIONPACK
 	CG_LoadVoiceChats();
@@ -789,7 +790,7 @@ static void CG_RegisterSounds( void ) {
 	trap_S_RegisterSound("sound/player/janet/fall1.wav", qfalse );
 	trap_S_RegisterSound("sound/player/janet/taunt.wav", qfalse );
 #endif
-
+#endif
 }
 
 
@@ -831,6 +832,19 @@ static void CG_RegisterGraphics( void ) {
 	// precache status bar pics
 	CG_LoadingString( "game media" );
 
+
+
+
+
+	cgs.media.crosshairShader[0] = trap_R_RegisterShader( "gfx/2d/BLANK" );
+	cgs.media.crosshairShader[1] = trap_R_RegisterShader( "textures/hud/crosshair" );
+	cgs.media.crosshairShader[2] = trap_R_RegisterShader( "gfx/2d/crosshair" );
+
+	cgs.media.backTileShader = trap_R_RegisterShader( "gfx/2d/backtile" );
+
+	cgs.media.shadowMarkShader = trap_R_RegisterShader( "markShadow" );
+	cgs.media.wakeMarkShader = trap_R_RegisterShader( "wake" );
+#if 0 // su44: do not load Q3 media
 	for ( i=0 ; i<11 ; i++) {
 		cgs.media.numberShaders[i] = trap_R_RegisterShader( sb_nums[i] );
 	}
@@ -870,11 +884,11 @@ static void CG_RegisterGraphics( void ) {
 //	for ( i = 0 ; i < NUM_CROSSHAIRS ; i++ ) {
 //		cgs.media.crosshairShader[i] = trap_R_RegisterShader( va("gfx/2d/crosshair%c", 'a'+i) );
 //	}
-	cgs.media.crosshairShader[0] = trap_R_RegisterShader( "gfx/2d/BLANK" );
-	cgs.media.crosshairShader[1] = trap_R_RegisterShader( "textures/hud/crosshair" );
-	cgs.media.crosshairShader[2] = trap_R_RegisterShader( "gfx/2d/crosshair" );
+	//cgs.media.crosshairShader[0] = trap_R_RegisterShader( "gfx/2d/BLANK" );
+	//cgs.media.crosshairShader[1] = trap_R_RegisterShader( "textures/hud/crosshair" );
+	//cgs.media.crosshairShader[2] = trap_R_RegisterShader( "gfx/2d/crosshair" );
 
-	cgs.media.backTileShader = trap_R_RegisterShader( "gfx/2d/backtile" );
+	//cgs.media.backTileShader = trap_R_RegisterShader( "gfx/2d/backtile" );
 	cgs.media.noammoShader = trap_R_RegisterShader( "icons/noammo" );
 
 	// powerup shaders
@@ -1035,10 +1049,10 @@ static void CG_RegisterGraphics( void ) {
 	cgs.media.burnMarkShader = trap_R_RegisterShader( "gfx/damage/burn_med_mrk" );
 	cgs.media.holeMarkShader = trap_R_RegisterShader( "gfx/damage/hole_lg_mrk" );
 	cgs.media.energyMarkShader = trap_R_RegisterShader( "gfx/damage/plasma_mrk" );
-	cgs.media.shadowMarkShader = trap_R_RegisterShader( "markShadow" );
-	cgs.media.wakeMarkShader = trap_R_RegisterShader( "wake" );
+//	cgs.media.shadowMarkShader = trap_R_RegisterShader( "markShadow" );
+//	cgs.media.wakeMarkShader = trap_R_RegisterShader( "wake" );
 	cgs.media.bloodMarkShader = trap_R_RegisterShader( "bloodMark" );
-
+#endif //su44
 	// register the inline models
 	cgs.numInlineModels = trap_CM_NumInlineModels();
 	for ( i = 1 ; i < cgs.numInlineModels ; i++ ) {
