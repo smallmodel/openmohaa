@@ -765,6 +765,12 @@ UI_DrawProportionalString
 =================
 */
 void UI_DrawProportionalString( int x, int y, const char* str, int style, vec4_t color ) {
+
+#if 1
+	//we use the MOHAA font, not the Q3 text drawing
+	trap_R_Text_Paint( &cgs.media.font, x, y, 1, 1, str, 0, 1024, 1, 1 );
+
+#else
 	vec4_t	drawcolor;
 	int		width;
 	float	sizeScale;
@@ -818,4 +824,6 @@ void UI_DrawProportionalString( int x, int y, const char* str, int style, vec4_t
 	}
 
 	UI_DrawProportionalString2( x, y, str, color, sizeScale, cgs.media.charsetProp );
+
+#endif
 }

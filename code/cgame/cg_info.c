@@ -159,19 +159,36 @@ void CG_DrawInformation( void ) {
 	sysInfo = CG_ConfigString( CS_SYSTEMINFO );
 
 	s = Info_ValueForKey( info, "mapname" );
-	levelshot = trap_R_RegisterShaderNoMip( va( "levelshots/%s.tga", s ) );
-	if ( !levelshot ) {
-		levelshot = trap_R_RegisterShaderNoMip( "menu/art/unknownmap" );
+
+	// wombat here: level shots are 
+	if ( cgs.gametype == GT_OBJECTIVE ) {
+		if ( !Q_strncmp( s, "obj/obj_team1", 32 ) )
+			levelshot = trap_R_RegisterShaderNoMip( "textures/mohmenu/objloading/objdm1.tga" );
+		else if ( !Q_strncmp( s, "obj/obj_team2", 32 ) )
+			levelshot = trap_R_RegisterShaderNoMip( "textures/mohmenu/objloading/objdm2.tga" );
+		else if ( !Q_strncmp( s, "obj/obj_team3", 32 ) )
+			levelshot = trap_R_RegisterShaderNoMip( "textures/mohmenu/objloading/objdm4.tga" );
+		else if ( !Q_strncmp( s, "obj/obj_team4", 32 ) )
+			levelshot = trap_R_RegisterShaderNoMip( "textures/mohmenu/objloading/objdm5.tga" );
+		else
+			levelshot = trap_R_RegisterShaderNoMip( va( "textures/mohmenu/objloading/%s.tga", s+4 ) );
+	} else {
+		levelshot = trap_R_RegisterShaderNoMip( va( "textures/mohmenu/dmloading/%s.tga", s+3 ) );
 	}
+	//levelshot = trap_R_RegisterShaderNoMip( va( "levelshots/%s.tga", s ) );
+	if ( !levelshot ) {
+		levelshot = trap_R_RegisterShaderNoMip( "textures/openmohaa.tga" );
+	}
+	if ( !levelshot ) Com_Printf( "nonononono\n" );
 	trap_R_SetColor( NULL );
 	CG_DrawPic( 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, levelshot );
 
 	// blend a detail texture over it
-	detail = trap_R_RegisterShader( "levelShotDetail" );
-	trap_R_DrawStretchPic( 0, 0, cgs.glconfig.vidWidth, cgs.glconfig.vidHeight, 0, 0, 2.5, 2, detail );
+//	detail = trap_R_RegisterShader( "levelShotDetail" );
+//	trap_R_DrawStretchPic( 0, 0, cgs.glconfig.vidWidth, cgs.glconfig.vidHeight, 0, 0, 2.5, 2, detail );
 
 	// draw the icons of things as they are loaded
-	CG_DrawLoadingIcons();
+//	CG_DrawLoadingIcons();
 
 	// the first 150 rows are reserved for the client connection
 	// screen to write into
@@ -241,14 +258,14 @@ void CG_DrawInformation( void ) {
 	case GT_SINGLE_PLAYER:
 		s = "Single Player";
 		break;
-	case GT_TOURNAMENT:
-		s = "Tournament";
-		break;
 	case GT_TEAM:
-		s = "Team Deathmatch";
+		s = "Team Match";
 		break;
-	case GT_CTF:
-		s = "Capture The Flag";
+	case GT_TEAM_ROUNDS:
+		s = "Roundbased Team Match";
+		break;
+	case GT_OBJECTIVE:
+		s = "Objective Match";
 		break;
 #ifdef MISSIONPACK
 	case GT_1FCTF:

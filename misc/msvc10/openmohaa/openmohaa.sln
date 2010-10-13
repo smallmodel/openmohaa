@@ -2,6 +2,10 @@
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "openmohaa", "openmohaa.vcxproj", "{A9E3E13B-C83E-48AC-91EA-4942B0FF723A}"
+	ProjectSection(ProjectDependencies) = postProject
+		{02990457-FD92-4996-BCF4-90092A7C75C5} = {02990457-FD92-4996-BCF4-90092A7C75C5}
+		{D198C7F1-A045-455F-98F1-610AF58541A7} = {D198C7F1-A045-455F-98F1-610AF58541A7}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cgame", "..\cgame\cgame.vcxproj", "{D198C7F1-A045-455F-98F1-610AF58541A7}"
 EndProject

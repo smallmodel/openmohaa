@@ -47,7 +47,8 @@ MULTIPLAYER MENU (SERVER BROWSER)
 #define ART_ARROWS0				"menu/art/arrows_vert_0"
 #define ART_ARROWS_UP			"menu/art/arrows_vert_top"
 #define ART_ARROWS_DOWN			"menu/art/arrows_vert_bot"
-#define ART_UNKNOWNMAP			"menu/art/unknownmap"
+//#define ART_UNKNOWNMAP			"menu/art/unknownmap"
+#define ART_UNKNOWNMAP			"textures/openmohaa"
 
 #define ART_PUNKBUSTER		"menu/art/pblogo"
 
@@ -85,8 +86,8 @@ MULTIPLAYER MENU (SERVER BROWSER)
 #define GAMES_ALL			0
 #define GAMES_FFA			1
 #define GAMES_TEAMPLAY		2
-#define GAMES_TOURNEY		3
-#define GAMES_CTF			4
+#define GAMES_ROUNDPLAY		3
+#define GAMES_OBJECTIVE		4
 
 static const char *master_items[] = {
 	"Local",
@@ -100,8 +101,8 @@ static const char *servertype_items[] = {
 	"All",
 	"Free For All",
 	"Team Deathmatch",
-	"Tournament",
-	"Capture the Flag",
+	"Team Rounds",
+	"Objective",
 	NULL
 };
 
@@ -115,11 +116,11 @@ static const char *sortkey_items[] = {
 };
 
 static char* gamenames[] = {
-	"DM ",	// deathmatch
-	"1v1",	// tournament
-	"SP ",	// single player
-	"Team DM",	// team deathmatch
-	"CTF",	// capture the flag
+	"SP ",	// deathmatch
+	"FFA",	// tournament
+	"Team ",	// single player
+	"Rounds ",	// team deathmatch
+	"Objective",	// capture the flag
 	"One Flag CTF",		// one flag ctf
 	"OverLoad",				// Overload
 	"Harvester",			// Harvester
@@ -352,7 +353,23 @@ static void ArenaServers_UpdatePicture( void ) {
 	}
 	else {
 		servernodeptr = g_arenaservers.table[g_arenaservers.list.curvalue].servernode;
-		Com_sprintf( picname, sizeof(picname), "levelshots/%s.tga", servernodeptr->mapname );
+
+		if (servernodeptr->gametype == GT_OBJECTIVE) {
+			// OK i tried this here, but the pics have transparency so you cant really see them. fix?
+			if ( !Q_strncmp( servernodeptr->mapname, "OBJ/OBJ_TEAM1", 16 ) )
+				strncpy( picname, "textures/mohmenu/objloading/objdm1.tga", sizeof(picname) );
+			else if ( !Q_strncmp( servernodeptr->mapname, "OBJ/OBJ_TEAM2", 16 ) )
+				strncpy( picname, "textures/mohmenu/objloading/objdm2.tga", sizeof(picname) );
+			else if ( !Q_strncmp( servernodeptr->mapname, "OBJ/OBJ_TEAM3", 16 ) )
+				strncpy( picname, "textures/mohmenu/objloading/objdm4.tga", sizeof(picname) );
+			else if ( !Q_strncmp( servernodeptr->mapname, "OBJ/OBJ_TEAM4", 16 ) )
+				strncpy( picname, "textures/mohmenu/objloading/objdm5.tga", sizeof(picname) );
+			else
+				Com_sprintf( picname, sizeof(picname), "textures/mohmenu/%s.tga", servernodeptr->mapname );
+		}
+		else {
+			Com_sprintf( picname, sizeof(picname), "textures/mohmenu/%s.tga", servernodeptr->mapname );
+		}
 		g_arenaservers.mappic.generic.name = picname;
 	
 	}
@@ -494,14 +511,14 @@ static void ArenaServers_UpdateMenu( void ) {
 			}
 			break;
 
-		case GAMES_TOURNEY:
-			if( servernodeptr->gametype != GT_TOURNAMENT ) {
+		case GAMES_ROUNDPLAY:
+			if( servernodeptr->gametype != GT_TEAM_ROUNDS ) {
 				continue;
 			}
 			break;
 
-		case GAMES_CTF:
-			if( servernodeptr->gametype != GT_CTF ) {
+		case GAMES_OBJECTIVE:
+			if( servernodeptr->gametype != GT_OBJECTIVE ) {
 				continue;
 			}
 			break;
@@ -1033,12 +1050,12 @@ static void ArenaServers_StartRefresh( void )
 			strcpy( myargs, " team" );
 			break;
 
-		case GAMES_TOURNEY:
-			strcpy( myargs, " tourney" );
+		case GAMES_ROUNDPLAY:
+			strcpy( myargs, " rounds" );
 			break;
 
-		case GAMES_CTF:
-			strcpy( myargs, " ctf" );
+		case GAMES_OBJECTIVE:
+			strcpy( myargs, " obj" );
 			break;
 		}
 
@@ -1429,10 +1446,10 @@ static void ArenaServers_MenuInit( void ) {
 
 	g_arenaservers.mappic.generic.type			= MTYPE_BITMAP;
 	g_arenaservers.mappic.generic.flags			= QMF_LEFT_JUSTIFY|QMF_INACTIVE;
-	g_arenaservers.mappic.generic.x				= 72;
+	g_arenaservers.mappic.generic.x				= 72 + 8;
 	g_arenaservers.mappic.generic.y				= 80;
-	g_arenaservers.mappic.width					= 128;
-	g_arenaservers.mappic.height				= 96;
+	g_arenaservers.mappic.width					= 90;//128;
+	g_arenaservers.mappic.height				= 90;//96;
 	g_arenaservers.mappic.errorpic				= ART_UNKNOWNMAP;
 
 	g_arenaservers.arrows.generic.type			= MTYPE_BITMAP;

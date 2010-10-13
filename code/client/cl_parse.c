@@ -684,9 +684,9 @@ void CL_ParseCGMessage( msg_t *msg ) {
 				vecStart[1] = MSG_ReadCoord(msg);
 				vecStart[2] = MSG_ReadCoord(msg);
 				if ( msgtype != 1 ) {
-					vecTmp[0] = vecTmp[0];
-					vecTmp[1] = vecTmp[1];
-					vecTmp[2] = vecTmp[1];
+					vecTmp[0] = vecStart[0];
+					vecTmp[1] = vecStart[1];
+					vecTmp[2] = vecStart[2];
 				}
 				vecArray[0][0] = MSG_ReadCoord(msg);
 				vecArray[0][1] = MSG_ReadCoord(msg);

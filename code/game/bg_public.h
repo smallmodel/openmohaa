@@ -119,7 +119,7 @@ typedef enum {
 	GT_TEAM,			// team deathmatch
 	GT_TEAM_ROUNDS,
 	GT_OBJECTIVE,
-
+	//GT_MAX_GAME_TYPE for mohaa
 
 	GT_TOURNAMENT,		// one on one tournament
 	

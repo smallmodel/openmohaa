@@ -434,7 +434,7 @@ void TIKI_Animate(tiki_t *tiki, bone_t *bones)
 #if 0
 	if(tiki->numAnims>456) {
 		for(i = 0; i < tiki->numBones; i++)	{
-			Com_Printf("bone %i of %i (%s) - %f %f %f\n",i,tiki->numBones,TIKI_GetBoneNameFromIndex(tiki->boneNames[i]),bones[i].p[0],bones[i].p[1],bones[i].p[2]);
+			Com_DPrintf("bone %i of %i (%s) - %f %f %f\n",i,tiki->numBones,TIKI_GetBoneNameFromIndex(tiki->boneNames[i]),bones[i].p[0],bones[i].p[1],bones[i].p[2]);
 		}
 	}
 #endif
