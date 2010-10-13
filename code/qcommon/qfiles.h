@@ -752,8 +752,8 @@ typedef struct {
 	//added for mohaa
 	int			dummy1;
 	int			dummy2;
-	int			dummy3;
-	int			dummy4;
+	int			firstStaticModel;
+	int			numStaticModels;
 } dleaf_t;
 
 typedef struct {
@@ -833,5 +833,15 @@ typedef struct dterPatch_s {
 	int				dummy2[65];	// thanks to heiko_ for pointing out a x86-64 bug here
 	byte			heightmap[9][9];
 } dterPatch_t;
+
+// su44 was here
+typedef struct dstaticModel_s {
+	char model[128];
+	vec3_t origin;
+	vec3_t angles;
+	float scale;
+	int firstVertexData;
+	short numVertexData;
+} dstaticModel_t;
 
 #endif

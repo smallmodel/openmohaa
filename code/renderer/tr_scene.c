@@ -321,6 +321,11 @@ void RE_RenderScene( const refdef_t *fd ) {
 	tr.refdef.time = fd->time;
 	tr.refdef.rdflags = fd->rdflags;
 
+	// su44
+	if(r_drawstaticmodels->integer) {
+		R_AddStaticModelEntities();
+	}
+
 	// copy the areamask data over and note if it has changed, which
 	// will force a reset of the visible leafs even if the view hasn't moved
 	tr.refdef.areamaskModified = qfalse;

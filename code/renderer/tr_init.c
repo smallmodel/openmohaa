@@ -162,6 +162,7 @@ cvar_t	*ter_lodgapbase;	// for testing purposes
 cvar_t	*ter_constlod;		// overrides all the above, for testing purposes; valid range: 0-3, inclusive
 // su44
 cvar_t	*r_showSkeleton;
+cvar_t	*r_drawstaticmodels;
 static void AssertCvarRange( cvar_t *cv, float minVal, float maxVal, qboolean shouldBeIntegral )
 {
 	if ( shouldBeIntegral )
@@ -1039,6 +1040,7 @@ void R_Register( void )
 	ter_constlod = ri.Cvar_Get("ter_constlod", "-1", CVAR_ARCHIVE);	// IneQuation
 
 	r_showSkeleton = ri.Cvar_Get("r_showSkeleton", "0", CVAR_ARCHIVE | CVAR_CHEAT);	// su44
+	r_drawstaticmodels = ri.Cvar_Get("r_drawstaticmodels", "1", CVAR_ARCHIVE | CVAR_CHEAT);	// su44
 
 	// make sure all the commands added here are also
 	// removed in R_Shutdown

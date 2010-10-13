@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // tr_map.c
 
 #include "tr_local.h"
+#include "../qcommon/tiki_local.h"
 
 /*
 
@@ -1875,6 +1876,59 @@ void R_LoadTerrain(lump_t *ter) {
 }
 
 /*
+================
+R_LoadStaticModels
+================
+su44 was here
+*/
+void R_LoadStaticModels(lump_t *l) {
+	dstaticModel_t	*in;
+	int i;
+
+	in = (void *)(fileBase + l->fileofs);
+	if (l->filelen % sizeof(dstaticModel_t))
+		ri.Error (ERR_DROP, "LoadMap: funny static model lump size in %s (%d %% %d)", s_worldData.name, l->filelen, sizeof(dstaticModel_t));
+	s_worldData.numStaticModels = l->filelen / sizeof(dstaticModel_t);
+
+	s_worldData.staticModels = ri.Hunk_Alloc(s_worldData.numStaticModels * sizeof(mstaticModel_t), h_low);
+
+	for(i = 0; i < s_worldData.numStaticModels; i++) {
+		char tmp[256];
+		char *ptr1, *ptr2;
+		VectorCopy(in[i].origin,s_worldData.staticModels[i].origin);
+		VectorCopy(in[i].angles,s_worldData.staticModels[i].angles);
+		s_worldData.staticModels[i].scale = in[i].scale;
+		// "models" path is sometimes missing..
+		if(Q_stricmpn(in[i].model,"models/",7)) {
+			strcpy(tmp,"models/");
+			strcat(tmp,in[i].model);
+		} else {
+			strcpy(tmp,in[i].model);
+		}
+		ptr1 = tmp;
+		ptr2 = tmp;
+		// su44: NOW this is kinda ridiculous... why there are duplicated slashes in static model's names?
+		// like "static//corona_orange.tik" (see dm/mohdm1.bsp)
+		while(*ptr1) {
+			if(ptr1[0] == '/' && ptr1[1] == '/') {
+				ptr1++;
+			}
+			*ptr2 = *ptr1;
+			ptr1++;
+			ptr2++;
+		}
+		*ptr2 = 0;
+		s_worldData.staticModels[i].model = RE_RegisterModel(tmp);
+		if(s_worldData.staticModels[i].model != 0) {
+			s_worldData.staticModels[i].bones =  ri.Hunk_Alloc(sizeof(bone_t)*tr.models[s_worldData.staticModels[i].model]->tiki->numBones,h_low);
+			TIKI_SetChannels(tr.models[s_worldData.staticModels[i].model]->tiki,0,0,0,s_worldData.staticModels[i].bones);
+			TIKI_Animate(tr.models[s_worldData.staticModels[i].model]->tiki,s_worldData.staticModels[i].bones);
+		}
+	}
+	ri.Printf(PRINT_DEVELOPER, "R_LoadStaticModels: %d static models loaded\n", s_worldData.numStaticModels);
+}
+
+/*
 =================
 RE_LoadWorldMap
 
@@ -1952,6 +2006,8 @@ void RE_LoadWorldMap( const char *name ) {
 	R_LoadLightGrid( &header->lumps[LUMP_LIGHTGRIDPALETTE], &header->lumps[LUMP_LIGHTGRIDOFFSETS], &header->lumps[LUMP_LIGHTGRIDDATA] );
 	// IneQuation
 	R_LoadTerrain(&header->lumps[LUMP_TERRAIN]);
+	// su44
+	R_LoadStaticModels(&header->lumps[LUMP_STATICMODELDEF]);
 
 	s_worldData.dataSize = (byte *)ri.Hunk_Alloc(0, h_low) - startMarker;
 

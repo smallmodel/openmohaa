@@ -717,6 +717,15 @@ typedef struct mterPatch_s {
 	srfTerrainPatch_t	surf;
 } mterPatch_t;
 
+// su44 was here
+typedef struct {
+	vec3_t			origin;
+	vec3_t			angles;
+	qhandle_t		model;
+	float			scale;
+	bone_t			*bones; // su44: model bones are calculated once and stored here for efficient rendering
+} mstaticModel_t;
+
 typedef struct {
 	char		name[MAX_QPATH];		// ie: maps/tim_dm2.bsp
 	char		baseName[MAX_QPATH];	// ie: tim_dm2
@@ -767,6 +776,10 @@ typedef struct {
 	// IneQuation: terrain
 	mterPatch_t	*terrainPatches;
 	int			numTerrainPatches;
+
+	// su44: static models
+	mstaticModel_t *staticModels;
+	int			numStaticModels;
 } world_t;
 
 //======================================================================
@@ -1149,6 +1162,7 @@ extern	cvar_t	*ter_lodgapbase;	// for testing purposes
 extern	cvar_t	*ter_constlod;		// overrides the above, for testing; valid range: 0-3, inclusive
 // su44
 extern	cvar_t	*r_showSkeleton;
+extern	cvar_t	*r_drawstaticmodels;
 
 //====================================================================
 
@@ -1389,6 +1403,7 @@ WORLD MAP
 void R_AddBrushModelSurfaces( trRefEntity_t *e );
 void R_AddWorldSurfaces( void );
 void R_AddTerrainSurfaces(void);	// IneQuation
+void R_AddStaticModelEntities(void);	//su44
 qboolean R_inPVS( const vec3_t p1, const vec3_t p2 );
 
 

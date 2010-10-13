@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ===========================================================================
 */
 #include "tr_local.h"
+#include "../qcommon/tiki_local.h"
 
 
 
@@ -741,5 +742,38 @@ void R_AddTerrainSurfaces (void) {
 		dlightBits = (dlightBits != 0);
 
 		R_AddDrawSurf((void *)surf, surf->patch->shader, 0, dlightBits);
+	}
+}
+
+
+/*
+=============
+R_AddStaticModelEntities
+=============
+su44 was here
+*/
+void R_AddStaticModelEntities(void) {
+	int i;
+	refEntity_t ent;
+	memset(&ent,0,sizeof(ent));
+	for(i = 0; i < tr.world->numStaticModels; i++) {
+		if(tr.models[tr.world->staticModels[i].model]->tiki==0)
+			continue;
+		ent.hModel = tr.world->staticModels[i].model;
+		VectorCopy(tr.world->staticModels[i].origin,ent.origin);
+		AnglesToAxis(tr.world->staticModels[i].angles,ent.axis);
+		if(tr.world->staticModels[i].scale != 1.f) {
+			VectorScale(ent.axis[0],tr.world->staticModels[i].scale,ent.axis[0]);
+			VectorScale(ent.axis[1],tr.world->staticModels[i].scale,ent.axis[1]);
+			VectorScale(ent.axis[2],tr.world->staticModels[i].scale,ent.axis[2]);
+		}
+#if 0
+		ent.bones = TIKI_GetBones(tr.models[ent.hModel]->tiki->numBones);
+		TIKI_SetChannels(tr.models[ent.hModel]->tiki,0,0,0,ent.bones);
+		TIKI_Animate(tr.models[ent.hModel]->tiki,ent.bones);
+#else
+		ent.bones = tr.world->staticModels[i].bones;
+#endif
+		RE_AddRefEntityToScene(&ent);
 	}
 }
