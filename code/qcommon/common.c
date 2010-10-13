@@ -1615,6 +1615,7 @@ void Hunk_Clear( void ) {
 #ifndef DEDICATED
 	CIN_CloseAllVideos();
 #endif
+	TIKI_ClearUp();
 	hunk_low.mark = 0;
 	hunk_low.permanent = 0;
 	hunk_low.temp = 0;

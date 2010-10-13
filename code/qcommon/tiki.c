@@ -1280,6 +1280,10 @@ again:
 	return out;
 }
 
+// called from Hunk_Clear
+void TIKI_ClearUp() {
+	memset(hashTable,0,TIKI_FILE_HASH_SIZE*4);
+}
 tiki_t	*TIKI_RegisterModel(const char *fname) {
 	tiki_t	*tiki;
 	int		hash;
