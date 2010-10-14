@@ -874,10 +874,13 @@ CL_ParseLocationprint
 */
 void CL_ParseLocationprint( msg_t *msg ) {
 	int x, y;
+	char *string;
 
 	x = MSG_ReadShort( msg );
 	y = MSG_ReadShort( msg );
-	Com_Printf( "locationprint received: \"%s\" at x=%i, y=%i\n", MSG_ReadString(msg), x, y );
+	string = MSG_ReadString(msg);
+
+	VM_Call( cgvm, CG_LOCATIONPRINT, string, x, y );
 }
 
 /*
@@ -886,7 +889,10 @@ CL_ParseCenterprint
 =====================
 */
 void CL_ParseCenterprint( msg_t *msg ) {
-	Com_Printf( "centerprint received: \"%s\"\n", MSG_ReadString( msg ) );
+	char *string;
+
+	string = MSG_ReadString( msg );
+	VM_Call( cgvm, CG_CENTERPRINT, string );
 }
 
 /*

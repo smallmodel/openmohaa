@@ -74,6 +74,12 @@ intptr_t vmMain( int command, int arg0, int arg1, int arg2, int arg3, int arg4, 
 	case CG_EVENT_HANDLING:
 		CG_EventHandling(arg0);
 		return 0;
+	case CG_CENTERPRINT:
+		CG_CenterPrint( arg0, 200, 10 );
+		return 0;
+	case CG_LOCATIONPRINT:
+		CG_LocationPrint( arg0, arg1, arg2, 10 );
+		return 0;
 	default:
 		CG_Error( "vmMain: unknown command %i", command );
 		break;
@@ -91,6 +97,7 @@ itemInfo_t			cg_items[MAX_ITEMS];
 
 vmCvar_t	cg_railTrailTime;
 vmCvar_t	cg_centertime;
+vmCvar_t	cg_locationtime;
 vmCvar_t	cg_runpitch;
 vmCvar_t	cg_runroll;
 vmCvar_t	cg_bobup;
@@ -239,6 +246,7 @@ static cvarTable_t cvarTable[] = {
 	{ &cg_gun_y, "cg_gunY", "0", CVAR_CHEAT },
 	{ &cg_gun_z, "cg_gunZ", "0", CVAR_CHEAT },
 	{ &cg_centertime, "cg_centertime", "3", CVAR_CHEAT },
+	{ &cg_locationtime, "cg_locationtime", "3", CVAR_CHEAT },
 	{ &cg_runpitch, "cg_runpitch", "0.002", CVAR_ARCHIVE},
 	{ &cg_runroll, "cg_runroll", "0.005", CVAR_ARCHIVE },
 	{ &cg_bobup , "cg_bobup", "0.005", CVAR_CHEAT },

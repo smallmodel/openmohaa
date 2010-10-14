@@ -1793,6 +1793,26 @@ void CG_CenterPrint( const char *str, int y, int charWidth ) {
 	}
 }
 
+void CG_LocationPrint( const char *str, int x, int y, int charWidth ) {
+	char	*s;
+
+	Q_strncpyz( cg.locationPrint, str, sizeof(cg.locationPrint) );
+
+	cg.locationPrintTime = cg.time;
+	cg.locationPrintX = x;
+	cg.locationPrintY = y;
+	cg.locationPrintCharWidth = charWidth;
+
+	// count the number of lines for centering
+	cg.locationPrintLines = 1;
+	s = cg.locationPrint;
+	while( *s ) {
+		if (*s == '\n')
+			cg.locationPrintLines++;
+		s++;
+	}
+}
+
 
 /*
 ===================
@@ -1849,6 +1869,74 @@ static void CG_DrawCenterString( void ) {
 			cg.centerPrintCharWidth, (int)(cg.centerPrintCharWidth * 1.5), 0 );
 
 		y += cg.centerPrintCharWidth * 1.5;
+#endif
+		while ( *start && ( *start != '\n' ) ) {
+			start++;
+		}
+		if ( !*start ) {
+			break;
+		}
+		start++;
+	}
+
+	trap_R_SetColor( NULL );
+}
+
+/*
+===================
+CG_DrawLocationString
+===================
+*/
+static void CG_DrawLocationString( void ) {
+	char	*start;
+	int		l;
+	int		x, y, w;
+#ifdef MISSIONPACK
+	int h;
+#endif
+	float	*color;
+
+	if ( !cg.locationPrintTime ) {
+		return;
+	}
+
+	color = CG_FadeColor( cg.locationPrintTime, 1000 * cg_locationtime.value );
+	if ( !color ) {
+		return;
+	}
+
+	trap_R_SetColor( color );
+
+	start = cg.locationPrint;
+
+	y = cg.locationPrintY - cg.locationPrintLines * BIGCHAR_HEIGHT / 2;
+
+	while ( 1 ) {
+		char linebuffer[2048];
+
+		for ( l = 0; l < 50; l++ ) {
+			if ( !start[l] || start[l] == '\n' ) {
+				break;
+			}
+			linebuffer[l] = start[l];
+		}
+		linebuffer[l] = 0;
+
+#ifdef MISSIONPACK
+		w = CG_Text_Width(linebuffer, 0.5, 0);
+		h = CG_Text_Height(linebuffer, 0.5, 0);
+		x = (SCREEN_WIDTH - w) / 2;
+		CG_Text_Paint(x, y + h, 0.5, color, linebuffer, 0, 0, ITEM_TEXTSTYLE_SHADOWEDMORE);
+		y += h + 6;
+#else
+		w = cg.locationPrintCharWidth * CG_DrawStrlen( linebuffer );
+
+		x = ( SCREEN_WIDTH - w ) / 2;
+
+		CG_DrawStringExt( x, y, linebuffer, color, qfalse, qtrue,
+			cg.locationPrintCharWidth, (int)(cg.locationPrintCharWidth * 1.5), 0 );
+
+		y += cg.locationPrintCharWidth * 1.5;
 #endif
 		while ( *start && ( *start != '\n' ) ) {
 			start++;

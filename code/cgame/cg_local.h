@@ -563,6 +563,14 @@ typedef struct {
 	char		centerPrint[2048];
 	int			centerPrintLines;
 
+	// locationprinting
+	int			locationPrintTime;
+	int			locationPrintCharWidth;
+	int			locationPrintX;
+	int			locationPrintY;
+	char		locationPrint[2048];
+	int			locationPrintLines;
+
 	// low ammo warning state
 	int			lowAmmoWarning;		// 1 = low, 2 = empty
 
@@ -1087,6 +1095,7 @@ extern	itemInfo_t		cg_items[MAX_ITEMS];
 extern	markPoly_t		cg_markPolys[MAX_MARK_POLYS];
 
 extern	vmCvar_t		cg_centertime;
+extern	vmCvar_t		cg_locationtime;
 extern	vmCvar_t		cg_runpitch;
 extern	vmCvar_t		cg_runroll;
 extern	vmCvar_t		cg_bobup;
@@ -1276,6 +1285,7 @@ extern  char teamChat2[256];
 void CG_AddLagometerFrameInfo( void );
 void CG_AddLagometerSnapshotInfo( snapshot_t *snap );
 void CG_CenterPrint( const char *str, int y, int charWidth );
+void CG_LocationPrint( const char *str, int x, int y, int charWidth );
 void CG_DrawHead( float x, float y, float w, float h, int clientNum, vec3_t headAngles );
 void CG_DrawActive( stereoFrame_t stereoView );
 void CG_DrawFlagModel( float x, float y, float w, float h, int team, qboolean force2D );
