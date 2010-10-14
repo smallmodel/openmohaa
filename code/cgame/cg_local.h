@@ -647,6 +647,9 @@ typedef struct {
 	int			bobcycle;
 	float		xyspeed;
 	int     nextOrbitTime;
+	int		lastViewModelAnim; // su44: for MoHAA
+	float	viewModelAnimTime; // viewmodelanims
+
 
 	//qboolean cameraMode;		// if rendering from a loaded camera
 
@@ -1482,6 +1485,7 @@ void CG_CheckChangedPredictableEvents( playerState_t *ps );
 // cg_modelanim.c
 //
 void CG_ModelAnim( centity_t *cent );
+void CG_BoneLocal2World(bone_t *b, vec3_t pos, vec3_t rot, vec3_t outPos, vec3_t outRot);
 
 //===============================================
 

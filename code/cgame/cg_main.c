@@ -242,9 +242,9 @@ static cvarTable_t cvarTable[] = {
 	{ &cg_addMarks, "cg_marks", "1", CVAR_ARCHIVE },
 	{ &cg_lagometer, "cg_lagometer", "1", CVAR_ARCHIVE },
 	{ &cg_railTrailTime, "cg_railTrailTime", "400", CVAR_ARCHIVE  },
-	{ &cg_gun_x, "cg_gunX", "0", CVAR_CHEAT },
-	{ &cg_gun_y, "cg_gunY", "0", CVAR_CHEAT },
-	{ &cg_gun_z, "cg_gunZ", "0", CVAR_CHEAT },
+	{ &cg_gun_x, "cg_gunX", "0", CVAR_CHEAT | CVAR_ARCHIVE  },
+	{ &cg_gun_y, "cg_gunY", "0", CVAR_CHEAT | CVAR_ARCHIVE  },
+	{ &cg_gun_z, "cg_gunZ", "-35", CVAR_CHEAT | CVAR_ARCHIVE },
 	{ &cg_centertime, "cg_centertime", "3", CVAR_CHEAT },
 	{ &cg_locationtime, "cg_locationtime", "3", CVAR_CHEAT },
 	{ &cg_runpitch, "cg_runpitch", "0.002", CVAR_ARCHIVE},
@@ -1092,7 +1092,13 @@ static void CG_RegisterGraphics( void ) {
 			}
 		}
 	}
-
+	for (i=0; i<64; i++) {
+		const char		*itemName;
+		itemName = CG_ConfigString( CS_WEAPONS+i );
+		if(itemName) {
+			CG_RegisterItemName(i, itemName);
+		}
+	}
 #ifdef MISSIONPACK
 	// new stuff
 	cgs.media.patrolShader = trap_R_RegisterShaderNoMip("ui/assets/statusbar/patrol.tga");

@@ -144,6 +144,7 @@ void CG_ModelAnim( centity_t *cent ) {
 				return;
 			}
 		}
+		 CG_ViewModelAnim(); // maybe I should put it somewhere else..
 	}
 	trap_R_AddRefEntityToScene(&ent);
 }

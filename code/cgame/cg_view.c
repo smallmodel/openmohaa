@@ -70,6 +70,7 @@ can then be moved around
 */
 void CG_TestModel_f (void) {
 	vec3_t		angles;
+	char		tmp[128];
 
 	memset( &cg.testModelEntity, 0, sizeof(cg.testModelEntity) );
 	if ( trap_Argc() < 2 ) {
@@ -85,8 +86,14 @@ void CG_TestModel_f (void) {
 		cg.testModelEntity.oldframe = 0;
 	}
 	if (! cg.testModelEntity.hModel ) {
-		CG_Printf( "Can't register model\n" );
-		return;
+		strcpy(tmp,"models/");
+		strcat(tmp,cg.testModelName);
+		strcpy(cg.testModelName,tmp);
+		cg.testModelEntity.hModel = trap_R_RegisterModel( cg.testModelName );
+		if (! cg.testModelEntity.hModel ) {
+			CG_Printf( "Can't register model\n" );
+			return;
+		}
 	}
 
 	VectorMA( cg.refdef.vieworg, 100, cg.refdef.viewaxis[0], cg.testModelEntity.origin );
@@ -141,9 +148,10 @@ void CG_TestModelPrevSkin_f (void) {
 
 static void CG_AddTestModel (void) {
 	int		i;
-
+	tiki_t	*tiki;
 	// re-register the model, because the level may have changed
 	cg.testModelEntity.hModel = trap_R_RegisterModel( cg.testModelName );
+	tiki = trap_TIKI_RegisterModel( cg.testModelName );
 	if (! cg.testModelEntity.hModel ) {
 		CG_Printf ("Can't register model\n");
 		return;
@@ -163,7 +171,11 @@ static void CG_AddTestModel (void) {
 			cg.testModelEntity.origin[i] += cg.refdef.viewaxis[2][i] * cg_gun_z.value;
 		}
 	}
-
+	if( tiki ) {
+		cg.testModelEntity.bones = trap_TIKI_GetBones(tiki->numBones);
+		trap_TIKI_SetChannels(tiki,0,0,1,cg.testModelEntity.bones);
+		trap_TIKI_Animate(tiki,cg.testModelEntity.bones);
+	}
 	trap_R_AddRefEntityToScene( &cg.testModelEntity );
 }
 

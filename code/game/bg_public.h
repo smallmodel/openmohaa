@@ -99,7 +99,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define CS_LOCATIONS			(CS_PLAYERS+MAX_CLIENTS)
 #define CS_PARTICLES			(CS_LOCATIONS+MAX_LOCATIONS)
 
-#define CS_WEAPONS				1749
+#define CS_WEAPONS				1748 // su44 was here
 #define CS_UNKNOWN				1876
 #define CS_SPECTATORS			1878
 #define CS_ALLIES				1879
@@ -135,6 +135,23 @@ typedef enum {
 } gametype_t;
 
 typedef enum { GENDER_MALE, GENDER_FEMALE, GENDER_NEUTER } gender_t;
+
+// su44: vma indexes are sent as 4 bits
+// see playerState_t::iViewModelAnim
+typedef enum {
+	VMA_IDLE,
+	VMA_CHARGE,
+	VMA_FIRE,
+	VMA_FIRE_SECONDARY,
+	VMA_RECHAMBER,
+	VMA_RELOAD,
+	VMA_RELOAD_SINGLE,
+	VMA_RELOAD_END,
+	VMA_PULLOUT,
+	VMA_PUTAWAY,
+	VMA_LADDERSTEP,
+	VMA_NUMANIMATIONS
+} viewmodelanim_t;
 
 /*
 ===================================================================================

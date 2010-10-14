@@ -336,6 +336,8 @@ static void CG_ConfigStringModified( void ) {
 	} else if ( num >= CS_PLAYERS && num < CS_PLAYERS+MAX_CLIENTS ) {
 		CG_NewClientInfo( num - CS_PLAYERS );
 		CG_BuildSpectatorString();
+	} else if ( num >= CS_WEAPONS && num < CS_UNKNOWN) {
+		CG_RegisterItemName(num - CS_WEAPONS, str);
 	} else if ( num == CS_FLAGSTATUS ) {
 		if( cgs.gametype == GT_CTF ) {
 			// format is rb where its red/blue, 0 is at base, 1 is taken, 2 is dropped

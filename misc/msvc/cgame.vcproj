@@ -1379,6 +1379,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="..\..\code\cgame\cg_viewmodelanim.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\code\cgame\cg_weapons.c"
 				>
 				<FileConfiguration

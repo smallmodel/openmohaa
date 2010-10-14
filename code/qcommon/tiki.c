@@ -1283,6 +1283,9 @@ again:
 // called from Hunk_Clear
 void TIKI_ClearUp() {
 	memset(hashTable,0,TIKI_FILE_HASH_SIZE*4);
+	memset(globalBoneNames,0,sizeof(globalBoneNames));
+	freeBoneName = globalBoneNames;
+	memset(boneHashTable,0,sizeof(boneHashTable));
 }
 tiki_t	*TIKI_RegisterModel(const char *fname) {
 	tiki_t	*tiki;
