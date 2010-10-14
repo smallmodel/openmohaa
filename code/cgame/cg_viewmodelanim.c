@@ -111,6 +111,10 @@ void CG_ViewModelAnim() {
 	refEntity_t ent;
 	bone_t *bone;
 	vec3_t v,a;
+	int boneName;
+
+	if(cg.renderingThirdPerson)
+		return;
 
 	// mp40_reload, mp40_fire
 	if(cg.predictedPlayerState.activeItems[ITEM_WEAPON]!=-1)	{
@@ -161,21 +165,23 @@ item 2 "Binoculars"
 		CG_Printf("WARNING: vma %s not found in %s\n",anim,fps->name);
 		return;
 	}
-	cg.viewModelAnimTime += ((float)cg.frametime/1000);
+	cg.viewModelAnimTime += ((float)cg.frametime/2000);
 	if(cg.lastViewModelAnim != i) {
 		cg.viewModelAnimTime = 0;
 		cg.lastViewModelAnim = i;
+	} else if((fps->anims[i]->frameTime*fps->anims[i]->numFrames) < cg.viewModelAnimTime) {
+		cg.viewModelAnimTime = 0;
 	}
 	// su44: ok, we have chosen the proper viewmodelanim
 	// but ent.origin and ent.axis still needs to be adjusted
 	memset(&ent,0,sizeof(ent));
-
+	ent.renderfx = RF_FIRST_PERSON | RF_DEPTHHACK;
 	ent.hModel = trap_R_RegisterModel(tmp);
 	ent.bones = trap_TIKI_GetBones(fps->numBones);
 	trap_TIKI_SetChannels(fps,i,cg.viewModelAnimTime,1,ent.bones);
 	trap_TIKI_Animate(fps,ent.bones);
 
-#if 0
+#if 1
 	boneName = trap_TIKI_GetBoneNameIndex("eyes bone");
 	for(i = 0; i < fps->numBones; i++) {
 		if(fps->boneNames[i] == boneName) {
@@ -183,11 +189,15 @@ item 2 "Binoculars"
 			break;
 		}
 	}
-	////CG_BoneLocal2World(bone,cg.refdef.vieworg,cg.refdefViewAngles,v,a);
+	CG_BoneLocal2World(bone,cg.refdef.vieworg,cg.refdefViewAngles,v,a);
+	VectorSubtract(v,cg.refdef.vieworg,v);
+
 #endif
-
+#if 0
 	VectorCopy( cg.refdef.vieworg, ent.origin );
-
+#else
+	VectorSubtract( cg.refdef.vieworg,v,ent.origin);
+#endif
 	VectorMA( ent.origin, cg_gun_x.value, cg.refdef.viewaxis[0], ent.origin );
 	VectorMA( ent.origin, cg_gun_y.value, cg.refdef.viewaxis[1], ent.origin );
 	VectorMA( ent.origin, cg_gun_z.value, cg.refdef.viewaxis[2], ent.origin );

@@ -244,7 +244,7 @@ static cvarTable_t cvarTable[] = {
 	{ &cg_railTrailTime, "cg_railTrailTime", "400", CVAR_ARCHIVE  },
 	{ &cg_gun_x, "cg_gunX", "0", CVAR_CHEAT | CVAR_ARCHIVE  },
 	{ &cg_gun_y, "cg_gunY", "0", CVAR_CHEAT | CVAR_ARCHIVE  },
-	{ &cg_gun_z, "cg_gunZ", "-35", CVAR_CHEAT | CVAR_ARCHIVE },
+	{ &cg_gun_z, "cg_gunZ", "0", CVAR_CHEAT | CVAR_ARCHIVE },
 	{ &cg_centertime, "cg_centertime", "3", CVAR_CHEAT },
 	{ &cg_locationtime, "cg_locationtime", "3", CVAR_CHEAT },
 	{ &cg_runpitch, "cg_runpitch", "0.002", CVAR_ARCHIVE},
