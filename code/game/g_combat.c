@@ -689,6 +689,7 @@ CheckArmor
 */
 int CheckArmor (gentity_t *ent, int damage, int dflags)
 {
+#if 0
 	gclient_t	*client;
 	int			save;
 	int			count;
@@ -716,6 +717,9 @@ int CheckArmor (gentity_t *ent, int damage, int dflags)
 	client->ps.stats[STAT_ARMOR] -= save;
 
 	return save;
+#else
+	return 0;
+#endif
 }
 
 /*
@@ -982,7 +986,7 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 		} else {
 			attacker->client->ps.persistant[PERS_HITS]++;
 		}
-		attacker->client->ps.persistant[PERS_ATTACKEE_ARMOR] = (targ->health<<8)|(client->ps.stats[STAT_ARMOR]);
+//		attacker->client->ps.persistant[PERS_ATTACKEE_ARMOR] = (targ->health<<8)|(client->ps.stats[STAT_ARMOR]);
 	}
 
 	// always give half damage if hurting self

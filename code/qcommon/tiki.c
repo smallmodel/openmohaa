@@ -53,12 +53,17 @@ static long generateHashValue(const char *fname, const int size) {
 }
 
 // bones... called every frame from cgame, animated by CG_ModelAnim, then passed to renderer with refEntities
-#define MAX_GLOBAL_BONES 1024
+#define MAX_GLOBAL_BONES 4096
 static bone_t globalBones[MAX_GLOBAL_BONES];
 static bone_t *currBone = globalBones;
 bone_t *TIKI_GetBones(int numBones) {
 	int i;
-	bone_t *tmp = currBone;
+	bone_t *tmp;
+	if(currBone+numBones >= globalBones+MAX_GLOBAL_BONES) {
+		Com_Error(ERR_DROP,"TIKI_GetBones: overflowed. Increase MAX_GLOBAL_BONES (%i) and recompile!\n",MAX_GLOBAL_BONES);
+		return 0;
+	}
+	tmp = currBone;
 	currBone+=numBones;
 	for(i = 0; i < numBones; i++) {
 		VectorSet(tmp[i].p,0,0,0);
@@ -451,7 +456,7 @@ typedef struct boneName_s
 	struct boneName_s *next;
 } boneName_t;
 #define TIKI_BONE_HASH_SIZE 128
-boneName_t globalBoneNames[1024];
+boneName_t globalBoneNames[4096];
 boneName_t *freeBoneName = globalBoneNames;
 boneName_t *boneHashTable[TIKI_BONE_HASH_SIZE];
 int	TIKI_RegisterBoneName(const char *boneName) {

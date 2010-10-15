@@ -1100,7 +1100,7 @@ void TeamplayInfoMessage( gentity_t *ent ) {
 			ent->client->sess.sessionTeam ) {
 
 			h = player->client->ps.stats[STAT_HEALTH];
-			a = player->client->ps.stats[STAT_ARMOR];
+			a = 0;//player->client->ps.stats[STAT_ARMOR];
 			if (h < 0) h = 0;
 			if (a < 0) a = 0;
 

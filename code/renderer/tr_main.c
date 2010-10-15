@@ -1222,7 +1222,7 @@ void R_AddEntitySurfaces (void) {
 					if(!r_showSkeleton->integer)
 						R_AddTIKISurfaces( ent );
 					else {
-						ent->e.renderfx |= RF_DEPTHHACK;
+					//	ent->e.renderfx |= RF_DEPTHHACK;
 						R_AddDrawSurf( (void *)&skeletonSurface, tr.defaultShader, 0 /*fogNum*/, qfalse );
 					}
 					break;

@@ -71,7 +71,6 @@ void CG_ModelAnim( centity_t *cent ) {
 	tiki_t *tiki;
 	int i;
 	qboolean attachedToViewmodel;
-	cent->bones = 0;
 	s1 = &cent->currentState;
 
 	attachedToViewmodel = qfalse;

@@ -1223,6 +1223,7 @@ void CheckIntermissionExit( void ) {
 
 	// copy the readyMask to each player's stats so
 	// it can be displayed on the scoreboard
+/*
 	for (i=0 ; i< g_maxclients.integer ; i++) {
 		cl = level.clients + i;
 		if ( cl->pers.connected != CON_CONNECTED ) {
@@ -1230,7 +1231,7 @@ void CheckIntermissionExit( void ) {
 		}
 		cl->ps.stats[STAT_CLIENTS_READY] = readyMask;
 	}
-
+*/
 	// never exit in less than five seconds
 	if ( level.time < level.intermissiontime + 5000 ) {
 		return;
