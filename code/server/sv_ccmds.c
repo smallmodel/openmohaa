@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 #include "server.h"
+#include "../qcommon/tiki_local.h"
 
 /*
 ===============================================================================
@@ -736,6 +737,31 @@ static void SV_TIKI_f( void ) {
 	}
 }
 
+/*
+=================
+SV_TIKI_DumpBones_f
+=================
+*/
+static void SV_TIKI_DumpBones_f( void ) {
+	char		*fname;
+	tiki_t		*tiki;
+	int i;
+	fname = Cmd_Argv(1);
+	tiki = TIKI_RegisterModel(fname);
+	if(tiki==0)
+	{
+		char tmp[128];
+		strcpy(tmp,"models/");
+		strcat(tmp,fname);
+		tiki = TIKI_RegisterModel(tmp);
+		if(!tiki)
+			return;
+	}
+	for(i = 0; i < tiki->numBones; i++) {
+		Com_Printf("Bone %i of %i - %s\n",i,tiki->numBones,TIKI_GetBoneNameFromIndex(tiki->boneNames[i]));
+	}
+}
+
 //===========================================================
 
 /*
@@ -770,6 +796,7 @@ void SV_AddOperatorCommands( void ) {
 #endif
 	Cmd_AddCommand ("killserver", SV_KillServer_f);
 	Cmd_AddCommand ("tiki", SV_TIKI_f); //su44
+	Cmd_AddCommand ("tiki_dumpbones", SV_TIKI_DumpBones_f); //su44
 	if( com_dedicated->integer ) {
 		Cmd_AddCommand ("say", SV_ConSay_f);
 	}

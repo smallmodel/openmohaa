@@ -1260,17 +1260,22 @@ again:
 		sf = out->surfs;
 		for(i = 0; i < out->numSurfaces; i++) {
 			for(j = 0; j < numSurfShaders; j++) {
-				int testLen;
-				char *star;
-				// '*' is used in eg. models/weapons/mp40.tik
-				star = strchr(surfShaders[j].surface,'*');
-				if(star) {
-					testLen = star - surfShaders[j].surface;
-				} else {
-					testLen = strlen(surfShaders[j].surface)+1;
-				}
-				if(!Q_stricmpn(sf->name,surfShaders[j].surface,testLen)) {
+				// "all" keyword is used in eg. models/ammo/thompson_clip.tik
+				if(!Q_stricmp(surfShaders[j].surface,"all")) {
 					out->surfShaders[i] = RE_RegisterShader(surfShaders[j].shader);
+				} else {
+					int testLen;
+					char *star;
+					// '*' is used in eg. models/weapons/mp40.tik
+					star = strchr(surfShaders[j].surface,'*');
+					if(star) {
+						testLen = star - surfShaders[j].surface;
+					} else {
+						testLen = strlen(surfShaders[j].surface)+1;
+					}
+					if(!Q_stricmpn(sf->name,surfShaders[j].surface,testLen)) {
+						out->surfShaders[i] = RE_RegisterShader(surfShaders[j].shader);
+					}
 				}
 			}
 			sf = (skdSurface_t*)(((byte*)sf)+sf->ofsEnd);

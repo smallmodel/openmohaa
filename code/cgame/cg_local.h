@@ -649,6 +649,9 @@ typedef struct {
 	int     nextOrbitTime;
 	int		lastViewModelAnim; // su44: for MoHAA
 	float	viewModelAnimTime; // viewmodelanims
+	refEntity_t viewModelEnt;
+	tiki_t		*viewModelTiki;
+	//vec3_t		viewModelEntRot;
 
 
 	//qboolean cameraMode;		// if rendering from a loaded camera

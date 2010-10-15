@@ -70,13 +70,20 @@ void CG_ModelAnim( centity_t *cent ) {
 	entityState_t *s1;
 	tiki_t *tiki;
 	int i;
+	qboolean attachedToViewmodel;
 	cent->bones = 0;
 	s1 = &cent->currentState;
+
+	attachedToViewmodel = qfalse;
 
 	memset(&ent,0,sizeof(ent));
 
 	if(s1->tag_num != -1 && s1->parent != 1023) {
 		CG_AttachEntity(&ent,&cg_entities[s1->parent],s1->tag_num);
+		if(cg_entities[s1->parent].currentState.clientNum == cg.clientNum && !cg.renderingThirdPerson) {
+			ent.renderfx |= RF_THIRD_PERSON;
+			attachedToViewmodel = qtrue;
+		}
 	} else {
 	//	AnglesToAxis(cent->lerpAngles,ent.axis);
 	//	VectorCopy(cent->lerpOrigin,ent.origin);
@@ -147,5 +154,9 @@ void CG_ModelAnim( centity_t *cent ) {
 		 CG_ViewModelAnim(); // maybe I should put it somewhere else..
 	}
 	trap_R_AddRefEntityToScene(&ent);
+	if(attachedToViewmodel) {
+		CG_AddViewModelAnimAttachment(&ent,cent);
+	}
+
 }
 

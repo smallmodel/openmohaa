@@ -101,6 +101,32 @@ const char *CG_GetVMTypeString(int index) {
 	}
 	return viewModelAnimTypes[index];
 }
+void CG_AddViewModelAnimAttachment(refEntity_t *ent, centity_t *cent) {
+	vec3_t outRot;
+	int boneName;
+	int i;
+	if(cg.renderingThirdPerson || cg.viewModelEnt.bones == 0)
+		return;
+	ent->renderfx = RF_FIRST_PERSON;
+#if 0 //doesnt work, tag_num is incorrect..
+	CG_BoneLocal2World(cg.viewModelEnt.bones+cent->currentState.tag_num,cg.viewModelEnt.origin,cg.refdefViewAngles,ent->origin,outRot);
+#else
+	boneName = cgs.gameTIKIs[cg_entities[cent->currentState.parent].currentState.modelindex]->boneNames[cent->currentState.tag_num];
+	for(i = 0; i < cg.viewModelTiki->numBones; i++) {
+		if(boneName == cg.viewModelTiki->boneNames[i])
+			break;
+	}
+	if(i == cg.viewModelTiki->numBones)
+		return;
+	CG_BoneLocal2World(cg.viewModelEnt.bones+i,cg.viewModelEnt.origin,cg.refdefViewAngles,ent->origin,outRot);
+#endif
+#if 1
+	AnglesToAxis(outRot,ent->axis);
+#else
+	AxisClear(ent->axis);
+#endif
+	trap_R_AddRefEntityToScene(ent);
+}
 #define ITEM_WEAPON 1
 void CG_ViewModelAnim() {
 	char anim[128];
@@ -108,13 +134,15 @@ void CG_ViewModelAnim() {
 	int i;
 	char *ptr;
 	tiki_t *fps, *tiki;
-	refEntity_t ent;
+	refEntity_t *ent;
 	bone_t *bone;
 	vec3_t v,a;
 	int boneName;
 
 	if(cg.renderingThirdPerson)
 		return;
+
+	ent = &cg.viewModelEnt;
 
 	// mp40_reload, mp40_fire
 	if(cg.predictedPlayerState.activeItems[ITEM_WEAPON]!=-1)	{
@@ -155,6 +183,7 @@ item 2 "Binoculars"
 		CG_Printf("CG_ViewModelAnim: error, cannot register first person player model for %s\n",tiki->name);
 		return;
 	}
+	cg.viewModelTiki = fps;
 	for(i = 0; i < fps->numAnims; i++) {
 //		if(!Q_stricmp(anim,fps->anims[i]->alias)) {
 		if(!Q_stricmpn(anim,fps->anims[i]->alias,strlen(anim))) {
@@ -173,19 +202,19 @@ item 2 "Binoculars"
 		cg.viewModelAnimTime = 0;
 	}
 	// su44: ok, we have chosen the proper viewmodelanim
-	// but ent.origin and ent.axis still needs to be adjusted
-	memset(&ent,0,sizeof(ent));
-	ent.renderfx = RF_FIRST_PERSON | RF_DEPTHHACK;
-	ent.hModel = trap_R_RegisterModel(tmp);
-	ent.bones = trap_TIKI_GetBones(fps->numBones);
-	trap_TIKI_SetChannels(fps,i,cg.viewModelAnimTime,1,ent.bones);
-	trap_TIKI_Animate(fps,ent.bones);
-
+	// but ent->origin and ent->axis still needs to be adjusted
+	memset(ent,0,sizeof(ent));
+	ent->renderfx = RF_FIRST_PERSON;
+	ent->hModel = trap_R_RegisterModel(tmp);
+	ent->bones = trap_TIKI_GetBones(fps->numBones);
+	trap_TIKI_SetChannels(fps,i,cg.viewModelAnimTime,1,ent->bones);
+	trap_TIKI_Animate(fps,ent->bones);
+	
 #if 1
 	boneName = trap_TIKI_GetBoneNameIndex("eyes bone");
 	for(i = 0; i < fps->numBones; i++) {
 		if(fps->boneNames[i] == boneName) {
-			bone = ent.bones+i;
+			bone = ent->bones+i;
 			break;
 		}
 	}
@@ -194,15 +223,17 @@ item 2 "Binoculars"
 
 #endif
 #if 0
-	VectorCopy( cg.refdef.vieworg, ent.origin );
+	VectorCopy( cg.refdef.vieworg, ent->origin );
 #else
-	VectorSubtract( cg.refdef.vieworg,v,ent.origin);
+	VectorSubtract( cg.refdef.vieworg,v,ent->origin);
 #endif
-	VectorMA( ent.origin, cg_gun_x.value, cg.refdef.viewaxis[0], ent.origin );
-	VectorMA( ent.origin, cg_gun_y.value, cg.refdef.viewaxis[1], ent.origin );
-	VectorMA( ent.origin, cg_gun_z.value, cg.refdef.viewaxis[2], ent.origin );
+	VectorMA( ent->origin, cg_gun_x.value, cg.refdef.viewaxis[0], ent->origin );
+	VectorMA( ent->origin, cg_gun_y.value, cg.refdef.viewaxis[1], ent->origin );
+	VectorMA( ent->origin, cg_gun_z.value, cg.refdef.viewaxis[2], ent->origin );
 
-	AnglesToAxis( cg.refdefViewAngles, ent.axis );
+	VectorCopy(cg.refdef.viewaxis[0],ent->axis[0]);
+	VectorCopy(cg.refdef.viewaxis[1],ent->axis[1]);
+	VectorCopy(cg.refdef.viewaxis[2],ent->axis[2]);
 
-	trap_R_AddRefEntityToScene(&ent);
+	trap_R_AddRefEntityToScene(ent);
 }

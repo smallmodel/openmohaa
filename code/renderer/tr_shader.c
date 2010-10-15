@@ -1415,6 +1415,13 @@ static void ParseDeform( char **text ) {
 		return;
 	}
 
+	// su44 - see shader "corona_orange"
+	if (!Q_stricmp(token, "lightglow")) {
+		ri.Printf(PRINT_ALL, "FIXME: ParseDeform: stub lightglow!!!\n");
+
+
+	}
+
 	ri.Printf( PRINT_WARNING, "WARNING: unknown deformVertexes subtype '%s' found in shader '%s'\n", token, shader.name );
 }
 
