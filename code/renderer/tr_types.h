@@ -106,6 +106,7 @@ typedef struct {
 	float		rotation;
 
 	bone_t		*bones;
+	int			surfaceBits;
 } refEntity_t;
 
 

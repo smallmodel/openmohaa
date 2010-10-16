@@ -698,6 +698,10 @@ void TIKI_MergeSKD(tiki_t *out, char *fname) {
 	outSurfs = Z_Malloc(outSurfacesSize+(header->ofsBoxes-header->ofsSurfaces));
 	memcpy(outSurfs,out->surfs,outSurfacesSize);
 	out->numSurfaces+=header->numSurfaces;
+	if(out->numSurfaces >= MAX_TIKI_SURFACES) {
+		Com_Error(ERR_DROP,"TIKI_MergeSKD: MAX_TIKI_SURFACES (%i) exceed while merging skelmodel %s with tiki %s\n",
+			MAX_TIKI_SURFACES,fname,out->name);
+	}
 	Z_Free(out->surfs);
 	out->surfs = outSurfs;
 

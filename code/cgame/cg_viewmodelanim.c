@@ -120,11 +120,8 @@ void CG_AddViewModelAnimAttachment(refEntity_t *ent, centity_t *cent) {
 		return;
 	CG_BoneLocal2World(cg.viewModelEnt.bones+i,cg.viewModelEnt.origin,cg.refdefViewAngles,ent->origin,outRot);
 #endif
-#if 1
 	AnglesToAxis(outRot,ent->axis);
-#else
-	AxisClear(ent->axis);
-#endif
+
 	trap_R_AddRefEntityToScene(ent);
 }
 #define ITEM_WEAPON 1
@@ -143,6 +140,8 @@ void CG_ViewModelAnim() {
 		return;
 
 	ent = &cg.viewModelEnt;
+
+	//CG_Printf("vma changed %i\n",cg.predictedPlayerState.iViewModelAnimChanged);
 
 	// mp40_reload, mp40_fire
 	if(cg.predictedPlayerState.activeItems[ITEM_WEAPON]!=-1)	{
@@ -203,10 +202,23 @@ item 2 "Binoculars"
 	}
 	// su44: ok, we have chosen the proper viewmodelanim
 	// but ent->origin and ent->axis still needs to be adjusted
-	memset(ent,0,sizeof(ent));
+	memset(ent,0,sizeof(*ent));
 	ent->renderfx = RF_FIRST_PERSON;
 	ent->hModel = trap_R_RegisterModel(tmp);
 	ent->bones = trap_TIKI_GetBones(fps->numBones);
+
+
+	// su44: kinda strange, but thats how its done by MoHAA
+	// we have two different hand surfaces - one is visible only while carrying rifles,
+	// second is used for the rest of weapons
+	ptr = itemNames[cg.predictedPlayerState.activeItems[ITEM_WEAPON]];
+	if(!Q_stricmp(ptr,"M1 Garand") || !Q_stricmp(ptr,"Springfield '03 Sniper")
+		|| !Q_stricmp(ptr,"KAR98 - Sniper") || !Q_stricmp(ptr,"Mauser KAR 98K")) {
+		ent->surfaceBits |= (1<<TIKI_GetSurfaceIndex(fps,"lefthand")); // hide "lefthand" surface
+	} else {
+		ent->surfaceBits |= (1<<TIKI_GetSurfaceIndex(fps,"garandhand")); // hide "garandhand" surface
+	}
+
 	trap_TIKI_SetChannels(fps,i,cg.viewModelAnimTime,1,ent->bones);
 	trap_TIKI_Animate(fps,ent->bones);
 	

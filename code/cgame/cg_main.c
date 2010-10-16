@@ -719,20 +719,6 @@ static void CG_RegisterSounds( void ) {
 //		}
 	}
 
-	for ( i = 1 ; i < MAX_SOUNDS ; i++ ) {
-		soundName = CG_ConfigString( CS_SOUNDS+i );
-		if ( !soundName[0] ) {
-			break;
-		}
-		if ( soundName[0] == '*' ) {
-			continue;	// custom sound
-		}
-		Q_strncpyz( buffer, soundName, sizeof(buffer) );
-		if (buffer[strlen( buffer )-1] == '0')
-			buffer[strlen( buffer )-1] = 0;
-		cgs.gameSounds[i] = trap_S_RegisterSound( buffer, qfalse );
-	}
-
 	// FIXME: only needed with item
 	cgs.media.flightSound = trap_S_RegisterSound( "sound/items/flight.wav", qfalse );
 	cgs.media.medkitSound = trap_S_RegisterSound ("sound/items/use_medkit.wav", qfalse);
@@ -798,6 +784,20 @@ static void CG_RegisterSounds( void ) {
 	trap_S_RegisterSound("sound/player/janet/fall1.wav", qfalse );
 	trap_S_RegisterSound("sound/player/janet/taunt.wav", qfalse );
 #endif
+#else
+	for ( i = 1 ; i < MAX_SOUNDS ; i++ ) {
+		soundName = CG_ConfigString( CS_SOUNDS+i );
+		if ( !soundName[0] ) {
+			break;
+		}
+		if ( soundName[0] == '*' ) {
+			continue;	// custom sound
+		}
+		Q_strncpyz( buffer, soundName, sizeof(buffer) );
+		if (buffer[strlen( buffer )-1] == '0')
+			buffer[strlen( buffer )-1] = 0;
+		cgs.gameSounds[i] = trap_S_RegisterSound( buffer, qfalse );
+	}
 #endif
 }
 

@@ -27,31 +27,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "qcommon.h"
 #include "qfiles.h"
 
-#define TIKI_MAX_RECURSION_LEVEL	32
-#define TIKI_MAX_DEFINES			32
 #define TIKI_MAX_INCLUDES			32
-#define MAX_TIKI_SKELMODELS			8
-//typedef struct {
-//	char			macro[MAX_QPATH];
-//	int				macroLen;
-//	char			expansion[MAX_STRING_CHARS];
-//	int				expLen;
-//
-//	char			*file;	// the file the define was introduced in
-//	int				line;	// the line the define was introduced at; will be ignored if this->file != fname
-//} tikiDefine_t;
-//
-//typedef struct {
-//	char			file[MAX_QPATH];
-//	int				fileLen;
-//	char			*data;
-//	int				dataLen;
-//} tikiInclude_t;
+#define MAX_TIKI_SURFACES			32
 
 typedef struct tikiCommand_s {
 	int				frame;	// -1 == at entry, -2 == at exit
 	char			*text;
 } tikiCommand_t;
+
 typedef struct {
 	vec3_t		bounds[2];			// bounds of all surfaces of all LOD's for this frame
 	float		radius;				// dist from localOrigin to corner
@@ -60,6 +43,7 @@ typedef struct {
 	quat_t		*rotChannels; // [numRotFKChannels]
 	vec3_t		*posChannels; // [numPosFKChannels]
 } tikiFrame_t;
+
 typedef struct tikiAnim_s {
 	char			alias[MAX_QPATH];
 	char			fname[128]; // mohaa animation paths are sometimes longer than 64
@@ -87,10 +71,7 @@ typedef struct tikiAnim_s {
 	tikiCommand_t	**clientCmds;
 	int				numServerCmds;
 	tikiCommand_t	**serverCmds;
-
-
 } tikiAnim_t;
-
 
 typedef struct {
 	skdJointType_t	type;
@@ -149,8 +130,6 @@ typedef struct {
 	int m_reference2;
 } tikiBoneAVRot_t;
 
-
-
 typedef struct tiki_s {
 	char			name[MAX_QPATH];
 
@@ -178,4 +157,26 @@ typedef struct tiki_s {
 	struct tiki_s	*next;
 } tiki_t;
 
+static ID_INLINE int TIKI_GetBoneIndex(tiki_t *tiki, const char *boneName) {
+	int i;
+	int boneNameIndex = TIKI_RegisterBoneName(boneName);
+	for(i = 0; i < tiki->numBones; i++) {
+		if(tiki->boneNames[i] == boneNameIndex) {
+			return i;
+		}
+	}
+	return -1;
+}
+
+static ID_INLINE int TIKI_GetSurfaceIndex(tiki_t *tiki, const char *surfName) {
+	int i;
+	skdSurface_t *surf = tiki->surfs;
+	for(i = 0; i < tiki->numSurfaces; i++) {
+		if(!Q_stricmp(surf->name,surfName)) {
+			return i;
+		}
+		surf = (skdSurface_t *)( (byte *)surf + surf->ofsEnd );
+	}
+	return -1;
+}
 #endif // TIKI_LOCAL_H
