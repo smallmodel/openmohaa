@@ -4,6 +4,12 @@
 # GNU Make required
 #
 
+#wombat: for SERVER we need to resolve tiki dependency on renderer
+BUILD_SERVER = 0
+# QVM not our bsiness right now
+BUILD_GAME_QVM = 0
+
+
 COMPILE_PLATFORM=$(shell uname|sed -e s/_.*//|tr '[:upper:]' '[:lower:]')
 
 COMPILE_ARCH=$(shell uname -m | sed -e s/i.86/i386/)
@@ -731,10 +737,10 @@ ifneq ($(BUILD_GAME_SO),0)
   TARGETS += \
     $(B)/main/cgame$(ARCH).$(SHLIBEXT) \
     $(B)/main/qagame$(ARCH).$(SHLIBEXT) \
-    $(B)/main/ui$(ARCH).$(SHLIBEXT)     \
-    $(B)/missionpack/cgame$(ARCH).$(SHLIBEXT) \
-    $(B)/missionpack/qagame$(ARCH).$(SHLIBEXT) \
-    $(B)/missionpack/ui$(ARCH).$(SHLIBEXT)
+    $(B)/main/ui$(ARCH).$(SHLIBEXT)     #\
+#    $(B)/missionpack/cgame$(ARCH).$(SHLIBEXT) \
+#    $(B)/missionpack/qagame$(ARCH).$(SHLIBEXT) \
+#    $(B)/missionpack/ui$(ARCH).$(SHLIBEXT)
 endif
 
 ifneq ($(BUILD_GAME_QVM),0)
@@ -742,10 +748,10 @@ ifneq ($(BUILD_GAME_QVM),0)
     TARGETS += \
       $(B)/main/vm/cgame.qvm \
       $(B)/main/vm/qagame.qvm \
-      $(B)/main/vm/ui.qvm \
-      $(B)/missionpack/vm/qagame.qvm \
-      $(B)/missionpack/vm/cgame.qvm \
-      $(B)/missionpack/vm/ui.qvm
+      $(B)/main/vm/ui.qvm #\
+#      $(B)/missionpack/vm/qagame.qvm \
+#      $(B)/missionpack/vm/cgame.qvm \
+#      $(B)/missionpack/vm/ui.qvm
   endif
 endif
 
@@ -1295,7 +1301,7 @@ Q3DOBJ = \
   $(B)/ded/net_chan.o \
   $(B)/ded/net_ip.o \
   $(B)/ded/huffman.o \
-  $(B)/ded/tiki.o \
+#  $(B)/ded/tiki.o \
   \
   $(B)/ded/q_math.o \
   $(B)/ded/q_shared.o \
@@ -1411,6 +1417,7 @@ Q3CGOBJ_ = \
   $(B)/main/cgame/cg_servercmds.o \
   $(B)/main/cgame/cg_snapshot.o \
   $(B)/main/cgame/cg_view.o \
+  $(B)/main/cgame/cg_viewmodelanim.o \
   $(B)/main/cgame/cg_weapons.o \
   \
   $(B)/main/qcommon/q_math.o \

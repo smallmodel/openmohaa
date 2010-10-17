@@ -75,10 +75,10 @@ intptr_t vmMain( int command, int arg0, int arg1, int arg2, int arg3, int arg4, 
 		CG_EventHandling(arg0);
 		return 0;
 	case CG_CENTERPRINT:
-		CG_CenterPrint( arg0, 200, 10 );
+		CG_CenterPrint( (const char*)arg0, 200, 10 );
 		return 0;
 	case CG_LOCATIONPRINT:
-		CG_LocationPrint( arg0, arg1, arg2, 10 );
+		CG_LocationPrint( (const char*)arg0, arg1, arg2, 10 );
 		return 0;
 	default:
 		CG_Error( "vmMain: unknown command %i", command );

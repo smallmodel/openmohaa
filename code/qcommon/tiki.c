@@ -21,13 +21,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 #include "tiki_local.h"
+//#include "../renderer/tr_local.h"
 
 #define TIKI_FILE_HASH_SIZE		1024
 static	tiki_t					*hashTable[TIKI_FILE_HASH_SIZE];
 
 
 char *TIKI_GetBoneNameFromIndex(int globalBoneName);
-
+qhandle_t RE_RegisterShader( const char *name );
 // copied over from renderer/tr_shader.c
 #ifdef __GNUCC__
   #warning TODO: check if long is ok here
@@ -170,8 +171,7 @@ void TIKI_SetChannels_interpolate(tiki_t *tiki, bone_t *bones, tikiAnim_t *anim,
 	quat_t q1,q2;
 	vec3_t v1, v2;
 	int **ptr;
-	if(f < 0 || f > 1.f)
-		__asm int 3
+
 	ptr = tiki->bones;
 	for(i = 0; i < tiki->numBones; i++)	{
 		switch(**ptr) {
@@ -516,6 +516,7 @@ void TIKI_MergeSKD(tiki_t *out, char *fname) {
 	skdBone_t		*bone;
 	skdSurface_t	*surf, *outSurfs;
 	float			*ptr;
+	char			*bytePtr;
 	int				i,j,k;
 	skdVertex_t		*vert;
 	skdWeight_t		*weight;
@@ -671,12 +672,13 @@ void TIKI_MergeSKD(tiki_t *out, char *fname) {
 						ptr+=3; //skip 1 1 1
 						size = (int)bone + (int)bone->ofsEnd - (int)ptr;
 						//Com_Printf("reference 1 %s ",(char*)ptr);
-						av->m_reference1 = TIKI_GetLocalBoneIndex(out,(char*)ptr); 
-						while(*(char*)ptr != 0)
-							((char*)ptr)++;
-						((char*)ptr)++;
+						bytePtr = (char*)ptr;
+						av->m_reference1 = TIKI_GetLocalBoneIndex(out,bytePtr); 
+						while(*bytePtr != 0)
+							bytePtr++;
+						bytePtr++;
 						//Com_Printf("reference 2 %s\n",(char*)ptr);
-						av->m_reference2 = TIKI_GetLocalBoneIndex(out,(char*)ptr); 
+						av->m_reference2 = TIKI_GetLocalBoneIndex(out,bytePtr); 
 					}
 					break;
 					default:
@@ -738,6 +740,7 @@ void TIKI_AppendSKD(tiki_t *out, char *fname) {
 	skdBone_t		*bone;
 	skdSurface_t	*surf;
 	float			*ptr;
+	char			*bytePtr;
 	int				i,j,k;
 	skdVertex_t		*vert;
 	skdWeight_t		*weight;
@@ -869,12 +872,13 @@ void TIKI_AppendSKD(tiki_t *out, char *fname) {
 				ptr+=3; //skip 1 1 1
 				size = (int)bone + (int)bone->ofsEnd - (int)ptr;
 	//			Com_Printf("reference 1 %s ",(char*)ptr);
-				av->m_reference1 = TIKI_GetLocalBoneIndex(out,(char*)ptr); 
-				while(*(char*)ptr != 0)
-					((char*)ptr)++;
-				((char*)ptr)++;
+				bytePtr = (char*)ptr;
+				av->m_reference1 = TIKI_GetLocalBoneIndex(out,bytePtr); 
+				while(*bytePtr != 0)
+					bytePtr++;
+				bytePtr++;
 	//			Com_Printf("reference 2 %s\n",(char*)ptr);
-				av->m_reference2 = TIKI_GetLocalBoneIndex(out,(char*)ptr); 
+				av->m_reference2 = TIKI_GetLocalBoneIndex(out,bytePtr); 
 			}
 			break;
 			default:

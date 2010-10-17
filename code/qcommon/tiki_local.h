@@ -26,6 +26,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "tiki_public.h"
 #include "qcommon.h"
 #include "qfiles.h"
+#include "../renderer/tr_public.h"
 
 #define TIKI_MAX_INCLUDES			32
 #define MAX_TIKI_SURFACES			32
@@ -179,4 +180,14 @@ static ID_INLINE int TIKI_GetSurfaceIndex(tiki_t *tiki, const char *surfName) {
 	}
 	return -1;
 }
+
+tiki_t*	TIKI_RegisterModel(const char *fname);
+void TIKI_SetChannels(tiki_t *tiki, int animIndex, float animTime, float animWeight, bone_t *bones);
+void TIKI_Animate(tiki_t *tiki, bone_t *bones);
+int	TIKI_RegisterBoneName(const char *boneName);
+void TIKI_ClearUp();
+
+qhandle_t RE_RegisterShader( const char *name );
+
 #endif // TIKI_LOCAL_H
+

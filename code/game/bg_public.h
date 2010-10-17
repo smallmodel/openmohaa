@@ -256,6 +256,7 @@ typedef enum {
 	STAT_MAX_HEALTH					// health / armor limit, changable by handicap
 } statIndex_t;
 #else
+#define STAT_CLIENTS_READY 0
 typedef enum {
 	STAT_HEALTH,
 	STAT_MAX_HEALTH,
