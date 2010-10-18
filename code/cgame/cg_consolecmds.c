@@ -120,7 +120,7 @@ extern menuDef_t *menuScoreboard;
 void Menu_Reset( void );			// FIXME: add to right include file
 
 static void CG_LoadHud_f( void) {
-  char buff[2048];
+  char buff[1024];
 	const char *hudSet;
   memset(buff, 0, sizeof(buff));
 
@@ -433,7 +433,7 @@ static void CG_StartOrbit_f( void ) {
 
 /*
 static void CG_Camera_f( void ) {
-	char name[2048];
+	char name[1024];
 	trap_Argv( 1, name, sizeof(name));
 	if (trap_loadCamera(name)) {
 		cg.cameraMode = qtrue;

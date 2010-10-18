@@ -1410,6 +1410,7 @@ Q3CGOBJ_ = \
   $(B)/main/cgame/cg_info.o \
   $(B)/main/cgame/cg_localents.o \
   $(B)/main/cgame/cg_marks.o \
+  $(B)/main/cgame/cg_modelanim.o \
   $(B)/main/cgame/cg_players.o \
   $(B)/main/cgame/cg_playerstate.o \
   $(B)/main/cgame/cg_predict.o \

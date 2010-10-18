@@ -120,7 +120,7 @@ void SV_GetChallenge( netadr_t from ) {
 	// otherwise send their ip to the authorize server
 	if ( svs.authorizeAddress.type != NA_BAD ) {
 		cvar_t	*fs;
-		char	game[2048];
+		char	game[1024];
 
 		Com_DPrintf( "sending getIpAuthorize for %s\n", NET_AdrToString( from ));
 		
@@ -770,7 +770,7 @@ void SV_WriteDownloadToClient( client_t *cl , msg_t *msg )
 	int rate;
 	int blockspersnap;
 	int idPack = 0, missionPack = 0, unreferenced = 1;
-	char errorMessage[2048];
+	char errorMessage[1024];
 	char pakbuf[MAX_QPATH], *pakptr;
 	int numRefPaks;
 
@@ -1008,8 +1008,8 @@ This routine would be a bit simpler with a goto but i abstained
 */
 static void SV_VerifyPaks_f( client_t *cl ) {
 	int nChkSum1, nChkSum2, nClientPaks, nServerPaks, i, j, nCurArg;
-	int nClientChkSum[2048];
-	int nServerChkSum[2048];
+	int nClientChkSum[1024];
+	int nServerChkSum[1024];
 	const char *pPaks, *pArg;
 	qboolean bGood = qtrue;
 

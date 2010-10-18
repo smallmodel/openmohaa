@@ -51,7 +51,7 @@ typedef struct
 	menutext_s		banner;
 	menubutton_s	back;
 
-	char			stringbuff[2048];
+	char			stringbuff[1024];
 	char*			strings[64];
 	int				numstrings;
 } driverinfo_t;

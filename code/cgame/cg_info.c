@@ -153,7 +153,7 @@ void CG_DrawInformation( void ) {
 	int			value;
 	qhandle_t	levelshot;
 	qhandle_t	detail;
-	char		buf[2048];
+	char		buf[1024];
 
 	info = CG_ConfigString( CS_SERVERINFO );
 	sysInfo = CG_ConfigString( CS_SYSTEMINFO );

@@ -668,7 +668,7 @@ void CL_ParseCGMessage( msg_t *msg ) {
 	vec3_t vecStart, vecTmp, vecEnd, vecArray[64];
 	int iCount, iLarge;
 	int i, iTemp;
-	char strBuffer[2048];
+	char strBuffer[1024];
 
 	do {
 		msgtype = MSG_ReadBits( msg, 6 );
@@ -880,7 +880,7 @@ void CL_ParseLocationprint( msg_t *msg ) {
 	y = MSG_ReadShort( msg );
 	string = MSG_ReadString(msg);
 
-	VM_Call( cgvm, CG_LOCATIONPRINT, string, x, y );
+//	VM_Call( cgvm, CG_LOCATIONPRINT, string, x, y );
 }
 
 /*
@@ -892,7 +892,7 @@ void CL_ParseCenterprint( msg_t *msg ) {
 	char *string;
 
 	string = MSG_ReadString( msg );
-	VM_Call( cgvm, CG_CENTERPRINT, string );
+//	VM_Call( cgvm, CG_CENTERPRINT, string );
 }
 
 /*

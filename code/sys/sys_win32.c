@@ -168,7 +168,7 @@ Sys_GetCurrentUser
 */
 char *Sys_GetCurrentUser( void )
 {
-	static char s_userName[2048];
+	static char s_userName[1024];
 	unsigned long size = sizeof( s_userName );
 
 	if( !GetUserName( s_userName, &size ) )

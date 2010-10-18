@@ -99,7 +99,7 @@ qboolean CL_cURL_Init()
 #ifdef _WIN32
 		return qfalse;
 #else
-		char fn[2048];
+		char fn[1024];
 		Q_strncpyz( fn, Sys_Cwd( ), sizeof( fn ) );
 		strncat(fn, "/", sizeof(fn)-strlen(fn)-1);
 		strncat(fn, cl_cURLLib->string, sizeof(fn)-strlen(fn)-1);

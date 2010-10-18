@@ -193,7 +193,7 @@ static void SV_WriteSnapshotToClient( client_t *client, msg_t *msg ) {
 
 	// send over the areabits
 	if ( frame->areabytes > 255 ) {
-		Com_DPrintf( "WARNING: area bytes exceeds 255!  Bad!  Bad!" ); // 2015 are funny! (sry about copy+paste)
+		Com_DPrintf( "WARNING: area bytes exceeds 255!  Bad!  Bad!" ); // 2015 actually had humour
 		MSG_WriteByte( msg, 0 );
 	} else {
 		MSG_WriteByte (msg, frame->areabytes);

@@ -896,7 +896,7 @@ void UI_LoadMenus(const char *menuFile, qboolean reset) {
 }
 
 void UI_Load(void) {
-	char lastName[2048];
+	char lastName[1024];
   menuDef_t *menu = Menu_GetFocused();
 	char *menuSet = UI_Cvar_VariableString("ui_menuFiles");
 	if (menu && menu->window.name) {
@@ -1844,7 +1844,7 @@ static void UI_DrawKeyBindStatus(rectDef_t *rect, float scale, vec4_t color, int
 
 static void UI_DrawGLInfo(rectDef_t *rect, float scale, vec4_t color, int textStyle) {
 	char * eptr;
-	char buff[2048];
+	char buff[1024];
 	const char *lines[64];
 	int y, numLines, i;
 
@@ -2685,7 +2685,7 @@ void UI_ServersSort(int column, qboolean force) {
 /*
 static void UI_StartSinglePlayer(void) {
 	int i,j, k, skill;
-	char buff[2048];
+	char buff[1024];
 	i = trap_Cvar_VariableValue( "ui_currentTier" );
   if (i < 0 || i >= tierCount) {
     i = 0;
@@ -2729,7 +2729,7 @@ UI_LoadMods
 */
 static void UI_LoadMods( void ) {
 	int		numdirs;
-	char	dirlist[2048];
+	char	dirlist[1024];
 	char	*dirptr;
   char  *descptr;
 	int		i;
@@ -3070,7 +3070,7 @@ static void UI_Update(const char *name) {
 
 static void UI_RunMenuScript(char **args) {
 	const char *name, *name2;
-	char buff[2048];
+	char buff[1024];
 
 	if (String_Parse(args, &name)) {
 		if (Q_stricmp(name, "StartServer") == 0) {
@@ -3486,7 +3486,7 @@ static int UI_MapCountByGameType(qboolean singlePlayer) {
 }
 
 qboolean UI_hasSkinForBase(const char *base, const char *team) {
-	char	test[2048];
+	char	test[1024];
 
 	Com_sprintf( test, sizeof( test ), "models/players/%s/%s/lower_default.skin", base, team );
 
@@ -4193,7 +4193,7 @@ static void UI_UpdatePendingPings( void ) {
 
 static const char *UI_FeederItemText(float feederID, int index, int column, qhandle_t *handle) {
 	static char info[MAX_STRING_CHARS];
-	static char hostname[2048];
+	static char hostname[1024];
 	static char clientBuff[32];
 	static int lastColumn = -1;
 	static int lastTime = 0;
@@ -4869,8 +4869,8 @@ static void UI_BuildQ3Model_List( void )
 {
 	int		numdirs;
 	int		numfiles;
-	char	dirlist[2048];
-	char	filelist[2048];
+	char	dirlist[1024];
+	char	filelist[1024];
 	char	skinname[MAX_QPATH];
 	char	scratch[256];
 	char*	dirptr;
@@ -4883,7 +4883,7 @@ static void UI_BuildQ3Model_List( void )
 	uiInfo.q3HeadCount = 0;
 
 	// iterate directory of all player models
-	numdirs = trap_FS_GetFileList("models/players", "/", dirlist, 2048 );
+	numdirs = trap_FS_GetFileList("models/players", "/", dirlist, 1024 );
 	dirptr  = dirlist;
 	for (i=0; i<numdirs && uiInfo.q3HeadCount < MAX_PLAYERMODELS; i++,dirptr+=dirlen+1)
 	{
@@ -4895,7 +4895,7 @@ static void UI_BuildQ3Model_List( void )
 			continue;
 
 		// iterate all skin files in directory
-		numfiles = trap_FS_GetFileList( va("models/players/%s",dirptr), "tga", filelist, 2048 );
+		numfiles = trap_FS_GetFileList( va("models/players/%s",dirptr), "tga", filelist, 1024 );
 		fileptr  = filelist;
 		for (j=0; j<numfiles && uiInfo.q3HeadCount < MAX_PLAYERMODELS;j++,fileptr+=filelen+1)
 		{
@@ -5264,7 +5264,7 @@ void Text_PaintCenter_AutoWrapped(float x, float y, float xmax, float ystep, flo
 	int width;
 	char *s1,*s2,*s3;
 	char c_bcp;
-	char buf[2048];
+	char buf[1024];
 
 	if (!str || str[0]=='\0')
 		return;

@@ -560,7 +560,7 @@ typedef struct {
 	int			centerPrintTime;
 	int			centerPrintCharWidth;
 	int			centerPrintY;
-	char		centerPrint[2048];
+	char		centerPrint[1024];
 	int			centerPrintLines;
 
 	// locationprinting
@@ -568,7 +568,7 @@ typedef struct {
 	int			locationPrintCharWidth;
 	int			locationPrintX;
 	int			locationPrintY;
-	char		locationPrint[2048];
+	char		locationPrint[1024];
 	int			locationPrintLines;
 
 	// low ammo warning state

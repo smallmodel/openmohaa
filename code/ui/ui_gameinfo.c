@@ -136,7 +136,7 @@ void UI_LoadArenas( void ) {
 	int			numdirs;
 	vmCvar_t	arenasFile;
 	char		filename[128];
-	char		dirlist[2048];
+	char		dirlist[1024];
 	char*		dirptr;
 	int			i, n;
 	int			dirlen;
@@ -249,7 +249,7 @@ void UI_LoadBots( void ) {
 	vmCvar_t	botsFile;
 	int			numdirs;
 	char		filename[128];
-	char		dirlist[2048];
+	char		dirlist[1024];
 	char*		dirptr;
 	int			i;
 	int			dirlen;

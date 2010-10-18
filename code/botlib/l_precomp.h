@@ -94,8 +94,8 @@ typedef struct indent_s
 //source file
 typedef struct source_s
 {
-	char filename[2048];					//file name of the script
-	char includepath[2048];					//path to include files
+	char filename[1024];					//file name of the script
+	char includepath[1024];					//path to include files
 	punctuation_t *punctuations;			//punctuations to use
 	script_t *scriptstack;					//stack with scripts of the source
 	token_t *tokens;						//tokens to read first

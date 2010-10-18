@@ -70,7 +70,7 @@ Converts newlines to "\n" so a line prints nicer
 ===============
 */
 char	*SV_ExpandNewlines( char *in ) {
-	static	char	string[2048];
+	static	char	string[1024];
 	int		l;
 
 	l = 0;
@@ -315,7 +315,7 @@ the simple info query.
 ================
 */
 void SVC_Status( netadr_t from ) {
-	char	player[2048];
+	char	player[1024];
 	char	status[MAX_MSGLEN];
 	int		i;
 	client_t	*cl;
@@ -443,7 +443,7 @@ Redirect all printfs
 void SVC_RemoteCommand( netadr_t from, msg_t *msg ) {
 	qboolean	valid;
 	unsigned int time;
-	char		remaining[2048];
+	char		remaining[1024];
 	// TTimo - scaled down to accumulate, but not overflow anything network wise, print wise etc.
 	// (OOB messages are the bottleneck here)
 #define SV_OUTPUTBUF_LENGTH (1024 - 16)

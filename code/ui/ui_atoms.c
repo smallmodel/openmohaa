@@ -31,7 +31,7 @@ qboolean		m_entersound;		// after a frame, so caching won't disrupt the sound
 
 void QDECL Com_Error( int level, const char *error, ... ) {
 	va_list		argptr;
-	char		text[2048];
+	char		text[1024];
 
 	va_start (argptr, error);
 	vsprintf (text, error, argptr);
@@ -42,7 +42,7 @@ void QDECL Com_Error( int level, const char *error, ... ) {
 
 void QDECL Com_Printf( const char *msg, ... ) {
 	va_list		argptr;
-	char		text[2048];
+	char		text[1024];
 
 	va_start (argptr, msg);
 	vsprintf (text, msg, argptr);

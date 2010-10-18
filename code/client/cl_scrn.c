@@ -326,7 +326,7 @@ SCR_DrawDemoRecording
 =================
 */
 void SCR_DrawDemoRecording( void ) {
-	char	string[2048];
+	char	string[1024];
 	int		pos;
 
 	if ( !clc.demorecording ) {
@@ -358,7 +358,7 @@ typedef struct
 } graphsamp_t;
 
 static	int			current;
-static	graphsamp_t	values[2048];
+static	graphsamp_t	values[1024];
 
 /*
 ==============

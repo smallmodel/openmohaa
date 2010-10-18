@@ -32,7 +32,7 @@ qboolean		m_entersound;		// after a frame, so caching won't disrupt the sound
 
 void QDECL Com_Error( int level, const char *error, ... ) {
 	va_list		argptr;
-	char		text[2048];
+	char		text[1024];
 
 	va_start (argptr, error);
 	vsprintf (text, error, argptr);
@@ -43,7 +43,7 @@ void QDECL Com_Error( int level, const char *error, ... ) {
 
 void QDECL Com_Printf( const char *msg, ... ) {
 	va_list		argptr;
-	char		text[2048];
+	char		text[1024];
 
 	va_start (argptr, msg);
 	vsprintf (text, msg, argptr);
@@ -628,7 +628,7 @@ void UI_DrawProportionalString_AutoWrapped( int x, int y, int xmax, int ystep, c
 	int width;
 	char *s1,*s2,*s3;
 	char c_bcp;
-	char buf[2048];
+	char buf[1024];
 	float   sizeScale;
 
 	if (!str || str[0]=='\0')

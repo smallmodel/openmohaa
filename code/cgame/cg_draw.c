@@ -1844,7 +1844,7 @@ static void CG_DrawCenterString( void ) {
 	y = cg.centerPrintY - cg.centerPrintLines * BIGCHAR_HEIGHT / 2;
 
 	while ( 1 ) {
-		char linebuffer[2048];
+		char linebuffer[1024];
 
 		for ( l = 0; l < 50; l++ ) {
 			if ( !start[l] || start[l] == '\n' ) {
@@ -1912,7 +1912,7 @@ static void CG_DrawLocationString( void ) {
 	y = cg.locationPrintY - cg.locationPrintLines * BIGCHAR_HEIGHT / 2;
 
 	while ( 1 ) {
-		char linebuffer[2048];
+		char linebuffer[1024];
 
 		for ( l = 0; l < 50; l++ ) {
 			if ( !start[l] || start[l] == '\n' ) {

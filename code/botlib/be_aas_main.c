@@ -56,7 +56,7 @@ libvar_t *saveroutingcache;
 //===========================================================================
 void QDECL AAS_Error(char *fmt, ...)
 {
-	char str[2048];
+	char str[1024];
 	va_list arglist;
 
 	va_start(arglist, fmt);

@@ -197,7 +197,7 @@ static void AssertCvarRange( cvar_t *cv, float minVal, float maxVal, qboolean sh
 */
 static void InitOpenGL( void )
 {
-	char renderer_buffer[2048];
+	char renderer_buffer[1024];
 
 	//
 	// initialize OS specific portions of the renderer
@@ -1073,7 +1073,8 @@ void R_Init( void ) {
 
 	// Q3 glconfig_t is 11332 bytes. ours differs because MAX_STRING_CHARS and BIG_INFO_STRING are different.
 	// despite this check i hope it is unimportant how large this struct is :-/
-	if(sizeof(glconfig_t) != 10308)
+	// wombat: nope, we got the old one back...
+	if(sizeof(glconfig_t) != 11332)
 	{
 		ri.Error( ERR_FATAL, "Mod ABI incompatible: sizeof(glconfig_t) == %zd != 11332", sizeof(glconfig_t));
 	}

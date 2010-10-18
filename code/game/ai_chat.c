@@ -260,7 +260,7 @@ BotMapTitle
 */
 
 char *BotMapTitle(void) {
-	char info[2048];
+	char info[1024];
 	static char mapname[128];
 
 	trap_GetServerinfo(info, sizeof(info));
