@@ -22,7 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // cl_cgame.c  -- client system interaction with client game
 
 #include "client.h"
-
+#include "../qcommon/tiki_local.h"
 #include "../botlib/botlib.h"
 
 extern	botlib_export_t	*botlib_export;

@@ -455,7 +455,7 @@ void CL_ParseGamestate( msg_t *msg ) {
 	Con_Close();
 
 	clc.connectPacketCount = 0;
-
+Com_Printf( "gameSTATE\n" );
 	// wipe local client state
 	CL_ClearState();
 
@@ -928,7 +928,7 @@ void CL_ParseServerMessage( msg_t *msg ) {
 		}
 
 		cmd = MSG_ReadByte( msg );
-//		Com_DPrintf( "CL_ParseServerMessage: cmd %i\n", cmd );
+	//	Com_Printf( "CL_ParseServerMessage: cmd %i\n", cmd );
 		if ( cmd == svc_EOF) {
 			SHOWNET( msg, "END OF MESSAGE" );
 			break;

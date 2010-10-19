@@ -27,6 +27,4 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define TAF_AUTOSTEPS_RUN			0x2
 #define TAF_AUTOSTEPS_WALK			0x4
 
-/*typedef struct tiki_s tiki_t;
-*/
 

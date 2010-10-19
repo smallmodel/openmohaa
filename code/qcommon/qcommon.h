@@ -193,7 +193,7 @@ qboolean	NET_GetLoopPacket (netsrc_t sock, netadr_t *net_from, msg_t *net_messag
 void		NET_Sleep(int msec);
 
 
-#define	MAX_MSGLEN			16384//	49152		// max length of a message, which may
+#define	MAX_MSGLEN			49152//16384	49152		// max length of a message, which may
 											// be fragmented into multiple packets
 
 #define MAX_DOWNLOAD_WINDOW			8		// max of eight download frames
