@@ -462,6 +462,7 @@ Marks the entity as free
 =================
 */
 void G_FreeEntity( gentity_t *ed ) {
+	int i;
 	trap_UnlinkEntity (ed);		// unlink from world
 
 	if ( ed->neverFree ) {
@@ -469,6 +470,13 @@ void G_FreeEntity( gentity_t *ed ) {
 	}
 
 	memset (ed, 0, sizeof(*ed));
+
+	ed->r.s.parent = ENTITYNUM_NONE;
+	ed->r.s.tag_num = -1;
+	for(i = 0; i < 5; i++) {
+		ed->r.s.bone_tag[i] = -1;
+	}
+
 	ed->classname = "freed";
 	ed->freetime = level.time;
 	ed->inuse = qfalse;

@@ -935,7 +935,7 @@ tikiAnim_t *TIKI_CacheAnim(char *fname, float scale) {
 		return 0;
 	}
 	if (header->ident != SKC_IDENT) {
-		Com_Printf( "TIKI_CacheAnim: %s has wrong ident (%s should be %s)\n",
+		Com_Printf( "TIKI_CacheAnim: %s has wrong ident (%i should be %i)\n",
 				 fname, header->ident, SKC_IDENT);
 		return 0;
 	}

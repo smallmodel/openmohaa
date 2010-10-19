@@ -700,7 +700,7 @@ void QDECL NET_OutOfBandPrint( netsrc_t sock, netadr_t adr, const char *format, 
 	string[3] = -1;
 
 	// wombat: MOHAA OOB packets carry another byte to indicate the direction
-	string[4] = (char)sock;
+	string[4] = (char)sock+1;
 
 	va_start( argptr, format );
 	Q_vsnprintf( string+(4+1), sizeof(string)-(4+1), format, argptr );
@@ -729,7 +729,7 @@ void QDECL NET_OutOfBandData( netsrc_t sock, netadr_t adr, byte *format, int len
 	string[3] = 0xff;
 
 	// wombat: MOHAA OOB packets carry another byte to indicate the direction
-	string[4] = (char)sock;
+	string[4] = (char)sock+1;
 
 	for(i=0;i<len;i++) {
 		string[i+(4+1)] = format[i];

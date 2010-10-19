@@ -104,11 +104,11 @@ void CG_ModelAnim( centity_t *cent ) {
 				break;
 			}
 		}
-#endif
 		if(idleIndex!=0) {
 			trap_TIKI_SetChannels(tiki,idleIndex,0,0,ent.bones);
-		}
-		else {
+		} else 
+#endif
+		{
 			frameInfo_t *fi = s1->frameInfo;
 			for(i = 0; i < 16; i++)	{
 				if(fi->weight!=0)
@@ -116,6 +116,28 @@ void CG_ModelAnim( centity_t *cent ) {
 				fi++;
 			}
 		}
+#if 0 //doesnt work
+		for(i = 0; i < 5; i++)	{
+			if(s1->bone_tag[i] != -1) {
+				matrix_t m;
+				quat_t q;
+//				CG_Printf("i %i of 5, tag %i, angles %f %f %f\n",i,s1->bone_tag[i],
+//					s1->bone_angles[i][0],s1->bone_angles[i][1],s1->bone_angles[i][2]);
+				//bone_quat is always 0 0 0 0?
+				if(s1->bone_quat[i][0] != 0 || s1->bone_quat[i][1] != 0 || s1->bone_quat[i][2] != 0 || s1->bone_quat[i][3] != 0) {
+					CG_Printf("i %i of 5, tag %i, quat %f %f %f %f\n",i,s1->bone_tag[i],
+						s1->bone_quat[i][0],s1->bone_quat[i][1],s1->bone_quat[i][2],s1->bone_quat[i][3]);
+					__asm int 3
+				}
+//				AnglesToMatrix(s1->bone_angles[i],m);
+//				MatrixFromAngles(m,s1->bone_angles[i][0],s1->bone_angles[i][1],s1->bone_angles[i][2]);
+//				QuatFromMatrix(q,m);
+				QuatFromAngles(q,s1->bone_angles[i][0],s1->bone_angles[i][1],s1->bone_angles[i][2]);
+//				QuatMultiply0(ent.bones[s1->bone_tag[i]].q,q);
+				QuatCopy(q,ent.bones[s1->bone_tag[i]].q);
+			}
+		}
+#endif
 		trap_TIKI_Animate(tiki,ent.bones);
 	}
 	// player model

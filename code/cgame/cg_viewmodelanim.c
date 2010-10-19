@@ -111,6 +111,10 @@ void CG_AddViewModelAnimAttachment(refEntity_t *ent, centity_t *cent) {
 #if 0 //doesnt work, tag_num is incorrect..
 	CG_BoneLocal2World(cg.viewModelEnt.bones+cent->currentState.tag_num,cg.viewModelEnt.origin,cg.refdefViewAngles,ent->origin,outRot);
 #else
+	if(cgs.gameTIKIs[cg_entities[cent->currentState.parent].currentState.modelindex]==0) {
+		CG_Printf("CG_AddViewModelAnimAttachment: entity %i has null tiki\n",cent->currentState.parent);
+		return;
+	}
 	boneName = cgs.gameTIKIs[cg_entities[cent->currentState.parent].currentState.modelindex]->boneNames[cent->currentState.tag_num];
 	for(i = 0; i < cg.viewModelTiki->numBones; i++) {
 		if(boneName == cg.viewModelTiki->boneNames[i])

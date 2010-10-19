@@ -944,7 +944,9 @@ static void CG_AddCEntity( centity_t *cent ) {
 
 	switch ( cent->currentState.eType ) {
 	default:
-		CG_Error( "Bad entity type: %i\n", cent->currentState.eType );
+		//su44: changed to printf, so I can debug our gamex code without getting Com_Error
+		//CG_Error( "Bad entity type: %i\n", cent->currentState.eType );
+		CG_Printf( "Bad entity type: %i\n", cent->currentState.eType ); 
 		break;
 #if 0
 	case ET_MODELANIM_SKEL:
