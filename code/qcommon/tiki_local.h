@@ -158,6 +158,14 @@ typedef struct tiki_s {
 	struct tiki_s	*next;
 } tiki_t;
 
+tiki_t*	TIKI_RegisterModel(const char *fname);
+void TIKI_SetChannels(tiki_t *tiki, int animIndex, float animTime, float animWeight, bone_t *bones);
+void TIKI_Animate(tiki_t *tiki, bone_t *bones);
+int	TIKI_RegisterBoneName(const char *boneName);
+void TIKI_ClearUp();
+int	TIKI_RegisterBoneName(const char *boneName);
+qhandle_t RE_RegisterShader( const char *name );
+
 static ID_INLINE int TIKI_GetBoneIndex(tiki_t *tiki, const char *boneName) {
 	int i;
 	int boneNameIndex = TIKI_RegisterBoneName(boneName);
@@ -180,14 +188,6 @@ static ID_INLINE int TIKI_GetSurfaceIndex(tiki_t *tiki, const char *surfName) {
 	}
 	return -1;
 }
-
-tiki_t*	TIKI_RegisterModel(const char *fname);
-void TIKI_SetChannels(tiki_t *tiki, int animIndex, float animTime, float animWeight, bone_t *bones);
-void TIKI_Animate(tiki_t *tiki, bone_t *bones);
-int	TIKI_RegisterBoneName(const char *boneName);
-void TIKI_ClearUp();
-
-qhandle_t RE_RegisterShader( const char *name );
 
 #endif // TIKI_LOCAL_H
 

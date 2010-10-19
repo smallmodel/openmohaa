@@ -614,13 +614,9 @@ Create a new usereyes_t structure for this frame
 */
 static vec3_t lastEyeAngles, lastEyeOrigin; // su44: soon I'll move it somewhere else...?
 void CL_GetEyeInfo(usereyes_t *info) {
-#if 0
-	memset(info,0,sizeof(*info));
-#else
 	info->angles[0] = lastEyeAngles[0];
 	info->angles[1] = lastEyeAngles[1];
 	VectorCopy(lastEyeOrigin,info->ofs);
-#endif
 }
 /*
 =================

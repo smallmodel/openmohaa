@@ -350,6 +350,17 @@ typedef struct {
 	float	depthForOpaque;
 } fogParms_t;
 
+typedef enum {
+	SPRITE_PARALLEL,
+	SPRITE_PARALLEL_ORIENTED,
+	SPRITE_ORIENTED,
+	SPRITE_PARALLEL_UPRIGHT
+} spriteType_t;
+
+typedef struct {
+	spriteType_t type;
+	float scale;
+} spriteParms_t;
 
 typedef struct shader_s {
 	char		name[MAX_QPATH];		// game path, including extension
@@ -375,6 +386,7 @@ typedef struct shader_s {
 
 	qboolean	isSky;
 	skyParms_t	sky;
+	spriteParms_t sprite; // su44: for MoHAA sprites
 	fogParms_t	fogParms;
 
 	float		portalRange;			// distance to fog out at
@@ -727,6 +739,15 @@ typedef struct {
 } mstaticModel_t;
 
 typedef struct {
+	float width;
+	float height;
+	float origin_x;
+	float origin_y;
+	float scale;
+	shader_t *shader;
+} sprite_t;
+
+typedef struct {
 	char		name[MAX_QPATH];		// ie: maps/tim_dm2.bsp
 	char		baseName[MAX_QPATH];	// ie: tim_dm2
 
@@ -790,6 +811,7 @@ typedef enum {
 	MOD_MESH,
 	MOD_MD4,
 	MOD_TIKI,
+	MOD_SPRITE,
 #ifdef RAVENMD4
 	MOD_MDR
 #endif
@@ -803,8 +825,10 @@ typedef struct model_s {
 	int			dataSize;			// just for listing purposes
 	bmodel_t	*bmodel;			// only if type == MOD_BRUSH
 	md3Header_t	*md3[MD3_MAX_LODS];	// only if type == MOD_MESH
-	void	*md4;				// only if type == (MOD_MD4 | MOD_MDR)
-	struct tiki_s	*tiki;
+	void		*md4;				// only if type == (MOD_MD4 | MOD_MDR)
+	struct tiki_s	*tiki;			// only if type == MOD_TIKI
+	sprite_t	*sprite;			// only if type == MOD_SPRITE
+
 	int			 numLods;
 } model_t;
 
@@ -1739,5 +1763,7 @@ int RE_Text_Width(fontInfo_t *font, const char *text, int limit, qboolean useCol
 int RE_Text_Height(fontInfo_t *font, const char *text, int limit, qboolean useColourCodes);
 void RE_Text_Paint(fontInfo_t *font, float x, float y, float scale, float alpha, const char *text, float adjust, int limit, qboolean useColourCodes, qboolean is640);
 void RE_Text_PaintChar(fontInfo_t *font, float x, float y, float scale, int c, qboolean is640);
+// su44: tr_sprite.c - MoHAA sprites
+sprite_t *SPR_RegisterSprite(const char *name);
 
 #endif //TR_LOCAL_H

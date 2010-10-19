@@ -190,6 +190,20 @@ qhandle_t RE_RegisterModel( const char *name ) {
 		return mod->index;
 	}
 
+	// su44: MoHAA sprites
+	if (!Q_stricmp(fext, "spr")) {
+		sprite_t *spr;
+		spr = SPR_RegisterSprite(name);
+		if (!spr) {
+			ri.Printf(PRINT_WARNING,"RE_RegisterModel: couldn't load spr file %s\n", name);
+			mod->type = MOD_BAD;
+			return 0;
+		}
+		mod->type = MOD_SPRITE;
+		mod->sprite = spr;
+		return mod->index;
+	}
+
 	fext = defex;
 
 	for ( lod = MD3_MAX_LODS - 1 ; lod >= 0 ; lod-- ) {

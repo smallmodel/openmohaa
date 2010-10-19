@@ -1840,37 +1840,30 @@ static qboolean ParseShader( char **text )
 		// IneQuation: some general shader parms introduced in FAKK2
 		else if (!Q_stricmp(token, "spriteGen"))
 		{
-			ri.Printf(PRINT_ALL, "FIXME: ParseShader: spriteGen stub!!!\n");
 			token = COM_ParseExt(text, qfalse);
 			if (!token[0]) {
 				ri.Printf(PRINT_WARNING, "WARNING: missing spriteGen parms in shader '%s'\n", shader.name);
 				continue;
 			}
 			if (!Q_stricmp(token, "parallel")) {
-				// TODO
-				// shader.spriteGen = SG_PARALLEL;
+				shader.sprite.type = SPRITE_PARALLEL;
 			} else if (!Q_stricmp(token, "parallel_oriented")) {
-				// TODO
-				// shader.spriteGen = SG_PARALLEL_ORIENTED;
+				shader.sprite.type = SPRITE_PARALLEL_ORIENTED;
 			} else if (!Q_stricmp(token, "parallel_upright")) {
-				// TODO
-				// shader.spriteGen = SG_PARALLEL_UPRIGHT;
+				shader.sprite.type = SPRITE_PARALLEL_UPRIGHT;
 			} else if (!Q_stricmp(token, "oriented")) {
-				// TODO
-				// shader.spriteGen = SG_ORIENTED;
+				shader.sprite.type = SPRITE_ORIENTED;
 			} else
 				ri.Printf(PRINT_WARNING, "WARNING: invalid spriteGen parm '%s' in shader '%s'\n", token, shader.name);
 			continue;
 		}
 		else if (!Q_stricmp(token, "spriteScale")) {
-			ri.Printf(PRINT_ALL, "FIXME: ParseShader: spriteScale stub!!!\n");
 			token = COM_ParseExt(text, qfalse);
 			if (!token[0]) {
 				ri.Printf(PRINT_WARNING, "WARNING: missing spriteScale parm in shader '%s'\n", shader.name);
 				continue;
 			}
-			// TODO
-			// shader.spriteScale = atof(token);
+			shader.sprite.scale = atof(token);
 		}
 		else
 		{
