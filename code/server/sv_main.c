@@ -222,7 +222,7 @@ but not on every player enter or exit.
 ================
 */
 #define	HEARTBEAT_MSEC	300*1000
-#define	HEARTBEAT_GAME	"QuakeArena-1"
+#define	HEARTBEAT_GAME	"mohaa-1"
 void SV_MasterHeartbeat( void ) {
 	static netadr_t	adr[MAX_MASTER_SERVERS];
 	int			i;
@@ -572,7 +572,7 @@ void SV_PacketEvent( netadr_t from, msg_t *msg ) {
 	// read the qport out of the message so we can fix up
 	// stupid address translating routers
 	MSG_BeginReadingOOB( msg );
-	MSG_ReadLong( msg );				// sequence number
+	i=MSG_ReadLong( msg );				// sequence number
 	qport = MSG_ReadShort( msg ) & 0xffff;
 
 	// find which client the message is from

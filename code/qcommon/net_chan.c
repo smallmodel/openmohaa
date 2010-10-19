@@ -757,6 +757,11 @@ qboolean	NET_StringToAdr( const char *s, netadr_t *a ) {
 	if (!strcmp (s, "localhost")) {
 		Com_Memset (a, 0, sizeof(*a));
 		a->type = NA_LOOPBACK;
+		/*// wombat: localhost resolves to 0.0.0.0 ?
+		a->ip[0] = 127;
+		a->ip[1] = 0;
+		a->ip[2] = 0;
+		a->ip[3] = 1;*/
 		return qtrue;
 	}
 
