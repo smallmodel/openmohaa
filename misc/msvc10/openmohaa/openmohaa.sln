@@ -3,15 +3,18 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "openmohaa", "openmohaa.vcxproj", "{A9E3E13B-C83E-48AC-91EA-4942B0FF723A}"
 	ProjectSection(ProjectDependencies) = postProject
+		{FC6F254C-D08F-4631-A40B-B2CD41509AA2} = {FC6F254C-D08F-4631-A40B-B2CD41509AA2}
 		{02990457-FD92-4996-BCF4-90092A7C75C5} = {02990457-FD92-4996-BCF4-90092A7C75C5}
 		{D198C7F1-A045-455F-98F1-610AF58541A7} = {D198C7F1-A045-455F-98F1-610AF58541A7}
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cgame", "..\cgame\cgame.vcxproj", "{D198C7F1-A045-455F-98F1-610AF58541A7}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "q3ui", "ui\ui.vcxproj", "{02990457-FD92-4996-BCF4-90092A7C75C5}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ui", "ui\ui.vcxproj", "{02990457-FD92-4996-BCF4-90092A7C75C5}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mohui", "..\mohui\mohui.vcxproj", "{35451480-AD84-481C-8944-C4994741E0ED}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "game", "..\game\game.vcxproj", "{FC6F254C-D08F-4631-A40B-B2CD41509AA2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -35,6 +38,10 @@ Global
 		{35451480-AD84-481C-8944-C4994741E0ED}.Debug|Win32.Build.0 = Debug|Win32
 		{35451480-AD84-481C-8944-C4994741E0ED}.Release|Win32.ActiveCfg = Release|Win32
 		{35451480-AD84-481C-8944-C4994741E0ED}.Release|Win32.Build.0 = Release|Win32
+		{FC6F254C-D08F-4631-A40B-B2CD41509AA2}.Debug|Win32.ActiveCfg = Debug|Win32
+		{FC6F254C-D08F-4631-A40B-B2CD41509AA2}.Debug|Win32.Build.0 = Debug|Win32
+		{FC6F254C-D08F-4631-A40B-B2CD41509AA2}.Release|Win32.ActiveCfg = Release|Win32
+		{FC6F254C-D08F-4631-A40B-B2CD41509AA2}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
