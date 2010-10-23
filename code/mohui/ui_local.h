@@ -35,11 +35,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define UI_MAX_NAME			64
 #define UI_MAX_RESOURCES	128
 
+#define UI_CHECKBOX_SIZE	16
+
 typedef void (*voidfunc_f)(void);
 
 typedef enum uiBorderstyle_s {
 	UI_BORDER_NONE,
-	UI_BORDER_RAISED
+	UI_BORDER_RAISED,
+	UI_BORDER_INDENT
 } uiBorderstyle_t;
 
 typedef enum uiMenuDirection_s {
@@ -49,6 +52,11 @@ typedef enum uiMenuDirection_s {
 	UI_FROM_LEFT,
 	UI_FROM_RIGHT
 } uiMenuDirection_t;
+
+typedef enum uiTextalign_s {
+	UI_ALIGN_LEFT,
+	UI_ALIGN_RIGHT
+} uiTextalign_t;
 
 typedef enum uiResType_s {
 	UI_RES_LABEL,
@@ -73,13 +81,22 @@ typedef struct uiResource_s {
 	qhandle_t			hoverShader;
 	qboolean			hoverDraw;
 	qhandle_t			tileShader;
+
+	qhandle_t			checked_shader;
+	qhandle_t			unchecked_shader;
 	char				clicksound[UI_MAX_NAME];
 	char				stuffcommand[UI_MAX_NAME];
 	char				hovercommand[UI_MAX_NAME];
 	vmCvar_t			enabledcvar;
 	qboolean			enablewithcvar;
 	vmCvar_t			linkcvar;
+	char				linkcvarname[UI_MAX_NAME];
 	qboolean			linkcvartoshader;
+
+	char				title[UI_MAX_NAME];
+	uiTextalign_t		textalign;
+
+	fontInfo_t			font;
 
 	qboolean			active;
 	qboolean			lastState;
@@ -152,6 +169,7 @@ void UI_DrawHandlePic( float x, float y, float w, float h, qhandle_t hShader );
 void UI_CmdExecute( const char *text );
 
 // ui_urc.c
+void	UI_LoadINC( const char *name, uiMenu_t *menu );
 void	UI_LoadURC( const char *name, uiMenu_t *menu );
 void	UI_PushMenu( const char *name );
 void	UI_PopMenu( void );

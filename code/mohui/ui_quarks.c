@@ -76,11 +76,33 @@ typedef struct {
 vmCvar_t	ui_mohui;
 vmCvar_t	ui_voodoo;
 vmCvar_t	ui_signshader;
+vmCvar_t	ui_dmmap;
+vmCvar_t	ui_inactivekick;
+vmCvar_t	ui_hostname;
+vmCvar_t	ui_maplist_team;
+vmCvar_t	ui_dedicated;
+vmCvar_t	ui_gamespy;
+vmCvar_t	ui_maxclients;
+vmCvar_t	ui_timelimit;
+vmCvar_t	ui_fraglimit;
+vmCvar_t	ui_teamdamage;
+vmCvar_t	ui_;
+
 
 static cvarTable_t		cvarTable[] = {
 	{ &ui_mohui, "ui_mohui", "1", CVAR_INIT },
 	{ &ui_voodoo, "ui_voodoo", "0", CVAR_ARCHIVE },
-	{ &ui_signshader, "ui_signshader", "", CVAR_ARCHIVE }
+	{ &ui_signshader, "ui_signshader", "", CVAR_TEMP },
+	{ &ui_dmmap, "ui_dmmap", "dm/mohdm1", CVAR_ARCHIVE },
+	{ &ui_dmmap, "ui_inactivekick", "60", CVAR_ARCHIVE },
+	{ &ui_dmmap, "ui_hostname", "openmohaa battle", CVAR_ARCHIVE },
+	{ &ui_dmmap, "ui_maplist_team", "dm/mohdm1 dm/mohdm2 dm/mohdm3 dm/mohdm4 dm/mohdm5 dm/mohdm6 dm/mohdm7", CVAR_ARCHIVE },
+	{ &ui_dmmap, "ui_dedicated", "0", CVAR_ARCHIVE },
+	{ &ui_dmmap, "ui_gamespy", "1", CVAR_ARCHIVE },
+	{ &ui_dmmap, "ui_maxclients", "20", CVAR_ARCHIVE },
+	{ &ui_dmmap, "ui_timelimit", "0", CVAR_ARCHIVE },
+	{ &ui_dmmap, "ui_fraglimit", "0", CVAR_ARCHIVE },
+	{ &ui_dmmap, "ui_teamdamage", "1", CVAR_ARCHIVE }
 };
 
 static int cvarTableSize = sizeof(cvarTable) / sizeof(cvarTable[0]);
@@ -168,7 +190,47 @@ UI_KeyEvent
 =================
 */
 void UI_KeyEvent( int key, int down ) {
+	int				i;
+	uiMenu_t		*menu;
+	uiResource_t	*res;
 
+	if (!uis.activemenu) {
+		return;
+	}
+
+	if (!down) {
+		return;
+	}
+
+	// menu system keys
+	switch ( key )
+	{
+		case K_MOUSE2:
+		case K_ESCAPE:
+			UI_PopMenu();
+			break;
+		case K_MOUSE1:
+		case K_ENTER:
+			menu = &uis.menuStack[uis.msp];
+			for (i=0;i<=menu->resPtr;i++) {
+				res = &menu->resources[i];
+				if (res->active ==qfalse)
+					continue;
+				switch (res->type) {
+					case UI_RES_BUTTON:
+						UI_CmdExecute( res->stuffcommand );
+						break;
+					case UI_RES_CHECKBOX:
+						trap_Cvar_Update( &res->linkcvar );
+						if (res->linkcvar.integer)
+							trap_Cvar_SetValue( res->linkcvarname, 0 );
+						else
+							trap_Cvar_SetValue( res->linkcvarname, 1 );
+						break;
+				}
+			}
+			break;
+	}
 }
 
 /*
@@ -202,10 +264,12 @@ void UI_MouseEvent( int dx, int dy )
 	menu = &uis.menuStack[uis.msp];
 	for (i=0; i<=menu->resPtr;i++) {
 		res = &menu->resources[i];
+		if (res->type != UI_RES_BUTTON && res->type != UI_RES_CHECKBOX)
+			continue;
 		if (	uis.cursorx >= res->rect[0]
-				&& uis.cursorx <= res->rect[2]
+				&& uis.cursorx <= res->rect[2]+res->rect[0]
 				&& uis.cursory >= res->rect[1]
-				&& uis.cursory >= res->rect[3] ) {
+				&& uis.cursory <= res->rect[3]+res->rect[1] ) {
 
 					res->active = qtrue;
 					if ( res->lastState == qfalse )
@@ -246,6 +310,7 @@ void UI_Refresh( int realtime )
 		for (j=0; j<=menu->resPtr; j++ ) {
 			res = &menu->resources[j];
 			switch ( res->type ) {
+
 			case UI_RES_LABEL:
 				if (res->enablewithcvar)
 					if (!res->enabledcvar.integer)
@@ -253,16 +318,35 @@ void UI_Refresh( int realtime )
 				if (i==uis.msp) //foreground menu
 					UI_SetColor( res->fgcolor );
 				else UI_SetColor( res->bgcolor );
-				if ( res->linkcvartoshader ) {
+				if ( res->title[0] ) {
+					trap_Cvar_Update( &res->linkcvar );
+					trap_R_Text_Paint( &res->font,res->rect[0],res->rect[1],1,0,res->linkcvar.string,1,0,qtrue,qtrue);
+				}
+				else if ( res->linkcvartoshader ) {
 					trap_Cvar_Update( &res->linkcvar );
 					cvarshader=trap_R_RegisterShaderNoMip(res->linkcvar.string);
 					if ( cvarshader )
 						UI_DrawHandlePic( res->rect[0], res->rect[1], res->rect[2], res->rect[3], cvarshader );
 				}
-				else if (res->hoverDraw && res->active)
+				else
+					UI_DrawHandlePic( res->rect[0], res->rect[1], res->rect[2], res->rect[3], res->shader );
+				break;
+
+			case UI_RES_BUTTON:
+				if (res->hoverDraw && res->active)
 					UI_DrawHandlePic( res->rect[0], res->rect[1], res->rect[2], res->rect[3], res->hoverShader );
 				else
 					UI_DrawHandlePic( res->rect[0], res->rect[1], res->rect[2], res->rect[3], res->shader );
+				break;
+			case UI_RES_FIELD:
+				trap_Cvar_Update( &res->linkcvar );
+				trap_R_Text_Paint( &res->font,res->rect[0],res->rect[1],1,0,res->linkcvar.string,1,0,qtrue,qtrue);
+				break;
+			case UI_RES_CHECKBOX:
+				trap_Cvar_Update( &res->linkcvar );
+				if (res->linkcvar.integer)
+					UI_DrawHandlePic( res->rect[0], res->rect[1], UI_CHECKBOX_SIZE, UI_CHECKBOX_SIZE, res->checked_shader );
+				else UI_DrawHandlePic( res->rect[0], res->rect[1], UI_CHECKBOX_SIZE, UI_CHECKBOX_SIZE, res->unchecked_shader );
 				break;
 			}
 		}
