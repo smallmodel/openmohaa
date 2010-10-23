@@ -389,6 +389,9 @@ typedef struct shader_s {
 	spriteParms_t sprite; // su44: for MoHAA sprites
 	fogParms_t	fogParms;
 
+	// wombat: TODO: mohaa shader needs 32bit
+	qboolean	force32bit;
+
 	float		portalRange;			// distance to fog out at
 
 	int			multitextureEnv;		// 0, GL_MODULATE, GL_ADD (FIXME: put in stage)

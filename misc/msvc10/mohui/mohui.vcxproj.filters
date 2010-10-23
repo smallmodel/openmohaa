@@ -30,6 +30,9 @@
     <ClCompile Include="..\..\..\code\qcommon\q_math.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\code\mohui\ui_urc.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\code\mohui\ui_local.h">

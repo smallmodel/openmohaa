@@ -2084,7 +2084,7 @@ void CL_ConnectionlessPacket( netadr_t from, msg_t *msg ) {
 		return;
 	}
 
-	Com_DPrintf ("Unknown connectionless packet command.\n");
+	Com_DPrintf ("Unknown connectionless packet command: \"%s\".\n", c);
 }
 
 

@@ -74,9 +74,13 @@ typedef struct {
 } cvarTable_t;
 
 vmCvar_t	ui_mohui;
+vmCvar_t	ui_voodoo;
+vmCvar_t	ui_signshader;
 
 static cvarTable_t		cvarTable[] = {
-	{ &ui_mohui, "ui_mohui", "1", CVAR_INIT }
+	{ &ui_mohui, "ui_mohui", "1", CVAR_INIT },
+	{ &ui_voodoo, "ui_voodoo", "0", CVAR_ARCHIVE },
+	{ &ui_signshader, "ui_signshader", "", CVAR_ARCHIVE }
 };
 
 static int cvarTableSize = sizeof(cvarTable) / sizeof(cvarTable[0]);
@@ -118,6 +122,13 @@ UI_Shutdown
 void UI_Shutdown( void ) {
 }
 
+
+void UI_RegisterMedia( void ) {
+	trap_R_RegisterFont( "facfont-20", 0, &uis.menuFont );
+
+	uis.cursor = trap_R_RegisterShaderNoMip( "gfx/2d/mouse_cursor.tga" );
+}
+
 /*
 =================
 UI_Init
@@ -145,9 +156,10 @@ void UI_Init( void ) {
 	}
 
 	// initialize the menu system
+	UI_RegisterMedia();
 
-
-	trap_R_RegisterFont( "facfont-20", 0, &uis.menuFont );
+	uis.msp = -1;
+	UI_PushMenu( "main" );
 }
 
 /*
@@ -166,7 +178,45 @@ UI_MouseEvent
 */
 void UI_MouseEvent( int dx, int dy )
 {
+	int				i;
+	uiMenu_t		*menu;
+	uiResource_t	*res;
 
+	if (!uis.activemenu)
+		return;
+
+	// update mouse screen position
+	uis.cursorx += dx;
+	if (uis.cursorx < 0)
+		uis.cursorx = 0;
+	else if (uis.cursorx > SCREEN_WIDTH)
+		uis.cursorx = SCREEN_WIDTH;
+
+	uis.cursory += dy;
+	if (uis.cursory < 0)
+		uis.cursory = 0;
+	else if (uis.cursory > SCREEN_HEIGHT)
+		uis.cursory = SCREEN_HEIGHT;
+
+	// region test the active menu items
+	menu = &uis.menuStack[uis.msp];
+	for (i=0; i<=menu->resPtr;i++) {
+		res = &menu->resources[i];
+		if (	uis.cursorx >= res->rect[0]
+				&& uis.cursorx <= res->rect[2]
+				&& uis.cursory >= res->rect[1]
+				&& uis.cursory >= res->rect[3] ) {
+
+					res->active = qtrue;
+					if ( res->lastState == qfalse )
+						UI_CmdExecute( res->hovercommand );
+					res->lastState = qtrue;
+				}
+		else {
+			res->active = qfalse;
+			res->lastState = qfalse;
+		}
+	}
 }
 
 /*
@@ -176,19 +226,65 @@ UI_Refresh
 */
 void UI_Refresh( int realtime )
 {
+	int				i;
+	int				j;
+	uiMenu_t		*menu;
+	uiResource_t	*res;
+	qhandle_t		cvarshader;
 
+	uis.frametime = realtime - uis.realtime;
+	uis.realtime  = realtime;
+
+	if ( !( trap_Key_GetCatcher() & KEYCATCH_UI ) ) {
+		return;
+	}
+
+	UI_UpdateCvars();
+
+	for ( i=0; i<=uis.msp; i++ ) {
+		menu = &uis.menuStack[i];
+		for (j=0; j<=menu->resPtr; j++ ) {
+			res = &menu->resources[j];
+			switch ( res->type ) {
+			case UI_RES_LABEL:
+				if (res->enablewithcvar)
+					if (!res->enabledcvar.integer)
+						break;
+				if (i==uis.msp) //foreground menu
+					UI_SetColor( res->fgcolor );
+				else UI_SetColor( res->bgcolor );
+				if ( res->linkcvartoshader ) {
+					trap_Cvar_Update( &res->linkcvar );
+					cvarshader=trap_R_RegisterShaderNoMip(res->linkcvar.string);
+					if ( cvarshader )
+						UI_DrawHandlePic( res->rect[0], res->rect[1], res->rect[2], res->rect[3], cvarshader );
+				}
+				else if (res->hoverDraw && res->active)
+					UI_DrawHandlePic( res->rect[0], res->rect[1], res->rect[2], res->rect[3], res->hoverShader );
+				else
+					UI_DrawHandlePic( res->rect[0], res->rect[1], res->rect[2], res->rect[3], res->shader );
+				break;
+			}
+		}
+	}
+
+	// draw cursor
+	UI_SetColor( NULL );
+	UI_DrawHandlePic( uis.cursorx, uis.cursory, 32, 32, uis.cursor);
 }
 
 qboolean UI_IsFullscreen( void ) {
-//	if ( uis.activemenu && ( trap_Key_GetCatcher() & KEYCATCH_UI ) ) {
-//		return uis.activemenu->fullscreen;
-//	}
+	if ( uis.msp!=-1 && ( trap_Key_GetCatcher() & KEYCATCH_UI ) ) {
+		return uis.menuStack[uis.msp].fullscreen;
+	}
 
 	return qfalse;
 }
 
 void UI_SetActiveMenu( uiMenuCommand_t menu ) {
+	uis.activemenu = menu;
 
+	trap_Key_SetCatcher( KEYCATCH_UI );
 }
 
 char *UI_Argv( int arg ) {
@@ -215,6 +311,14 @@ qboolean UI_ConsoleCommand( int realTime ) {
 		Com_Printf( "openmohaa menu up and running!\n" );
 		return qtrue;
 	}
+	else if ( Q_stricmp (cmd, "pushmenu") == 0 ) {
+		UI_PushMenu( UI_Argv(1) );
+		return qtrue;
+	}
+	else if ( Q_stricmp (cmd, "popmenu") == 0 ) {
+		UI_PopMenu();
+		return qtrue;
+	}
 
 	return qfalse;
 }
@@ -229,4 +333,57 @@ to prevent it from blinking away too rapidly on local or lan games.
 */
 void UI_DrawConnectScreen( qboolean overlay ) {
 
+}
+
+/*
+================
+UI_AdjustFrom640
+
+Adjusted for resolution and screen aspect ratio
+================
+*/
+void UI_AdjustFrom640( float *x, float *y, float *w, float *h ) {
+	// expect valid pointers
+	*x = *x * uis.xscale + uis.bias;
+	*y *= uis.yscale;
+	*w *= uis.xscale;
+	*h *= uis.yscale;
+}
+
+void UI_DrawHandlePic( float x, float y, float w, float h, qhandle_t hShader ) {
+	float	s0;
+	float	s1;
+	float	t0;
+	float	t1;
+
+	if( w < 0 ) {	// flip about vertical
+		w  = -w;
+		s0 = 1;
+		s1 = 0;
+	}
+	else {
+		s0 = 0;
+		s1 = 1;
+	}
+
+	if( h < 0 ) {	// flip about horizontal
+		h  = -h;
+		t0 = 1;
+		t1 = 0;
+	}
+	else {
+		t0 = 0;
+		t1 = 1;
+	}
+	
+	UI_AdjustFrom640( &x, &y, &w, &h );
+	trap_R_DrawStretchPic( x, y, w, h, s0, t0, s1, t1, hShader );
+}
+
+void UI_SetColor( const float *rgba ) {
+	trap_R_SetColor( rgba );
+}
+
+void UI_CmdExecute( const char *text ){
+	trap_Cmd_ExecuteText( EXEC_APPEND, text );
 }

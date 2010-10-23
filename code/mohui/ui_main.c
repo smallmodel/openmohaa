@@ -69,14 +69,14 @@ intptr_t vmMain( int command, int arg0, int arg1, int arg2, int arg3, int arg4, 
 		return UI_IsFullscreen();
 
 	case UI_SET_ACTIVE_MENU:
-		UI_SetActiveMenu( arg0 );
+		UI_SetActiveMenu( (uiMenuCommand_t)arg0 );
 		return 0;
 
 	case UI_CONSOLE_COMMAND:
 		return UI_ConsoleCommand(arg0);
 
 	case UI_DRAW_CONNECT_SCREEN:
-		UI_DrawConnectScreen( arg0 );
+		UI_DrawConnectScreen( (qboolean)arg0 );
 		return 0;
 	case UI_HASUNIQUECDKEY:				// mod authors need to observe this
 		return qtrue;  // change this to qfalse for mods!

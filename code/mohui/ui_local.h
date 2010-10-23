@@ -26,13 +26,83 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../qcommon/q_shared.h"
 #include "../renderer/tr_types.h"
 #include "ui_public.h"
-//redefine to old API version
-#undef UI_API_VERSION
-#define UI_API_VERSION	4
 #include "../client/keycodes.h"
 #include "../game/bg_public.h"
 
+
+#define UI_MAX_URCSIZE		131072
+#define UI_MAX_MENUS		64
+#define UI_MAX_NAME			64
+#define UI_MAX_RESOURCES	128
+
 typedef void (*voidfunc_f)(void);
+
+typedef enum uiBorderstyle_s {
+	UI_BORDER_NONE,
+	UI_BORDER_RAISED
+} uiBorderstyle_t;
+
+typedef enum uiMenuDirection_s {
+	UI_NONE,
+	UI_FROM_TOP,
+	UI_FROM_BOTTOM,
+	UI_FROM_LEFT,
+	UI_FROM_RIGHT
+} uiMenuDirection_t;
+
+typedef enum uiResType_s {
+	UI_RES_LABEL,
+	UI_RES_BUTTON,
+	UI_RES_BINDBUTTON,
+	UI_RES_CHECKBOX,
+	UI_RES_FIELD,
+	UI_RES_LIST,
+	UI_RES_LISTBOX,
+	UI_RES_SLIDER
+} uiResType_t;
+
+typedef struct uiResource_s {
+	uiResType_t			type;
+	char				name[UI_MAX_NAME];
+	uiMenuDirection_t	align;
+	int					rect[4];
+	vec4_t				fgcolor;
+	vec4_t				bgcolor;
+	uiBorderstyle_t		borderstyle;
+	qhandle_t			shader;
+	qhandle_t			hoverShader;
+	qboolean			hoverDraw;
+	qhandle_t			tileShader;
+	char				clicksound[UI_MAX_NAME];
+	char				stuffcommand[UI_MAX_NAME];
+	char				hovercommand[UI_MAX_NAME];
+	vmCvar_t			enabledcvar;
+	qboolean			enablewithcvar;
+	vmCvar_t			linkcvar;
+	qboolean			linkcvartoshader;
+
+	qboolean			active;
+	qboolean			lastState;
+
+} uiResource_t;
+
+typedef struct uiMenu_s {
+	char			name[UI_MAX_NAME];
+	int				size[2];
+	uiMenuDirection_t	motion;
+	int				time;
+	vec4_t			bgcolor;
+	uiBorderstyle_t	borderstyle;
+	vec4_t			bgfill;
+	qboolean		fullscreen;
+	int				vidmode;
+	float			fadein;
+	char			include[UI_MAX_NAME];
+	qboolean		virtualres;
+
+	uiResource_t	resources[UI_MAX_RESOURCES];
+	int				resPtr;
+} uiMenu_t;
 
 // ui_quarks.c
 typedef struct {
@@ -44,8 +114,6 @@ typedef struct {
 	glconfig_t			glconfig;
 	qboolean			debug;
 	qhandle_t			whiteShader;
-	qhandle_t			menuBackShader_a;
-	qhandle_t			menuBackShader_b;
 	qhandle_t			blackShader;
 	qhandle_t			charset;
 
@@ -55,12 +123,19 @@ typedef struct {
 	float				bias;
 	qboolean			firstdraw;
 
+	uiMenuCommand_t		activemenu;
+
 	// wombat
 	fontInfo_t			menuFont;
+
+	uiMenu_t			menuStack[UI_MAX_MENUS];
+	int					msp;	//menu stack pointer
 } uiStatic_t;
 
 
-
+// ui_quarks.c
+//
+extern uiStatic_t uis;
 void UI_Init( void );
 void UI_Shutdown( void );
 void UI_KeyEvent( int key, int down );
@@ -70,6 +145,16 @@ qboolean UI_IsFullscreen( void );
 void UI_SetActiveMenu( uiMenuCommand_t menu );
 qboolean UI_ConsoleCommand( int realTime );
 void UI_DrawConnectScreen( qboolean overlay );
+
+void UI_SetColor( const float *rgba );
+void UI_UpdateScreen( void );
+void UI_DrawHandlePic( float x, float y, float w, float h, qhandle_t hShader );
+void UI_CmdExecute( const char *text );
+
+// ui_urc.c
+void	UI_LoadURC( const char *name, uiMenu_t *menu );
+void	UI_PushMenu( const char *name );
+void	UI_PopMenu( void );
 
 //
 // ui_syscalls.c

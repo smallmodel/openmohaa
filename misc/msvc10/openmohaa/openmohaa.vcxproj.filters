@@ -474,6 +474,9 @@
     <ClCompile Include="..\..\..\code\botlib\l_struct.c">
       <Filter>botlib</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\code\renderer\tr_sprite.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\code\client\cl_curl.h">

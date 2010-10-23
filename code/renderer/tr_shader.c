@@ -1865,6 +1865,9 @@ static qboolean ParseShader( char **text )
 			}
 			shader.sprite.scale = atof(token);
 		}
+		else if (!Q_stricmp(token, "force32bit")) {
+			shader.force32bit = qtrue;
+		}
 		else
 		{
 			ri.Printf( PRINT_WARNING, "WARNING: unknown general shader parameter '%s' in '%s'\n", token, shader.name );

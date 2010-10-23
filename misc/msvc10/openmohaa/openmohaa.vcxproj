@@ -50,7 +50,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;BOTLIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;BOTLIB;UI_MOH;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>C:\Users\wombat\openmohaa\code\SDL12\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
@@ -213,6 +213,7 @@
     <ClCompile Include="..\..\..\code\renderer\tr_shade_calc.c" />
     <ClCompile Include="..\..\..\code\renderer\tr_shadows.c" />
     <ClCompile Include="..\..\..\code\renderer\tr_sky.c" />
+    <ClCompile Include="..\..\..\code\renderer\tr_sprite.c" />
     <ClCompile Include="..\..\..\code\renderer\tr_surface.c" />
     <ClCompile Include="..\..\..\code\renderer\tr_world.c" />
     <ClCompile Include="..\..\..\code\sdl\sdl_gamma.c" />

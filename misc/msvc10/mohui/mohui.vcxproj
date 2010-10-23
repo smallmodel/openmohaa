@@ -80,6 +80,7 @@
     <ClCompile Include="..\..\..\code\mohui\ui_main.c" />
     <ClCompile Include="..\..\..\code\mohui\ui_quarks.c" />
     <ClCompile Include="..\..\..\code\mohui\ui_syscalls.c" />
+    <ClCompile Include="..\..\..\code\mohui\ui_urc.c" />
     <ClCompile Include="..\..\..\code\qcommon\q_math.c" />
     <ClCompile Include="..\..\..\code\qcommon\q_shared.c" />
   </ItemGroup>
