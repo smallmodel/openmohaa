@@ -26,6 +26,29 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 uiStatic_t		uis;
 
+vec4_t menu_text_color	    = {1.0f, 1.0f, 1.0f, 1.0f};
+vec4_t menu_dim_color       = {0.0f, 0.0f, 0.0f, 0.75f};
+vec4_t color_black	    = {0.00f, 0.00f, 0.00f, 1.00f};
+vec4_t color_white	    = {1.00f, 1.00f, 1.00f, 1.00f};
+vec4_t color_yellow	    = {1.00f, 1.00f, 0.00f, 1.00f};
+vec4_t color_blue	    = {0.00f, 0.00f, 1.00f, 1.00f};
+vec4_t color_lightOrange    = {1.00f, 0.68f, 0.00f, 1.00f };
+vec4_t color_orange	    = {1.00f, 0.43f, 0.00f, 1.00f};
+vec4_t color_red	    = {1.00f, 0.00f, 0.00f, 1.00f};
+vec4_t color_dim	    = {0.00f, 0.00f, 0.00f, 0.25f};
+vec4_t color_gray	    = {0.00f, 0.00f, 0.00f, 0.6f};
+vec4_t color_green	    = {0.10f, 0.70f, 0.10f, 1.00f};
+vec4_t color_dkgreen	= {0.40f, 0.40f, 0.40f, 1.00f};
+
+// current color scheme
+vec4_t pulse_color          = {1.00f, 1.00f, 1.00f, 1.00f};
+vec4_t text_color_disabled  = {0.50f, 0.50f, 0.50f, 1.00f};	// light gray
+//vec4_t text_color_normal    = {1.00f, 0.43f, 0.00f, 1.00f};	// light orange
+vec4_t text_color_normal    = {1.00f, 1.00f, 1.00f, 1.00f};		//white
+vec4_t text_color_highlight = {1.00f, 1.00f, 0.00f, 1.00f};	// bright yellow
+vec4_t listbar_color        = {1.00f, 0.43f, 0.00f, 0.30f};	// transluscent orange
+vec4_t text_color_status    = {1.00f, 1.00f, 1.00f, 1.00f};	// bright white
+
 void QDECL Com_Error( int level, const char *error, ... ) {
 	va_list		argptr;
 	char		text[1024];
@@ -77,6 +100,7 @@ vmCvar_t	ui_mohui;
 vmCvar_t	ui_voodoo;
 vmCvar_t	ui_signshader;
 vmCvar_t	ui_dmmap;
+vmCvar_t	ui_inactivespectate;
 vmCvar_t	ui_inactivekick;
 vmCvar_t	ui_hostname;
 vmCvar_t	ui_maplist_team;
@@ -86,7 +110,13 @@ vmCvar_t	ui_maxclients;
 vmCvar_t	ui_timelimit;
 vmCvar_t	ui_fraglimit;
 vmCvar_t	ui_teamdamage;
-vmCvar_t	ui_;
+vmCvar_t	cg_drawviewmodel;
+vmCvar_t	ter_error;
+vmCvar_t	r_lodscale;
+vmCvar_t	ter_maxlod;
+vmCvar_t	cg_effectdetail;
+vmCvar_t	r_subdivisions;
+vmCvar_t	cg_shadows;
 
 
 static cvarTable_t		cvarTable[] = {
@@ -94,7 +124,8 @@ static cvarTable_t		cvarTable[] = {
 	{ &ui_voodoo, "ui_voodoo", "0", CVAR_ARCHIVE },
 	{ &ui_signshader, "ui_signshader", "", CVAR_TEMP },
 	{ &ui_dmmap, "ui_dmmap", "dm/mohdm1", CVAR_ARCHIVE },
-	{ &ui_dmmap, "ui_inactivekick", "60", CVAR_ARCHIVE },
+	{ &ui_dmmap, "ui_inactivespectate", "60", CVAR_ARCHIVE },
+	{ &ui_dmmap, "ui_inactivekick", "900", CVAR_ARCHIVE },
 	{ &ui_dmmap, "ui_hostname", "openmohaa battle", CVAR_ARCHIVE },
 	{ &ui_dmmap, "ui_maplist_team", "dm/mohdm1 dm/mohdm2 dm/mohdm3 dm/mohdm4 dm/mohdm5 dm/mohdm6 dm/mohdm7", CVAR_ARCHIVE },
 	{ &ui_dmmap, "ui_dedicated", "0", CVAR_ARCHIVE },
@@ -102,7 +133,14 @@ static cvarTable_t		cvarTable[] = {
 	{ &ui_dmmap, "ui_maxclients", "20", CVAR_ARCHIVE },
 	{ &ui_dmmap, "ui_timelimit", "0", CVAR_ARCHIVE },
 	{ &ui_dmmap, "ui_fraglimit", "0", CVAR_ARCHIVE },
-	{ &ui_dmmap, "ui_teamdamage", "1", CVAR_ARCHIVE }
+	{ &ui_dmmap, "ui_teamdamage", "1", CVAR_ARCHIVE },
+	{ &ui_dmmap, "cg_drawviewmodel", "2", CVAR_ARCHIVE },
+	{ &ui_dmmap, "ter_error", "4", CVAR_ARCHIVE },
+	{ &ui_dmmap, "r_lodscale", "1.1", CVAR_ARCHIVE },
+	{ &ui_dmmap, "ter_maxlod", "6", CVAR_ARCHIVE },
+	{ &ui_dmmap, "cg_effectdetail", "1.0", CVAR_ARCHIVE },
+	{ &ui_dmmap, "r_subdivisions", "3", CVAR_ARCHIVE },
+	{ &ui_dmmap, "cg_shadows", "2", CVAR_ARCHIVE }
 };
 
 static int cvarTableSize = sizeof(cvarTable) / sizeof(cvarTable[0]);
@@ -148,6 +186,8 @@ void UI_Shutdown( void ) {
 void UI_RegisterMedia( void ) {
 	trap_R_RegisterFont( "facfont-20", 0, &uis.menuFont );
 
+	uis.whiteShader = trap_R_RegisterShaderNoMip( "*white" );
+	uis.blackShader = trap_R_RegisterShaderNoMip( "textures/mohmenu/black.tga" );
 	uis.cursor = trap_R_RegisterShaderNoMip( "gfx/2d/mouse_cursor.tga" );
 }
 
@@ -193,12 +233,24 @@ void UI_KeyEvent( int key, int down ) {
 	int				i;
 	uiMenu_t		*menu;
 	uiResource_t	*res;
+	char			buffer[64];
 
 	if (!uis.activemenu) {
 		return;
 	}
+//	Com_Printf( "key %i, down %i\n", key, down );
 
 	if (!down) {
+		menu = &uis.menuStack[uis.msp];
+		for (i=0;i<=menu->resPtr;i++) {
+			res = &menu->resources[i];
+			if (res->pressed == qtrue) {
+				res->pressed = qfalse;
+				if ( uis.cursorx >= res->rect[0]+res->rect[2] && uis.cursorx <= res->rect[0]+res->rect[2]+128 )
+					if ( uis.cursory >= res->rect[1] && uis.cursory <= res->rect[1]+ 16*res->selentries )
+						UI_CmdExecute( res->linkstring2[(uis.cursory-res->rect[1])/16] );
+			}
+		}
 		return;
 	}
 
@@ -227,6 +279,39 @@ void UI_KeyEvent( int key, int down ) {
 						else
 							trap_Cvar_SetValue( res->linkcvarname, 1 );
 						break;
+					case UI_RES_PULLDOWN:
+						res->pressed = qtrue;
+				}
+			}
+			break;
+		case K_BACKSPACE:
+			menu = &uis.menuStack[uis.msp];
+			for (i=0;i<=menu->resPtr;i++) {
+				res = &menu->resources[i];
+				if (res->active ==qfalse)
+					continue;
+				if (res->type == UI_RES_FIELD) {
+					trap_Cvar_VariableStringBuffer(res->linkcvarname, buffer,64);
+					buffer[strnlen(buffer,64)-1] = 0;
+					trap_Cvar_Set( res->linkcvarname, buffer );
+				}
+			}
+			break;
+		default:
+			if ( key&K_CHAR_FLAG )
+				break;
+			menu = &uis.menuStack[uis.msp];
+			for (i=0;i<=menu->resPtr;i++) {
+				res = &menu->resources[i];
+				if (res->active ==qfalse)
+					continue;
+				if (res->type == UI_RES_FIELD) {
+					trap_Cvar_VariableStringBuffer(res->linkcvarname, buffer,64);
+					if ( (key >= 'a'&&key <= 'z') || (key >= '0'&&key <= '9')) {
+						buffer[strnlen(buffer,64)] = key;
+						buffer[strnlen(buffer,64)+1] = 0;
+					}
+					trap_Cvar_Set( res->linkcvarname, buffer );
 				}
 			}
 			break;
@@ -264,7 +349,10 @@ void UI_MouseEvent( int dx, int dy )
 	menu = &uis.menuStack[uis.msp];
 	for (i=0; i<=menu->resPtr;i++) {
 		res = &menu->resources[i];
-		if (res->type != UI_RES_BUTTON && res->type != UI_RES_CHECKBOX)
+		if (res->type != UI_RES_BUTTON
+			&& res->type != UI_RES_CHECKBOX
+			&& res->type != UI_RES_FIELD
+			&& res->type != UI_RES_PULLDOWN)
 			continue;
 		if (	uis.cursorx >= res->rect[0]
 				&& uis.cursorx <= res->rect[2]+res->rect[0]
@@ -292,6 +380,7 @@ void UI_Refresh( int realtime )
 {
 	int				i;
 	int				j;
+	int				k;
 	uiMenu_t		*menu;
 	uiResource_t	*res;
 	qhandle_t		cvarshader;
@@ -309,45 +398,66 @@ void UI_Refresh( int realtime )
 		menu = &uis.menuStack[i];
 		for (j=0; j<=menu->resPtr; j++ ) {
 			res = &menu->resources[j];
+			if (i==uis.msp) //foreground menu
+				UI_SetColor( res->fgcolor );
+			else UI_SetColor( res->bgcolor );
 			switch ( res->type ) {
 
-			case UI_RES_LABEL:
-				if (res->enablewithcvar)
-					if (!res->enabledcvar.integer)
-						break;
-				if (i==uis.msp) //foreground menu
-					UI_SetColor( res->fgcolor );
-				else UI_SetColor( res->bgcolor );
-				if ( res->title[0] ) {
-					trap_Cvar_Update( &res->linkcvar );
-					trap_R_Text_Paint( &res->font,res->rect[0],res->rect[1],1,0,res->linkcvar.string,1,0,qtrue,qtrue);
-				}
-				else if ( res->linkcvartoshader ) {
-					trap_Cvar_Update( &res->linkcvar );
-					cvarshader=trap_R_RegisterShaderNoMip(res->linkcvar.string);
-					if ( cvarshader )
-						UI_DrawHandlePic( res->rect[0], res->rect[1], res->rect[2], res->rect[3], cvarshader );
-				}
-				else
-					UI_DrawHandlePic( res->rect[0], res->rect[1], res->rect[2], res->rect[3], res->shader );
-				break;
+				case UI_RES_LABEL:
+					if (res->enablewithcvar)
+						if (!res->enabledcvar.integer)
+							break;
+					if ( res->title[0] ) {
+						trap_Cvar_Update( &res->linkcvar );
+						if ( res->selentries > 0 ) {
+							for (k=0;k < res->selentries;k++) {
+								if (!Q_strncmp( res->linkstring1[k], res->linkcvar.string, UI_MAX_NAME ))
+									trap_R_Text_Paint( &res->font,res->rect[0],res->rect[1],1,0,res->linkstring2[k],1,0,qtrue,qtrue);
+							}
+						}
+						else
+							trap_R_Text_Paint( &res->font,res->rect[0],res->rect[1],1,0,res->linkcvar.string,1,0,qtrue,qtrue);
+					}
+					else if ( res->linkcvartoshader ) {
+						trap_Cvar_Update( &res->linkcvar );
+						cvarshader=trap_R_RegisterShaderNoMip(res->linkcvar.string);
+						if ( cvarshader )
+							UI_DrawHandlePic( res->rect[0], res->rect[1], res->rect[2], res->rect[3], cvarshader );
+					}
+					else
+						UI_DrawHandlePic( res->rect[0], res->rect[1], res->rect[2], res->rect[3], res->shader );
+					break;
 
-			case UI_RES_BUTTON:
-				if (res->hoverDraw && res->active)
-					UI_DrawHandlePic( res->rect[0], res->rect[1], res->rect[2], res->rect[3], res->hoverShader );
-				else
-					UI_DrawHandlePic( res->rect[0], res->rect[1], res->rect[2], res->rect[3], res->shader );
-				break;
-			case UI_RES_FIELD:
-				trap_Cvar_Update( &res->linkcvar );
-				trap_R_Text_Paint( &res->font,res->rect[0],res->rect[1],1,0,res->linkcvar.string,1,0,qtrue,qtrue);
-				break;
-			case UI_RES_CHECKBOX:
-				trap_Cvar_Update( &res->linkcvar );
-				if (res->linkcvar.integer)
-					UI_DrawHandlePic( res->rect[0], res->rect[1], UI_CHECKBOX_SIZE, UI_CHECKBOX_SIZE, res->checked_shader );
-				else UI_DrawHandlePic( res->rect[0], res->rect[1], UI_CHECKBOX_SIZE, UI_CHECKBOX_SIZE, res->unchecked_shader );
-				break;
+				case UI_RES_BUTTON:
+					if (res->hoverDraw && res->active)
+						UI_DrawHandlePic( res->rect[0], res->rect[1], res->rect[2], res->rect[3], res->hoverShader );
+					else
+						UI_DrawHandlePic( res->rect[0], res->rect[1], res->rect[2], res->rect[3], res->shader );
+					break;
+				case UI_RES_FIELD:
+					trap_Cvar_Update( &res->linkcvar );
+					if ( res->active )
+						UI_SetColor(color_yellow);
+					trap_R_Text_Paint( &res->font,res->rect[0],res->rect[1],1,0,res->linkcvar.string,1,0,qtrue,qtrue);
+					UI_SetColor( NULL );
+					break;
+				case UI_RES_CHECKBOX:
+					trap_Cvar_Update( &res->linkcvar );
+					if (res->linkcvar.integer)
+						UI_DrawHandlePic( res->rect[0], res->rect[1], UI_CHECKBOX_SIZE, UI_CHECKBOX_SIZE, res->checked_shader );
+					else UI_DrawHandlePic( res->rect[0], res->rect[1], UI_CHECKBOX_SIZE, UI_CHECKBOX_SIZE, res->unchecked_shader );
+					break;
+				case UI_RES_PULLDOWN:
+					if (res->pressed == qtrue) {
+						UI_DrawHandlePic( res->rect[0], res->rect[1], res->rect[2], res->rect[3], res->selmenushader );
+						UI_DrawBox( res->rect[0]+res->rect[2], res->rect[1], 128, 16 * res->selentries +3, qfalse );
+						for (k=0;k<res->selentries;k++)
+							trap_R_Text_Paint( &res->font, res->rect[0]+res->rect[2]+3,3+res->rect[1]+(k*16),1,1,res->linkstring1[k],0,0,qtrue,qtrue );
+					}
+					else {
+						UI_DrawHandlePic( res->rect[0], res->rect[1], res->rect[2], res->rect[3], res->menushader );
+					}
+					break;
 			}
 		}
 	}
@@ -471,3 +581,30 @@ void UI_SetColor( const float *rgba ) {
 void UI_CmdExecute( const char *text ){
 	trap_Cmd_ExecuteText( EXEC_APPEND, text );
 }
+
+// Wombat
+/*
+=================
+UI_DrawBox
+ctrCoord == qtrue: draw box with center at x,y
+ctrCoord == qfalse: box with upper left corner at x,y
+=================
+*/
+#define LINE_THICKNESS	1
+void	UI_DrawBox( int x, int y, int w, int h, qboolean ctrCoord ) {
+
+	if ( ctrCoord ) {
+		x -= w/2;
+		y -= h/2;
+	}
+
+	trap_R_SetColor( color_gray );
+	trap_R_DrawStretchPic( x*uis.xscale, y*uis.yscale, w*uis.xscale, h*uis.yscale, 0, 0, 16, 16, uis.blackShader );
+	trap_R_SetColor( color_white );
+	trap_R_DrawStretchPic( x*uis.xscale, y*uis.yscale, w*uis.xscale, LINE_THICKNESS*uis.yscale, 0, 0, 32, 32, uis.whiteShader );
+	trap_R_DrawStretchPic( x*uis.xscale, y*uis.yscale, LINE_THICKNESS*uis.xscale, h*uis.yscale, 0, 0, 32, 32, uis.whiteShader );
+	trap_R_DrawStretchPic( x*uis.xscale, (y+h)*uis.yscale, w*uis.xscale, LINE_THICKNESS*uis.yscale, 0, 0, 32, 32, uis.whiteShader );
+	trap_R_DrawStretchPic( (x+w)*uis.xscale, y*uis.yscale, LINE_THICKNESS*uis.xscale, (h+LINE_THICKNESS)*uis.yscale, 0, 0, 32, 32, uis.whiteShader );
+	trap_R_SetColor( NULL );
+}
+

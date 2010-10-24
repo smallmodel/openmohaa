@@ -49,6 +49,8 @@ void UI_ParseMenuResource( const char *token, char **ptr, uiResource_t *res ) {
 			res->borderstyle = UI_BORDER_RAISED;
 		else if ( !Q_strncmp(var,"INDENT_BORDER",13) )
 			res->borderstyle = UI_BORDER_INDENT;
+		else if ( !Q_strncmp(var,"3D_BORDER",9) )
+			res->borderstyle = UI_BORDER_3D;
 		else res->borderstyle = UI_BORDER_NONE;
 	}
 	else if ( !Q_strncmp( token, "shader", 6 ) ) {
@@ -97,6 +99,70 @@ void UI_ParseMenuResource( const char *token, char **ptr, uiResource_t *res ) {
 	}
 	else if ( !Q_strncmp( token, "unchecked_shader", 16 ) ) {
 		res->unchecked_shader = trap_R_RegisterShaderNoMip( PARSE_PTR );
+	}
+	else if ( !Q_strncmp( token, "menushader", 10 ) ) {
+		PARSE_PTR;
+		res->menushader = trap_R_RegisterShaderNoMip( PARSE_PTR );
+	}
+	else if ( !Q_strncmp( token, "selmenushader", 13 ) ) {
+		PARSE_PTR;
+		res->selmenushader = trap_R_RegisterShaderNoMip( PARSE_PTR );
+	}
+	else if ( !Q_strncmp( token, "linkstring", 10 ) ) {
+		if ( res->selentries >= UI_MAX_SELECT ) {
+			Com_Printf( "Too many select entries %i\n", res->selentries );
+			PARSE_PTR;
+			PARSE_PTR;
+			return;
+		}
+		Q_strncpyz( res->linkstring1[res->selentries], PARSE_PTR, UI_MAX_NAME );
+		Q_strncpyz( res->linkstring2[res->selentries], PARSE_PTR, UI_MAX_NAME );
+		res->selentries++;
+	}
+	else if ( !Q_strncmp( token, "addpopup", 8 ) ) {
+		PARSE_PTR;
+		if ( res->selentries >= UI_MAX_SELECT ) {
+			Com_Printf( "Too many select entries %i\n", res->selentries );
+			PARSE_PTR;
+			PARSE_PTR;
+			PARSE_PTR;
+			return;
+		}
+		Q_strncpyz( res->linkstring1[res->selentries], PARSE_PTR, UI_MAX_NAME );
+		PARSE_PTR;
+		Com_sprintf( res->linkstring2[res->selentries], UI_MAX_NAME, "%s\n", PARSE_PTR );
+		res->selentries++;
+	}
+	else if ( !Q_strncmp( token, "ordernumber", 11 ) ) {
+		res->ordernumber = atoi(PARSE_PTR);
+	}
+	else if ( !Q_strncmp( token, "slidertype", 10 ) ) {
+		res->ordernumber = atoi(PARSE_PTR);
+	}
+	else if ( !Q_strncmp( token, "setrange", 8 ) ) {
+		res->flRange[0] = atof(PARSE_PTR);
+		res->flRange[1] = atof(PARSE_PTR);
+	}
+	else if ( !Q_strncmp( token, "stepsize", 8 ) ) {
+		res->flStepsize = atof(PARSE_PTR);
+	}
+	else if ( !Q_strncmp( token, "rendermodel", 11 ) ) {
+		res->rendermodel = (qboolean)atoi(PARSE_PTR);
+	}
+	else if ( !Q_strncmp( token, "modeloffset", 1 ) ) {
+		Q_strncpyz( res->modeloffset, PARSE_PTR, UI_MAX_NAME );
+	}
+	else if ( !Q_strncmp( token, "modelrotateoffset", 17 ) ) {
+		Q_strncpyz( res->modelrotateoffset, PARSE_PTR, UI_MAX_NAME );
+	}
+	else if ( !Q_strncmp( token, "modelangles", 11 ) ) {
+		Q_strncpyz( res->modelangles, PARSE_PTR, UI_MAX_NAME );
+	}
+	else if ( !Q_strncmp( token, "modelscale", 10 ) ) {
+		res->modelscale = atof(PARSE_PTR);
+	}
+	else if ( !Q_strncmp( token, "modelanim", 9 ) ) {
+		Q_strncpyz( res->modelanim, PARSE_PTR, UI_MAX_NAME );
 	}
 	else if ( !Q_strncmp( token, "resource", 8 ) ) {
 		Com_Printf( "UI_ParseMenuResource: new resource not expected: forgot }?\n", *ptr );
@@ -178,6 +244,7 @@ qboolean UI_ParseMenuToken( const char *token, char **ptr, uiMenu_t *menu ) {
 			return qfalse;
 		}
 		res = &menu->resources[menu->resPtr];
+		trap_R_RegisterFont( "facfont-20", 0, &res->font ); //load standard font for resource
 
 		var = PARSE_PTR;
 		if ( !Q_strncmp( var, "Label", 5 ) )
@@ -188,6 +255,10 @@ qboolean UI_ParseMenuToken( const char *token, char **ptr, uiMenu_t *menu ) {
 			res->type = UI_RES_FIELD;
 		else if ( !Q_strncmp( var, "CheckBox", 8 ) )
 			res->type = UI_RES_CHECKBOX;
+		else if ( !Q_strncmp( var, "PulldownMenuContainer", 21 ) )
+			res->type = UI_RES_PULLDOWN;
+		else if ( !Q_strncmp( var, "Slider", 6 ) )
+			res->type = UI_RES_SLIDER;
 		else Com_Printf( "UI_ParseMenuToken: unknown menu resource type %s\n", var );
 
 		var = PARSE_PTR ;
@@ -201,6 +272,11 @@ qboolean UI_ParseMenuToken( const char *token, char **ptr, uiMenu_t *menu ) {
 					menu->resPtr--;
 					return qfalse;
 				}
+			}
+			// "startnew" and "changemap" buttons are equal. we skip changemap
+			if (!Q_strncmp(res->name,"changemap",UI_MAX_NAME)) {
+				Com_Memset( res, 0, sizeof(uiResource_t) );
+				menu->resPtr--;
 			}
 			return qfalse;
 		}
@@ -251,6 +327,7 @@ void	UI_LoadINC( const char *name, uiMenu_t *menu ) {
 				return;
 			}
 			res = &menu->resources[menu->resPtr];
+			trap_R_RegisterFont( "facfont-20", 0, &res->font ); //load standard font for resource
 
 			var = COM_Parse( &ptr );
 			if ( !Q_strncmp( var, "Label", 5 ) )
@@ -261,6 +338,10 @@ void	UI_LoadINC( const char *name, uiMenu_t *menu ) {
 				res->type = UI_RES_FIELD;
 			else if ( !Q_strncmp( var, "CheckBox", 8 ) )
 				res->type = UI_RES_CHECKBOX;
+			else if ( !Q_strncmp( var, "PulldownMenuContainer", 21 ) )
+				res->type = UI_RES_PULLDOWN;
+			else if ( !Q_strncmp( var, "Slider", 6 ) )
+				res->type = UI_RES_SLIDER;
 			else Com_Printf( "UI_ParseMenuToken: unknown menu resource type %s\n", var );
 
 			var = COM_Parse( &ptr ) ;
@@ -299,7 +380,7 @@ void	UI_LoadURC( const char *name, uiMenu_t *menu ) {
 
 	len = trap_FS_FOpenFile( filename, &f, FS_READ);
 	if (!f) {
-		Com_Printf( "couldn't load URC menu %s\n", name );
+		Com_Printf( "couldn't load URC menu %s. file not found.\n", name );
 		return;
 	}
 	if ( len > UI_MAX_URCSIZE ) {
@@ -333,9 +414,11 @@ void	UI_PushMenu( const char *name ) {
 	}
 	Com_Memset( &uis.menuStack[uis.msp], 0, sizeof(uiMenu_t) );
 
-	// remap mpoptions menu to multiplayeroptions.urc
+	// remap mpoptions menus where menu name and file name disagree
 	if ( !Q_strncmp( name, "mpoptions", 9 ) )
 		UI_LoadURC( "multiplayeroptions", &uis.menuStack[uis.msp] );
+	else if ( !Q_strncmp( name, "video_options", 9 ) )
+		UI_LoadURC( "video options", &uis.menuStack[uis.msp] );
 	else
 		UI_LoadURC( name, &uis.menuStack[uis.msp] );
 }

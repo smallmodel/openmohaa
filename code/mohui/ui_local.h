@@ -32,8 +32,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #define UI_MAX_URCSIZE		131072
 #define UI_MAX_MENUS		64
-#define UI_MAX_NAME			64
+#define UI_MAX_NAME			128
 #define UI_MAX_RESOURCES	128
+#define UI_MAX_SELECT		32
 
 #define UI_CHECKBOX_SIZE	16
 
@@ -42,7 +43,8 @@ typedef void (*voidfunc_f)(void);
 typedef enum uiBorderstyle_s {
 	UI_BORDER_NONE,
 	UI_BORDER_RAISED,
-	UI_BORDER_INDENT
+	UI_BORDER_INDENT,
+	UI_BORDER_3D
 } uiBorderstyle_t;
 
 typedef enum uiMenuDirection_s {
@@ -66,8 +68,13 @@ typedef enum uiResType_s {
 	UI_RES_FIELD,
 	UI_RES_LIST,
 	UI_RES_LISTBOX,
-	UI_RES_SLIDER
+	UI_RES_SLIDER,
+	UI_RES_PULLDOWN
 } uiResType_t;
+
+typedef enum uiSlidertype_s {
+	UI_ST_FLOAT
+} uiSlidertype_t;
 
 typedef struct uiResource_s {
 	uiResType_t			type;
@@ -92,14 +99,32 @@ typedef struct uiResource_s {
 	vmCvar_t			linkcvar;
 	char				linkcvarname[UI_MAX_NAME];
 	qboolean			linkcvartoshader;
+	char				linkstring1[UI_MAX_SELECT][UI_MAX_NAME]; //eating memory here!
+	char				linkstring2[UI_MAX_SELECT][UI_MAX_NAME];
 
 	char				title[UI_MAX_NAME];
 	uiTextalign_t		textalign;
+	qhandle_t			menushader;
+	qhandle_t			selmenushader;
+	int					selentries;
+
+	uiSlidertype_t		slidertype;
+	float				flRange[2];
+	float				flStepsize;
+
+	qboolean			rendermodel;
+	char				modeloffset[UI_MAX_NAME];
+	char				modelrotateoffset[UI_MAX_NAME];
+	char				modelangles[UI_MAX_NAME];
+	float				modelscale;
+	char				modelanim[UI_MAX_NAME];
 
 	fontInfo_t			font;
+	int					ordernumber;
 
 	qboolean			active;
 	qboolean			lastState;
+	qboolean			pressed;
 
 } uiResource_t;
 
@@ -167,6 +192,7 @@ void UI_SetColor( const float *rgba );
 void UI_UpdateScreen( void );
 void UI_DrawHandlePic( float x, float y, float w, float h, qhandle_t hShader );
 void UI_CmdExecute( const char *text );
+void UI_DrawBox( int x, int y, int w, int h, qboolean ctrCoord );
 
 // ui_urc.c
 void	UI_LoadINC( const char *name, uiMenu_t *menu );

@@ -413,6 +413,7 @@ int COM_Compress( char *data_p ) {
 char *COM_ParseExt( char **data_p, qboolean allowLineBreaks )
 {
 	int c = 0, len;
+	int d;
 	qboolean hasNewLines = qfalse;
 	char *data;
 
@@ -478,7 +479,8 @@ char *COM_ParseExt( char **data_p, qboolean allowLineBreaks )
 		while (1)
 		{
 			c = *data++;
-			if (c=='\"' || !c)
+			d = *(data-2);
+			if ((c=='\"'&&d!='\\') || !c)	//wombat: skip \" quotes inside "..."
 			{
 				com_token[len] = 0;
 				*data_p = ( char * ) data;

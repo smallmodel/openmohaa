@@ -672,7 +672,7 @@ void CL_ParseCGMessage( msg_t *msg ) {
 
 	do {
 		msgtype = MSG_ReadBits( msg, 6 );
-//Com_DPrintf( "CL_ParseCGMessage: command type %i\n", msgtype ); 
+//Com_Printf( "CL_ParseCGMessage: command type %i\n", msgtype ); 
 		switch ( msgtype ) {
 			case 1: // BulletTracer (visible?)
 				vecTmp[0] = MSG_ReadCoord(msg);
@@ -821,6 +821,7 @@ void CL_ParseCGMessage( msg_t *msg ) {
 				iCount = MSG_ReadByte( msg );
 				MSG_ReadBits( msg, 2 );
 				// HUD drawing...
+				MSG_ReadBits( msg, 2 );
 				break;
 			case 29:
 				iCount = MSG_ReadByte( msg );

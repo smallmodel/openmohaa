@@ -807,7 +807,7 @@ void RE_Text_Paint(fontInfo_t *font, float x, float y, float scale, float alpha,
 			glyph = &font->glyphs[(int)*s]; // TTimo: FIXME: getting nasty warnings without the cast, hopefully this doesn't break the VM build
 			if (*s != '\n' && glyph->imageWidth == 0 && glyph->imageHeight == 0) {
 				glyph = &font->glyphs['?'];
-				ri.Printf(PRINT_WARNING, "RE_Text_Paint: no #%d character in font %s!\n", (int)*s, font->name);
+				//ri.Printf(PRINT_WARNING, "RE_Text_Paint: no #%d character in font %s!\n", (int)*s, font->name);
 			}
 			if (useColourCodes && Q_IsColorString(s)) {
 				memcpy(newColor, g_color_table[ColorIndex(*(s+1))], sizeof(newColor));
