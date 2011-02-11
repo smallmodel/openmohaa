@@ -49,7 +49,10 @@ char *Sys_DefaultHomePath( void )
 {
 	TCHAR szPath[MAX_PATH];
 	FARPROC qSHGetFolderPath;
-	HMODULE shfolder = LoadLibrary("shfolder.dll");
+	HMODULE shfolder;
+
+	return NULL;
+	shfolder = LoadLibrary("shfolder.dll");
 
 	if( !*homePath )
 	{

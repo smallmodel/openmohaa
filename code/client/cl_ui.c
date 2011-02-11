@@ -1143,11 +1143,9 @@ void CL_InitUI( void ) {
 	else {
 		interpret = Cvar_VariableValue( "vm_ui" );
 	}
-#ifdef UI_MOH
-	uivm = VM_Create( "mohui", CL_UISystemCalls, interpret );
-#else
+
 	uivm = VM_Create( "ui", CL_UISystemCalls, interpret );
-#endif
+
 	if ( !uivm ) {
 		Com_Error( ERR_FATAL, "VM_Create on UI failed" );
 	}

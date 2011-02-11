@@ -1,6 +1,6 @@
 /*
 ===========================================================================
-Copyright (C) 1999-2005 wombat, Inc.
+Copyright (C) 2010-2011 wombat
 
 This file is part of OpenMohaa source code.
 

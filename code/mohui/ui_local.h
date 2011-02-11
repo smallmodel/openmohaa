@@ -1,6 +1,6 @@
 /*
 ===========================================================================
-Copyright (C) 1999-2005 wombat, Inc.
+Copyright (C) 2010-2011 wombat
 
 This file is part of OpenMohaa source code.
 
@@ -144,6 +144,8 @@ typedef struct uiMenu_s {
 
 	uiResource_t	resources[UI_MAX_RESOURCES];
 	int				resPtr;
+
+	struct uiMenu_s		*next;
 } uiMenu_t;
 
 // ui_quarks.c
@@ -170,8 +172,7 @@ typedef struct {
 	// wombat
 	fontInfo_t			menuFont;
 
-	uiMenu_t			menuStack[UI_MAX_MENUS];
-	int					msp;	//menu stack pointer
+	uiMenu_t			*menuStack;
 } uiStatic_t;
 
 

@@ -1,6 +1,6 @@
 /*
 ===========================================================================
-Copyright (C) 1999-2005 wombat, Inc.
+Copyright (C) 2010-2011 wombat
 
 This file is part of OpenMohaa source code.
 
@@ -165,7 +165,7 @@ void UI_ParseMenuResource( const char *token, char **ptr, uiResource_t *res ) {
 		Q_strncpyz( res->modelanim, PARSE_PTR, UI_MAX_NAME );
 	}
 	else if ( !Q_strncmp( token, "resource", 8 ) ) {
-		Com_Printf( "UI_ParseMenuResource: new resource not expected: forgot }?\n", *ptr );
+		Com_Printf( "UI_ParseMenuResource: new resource not expected: forgot }?\n" );
 	}
 	else {
 		Com_Printf( "UI_ParseMenuResource: unknown token %s\n", token );
@@ -406,24 +406,35 @@ void	UI_LoadURC( const char *name, uiMenu_t *menu ) {
 }
 
 void	UI_PushMenu( const char *name ) {
+	uiMenu_t	*menu;
 
-	uis.msp++;
-	if ( uis.msp >= UI_MAX_MENUS ) {
-		Com_Printf( "UI_PushMenu: cannot load more than %i menus\n", UI_MAX_MENUS );
+	menu = Hunk_Alloc( sizeof(uiMenu_t), h_high );	
+	if ( menu == NULL ) {
+		Com_Printf( "UI_PushMenu: didn't get memory to load menu %s\n", name );
 		return;
 	}
-	Com_Memset( &uis.menuStack[uis.msp], 0, sizeof(uiMenu_t) );
+	
+	if ( uis.menuStack == NULL )
+		uis.menuStack = menu;
+	else
+		uis.menuStack->next = menu;
+//	Com_Memset( &uis.menuStack[uis.msp], 0, sizeof(uiMenu_t) );
 
 	// remap mpoptions menus where menu name and file name disagree
 	if ( !Q_strncmp( name, "mpoptions", 9 ) )
-		UI_LoadURC( "multiplayeroptions", &uis.menuStack[uis.msp] );
+		UI_LoadURC( "multiplayeroptions", menu );
 	else if ( !Q_strncmp( name, "video_options", 9 ) )
-		UI_LoadURC( "video options", &uis.menuStack[uis.msp] );
+		UI_LoadURC( "video options", menu );
 	else
-		UI_LoadURC( name, &uis.menuStack[uis.msp] );
+		UI_LoadURC( name, menu );
 }
 
 void	UI_PopMenu( void ) {
-	if (uis.msp >0)
-		uis.msp--;
+	uiMenu_t *menu;
+
+	menu = uis.menuStack;
+	while ( menu->next && menu->next->next )
+		menu = menu->next;
+
+	menu->next = NULL;
 }

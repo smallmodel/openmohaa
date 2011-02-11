@@ -404,7 +404,7 @@ void *Sys_LoadDll( const char *name, char *fqpath ,
 
 	assert( name );
 
-	Q_snprintf (fname, sizeof(fname), "%s" ARCH_STRING DLL_EXT, name);
+	Q_snprintf (fname, sizeof(fname), "%s" ARCH_STRING "opm" DLL_EXT, name);
 
 	// TODO: use fs_searchpaths from files.c
 	pwdpath = Sys_Cwd();

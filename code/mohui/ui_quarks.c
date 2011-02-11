@@ -1,6 +1,6 @@
 /*
 ===========================================================================
-Copyright (C) 1999-2005 wombat, Inc.
+Copyright (C) 2010-2011 wombat
 
 This file is part of OpenMohaa source code.
 
@@ -124,23 +124,23 @@ static cvarTable_t		cvarTable[] = {
 	{ &ui_voodoo, "ui_voodoo", "0", CVAR_ARCHIVE },
 	{ &ui_signshader, "ui_signshader", "", CVAR_TEMP },
 	{ &ui_dmmap, "ui_dmmap", "dm/mohdm1", CVAR_ARCHIVE },
-	{ &ui_dmmap, "ui_inactivespectate", "60", CVAR_ARCHIVE },
-	{ &ui_dmmap, "ui_inactivekick", "900", CVAR_ARCHIVE },
-	{ &ui_dmmap, "ui_hostname", "openmohaa battle", CVAR_ARCHIVE },
-	{ &ui_dmmap, "ui_maplist_team", "dm/mohdm1 dm/mohdm2 dm/mohdm3 dm/mohdm4 dm/mohdm5 dm/mohdm6 dm/mohdm7", CVAR_ARCHIVE },
-	{ &ui_dmmap, "ui_dedicated", "0", CVAR_ARCHIVE },
-	{ &ui_dmmap, "ui_gamespy", "1", CVAR_ARCHIVE },
-	{ &ui_dmmap, "ui_maxclients", "20", CVAR_ARCHIVE },
-	{ &ui_dmmap, "ui_timelimit", "0", CVAR_ARCHIVE },
-	{ &ui_dmmap, "ui_fraglimit", "0", CVAR_ARCHIVE },
-	{ &ui_dmmap, "ui_teamdamage", "1", CVAR_ARCHIVE },
-	{ &ui_dmmap, "cg_drawviewmodel", "2", CVAR_ARCHIVE },
-	{ &ui_dmmap, "ter_error", "4", CVAR_ARCHIVE },
-	{ &ui_dmmap, "r_lodscale", "1.1", CVAR_ARCHIVE },
-	{ &ui_dmmap, "ter_maxlod", "6", CVAR_ARCHIVE },
-	{ &ui_dmmap, "cg_effectdetail", "1.0", CVAR_ARCHIVE },
-	{ &ui_dmmap, "r_subdivisions", "3", CVAR_ARCHIVE },
-	{ &ui_dmmap, "cg_shadows", "2", CVAR_ARCHIVE }
+	{ &ui_inactivespectate, "ui_inactivespectate", "60", CVAR_ARCHIVE },
+	{ &ui_inactivekick, "ui_inactivekick", "900", CVAR_ARCHIVE },
+	{ &ui_hostname, "ui_hostname", "openmohaa battle", CVAR_ARCHIVE },
+	{ &ui_maplist_team, "ui_maplist_team", "dm/mohdm1 dm/mohdm2 dm/mohdm3 dm/mohdm4 dm/mohdm5 dm/mohdm6 dm/mohdm7", CVAR_ARCHIVE },
+	{ &ui_dedicated, "ui_dedicated", "0", CVAR_ARCHIVE },
+	{ &ui_gamespy, "ui_gamespy", "1", CVAR_ARCHIVE },
+	{ &ui_maxclients, "ui_maxclients", "20", CVAR_ARCHIVE },
+	{ &ui_timelimit, "ui_timelimit", "0", CVAR_ARCHIVE },
+	{ &ui_fraglimit, "ui_fraglimit", "0", CVAR_ARCHIVE },
+	{ &ui_teamdamage, "ui_teamdamage", "1", CVAR_ARCHIVE },
+	{ &cg_drawviewmodel, "cg_drawviewmodel", "2", CVAR_ARCHIVE },
+	{ &ter_error, "ter_error", "4", CVAR_ARCHIVE },
+	{ &r_lodscale, "r_lodscale", "1.1", CVAR_ARCHIVE },
+	{ &ter_maxlod, "ter_maxlod", "6", CVAR_ARCHIVE },
+	{ &cg_effectdetail, "cg_effectdetail", "1.0", CVAR_ARCHIVE },
+	{ &r_subdivisions, "r_subdivisions", "3", CVAR_ARCHIVE },
+	{ &cg_shadows, "cg_shadows", "2", CVAR_ARCHIVE }
 };
 
 static int cvarTableSize = sizeof(cvarTable) / sizeof(cvarTable[0]);
@@ -198,7 +198,7 @@ UI_Init
 */
 void UI_Init( void ) {
 	UI_RegisterCvars();
-
+Com_Printf( "hello mama\n" );
 //	UI_InitGameinfo();
 
 	// cache redundant calulations
@@ -220,7 +220,7 @@ void UI_Init( void ) {
 	// initialize the menu system
 	UI_RegisterMedia();
 
-	uis.msp = -1;
+	uis.menuStack = NULL;
 	UI_PushMenu( "main" );
 }
 
@@ -241,7 +241,10 @@ void UI_KeyEvent( int key, int down ) {
 //	Com_Printf( "key %i, down %i\n", key, down );
 
 	if (!down) {
-		menu = &uis.menuStack[uis.msp];
+		menu = uis.menuStack;
+		while (menu->next)
+			menu = menu->next;
+
 		for (i=0;i<=menu->resPtr;i++) {
 			res = &menu->resources[i];
 			if (res->pressed == qtrue) {
@@ -263,7 +266,10 @@ void UI_KeyEvent( int key, int down ) {
 			break;
 		case K_MOUSE1:
 		case K_ENTER:
-			menu = &uis.menuStack[uis.msp];
+			menu = uis.menuStack;
+			while (menu->next)
+				menu = menu->next;
+			
 			for (i=0;i<=menu->resPtr;i++) {
 				res = &menu->resources[i];
 				if (res->active ==qfalse)
@@ -285,7 +291,9 @@ void UI_KeyEvent( int key, int down ) {
 			}
 			break;
 		case K_BACKSPACE:
-			menu = &uis.menuStack[uis.msp];
+			menu = uis.menuStack;
+			while (menu->next)
+				menu = menu->next;
 			for (i=0;i<=menu->resPtr;i++) {
 				res = &menu->resources[i];
 				if (res->active ==qfalse)
@@ -300,7 +308,9 @@ void UI_KeyEvent( int key, int down ) {
 		default:
 			if ( key&K_CHAR_FLAG )
 				break;
-			menu = &uis.menuStack[uis.msp];
+			menu = uis.menuStack;
+			while (menu->next)
+				menu = menu->next;
 			for (i=0;i<=menu->resPtr;i++) {
 				res = &menu->resources[i];
 				if (res->active ==qfalse)
@@ -346,7 +356,9 @@ void UI_MouseEvent( int dx, int dy )
 		uis.cursory = SCREEN_HEIGHT;
 
 	// region test the active menu items
-	menu = &uis.menuStack[uis.msp];
+	menu = uis.menuStack;
+	while (menu->next)
+		menu = menu->next;
 	for (i=0; i<=menu->resPtr;i++) {
 		res = &menu->resources[i];
 		if (res->type != UI_RES_BUTTON
@@ -394,11 +406,11 @@ void UI_Refresh( int realtime )
 
 	UI_UpdateCvars();
 
-	for ( i=0; i<=uis.msp; i++ ) {
-		menu = &uis.menuStack[i];
+	menu = uis.menuStack;
+	while ( menu ) {
 		for (j=0; j<=menu->resPtr; j++ ) {
 			res = &menu->resources[j];
-			if (i==uis.msp) //foreground menu
+			if (menu->next==NULL) //foreground menu
 				UI_SetColor( res->fgcolor );
 			else UI_SetColor( res->bgcolor );
 			switch ( res->type ) {
@@ -460,6 +472,7 @@ void UI_Refresh( int realtime )
 					break;
 			}
 		}
+		menu = menu->next;
 	}
 
 	// draw cursor
@@ -468,8 +481,14 @@ void UI_Refresh( int realtime )
 }
 
 qboolean UI_IsFullscreen( void ) {
-	if ( uis.msp!=-1 && ( trap_Key_GetCatcher() & KEYCATCH_UI ) ) {
-		return uis.menuStack[uis.msp].fullscreen;
+	uiMenu_t *menu;
+
+	menu = uis.menuStack;
+	if ( menu!=NULL && ( trap_Key_GetCatcher() & KEYCATCH_UI ) ) {
+		while (menu->next)
+			menu = menu->next;
+		
+		return menu->fullscreen;
 	}
 
 	return qfalse;
@@ -501,8 +520,8 @@ qboolean UI_ConsoleCommand( int realTime ) {
 
 
 
-	if ( Q_stricmp (cmd, "ui_mohtest") == 0 ) {
-		Com_Printf( "openmohaa menu up and running!\n" );
+	if ( Q_stricmp (cmd, "ui_test") == 0 ) {
+		Com_Printf( "openmohaa menu up and running!\n giving values %i uiMenu_t, %i uiResource_t\n", sizeof(uiMenu_t), sizeof(uiResource_t) );
 		return qtrue;
 	}
 	else if ( Q_stricmp (cmd, "pushmenu") == 0 ) {

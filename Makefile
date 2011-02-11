@@ -85,7 +85,7 @@ endif
 export CROSS_COMPILING
 
 ifndef COPYDIR
-COPYDIR="/usr/local/games/quake3"
+COPYDIR="/usr/local/games/openmohaa"
 endif
 
 ifndef MOUNT_DIR
@@ -143,8 +143,8 @@ GDIR=$(MOUNT_DIR)/game
 CGDIR=$(MOUNT_DIR)/cgame
 BLIBDIR=$(MOUNT_DIR)/botlib
 NDIR=$(MOUNT_DIR)/null
-UIDIR=$(MOUNT_DIR)/ui
-Q3UIDIR=$(MOUNT_DIR)/q3_ui
+UIDIR=$(MOUNT_DIR)/mohui
+Q3UIDIR=$(MOUNT_DIR)/mohui
 JPDIR=$(MOUNT_DIR)/jpeg-6
 Q3ASMDIR=$(MOUNT_DIR)/tools/asm
 LBURGDIR=$(MOUNT_DIR)/tools/lcc/lburg
@@ -735,9 +735,9 @@ endif
 
 ifneq ($(BUILD_GAME_SO),0)
   TARGETS += \
-    $(B)/main/cgame$(ARCH).$(SHLIBEXT) \
-    $(B)/main/qagame$(ARCH).$(SHLIBEXT) \
-    $(B)/main/ui$(ARCH).$(SHLIBEXT)     #\
+    $(B)/main/cgame$(ARCH)opm.$(SHLIBEXT) \
+    $(B)/main/game$(ARCH)opm.$(SHLIBEXT) \
+    $(B)/main/ui$(ARCH)opm.$(SHLIBEXT)     #\
 #    $(B)/missionpack/cgame$(ARCH).$(SHLIBEXT) \
 #    $(B)/missionpack/qagame$(ARCH).$(SHLIBEXT) \
 #    $(B)/missionpack/ui$(ARCH).$(SHLIBEXT)
@@ -746,9 +746,9 @@ endif
 ifneq ($(BUILD_GAME_QVM),0)
   ifneq ($(CROSS_COMPILING),1)
     TARGETS += \
-      $(B)/main/vm/cgame.qvm \
-      $(B)/main/vm/qagame.qvm \
-      $(B)/main/vm/ui.qvm #\
+      $(B)/main/vm/opencgame.qvm \
+      $(B)/main/vm/opengame.qvm \
+      $(B)/main/vm/openui.qvm #\
 #      $(B)/missionpack/vm/qagame.qvm \
 #      $(B)/missionpack/vm/cgame.qvm \
 #      $(B)/missionpack/vm/ui.qvm
@@ -1195,6 +1195,7 @@ Q3OBJ = \
   $(B)/client/tr_shader.o \
   $(B)/client/tr_shadows.o \
   $(B)/client/tr_sky.o \
+  $(B)/client/tr_sprite.o \
   $(B)/client/tr_surface.o \
   $(B)/client/tr_world.o \
   \
@@ -1427,7 +1428,7 @@ Q3CGOBJ_ = \
 Q3CGOBJ = $(Q3CGOBJ_) $(B)/main/cgame/cg_syscalls.o
 Q3CGVMOBJ = $(Q3CGOBJ_:%.o=%.asm)
 
-$(B)/main/cgame$(ARCH).$(SHLIBEXT): $(Q3CGOBJ)
+$(B)/main/cgame$(ARCH)opm.$(SHLIBEXT): $(Q3CGOBJ)
 	$(echo_cmd) "LD $@"
 	$(Q)$(CC) $(SHLIBLDFLAGS) -o $@ $(Q3CGOBJ)
 
@@ -1524,7 +1525,7 @@ Q3GOBJ_ = \
 Q3GOBJ = $(Q3GOBJ_) $(B)/main/game/g_syscalls.o
 Q3GVMOBJ = $(Q3GOBJ_:%.o=%.asm)
 
-$(B)/main/qagame$(ARCH).$(SHLIBEXT): $(Q3GOBJ)
+$(B)/main/game$(ARCH)opm.$(SHLIBEXT): $(Q3GOBJ)
 	$(echo_cmd) "LD $@"
 	$(Q)$(CC) $(SHLIBLDFLAGS) -o $@ $(Q3GOBJ)
 
@@ -1591,54 +1592,16 @@ $(B)/missionpack/vm/qagame.qvm: $(MPGVMOBJ) $(GDIR)/g_syscalls.asm $(Q3ASM)
 
 Q3UIOBJ_ = \
   $(B)/main/ui/ui_main.o \
-  $(B)/main/game/bg_misc.o \
-  $(B)/main/game/bg_lib.o \
-  $(B)/main/ui/ui_addbots.o \
-  $(B)/main/ui/ui_atoms.o \
-  $(B)/main/ui/ui_cdkey.o \
-  $(B)/main/ui/ui_cinematics.o \
-  $(B)/main/ui/ui_confirm.o \
-  $(B)/main/ui/ui_connect.o \
-  $(B)/main/ui/ui_controls2.o \
-  $(B)/main/ui/ui_credits.o \
-  $(B)/main/ui/ui_demo2.o \
-  $(B)/main/ui/ui_display.o \
-  $(B)/main/ui/ui_gameinfo.o \
-  $(B)/main/ui/ui_ingame.o \
-  $(B)/main/ui/ui_loadconfig.o \
-  $(B)/main/ui/ui_menu.o \
-  $(B)/main/ui/ui_mfield.o \
-  $(B)/main/ui/ui_mods.o \
-  $(B)/main/ui/ui_network.o \
-  $(B)/main/ui/ui_options.o \
-  $(B)/main/ui/ui_playermodel.o \
-  $(B)/main/ui/ui_players.o \
-  $(B)/main/ui/ui_playersettings.o \
-  $(B)/main/ui/ui_preferences.o \
-  $(B)/main/ui/ui_qmenu.o \
-  $(B)/main/ui/ui_removebots.o \
-  $(B)/main/ui/ui_saveconfig.o \
-  $(B)/main/ui/ui_serverinfo.o \
-  $(B)/main/ui/ui_servers2.o \
-  $(B)/main/ui/ui_setup.o \
-  $(B)/main/ui/ui_sound.o \
-  $(B)/main/ui/ui_sparena.o \
-  $(B)/main/ui/ui_specifyserver.o \
-  $(B)/main/ui/ui_splevel.o \
-  $(B)/main/ui/ui_sppostgame.o \
-  $(B)/main/ui/ui_spskill.o \
-  $(B)/main/ui/ui_startserver.o \
-  $(B)/main/ui/ui_team.o \
-  $(B)/main/ui/ui_teamorders.o \
-  $(B)/main/ui/ui_video.o \
+  $(B)/main/ui/ui_quarks.o \
+  $(B)/main/ui/ui_urc.o \
   \
   $(B)/main/qcommon/q_math.o \
   $(B)/main/qcommon/q_shared.o
 
-Q3UIOBJ = $(Q3UIOBJ_) $(B)/missionpack/ui/ui_syscalls.o
+Q3UIOBJ = $(Q3UIOBJ_) $(B)/main/ui/ui_syscalls.o
 Q3UIVMOBJ = $(Q3UIOBJ_:%.o=%.asm)
 
-$(B)/main/ui$(ARCH).$(SHLIBEXT): $(Q3UIOBJ)
+$(B)/main/ui$(ARCH)opm.$(SHLIBEXT): $(Q3UIOBJ)
 	$(echo_cmd) "LD $@"
 	$(Q)$(CC) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(Q3UIOBJ)
 
