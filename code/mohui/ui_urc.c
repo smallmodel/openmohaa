@@ -27,7 +27,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 void UI_ParseMenuResource( const char *token, char **ptr, uiResource_t *res ) {
 	char	*var;
 	int		i;
-
+	
 	if ( !Q_strncmp( token, "name", 4 ) ) {
 		Q_strncpyz( res->name, PARSE_PTR, UI_MAX_NAME );
 	}
@@ -61,6 +61,7 @@ void UI_ParseMenuResource( const char *token, char **ptr, uiResource_t *res ) {
 		trap_Cvar_Register( &res->enabledcvar, PARSE_PTR, "", 0 );
 	}
 	else if ( !Q_strncmp( token, "stuffcommand", 12 ) ) {
+		res->stuffcommand = UI_Alloc( UI_MAX_NAME );
 		Com_sprintf( res->stuffcommand, UI_MAX_NAME, "%s\n", PARSE_PTR );
 		
 	}
@@ -69,22 +70,28 @@ void UI_ParseMenuResource( const char *token, char **ptr, uiResource_t *res ) {
 		res->hoverShader = trap_R_RegisterShaderNoMip( PARSE_PTR );
 	}
 	else if ( !Q_strncmp( token, "clicksound", 10 ) ) {
+		res->clicksound = UI_Alloc( UI_MAX_NAME );
 		Q_strncpyz( res->clicksound, PARSE_PTR, UI_MAX_NAME );
 	}
 	else if ( !Q_strncmp( token, "hovercommand", 12 ) ) {
+		res->hovercommand = UI_Alloc( UI_MAX_NAME );
 		Q_strncpyz( res->hovercommand, PARSE_PTR, UI_MAX_NAME );
 	}
 	else if ( !Q_strncmp( token, "linkcvartoshader", 16 ) ) {
 		res->linkcvartoshader = qtrue;
 	}
 	else if ( !Q_strncmp( token, "linkcvar", 8 ) ) {
+		res->linkcvarname = UI_Alloc( UI_MAX_NAME );
 		Q_strncpyz( res->linkcvarname, PARSE_PTR, UI_MAX_NAME );
 		trap_Cvar_Register( &res->linkcvar, res->linkcvarname, "", 0 );
 	}
 	else if ( !Q_strncmp( token, "font", 4 ) ) {
-		trap_R_RegisterFont( PARSE_PTR, 0, &res->font );
+//		trap_R_RegisterFont( PARSE_PTR, 0, &res->font );
+		PARSE_PTR;
+		res->font = &uis.menuFont;
 	}
 	else if ( !Q_strncmp( token, "title", 5 ) ) {
+		res->title = UI_Alloc( UI_MAX_NAME );
 		Q_strncpyz( res->title, PARSE_PTR, UI_MAX_NAME );
 	}
 	else if ( !Q_strncmp( token, "textalign", 9 ) ) {
@@ -115,6 +122,8 @@ void UI_ParseMenuResource( const char *token, char **ptr, uiResource_t *res ) {
 			PARSE_PTR;
 			return;
 		}
+		res->linkstring1[res->selentries] = UI_Alloc( UI_MAX_NAME );
+		res->linkstring2[res->selentries] = UI_Alloc( UI_MAX_NAME );
 		Q_strncpyz( res->linkstring1[res->selentries], PARSE_PTR, UI_MAX_NAME );
 		Q_strncpyz( res->linkstring2[res->selentries], PARSE_PTR, UI_MAX_NAME );
 		res->selentries++;
@@ -128,8 +137,10 @@ void UI_ParseMenuResource( const char *token, char **ptr, uiResource_t *res ) {
 			PARSE_PTR;
 			return;
 		}
+		res->linkstring1[res->selentries] = UI_Alloc( UI_MAX_NAME );
 		Q_strncpyz( res->linkstring1[res->selentries], PARSE_PTR, UI_MAX_NAME );
 		PARSE_PTR;
+		res->linkstring2[res->selentries] = UI_Alloc( UI_MAX_NAME );
 		Com_sprintf( res->linkstring2[res->selentries], UI_MAX_NAME, "%s\n", PARSE_PTR );
 		res->selentries++;
 	}
@@ -150,18 +161,22 @@ void UI_ParseMenuResource( const char *token, char **ptr, uiResource_t *res ) {
 		res->rendermodel = (qboolean)atoi(PARSE_PTR);
 	}
 	else if ( !Q_strncmp( token, "modeloffset", 1 ) ) {
+		res->modeloffset = UI_Alloc( UI_MAX_NAME );
 		Q_strncpyz( res->modeloffset, PARSE_PTR, UI_MAX_NAME );
 	}
 	else if ( !Q_strncmp( token, "modelrotateoffset", 17 ) ) {
+		res->modelrotateoffset = UI_Alloc( UI_MAX_NAME );
 		Q_strncpyz( res->modelrotateoffset, PARSE_PTR, UI_MAX_NAME );
 	}
 	else if ( !Q_strncmp( token, "modelangles", 11 ) ) {
+		res->modelangles = UI_Alloc( UI_MAX_NAME );
 		Q_strncpyz( res->modelangles, PARSE_PTR, UI_MAX_NAME );
 	}
 	else if ( !Q_strncmp( token, "modelscale", 10 ) ) {
 		res->modelscale = atof(PARSE_PTR);
 	}
 	else if ( !Q_strncmp( token, "modelanim", 9 ) ) {
+		res->modelanim = UI_Alloc( UI_MAX_NAME );
 		Q_strncpyz( res->modelanim, PARSE_PTR, UI_MAX_NAME );
 	}
 	else if ( !Q_strncmp( token, "resource", 8 ) ) {
@@ -203,12 +218,22 @@ qboolean UI_ParseMenuToken( const char *token, char **ptr, uiMenu_t *menu ) {
 		UI_LoadINC( menu->include, menu );
 		return qfalse;
 	}
+	else if ( !Q_strncmp( token, "align", 5 ) ) {
+		PARSE_PTR;
+		PARSE_PTR;
+		return qfalse;
+	}
 	else if ( !Q_strncmp( token, "vidmode", 7 ) ) {
 		menu->vidmode = atoi( PARSE_PTR );
 		return qfalse;
 	}
 	else if ( !Q_strncmp( token, "fadein", 7 ) ) {
 		menu->fadein = atof( PARSE_PTR );
+		return qfalse;
+	}
+	else if ( !Q_strncmp( token, "fgcolor", 7 ) ) {
+		for ( i=0;i<4;i++ )
+			menu->fgcolor[i] = atof( PARSE_PTR );
 		return qfalse;
 	}
 	else if ( !Q_strncmp( token, "bgcolor", 7 ) ) {
@@ -244,7 +269,8 @@ qboolean UI_ParseMenuToken( const char *token, char **ptr, uiMenu_t *menu ) {
 			return qfalse;
 		}
 		res = &menu->resources[menu->resPtr];
-		trap_R_RegisterFont( "facfont-20", 0, &res->font ); //load standard font for resource
+		res->font = &uis.menuFont;
+//		trap_R_RegisterFont( "facfont-20", 0, &res->font ); //load standard font for resource
 
 		var = PARSE_PTR;
 		if ( !Q_strncmp( var, "Label", 5 ) )
@@ -274,6 +300,7 @@ qboolean UI_ParseMenuToken( const char *token, char **ptr, uiMenu_t *menu ) {
 				}
 			}
 			// "startnew" and "changemap" buttons are equal. we skip changemap
+			// sigh sigh sigh
 			if (!Q_strncmp(res->name,"changemap",UI_MAX_NAME)) {
 				Com_Memset( res, 0, sizeof(uiResource_t) );
 				menu->resPtr--;
@@ -327,7 +354,8 @@ void	UI_LoadINC( const char *name, uiMenu_t *menu ) {
 				return;
 			}
 			res = &menu->resources[menu->resPtr];
-			trap_R_RegisterFont( "facfont-20", 0, &res->font ); //load standard font for resource
+			res->font = &uis.menuFont;
+//			trap_R_RegisterFont( "facfont-20", 0, &res->font ); //load standard font for resource
 
 			var = COM_Parse( &ptr );
 			if ( !Q_strncmp( var, "Label", 5 ) )
@@ -408,17 +436,15 @@ void	UI_LoadURC( const char *name, uiMenu_t *menu ) {
 void	UI_PushMenu( const char *name ) {
 	uiMenu_t	*menu;
 
-	menu = Hunk_Alloc( sizeof(uiMenu_t), h_high );	
-	if ( menu == NULL ) {
-		Com_Printf( "UI_PushMenu: didn't get memory to load menu %s\n", name );
+	uis.MSP++;
+	if ( uis.MSP >= UI_MAX_MENUS ) {
+		Com_Printf( "UI_PushMenu: max number of menus (%i) exceeded.\n", UI_MAX_MENUS );
+		uis.MSP--;
 		return;
 	}
-	
-	if ( uis.menuStack == NULL )
-		uis.menuStack = menu;
-	else
-		uis.menuStack->next = menu;
-//	Com_Memset( &uis.menuStack[uis.msp], 0, sizeof(uiMenu_t) );
+
+	menu = &uis.menuStack[uis.MSP];
+	Com_Memset( menu, 0, sizeof(uiMenu_t) );
 
 	// remap mpoptions menus where menu name and file name disagree
 	if ( !Q_strncmp( name, "mpoptions", 9 ) )
@@ -427,14 +453,14 @@ void	UI_PushMenu( const char *name ) {
 		UI_LoadURC( "video options", menu );
 	else
 		UI_LoadURC( name, menu );
+
 }
 
 void	UI_PopMenu( void ) {
-	uiMenu_t *menu;
 
-	menu = uis.menuStack;
-	while ( menu->next && menu->next->next )
-		menu = menu->next;
-
-	menu->next = NULL;
+	if ( uis.MSP > 0 ) {
+		
+		uis.MSP--;
+		return;
+	}
 }

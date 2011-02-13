@@ -31,10 +31,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 
 #define UI_MAX_URCSIZE		131072
-#define UI_MAX_MENUS		64
+#define UI_MAX_MENUS			16
 #define UI_MAX_NAME			128
-#define UI_MAX_RESOURCES	128
-#define UI_MAX_SELECT		32
+#define UI_MAX_RESOURCES	64
+#define UI_MAX_SELECT			32
 
 #define UI_CHECKBOX_SIZE	16
 
@@ -55,10 +55,11 @@ typedef enum uiMenuDirection_s {
 	UI_FROM_RIGHT
 } uiMenuDirection_t;
 
-typedef enum uiTextalign_s {
+typedef enum uiAlign_s {
 	UI_ALIGN_LEFT,
+	UI_ALIGN_CENTER,
 	UI_ALIGN_RIGHT
-} uiTextalign_t;
+} uiAlign_t;
 
 typedef enum uiResType_s {
 	UI_RES_LABEL,
@@ -91,19 +92,19 @@ typedef struct uiResource_s {
 
 	qhandle_t			checked_shader;
 	qhandle_t			unchecked_shader;
-	char				clicksound[UI_MAX_NAME];
-	char				stuffcommand[UI_MAX_NAME];
-	char				hovercommand[UI_MAX_NAME];
+	char				*clicksound;
+	char				*stuffcommand;
+	char				*hovercommand;
 	vmCvar_t			enabledcvar;
 	qboolean			enablewithcvar;
 	vmCvar_t			linkcvar;
-	char				linkcvarname[UI_MAX_NAME];
+	char				*linkcvarname;
 	qboolean			linkcvartoshader;
-	char				linkstring1[UI_MAX_SELECT][UI_MAX_NAME]; //eating memory here!
-	char				linkstring2[UI_MAX_SELECT][UI_MAX_NAME];
+	char				*linkstring1[UI_MAX_SELECT];
+	char				*linkstring2[UI_MAX_SELECT];
 
-	char				title[UI_MAX_NAME];
-	uiTextalign_t		textalign;
+	char				*title;
+	uiAlign_t			textalign;
 	qhandle_t			menushader;
 	qhandle_t			selmenushader;
 	int					selentries;
@@ -113,13 +114,14 @@ typedef struct uiResource_s {
 	float				flStepsize;
 
 	qboolean			rendermodel;
-	char				modeloffset[UI_MAX_NAME];
-	char				modelrotateoffset[UI_MAX_NAME];
-	char				modelangles[UI_MAX_NAME];
+	char				*modeloffset;
+	char				*modelrotateoffset;
+	char				*modelangles;
 	float				modelscale;
-	char				modelanim[UI_MAX_NAME];
-
-	fontInfo_t			font;
+	char				*modelanim;
+// storing extra memory for each resource is too memory-expensive.
+// letting this point to uis.menuFont for now
+	fontInfo_t			*font;	
 	int					ordernumber;
 
 	qboolean			active;
@@ -131,8 +133,10 @@ typedef struct uiResource_s {
 typedef struct uiMenu_s {
 	char			name[UI_MAX_NAME];
 	int				size[2];
+	uiAlign_t		align[2];
 	uiMenuDirection_t	motion;
 	int				time;
+	vec4_t			fgcolor;
 	vec4_t			bgcolor;
 	uiBorderstyle_t	borderstyle;
 	vec4_t			bgfill;
@@ -145,7 +149,6 @@ typedef struct uiMenu_s {
 	uiResource_t	resources[UI_MAX_RESOURCES];
 	int				resPtr;
 
-	struct uiMenu_s		*next;
 } uiMenu_t;
 
 // ui_quarks.c
@@ -172,10 +175,18 @@ typedef struct {
 	// wombat
 	fontInfo_t			menuFont;
 
-	uiMenu_t			*menuStack;
+	uiMenu_t			menuStack[UI_MAX_MENUS];
+	int					MSP; // 'Menu Stack Pointer'
+
+	uiMenu_t			connecting;
 } uiStatic_t;
 
 
+// ui_main.c
+void *UI_Alloc( int size );
+void UI_Free( void *p );
+void UI_InitMemory( void );
+qboolean UI_OutOfMemory( void );
 // ui_quarks.c
 //
 extern uiStatic_t uis;

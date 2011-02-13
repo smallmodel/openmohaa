@@ -31,6 +31,59 @@ USER INTERFACE MAIN
 
 #include "ui_local.h"
 
+// Memory allocation code from Q3 ui_shared.c
+// ****
+// allocates 16-byte blocks out of a pool of MEM_POOL_SIZE=1MB
+#define MEM_POOL_SIZE  1024 * 1024
+
+static char		memoryPool[MEM_POOL_SIZE];
+static int		allocPoint, outOfMemory;
+
+
+/*
+===============
+UI_Alloc
+===============
+*/
+void *UI_Alloc( int size ) {
+	char	*p;
+
+	if ( allocPoint + size > MEM_POOL_SIZE ) {
+		outOfMemory = qtrue;
+		Com_Printf("UI_Alloc: Failure. Out of memory!\n");
+
+		return NULL;
+	}
+
+	p = &memoryPool[allocPoint];
+
+	allocPoint += ( size + 15 ) & ~15;
+
+	return p;
+}
+
+/*
+===============
+UI_Free
+===============
+*/
+void UI_Free( void *p ) {
+
+}
+/*
+===============
+UI_InitMemory
+===============
+*/
+void UI_InitMemory( void ) {
+	allocPoint = 0;
+	outOfMemory = qfalse;
+}
+
+qboolean UI_OutOfMemory( void ) {
+	return outOfMemory;
+}
+
 
 /*
 ================

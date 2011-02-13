@@ -2078,7 +2078,7 @@ void CL_ConnectionlessPacket( netadr_t from, msg_t *msg ) {
 	}
 	// echo request from server
 	if ( !Q_stricmp(c, "droperror") ) {
-		Com_Printf( "Server dropped connection. Reason: %s", s+9 );
+		Com_Printf( "Server dropped connection. Reason: %s", s+10 );
 		Cvar_Set("com_errorMessage", s+10 );
 		CL_Disconnect( qtrue );
 		return;
@@ -2163,6 +2163,7 @@ void CL_CheckTimeout( void ) {
 	    && cls.realtime - clc.lastPacketTime > cl_timeout->value*1000) {
 		if (++cl.timeoutcount > 5) {	// timeoutcount saves debugger
 			Com_Printf ("\nServer connection timed out.\n");
+			Cbuf_AddText( "pushmenu servertimeout\n" );
 			CL_Disconnect( qtrue );
 			return;
 		}

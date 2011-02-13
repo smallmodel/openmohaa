@@ -189,6 +189,8 @@ void UI_RegisterMedia( void ) {
 	uis.whiteShader = trap_R_RegisterShaderNoMip( "*white" );
 	uis.blackShader = trap_R_RegisterShaderNoMip( "textures/mohmenu/black.tga" );
 	uis.cursor = trap_R_RegisterShaderNoMip( "gfx/2d/mouse_cursor.tga" );
+
+	UI_LoadURC( "connecting", &uis.connecting );
 }
 
 /*
@@ -197,6 +199,9 @@ UI_Init
 =================
 */
 void UI_Init( void ) {
+
+	UI_InitMemory();
+	
 	UI_RegisterCvars();
 Com_Printf( "hello mama\n" );
 //	UI_InitGameinfo();
@@ -220,7 +225,7 @@ Com_Printf( "hello mama\n" );
 	// initialize the menu system
 	UI_RegisterMedia();
 
-	uis.menuStack = NULL;
+	uis.MSP = -1;
 	UI_PushMenu( "main" );
 }
 
@@ -241,16 +246,14 @@ void UI_KeyEvent( int key, int down ) {
 //	Com_Printf( "key %i, down %i\n", key, down );
 
 	if (!down) {
-		menu = uis.menuStack;
-		while (menu->next)
-			menu = menu->next;
+		menu = &uis.menuStack[uis.MSP];
 
 		for (i=0;i<=menu->resPtr;i++) {
 			res = &menu->resources[i];
 			if (res->pressed == qtrue) {
 				res->pressed = qfalse;
 				if ( uis.cursorx >= res->rect[0]+res->rect[2] && uis.cursorx <= res->rect[0]+res->rect[2]+128 )
-					if ( uis.cursory >= res->rect[1] && uis.cursory <= res->rect[1]+ 16*res->selentries )
+					if ( uis.cursory >= res->rect[1] && uis.cursory <= res->rect[1]+ 16*res->selentries && res->linkstring2[(uis.cursory-res->rect[1])/16] )
 						UI_CmdExecute( res->linkstring2[(uis.cursory-res->rect[1])/16] );
 			}
 		}
@@ -266,9 +269,7 @@ void UI_KeyEvent( int key, int down ) {
 			break;
 		case K_MOUSE1:
 		case K_ENTER:
-			menu = uis.menuStack;
-			while (menu->next)
-				menu = menu->next;
+			menu = &uis.menuStack[uis.MSP];
 			
 			for (i=0;i<=menu->resPtr;i++) {
 				res = &menu->resources[i];
@@ -276,7 +277,8 @@ void UI_KeyEvent( int key, int down ) {
 					continue;
 				switch (res->type) {
 					case UI_RES_BUTTON:
-						UI_CmdExecute( res->stuffcommand );
+						if ( res->stuffcommand )
+							UI_CmdExecute( res->stuffcommand );
 						break;
 					case UI_RES_CHECKBOX:
 						trap_Cvar_Update( &res->linkcvar );
@@ -291,9 +293,8 @@ void UI_KeyEvent( int key, int down ) {
 			}
 			break;
 		case K_BACKSPACE:
-			menu = uis.menuStack;
-			while (menu->next)
-				menu = menu->next;
+			menu = &uis.menuStack[uis.MSP];
+			
 			for (i=0;i<=menu->resPtr;i++) {
 				res = &menu->resources[i];
 				if (res->active ==qfalse)
@@ -308,9 +309,8 @@ void UI_KeyEvent( int key, int down ) {
 		default:
 			if ( key&K_CHAR_FLAG )
 				break;
-			menu = uis.menuStack;
-			while (menu->next)
-				menu = menu->next;
+			menu = &uis.menuStack[uis.MSP];
+
 			for (i=0;i<=menu->resPtr;i++) {
 				res = &menu->resources[i];
 				if (res->active ==qfalse)
@@ -356,9 +356,8 @@ void UI_MouseEvent( int dx, int dy )
 		uis.cursory = SCREEN_HEIGHT;
 
 	// region test the active menu items
-	menu = uis.menuStack;
-	while (menu->next)
-		menu = menu->next;
+	menu = &uis.menuStack[uis.MSP];
+
 	for (i=0; i<=menu->resPtr;i++) {
 		res = &menu->resources[i];
 		if (res->type != UI_RES_BUTTON
@@ -372,13 +371,98 @@ void UI_MouseEvent( int dx, int dy )
 				&& uis.cursory <= res->rect[3]+res->rect[1] ) {
 
 					res->active = qtrue;
-					if ( res->lastState == qfalse )
+					if ( res->lastState == qfalse && res->hovercommand )
 						UI_CmdExecute( res->hovercommand );
 					res->lastState = qtrue;
 				}
 		else {
 			res->active = qfalse;
 			res->lastState = qfalse;
+		}
+	}
+}
+
+/*
+========================
+UI_DrawMenu
+
+Logic to bring the menu resources to screen
+========================
+*/
+void UI_DrawMenu( uiMenu_t *menu, qboolean foreground ) {
+	int				j;
+	int				k;
+	;
+	uiResource_t	*res;
+	qhandle_t		cvarshader;
+
+	for (j=0; j<=menu->resPtr; j++ ) {
+		res = &menu->resources[j];
+		if ( foreground == qtrue ) //foreground menu
+			UI_SetColor( res->fgcolor );
+		else UI_SetColor( res->bgcolor );
+		switch ( res->type ) {
+
+			case UI_RES_LABEL:
+				if (res->enablewithcvar)
+					if (!res->enabledcvar.integer)
+						break;
+				if ( res->title ) {
+					if ( res->linkcvarname ) {
+						trap_Cvar_Update( &res->linkcvar );
+						if ( res->selentries > 0 ) {
+							for (k=0;k < res->selentries;k++) {
+								if (!Q_strncmp( res->linkstring1[k], res->linkcvar.string, UI_MAX_NAME ))
+									trap_R_Text_Paint( res->font,res->rect[0],res->rect[1],1,0,res->linkstring2[k],1,0,qtrue,qtrue);
+							}
+						}
+						else
+							trap_R_Text_Paint( res->font,res->rect[0],res->rect[1],1,0,res->linkcvar.string,1,0,qtrue,qtrue);
+					} else {
+						UI_DrawBox( res->rect[0],res->rect[1], res->rect[2],res->rect[3],qfalse );
+						trap_R_Text_Paint( res->font,res->rect[0]+ (res->rect[2] - trap_R_Text_Width( res->font, res->title, 0,qtrue ))/2,res->rect[1]+ (res->rect[3] -trap_R_Text_Height( res->font, res->title, 0,qtrue ))/2,1,0,res->title,1,0,qtrue,qtrue);
+					}
+				}
+				else if ( res->linkcvartoshader ) {
+					trap_Cvar_Update( &res->linkcvar );
+					cvarshader=trap_R_RegisterShaderNoMip(res->linkcvar.string);
+					if ( cvarshader )
+						UI_DrawHandlePic( res->rect[0], res->rect[1], res->rect[2], res->rect[3], cvarshader );
+				}
+				else
+					UI_DrawHandlePic( res->rect[0], res->rect[1], res->rect[2], res->rect[3], res->shader );
+				break;
+
+			case UI_RES_BUTTON:
+				if (res->hoverDraw && res->active)
+					UI_DrawHandlePic( res->rect[0], res->rect[1], res->rect[2], res->rect[3], res->hoverShader );
+				else if ( res->shader )
+					UI_DrawHandlePic( res->rect[0], res->rect[1], res->rect[2], res->rect[3], res->shader );
+				break;
+			case UI_RES_FIELD:
+				trap_Cvar_Update( &res->linkcvar );
+				if ( res->active )
+					UI_SetColor(color_yellow);
+				trap_R_Text_Paint( res->font,res->rect[0],res->rect[1],1,0,res->linkcvar.string,1,0,qtrue,qtrue);
+				UI_SetColor( NULL );
+				break;
+			case UI_RES_CHECKBOX:
+				trap_Cvar_Update( &res->linkcvar );
+				if (res->linkcvar.integer)
+					UI_DrawHandlePic( res->rect[0], res->rect[1], UI_CHECKBOX_SIZE, UI_CHECKBOX_SIZE, res->checked_shader );
+				else UI_DrawHandlePic( res->rect[0], res->rect[1], UI_CHECKBOX_SIZE, UI_CHECKBOX_SIZE, res->unchecked_shader );
+				break;
+			case UI_RES_PULLDOWN:
+				if (res->pressed == qtrue) {
+					UI_DrawHandlePic( res->rect[0], res->rect[1], res->rect[2], res->rect[3], res->selmenushader );
+					UI_DrawBox( res->rect[0]+res->rect[2], res->rect[1], 128, 16 * res->selentries +3, qfalse );
+					for (k=0;k<res->selentries;k++)
+						trap_R_Text_Paint( res->font, res->rect[0]+res->rect[2]+3,3+res->rect[1]+(k*16),1,1,res->linkstring1[k],0,0,qtrue,qtrue );
+				}
+				else {
+					UI_DrawHandlePic( res->rect[0], res->rect[1], res->rect[2], res->rect[3], res->menushader );
+				}
+				break;
 		}
 	}
 }
@@ -406,74 +490,11 @@ void UI_Refresh( int realtime )
 
 	UI_UpdateCvars();
 
-	menu = uis.menuStack;
-	while ( menu ) {
-		for (j=0; j<=menu->resPtr; j++ ) {
-			res = &menu->resources[j];
-			if (menu->next==NULL) //foreground menu
-				UI_SetColor( res->fgcolor );
-			else UI_SetColor( res->bgcolor );
-			switch ( res->type ) {
-
-				case UI_RES_LABEL:
-					if (res->enablewithcvar)
-						if (!res->enabledcvar.integer)
-							break;
-					if ( res->title[0] ) {
-						trap_Cvar_Update( &res->linkcvar );
-						if ( res->selentries > 0 ) {
-							for (k=0;k < res->selentries;k++) {
-								if (!Q_strncmp( res->linkstring1[k], res->linkcvar.string, UI_MAX_NAME ))
-									trap_R_Text_Paint( &res->font,res->rect[0],res->rect[1],1,0,res->linkstring2[k],1,0,qtrue,qtrue);
-							}
-						}
-						else
-							trap_R_Text_Paint( &res->font,res->rect[0],res->rect[1],1,0,res->linkcvar.string,1,0,qtrue,qtrue);
-					}
-					else if ( res->linkcvartoshader ) {
-						trap_Cvar_Update( &res->linkcvar );
-						cvarshader=trap_R_RegisterShaderNoMip(res->linkcvar.string);
-						if ( cvarshader )
-							UI_DrawHandlePic( res->rect[0], res->rect[1], res->rect[2], res->rect[3], cvarshader );
-					}
-					else
-						UI_DrawHandlePic( res->rect[0], res->rect[1], res->rect[2], res->rect[3], res->shader );
-					break;
-
-				case UI_RES_BUTTON:
-					if (res->hoverDraw && res->active)
-						UI_DrawHandlePic( res->rect[0], res->rect[1], res->rect[2], res->rect[3], res->hoverShader );
-					else
-						UI_DrawHandlePic( res->rect[0], res->rect[1], res->rect[2], res->rect[3], res->shader );
-					break;
-				case UI_RES_FIELD:
-					trap_Cvar_Update( &res->linkcvar );
-					if ( res->active )
-						UI_SetColor(color_yellow);
-					trap_R_Text_Paint( &res->font,res->rect[0],res->rect[1],1,0,res->linkcvar.string,1,0,qtrue,qtrue);
-					UI_SetColor( NULL );
-					break;
-				case UI_RES_CHECKBOX:
-					trap_Cvar_Update( &res->linkcvar );
-					if (res->linkcvar.integer)
-						UI_DrawHandlePic( res->rect[0], res->rect[1], UI_CHECKBOX_SIZE, UI_CHECKBOX_SIZE, res->checked_shader );
-					else UI_DrawHandlePic( res->rect[0], res->rect[1], UI_CHECKBOX_SIZE, UI_CHECKBOX_SIZE, res->unchecked_shader );
-					break;
-				case UI_RES_PULLDOWN:
-					if (res->pressed == qtrue) {
-						UI_DrawHandlePic( res->rect[0], res->rect[1], res->rect[2], res->rect[3], res->selmenushader );
-						UI_DrawBox( res->rect[0]+res->rect[2], res->rect[1], 128, 16 * res->selentries +3, qfalse );
-						for (k=0;k<res->selentries;k++)
-							trap_R_Text_Paint( &res->font, res->rect[0]+res->rect[2]+3,3+res->rect[1]+(k*16),1,1,res->linkstring1[k],0,0,qtrue,qtrue );
-					}
-					else {
-						UI_DrawHandlePic( res->rect[0], res->rect[1], res->rect[2], res->rect[3], res->menushader );
-					}
-					break;
-			}
-		}
-		menu = menu->next;
+	for (i=0;i<uis.MSP;i++) {
+		UI_DrawMenu( &uis.menuStack[i], qfalse );
 	}
+	// last one is foreground menu
+	UI_DrawMenu( &uis.menuStack[uis.MSP], qtrue );
 
 	// draw cursor
 	UI_SetColor( NULL );
@@ -483,10 +504,8 @@ void UI_Refresh( int realtime )
 qboolean UI_IsFullscreen( void ) {
 	uiMenu_t *menu;
 
-	menu = uis.menuStack;
-	if ( menu!=NULL && ( trap_Key_GetCatcher() & KEYCATCH_UI ) ) {
-		while (menu->next)
-			menu = menu->next;
+	if ( uis.MSP!= -1 && ( trap_Key_GetCatcher() & KEYCATCH_UI ) ) {
+		menu = &uis.menuStack[uis.MSP];
 		
 		return menu->fullscreen;
 	}
@@ -508,6 +527,11 @@ char *UI_Argv( int arg ) {
 	return buffer;
 }
 
+int	UI_Argc( void ) {
+
+	return trap_Argc( );
+}
+
 /*
 =================
 UI_ConsoleCommand
@@ -519,17 +543,26 @@ qboolean UI_ConsoleCommand( int realTime ) {
 	cmd = UI_Argv( 0 );
 
 
-
-	if ( Q_stricmp (cmd, "ui_test") == 0 ) {
-		Com_Printf( "openmohaa menu up and running!\n giving values %i uiMenu_t, %i uiResource_t\n", sizeof(uiMenu_t), sizeof(uiResource_t) );
+	if ( Q_stricmp (cmd, "ui_connect") == 0 ) {
+		trap_Cmd_ExecuteText( EXEC_APPEND, "connect 63.210.148.39:12203\n" ); // STONER SERVER
+		return qtrue;
+	}
+	else if ( Q_stricmp (cmd, "ui_test") == 0 ) {
+		Com_Printf( "openmohaa menu up and running!\n uis taking %i KB\n", sizeof(uiStatic_t)/1024 );
 		return qtrue;
 	}
 	else if ( Q_stricmp (cmd, "pushmenu") == 0 ) {
-		UI_PushMenu( UI_Argv(1) );
+		if ( UI_Argc() == 2 )
+			UI_PushMenu( UI_Argv(1) );
+		else Com_Printf( "Usage: pushmenu <menuname>" );
 		return qtrue;
 	}
 	else if ( Q_stricmp (cmd, "popmenu") == 0 ) {
 		UI_PopMenu();
+		return qtrue;
+	}
+	else if ( Q_stricmp (cmd, "pushmenu_teamselect") == 0 ) {
+		UI_PushMenu( "dm_teamselect" );
 		return qtrue;
 	}
 
@@ -545,7 +578,10 @@ to prevent it from blinking away too rapidly on local or lan games.
 ========================
 */
 void UI_DrawConnectScreen( qboolean overlay ) {
-
+	UI_DrawMenu( &uis.connecting, qtrue );
+	// draw cursor
+	UI_SetColor( NULL );
+	UI_DrawHandlePic( uis.cursorx, uis.cursory, 32, 32, uis.cursor);
 }
 
 /*
@@ -620,10 +656,10 @@ void	UI_DrawBox( int x, int y, int w, int h, qboolean ctrCoord ) {
 	trap_R_SetColor( color_gray );
 	trap_R_DrawStretchPic( x*uis.xscale, y*uis.yscale, w*uis.xscale, h*uis.yscale, 0, 0, 16, 16, uis.blackShader );
 	trap_R_SetColor( color_white );
-	trap_R_DrawStretchPic( x*uis.xscale, y*uis.yscale, w*uis.xscale, LINE_THICKNESS*uis.yscale, 0, 0, 32, 32, uis.whiteShader );
-	trap_R_DrawStretchPic( x*uis.xscale, y*uis.yscale, LINE_THICKNESS*uis.xscale, h*uis.yscale, 0, 0, 32, 32, uis.whiteShader );
-	trap_R_DrawStretchPic( x*uis.xscale, (y+h)*uis.yscale, w*uis.xscale, LINE_THICKNESS*uis.yscale, 0, 0, 32, 32, uis.whiteShader );
-	trap_R_DrawStretchPic( (x+w)*uis.xscale, y*uis.yscale, LINE_THICKNESS*uis.xscale, (h+LINE_THICKNESS)*uis.yscale, 0, 0, 32, 32, uis.whiteShader );
+	trap_R_DrawStretchPic( x*uis.xscale, y*uis.yscale, w*uis.xscale, LINE_THICKNESS*uis.yscale, 0, 0, 32, 32, uis.blackShader );
+	trap_R_DrawStretchPic( x*uis.xscale, y*uis.yscale, LINE_THICKNESS*uis.xscale, h*uis.yscale, 0, 0, 32, 32, uis.blackShader );
+	trap_R_DrawStretchPic( x*uis.xscale, (y+h)*uis.yscale, w*uis.xscale, LINE_THICKNESS*uis.yscale, 0, 0, 32, 32, uis.blackShader );
+	trap_R_DrawStretchPic( (x+w)*uis.xscale, y*uis.yscale, LINE_THICKNESS*uis.xscale, (h+LINE_THICKNESS)*uis.yscale, 0, 0, 32, 32, uis.blackShader );
 	trap_R_SetColor( NULL );
 }
 

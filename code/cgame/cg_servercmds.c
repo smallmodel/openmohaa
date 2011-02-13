@@ -975,6 +975,44 @@ static void CG_RemoveChatEscapeChar( char *text ) {
 	text[l] = '\0';
 }
 
+// Wombat: Lists of blocked and allowed stufftext commands
+const char *stufftextBlock[] = {
+	"quit"
+};
+
+const char *stufftextSafe[] = {
+	"pushmenu_teamselect"
+};
+
+/*
+=================
+CG_StufftextCommand
+
+Wombat: MOHAA servers may send certain server commands
+that contain console commands supposed to be executed
+on the client's console.
+I don't like the idea that a remote machine can execute
+*anything*, so i think i will implement a filter to pass only
+sane commands...
+=================
+*/
+void CG_StufftextCommand( const char *cmd ) {
+	int		i;
+
+	for ( i = 0 ; i < sizeof( stufftextBlock ) / sizeof( stufftextBlock[0] ) ; i++ ) {
+		if ( !Q_stricmp( cmd, stufftextBlock[i] ) ) {
+			return;
+		}
+	}
+	for ( i = 0 ; i < sizeof( stufftextSafe ) / sizeof( stufftextSafe[0] ) ; i++ ) {
+		if ( !Q_stricmp( cmd, stufftextSafe[i] ) ) {
+			trap_SendConsoleCommand( cmd );
+			return;
+		}
+	}
+	Com_Printf( "Unlisted stufftext command: %s\n", cmd ); 
+}
+
 /*
 =================
 CG_ServerCommand
@@ -991,6 +1029,12 @@ static void CG_ServerCommand( void ) {
 
 	if ( !cmd[0] ) {
 		// server claimed the command
+		return;
+	}
+
+	// wombat: stufftext is something specific to MOHAA
+	if ( !strcmp( cmd, "stufftext" ) ) {
+		CG_StufftextCommand( CG_Argv(1) );
 		return;
 	}
 

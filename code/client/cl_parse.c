@@ -881,7 +881,8 @@ void CL_ParseLocationprint( msg_t *msg ) {
 	y = MSG_ReadShort( msg );
 	string = MSG_ReadString(msg);
 
-//	VM_Call( cgvm, CG_LOCATIONPRINT, string, x, y );
+	if ( cgvm )
+		VM_Call( cgvm, CG_LOCATIONPRINT, string, x, y );
 }
 
 /*
@@ -893,7 +894,8 @@ void CL_ParseCenterprint( msg_t *msg ) {
 	char *string;
 
 	string = MSG_ReadString( msg );
-//	VM_Call( cgvm, CG_CENTERPRINT, string );
+	if ( cgvm )
+		VM_Call( cgvm, CG_CENTERPRINT, string );
 }
 
 /*
