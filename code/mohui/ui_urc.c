@@ -438,29 +438,51 @@ void	UI_PushMenu( const char *name ) {
 
 	uis.MSP++;
 	if ( uis.MSP >= UI_MAX_MENUS ) {
-		Com_Printf( "UI_PushMenu: max number of menus (%i) exceeded.\n", UI_MAX_MENUS );
+		Com_Printf( "UI_PushMenu: Menu Stack Overflow (%i).\n", UI_MAX_MENUS );
 		uis.MSP--;
 		return;
 	}
 
-	menu = &uis.menuStack[uis.MSP];
-	Com_Memset( menu, 0, sizeof(uiMenu_t) );
+	if ( !Q_strncmp( name, "main", 4 ) )
+		uis.stack[uis.MSP] = &uis.main;
+	else if ( !Q_strncmp( name, "connecting", 10 ) )
+		uis.stack[uis.MSP] = &uis.connecting;
+	else {
+		uis.CP++;
+		if ( uis.CP >= UI_MAX_MENUS ) {
+			Com_Printf( "UI_PushMenu: Menu Cache Overflow (%i).\n", UI_MAX_MENUS );
+			uis.CP--;
+			return;
+		}
+		menu = &uis.cache[uis.CP];
+		Com_Memset( menu, 0, sizeof(uiMenu_t) );
 
-	// remap mpoptions menus where menu name and file name disagree
-	if ( !Q_strncmp( name, "mpoptions", 9 ) )
-		UI_LoadURC( "multiplayeroptions", menu );
-	else if ( !Q_strncmp( name, "video_options", 9 ) )
-		UI_LoadURC( "video options", menu );
-	else
-		UI_LoadURC( name, menu );
+		// remap mpoptions menus where menu name and file name disagree
+		if ( !Q_strncmp( name, "mpoptions", 9 ) )
+			UI_LoadURC( "multiplayeroptions", menu );
+		else if ( !Q_strncmp( name, "video_options", 9 ) )
+			UI_LoadURC( "video options", menu );
+		else
+			UI_LoadURC( name, menu );
 
+		menu->standard = qfalse;
+		uis.stack[uis.MSP] = menu;
+	}
+
+//	if ( !(trap_Key_GetCatcher() & KEYCATCH_UI) )
+		trap_Key_SetCatcher( KEYCATCH_UI );
 }
 
 void	UI_PopMenu( void ) {
 
-	if ( uis.MSP > 0 ) {
-		
+	if ( uis.MSP >= 0 ) {
+
+		if ( uis.stack[uis.MSP]->standard == qfalse )
+			uis.CP--;
 		uis.MSP--;
-		return;
+	}
+	if ( uis.MSP == -1 ) {
+		trap_Key_SetCatcher( trap_Key_GetCatcher() & ~KEYCATCH_UI );
+		trap_Key_ClearStates();
 	}
 }

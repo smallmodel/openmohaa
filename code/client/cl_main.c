@@ -1971,6 +1971,7 @@ Responses to broadcasts, etc
 void CL_ConnectionlessPacket( netadr_t from, msg_t *msg ) {
 	char	*s;
 	char	*c;
+	const char	*reason;
 
 	MSG_BeginReadingOOB( msg );
 	MSG_ReadLong( msg );	// skip the -1
@@ -2076,10 +2077,12 @@ void CL_ConnectionlessPacket( netadr_t from, msg_t *msg ) {
 		CL_ServersResponsePacket( from, msg );
 		return;
 	}
-	// echo request from server
+	// wombat: mohaa servers send this to reject clients
+	// TODO: tell the UI to draw serverdisconnect.urc serverfull.urc or servertimeout.urc
 	if ( !Q_stricmp(c, "droperror") ) {
-		Com_Printf( "Server dropped connection. Reason: %s", s+10 );
-		Cvar_Set("com_errorMessage", s+10 );
+		reason = MSG_ReadString( msg );
+		Com_Printf( "Server dropped connection. Reason: %s", reason );
+		Cvar_Set("com_errorMessage", reason );
 		CL_Disconnect( qtrue );
 		return;
 	}

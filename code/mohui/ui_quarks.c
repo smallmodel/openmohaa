@@ -180,17 +180,26 @@ UI_Shutdown
 =================
 */
 void UI_Shutdown( void ) {
+	Com_Printf( "*** UI Shutdown ***\n" );
 }
 
 
 void UI_RegisterMedia( void ) {
+	// FONTS
 	trap_R_RegisterFont( "facfont-20", 0, &uis.menuFont );
 
+	// SHADERS
 	uis.whiteShader = trap_R_RegisterShaderNoMip( "*white" );
 	uis.blackShader = trap_R_RegisterShaderNoMip( "textures/mohmenu/black.tga" );
 	uis.cursor = trap_R_RegisterShaderNoMip( "gfx/2d/mouse_cursor.tga" );
 
+	// STANDARD MENUS
+	UI_LoadURC( "main", &uis.main );
 	UI_LoadURC( "connecting", &uis.connecting );
+	UI_LoadURC( "loading_default", &uis.loading );
+	uis.main.standard			= qtrue;
+	uis.connecting.standard	= qtrue;
+	uis.loading.standard		= qtrue;
 }
 
 /*
@@ -203,7 +212,7 @@ void UI_Init( void ) {
 	UI_InitMemory();
 	
 	UI_RegisterCvars();
-Com_Printf( "hello mama\n" );
+
 //	UI_InitGameinfo();
 
 	// cache redundant calulations
@@ -225,8 +234,8 @@ Com_Printf( "hello mama\n" );
 	// initialize the menu system
 	UI_RegisterMedia();
 
-	uis.MSP = -1;
-	UI_PushMenu( "main" );
+	uis.MSP	= -1;
+	uis.CP		= -1;
 }
 
 /*
@@ -240,13 +249,12 @@ void UI_KeyEvent( int key, int down ) {
 	uiResource_t	*res;
 	char			buffer[64];
 
-	if (!uis.activemenu) {
+	if (uis.MSP == -1) {
 		return;
 	}
-//	Com_Printf( "key %i, down %i\n", key, down );
 
 	if (!down) {
-		menu = &uis.menuStack[uis.MSP];
+		menu = uis.stack[uis.MSP];
 
 		for (i=0;i<=menu->resPtr;i++) {
 			res = &menu->resources[i];
@@ -269,7 +277,7 @@ void UI_KeyEvent( int key, int down ) {
 			break;
 		case K_MOUSE1:
 		case K_ENTER:
-			menu = &uis.menuStack[uis.MSP];
+			menu = uis.stack[uis.MSP];
 			
 			for (i=0;i<=menu->resPtr;i++) {
 				res = &menu->resources[i];
@@ -293,7 +301,7 @@ void UI_KeyEvent( int key, int down ) {
 			}
 			break;
 		case K_BACKSPACE:
-			menu = &uis.menuStack[uis.MSP];
+			menu = uis.stack[uis.MSP];
 			
 			for (i=0;i<=menu->resPtr;i++) {
 				res = &menu->resources[i];
@@ -309,7 +317,7 @@ void UI_KeyEvent( int key, int down ) {
 		default:
 			if ( key&K_CHAR_FLAG )
 				break;
-			menu = &uis.menuStack[uis.MSP];
+			menu = uis.stack[uis.MSP];
 
 			for (i=0;i<=menu->resPtr;i++) {
 				res = &menu->resources[i];
@@ -339,9 +347,10 @@ void UI_MouseEvent( int dx, int dy )
 	uiMenu_t		*menu;
 	uiResource_t	*res;
 
-	if (!uis.activemenu)
+	if (uis.MSP == -1) {
 		return;
-
+	}
+	
 	// update mouse screen position
 	uis.cursorx += dx;
 	if (uis.cursorx < 0)
@@ -356,7 +365,7 @@ void UI_MouseEvent( int dx, int dy )
 		uis.cursory = SCREEN_HEIGHT;
 
 	// region test the active menu items
-	menu = &uis.menuStack[uis.MSP];
+	menu = uis.stack[uis.MSP];
 
 	for (i=0; i<=menu->resPtr;i++) {
 		res = &menu->resources[i];
@@ -491,10 +500,10 @@ void UI_Refresh( int realtime )
 	UI_UpdateCvars();
 
 	for (i=0;i<uis.MSP;i++) {
-		UI_DrawMenu( &uis.menuStack[i], qfalse );
+		UI_DrawMenu( uis.stack[i], qfalse );
 	}
 	// last one is foreground menu
-	UI_DrawMenu( &uis.menuStack[uis.MSP], qtrue );
+	UI_DrawMenu( uis.stack[uis.MSP], qtrue );
 
 	// draw cursor
 	UI_SetColor( NULL );
@@ -505,7 +514,7 @@ qboolean UI_IsFullscreen( void ) {
 	uiMenu_t *menu;
 
 	if ( uis.MSP!= -1 && ( trap_Key_GetCatcher() & KEYCATCH_UI ) ) {
-		menu = &uis.menuStack[uis.MSP];
+		menu = uis.stack[uis.MSP];
 		
 		return menu->fullscreen;
 	}
@@ -516,7 +525,18 @@ qboolean UI_IsFullscreen( void ) {
 void UI_SetActiveMenu( uiMenuCommand_t menu ) {
 	uis.activemenu = menu;
 
-	trap_Key_SetCatcher( KEYCATCH_UI );
+	switch ( menu ) {
+		case UIMENU_NONE:
+			break;
+		case UIMENU_MAIN:
+			if ( uis.MSP == -1 )
+				UI_PushMenu( "main " );
+			else trap_Key_SetCatcher( KEYCATCH_UI );
+			break;
+		case UIMENU_INGAME:
+			UI_PushMenu( "main" );
+			break;
+	}
 }
 
 char *UI_Argv( int arg ) {
@@ -565,6 +585,10 @@ qboolean UI_ConsoleCommand( int realTime ) {
 		UI_PushMenu( "dm_teamselect" );
 		return qtrue;
 	}
+	else if ( Q_stricmp (cmd, "pushmenu_weaponselect") == 0 ) {
+		UI_PushMenu( "dm_primaryselect" );
+		return qtrue;
+	}
 
 	return qfalse;
 }
@@ -578,7 +602,53 @@ to prevent it from blinking away too rapidly on local or lan games.
 ========================
 */
 void UI_DrawConnectScreen( qboolean overlay ) {
+	uiClientState_t		cstate;
+	char					info[MAX_INFO_VALUE];
+	char					*s;
+	char					*loadname;
+
 	UI_DrawMenu( &uis.connecting, qtrue );
+
+	
+	trap_GetClientState( &cstate );
+
+	if ( cstate.connState < CA_CONNECTED ) {
+		trap_R_Text_Paint( &uis.menuFont, 320,240,1,1,cstate.messageString,0,0,qtrue,qtrue );
+	}
+
+	info[0] = '\0';
+	if( trap_GetConfigString( CS_SERVERINFO, info, sizeof(info) ) ) {
+		loadname = va( "loading_%s", Info_ValueForKey( info, "mapname" ) + 3 );
+	} else loadname = "loading_default";
+
+	switch ( cstate.connState ) {
+		case CA_CONNECTING:
+			s = va("Awaiting challenge...%i", cstate.connectPacketCount);
+			break;
+		case CA_CHALLENGING:
+			s = va("Awaiting connection...%i", cstate.connectPacketCount);
+			break;
+		case CA_CONNECTED: //{
+	//		char downloadName[MAX_INFO_VALUE];
+//
+	//			trap_Cvar_VariableStringBuffer( "cl_downloadName", downloadName, sizeof(downloadName) );
+		//		if (*downloadName) {
+//					UI_DisplayDownloadInfo( downloadName );
+//					return;
+//				}
+//			}
+			s = "Awaiting gamestate...";
+			break;
+		case CA_LOADING:
+			UI_LoadURC( loadname, &uis.loading );
+			UI_DrawMenu( &uis.loading, qtrue );
+			return;
+		case CA_PRIMED:
+			return;
+		default:
+			return;
+	}
+	trap_R_Text_Paint( &uis.menuFont, 300,260,1,1,s,0,0,qtrue,qtrue );
 	// draw cursor
 	UI_SetColor( NULL );
 	UI_DrawHandlePic( uis.cursorx, uis.cursory, 32, 32, uis.cursor);

@@ -980,8 +980,15 @@ const char *stufftextBlock[] = {
 	"quit"
 };
 
-const char *stufftextSafe[] = {
-	"pushmenu_teamselect"
+typedef struct {
+	char	*cmd;
+	int		args;
+} stufftextCommand_t;
+
+stufftextCommand_t stufftextSafe[] = {
+	{ "pushmenu_teamselect", 0 },
+	{ "pushmenu_weaponselect", 0 },
+	{ "wait", 1 }
 };
 
 /*
@@ -1005,12 +1012,12 @@ void CG_StufftextCommand( const char *cmd ) {
 		}
 	}
 	for ( i = 0 ; i < sizeof( stufftextSafe ) / sizeof( stufftextSafe[0] ) ; i++ ) {
-		if ( !Q_stricmp( cmd, stufftextSafe[i] ) ) {
+		if ( !Q_stricmp( cmd, stufftextSafe[i].cmd ) ) {
 			trap_SendConsoleCommand( cmd );
 			return;
 		}
 	}
-	Com_Printf( "Unlisted stufftext command: %s\n", cmd ); 
+	Com_Printf( "Unlisted stufftext command: \"%s\"\n", cmd ); 
 }
 
 /*
@@ -1024,6 +1031,11 @@ Cmd_Argc() / Cmd_Argv()
 static void CG_ServerCommand( void ) {
 	const char	*cmd;
 	char		text[MAX_SAY_TEXT];
+	char		stufftextBuffer[512];
+	const char *ptr;
+	char		letter;
+	int			i;
+	int			lastpos;
 
 	cmd = CG_Argv(0);
 
@@ -1034,7 +1046,26 @@ static void CG_ServerCommand( void ) {
 
 	// wombat: stufftext is something specific to MOHAA
 	if ( !strcmp( cmd, "stufftext" ) ) {
-		CG_StufftextCommand( CG_Argv(1) );
+		ptr = CG_Argv(1);
+		for ( i=0,lastpos=0; i<sizeof(stufftextBuffer);i++ ) {
+			letter =  *(ptr + i);
+			if ( i == sizeof(stufftextBuffer) && letter != 0 ) {
+				Com_Printf( "WARNING: Max. stufftext command length (%i) exceeded.\n", sizeof(stufftextBuffer) );
+				return;
+			}			
+			if ( letter == ';' ) {
+				letter = 0;
+				stufftextBuffer[i] =letter;
+				CG_StufftextCommand( &stufftextBuffer[lastpos] );
+				lastpos = i+1;
+			}
+			else if ( letter == 0 ) {
+				stufftextBuffer[i] =letter;
+				CG_StufftextCommand( &stufftextBuffer[lastpos] );
+				return;
+			}
+			else stufftextBuffer[i] =letter;
+		}
 		return;
 	}
 

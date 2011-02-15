@@ -149,6 +149,7 @@ typedef struct uiMenu_s {
 	uiResource_t	resources[UI_MAX_RESOURCES];
 	int				resPtr;
 
+	qboolean		standard;
 } uiMenu_t;
 
 // ui_quarks.c
@@ -175,10 +176,16 @@ typedef struct {
 	// wombat
 	fontInfo_t			menuFont;
 
-	uiMenu_t			menuStack[UI_MAX_MENUS];
+	uiMenu_t			*stack[UI_MAX_MENUS];
 	int					MSP; // 'Menu Stack Pointer'
 
-	uiMenu_t			connecting;
+	// menus that are always used
+	uiMenu_t			main; // main menu
+	uiMenu_t			connecting; // connecting screen, used by UI_DrawConnectScreen
+	uiMenu_t			loading;
+	// for other windows, we use the cache.
+	uiMenu_t			cache[UI_MAX_MENUS];
+	int					CP; // 'Cache Pointer'
 } uiStatic_t;
 
 
