@@ -24,7 +24,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #define PARSE_PTR	COM_Parse(ptr)
 
-void UI_ParseMenuResource( const char *token, char **ptr, uiResource_t *res ) {
+void UI_ParseMenuResource( const char *token, char **ptr, uiResource_t *res, int *offset ) {
 	char	*var;
 	int		i;
 	
@@ -32,7 +32,10 @@ void UI_ParseMenuResource( const char *token, char **ptr, uiResource_t *res ) {
 		Q_strncpyz( res->name, PARSE_PTR, UI_MAX_NAME );
 	}
 	else if ( !Q_strncmp( token, "rect", 4 ) ) {
-		for (i=0;i<4;i++)
+		res->rect[0] = offset[0] + atoi( PARSE_PTR );
+		res->rect[1] = offset[1] + atoi( PARSE_PTR );
+
+		for (i=2;i<4;i++)
 			res->rect[i] = atoi( PARSE_PTR );
 	}
 	else if ( !Q_strncmp( token, "fgcolor", 7 ) ) {
@@ -98,6 +101,8 @@ void UI_ParseMenuResource( const char *token, char **ptr, uiResource_t *res ) {
 		var = PARSE_PTR;
 		if ( !Q_strncmp(var,"left",4) )
 			res->textalign = UI_ALIGN_LEFT;
+		else if ( !Q_strncmp(var,"center",128) )
+			res->textalign = UI_ALIGN_CENTER;
 		else if ( !Q_strncmp(var,"right",5) )
 			res->textalign = UI_ALIGN_RIGHT;
 	}
@@ -160,7 +165,7 @@ void UI_ParseMenuResource( const char *token, char **ptr, uiResource_t *res ) {
 	else if ( !Q_strncmp( token, "rendermodel", 11 ) ) {
 		res->rendermodel = (qboolean)atoi(PARSE_PTR);
 	}
-	else if ( !Q_strncmp( token, "modeloffset", 1 ) ) {
+	else if ( !Q_strncmp( token, "modeloffset", 128 ) ) {
 		res->modeloffset = UI_Alloc( UI_MAX_NAME );
 		Q_strncpyz( res->modeloffset, PARSE_PTR, UI_MAX_NAME );
 	}
@@ -226,11 +231,17 @@ void UI_ParseMenuResource( const char *token, char **ptr, uiResource_t *res ) {
 		}
 		else Com_Printf( "UI_ParseMenuResource: unknown statbar %s\n", var );
 	}
+	else if ( !Q_strncmp( token, "maxplayerstat", 128 ) ) {
+		res->maxplayerstat = (statIndex_t)atoi(PARSE_PTR);
+		res->statvar = qtrue;
+	}
 	else if ( !Q_strncmp( token, "playerstat", 10 ) ) {
 		res->playerstat = (statIndex_t)atoi(PARSE_PTR);
+		res->statvar = qtrue;
 	}
 	else if ( !Q_strncmp( token, "itemstat", 8 ) ) {
 		res->itemstat = (statIndex_t)atoi(PARSE_PTR);
+		res->statvar = qtrue;
 	}
 	else if ( !Q_strncmp( token, "invmodelhand", 12 ) ) {
 		res->invmodelhand = atoi(PARSE_PTR);
@@ -275,8 +286,32 @@ qboolean UI_ParseMenuToken( const char *token, char **ptr, uiMenu_t *menu ) {
 		return qfalse;
 	}
 	else if ( !Q_strncmp( token, "align", 5 ) ) {
-		PARSE_PTR;
-		PARSE_PTR;
+		var = PARSE_PTR;
+		if ( !Q_strncmp( var, "left", 128 ) ) {
+			menu->align[0] = UI_ALIGN_LEFT;
+			menu->offset[0] = 0;
+			}
+		else if ( !Q_strncmp( var, "centerx", 128 ) ) {
+			menu->align[0] = UI_ALIGN_CENTER;
+			menu->offset[0] = 320 - menu->size[0]/2;
+		}
+		else if ( !Q_strncmp( var, "right", 128 ) ) {
+			menu->align[0] = UI_ALIGN_RIGHT;
+			menu->offset[0] = 640 - menu->size[0];
+		}
+		var = PARSE_PTR;
+		if ( !Q_strncmp( var, "top", 128 ) ) {
+			menu->align[1] = UI_ALIGN_LEFT;
+			menu->offset[1] = 0;
+		}
+		else if ( !Q_strncmp( var, "centery", 128 ) ) {
+			menu->align[1] = UI_ALIGN_CENTER;
+			menu->offset[1] = 240 - menu->size[1]/2;;
+		}
+		else if ( !Q_strncmp( var, "bottom", 128 ) ) {
+			menu->align[1] = UI_ALIGN_RIGHT;
+			menu->offset[1] = 480 - menu->size[1];
+		}
 		return qfalse;
 	}
 	else if ( !Q_strncmp( token, "vidmode", 7 ) ) {
@@ -347,7 +382,7 @@ qboolean UI_ParseMenuToken( const char *token, char **ptr, uiMenu_t *menu ) {
 		if ( *var == '{' ) {
 			var = PARSE_PTR;
 			while (*var != '}') {
-				UI_ParseMenuResource( var, ptr, res );
+				UI_ParseMenuResource( var, ptr, res, menu->offset );
 				var = PARSE_PTR;
 				if (*var ==0) {
 					Com_Memset( res, 0, sizeof(uiResource_t) );
@@ -432,7 +467,7 @@ void	UI_LoadINC( const char *name, uiMenu_t *menu ) {
 			if ( *var == '{' ) {
 				var = COM_Parse( &ptr );
 				while (*var != '}') {
-					UI_ParseMenuResource( var, &ptr, res );
+					UI_ParseMenuResource( var, &ptr, res, menu->offset );
 					var = COM_Parse( &ptr );
 					if (*var ==0) {
 						Com_Memset( res, 0, sizeof(uiResource_t) );

@@ -56,6 +56,7 @@ typedef enum uiMenuDirection_s {
 } uiMenuDirection_t;
 
 typedef enum uiAlign_s {
+	UI_ALIGN_NONE,
 	UI_ALIGN_LEFT,
 	UI_ALIGN_CENTER,
 	UI_ALIGN_RIGHT
@@ -95,7 +96,7 @@ typedef enum {
 typedef struct uiResource_s {
 	uiResType_t			type;
 	char				name[UI_MAX_NAME];
-	uiMenuDirection_t	align;
+	uiMenuDirection_t	align[2];
 	int					rect[4];
 	vec4_t				fgcolor;
 	vec4_t				bgcolor;
@@ -143,8 +144,10 @@ typedef struct uiResource_s {
 	qboolean			lastState;
 	qboolean			pressed;
 
+	qboolean			statvar;
 	uiStatbar_t			statbar;
 	statIndex_t			playerstat;
+	statIndex_t			maxplayerstat;
 	statIndex_t			itemstat;
 	qhandle_t			statbarshader;
 	qhandle_t			statbartileshader;
@@ -159,6 +162,7 @@ typedef struct uiResource_s {
 typedef struct uiMenu_s {
 	char			name[UI_MAX_NAME];
 	int				size[2];
+	int				offset[2];
 	uiAlign_t		align[2];
 	uiMenuDirection_t	motion;
 	int				time;
@@ -228,6 +232,9 @@ typedef struct {
 	
 	// HUD
 	uiMenu_t			hudMenus[HUD_MAX];
+	uiMenu_t			crosshair;
+	uiMenu_t			scoreboard;
+	qboolean			showscores;
 } uiStatic_t;
 
 
@@ -240,7 +247,7 @@ qboolean UI_OutOfMemory( void );
 //
 extern uiStatic_t uis;
 
-void UI_DrawHUD( int stats[] );
+void UI_DrawHUD( int *stats );
 void UI_Init( void );
 void UI_Shutdown( void );
 void UI_KeyEvent( int key, int down );

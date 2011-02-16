@@ -1672,7 +1672,7 @@ static void CG_DrawLagometer( void ) {
 #endif
 
 	trap_R_SetColor( NULL );
-	CG_DrawPic( x, y, 48, 48, cgs.media.lagometerShader );
+//	CG_DrawPic( x, y, 48, 48, cgs.media.lagometerShader );
 
 	ax = x;
 	ay = y;
@@ -2545,6 +2545,12 @@ CG_Draw2D
 =================
 */
 static void CG_Draw2D( void ) {
+
+	CG_DrawLagometer();	
+	CG_DrawCenterString();
+	return;	// 2d/HUD should all be drawn in UI now...
+	
+	
 #ifdef MISSIONPACK
 	if (cgs.orderPending && cg.time > cgs.orderTime) {
 		CG_CheckOrderPending();

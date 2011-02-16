@@ -25,6 +25,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "ui_local.h"
 
 uiStatic_t		uis;
+int				*ps_stats;
 
 vec4_t menu_text_color	    = {1.0f, 1.0f, 1.0f, 1.0f};
 vec4_t menu_dim_color       = {0.0f, 0.0f, 0.0f, 0.75f};
@@ -117,6 +118,7 @@ vmCvar_t	ter_maxlod;
 vmCvar_t	cg_effectdetail;
 vmCvar_t	r_subdivisions;
 vmCvar_t	cg_shadows;
+vmCvar_t	cg_scoreboardpic;
 
 
 static cvarTable_t		cvarTable[] = {
@@ -140,7 +142,8 @@ static cvarTable_t		cvarTable[] = {
 	{ &ter_maxlod, "ter_maxlod", "6", CVAR_ARCHIVE },
 	{ &cg_effectdetail, "cg_effectdetail", "1.0", CVAR_ARCHIVE },
 	{ &r_subdivisions, "r_subdivisions", "3", CVAR_ARCHIVE },
-	{ &cg_shadows, "cg_shadows", "2", CVAR_ARCHIVE }
+	{ &cg_shadows, "cg_shadows", "2", CVAR_ARCHIVE },
+	{ &cg_scoreboardpic, "cg_scoreboardpic", "mohdm1", CVAR_ARCHIVE }
 };
 
 static int cvarTableSize = sizeof(cvarTable) / sizeof(cvarTable[0]);
@@ -211,6 +214,9 @@ void UI_RegisterMedia( void ) {
 	UI_LoadURC( "hud_stopwatch", &uis.hudMenus[HUD_STOPWATCH] );
 	UI_LoadURC( "hud_timelimit", &uis.hudMenus[HUD_TIMELIMIT] );
 	UI_LoadURC( "hud_weapons", &uis.hudMenus[HUD_WEAPONS] );
+	
+	UI_LoadURC( "crosshair", &uis.crosshair );
+	UI_LoadURC( "dm_scoreboard", &uis.scoreboard );
 }
 
 /*
@@ -412,6 +418,8 @@ Logic to bring the menu resources to screen
 void UI_DrawMenu( uiMenu_t *menu, qboolean foreground ) {
 	int				j;
 	int				k;
+	char			text[256];
+	int				frac;
 
 	uiResource_t	*res;
 	qhandle_t		cvarshader;
@@ -421,6 +429,7 @@ void UI_DrawMenu( uiMenu_t *menu, qboolean foreground ) {
 		if ( foreground == qtrue ) //foreground menu
 			UI_SetColor( res->fgcolor );
 		else UI_SetColor( res->bgcolor );
+
 		switch ( res->type ) {
 
 			case UI_RES_LABEL:
@@ -438,9 +447,21 @@ void UI_DrawMenu( uiMenu_t *menu, qboolean foreground ) {
 						}
 						else
 							trap_R_Text_Paint( res->font,res->rect[0],res->rect[1],1,0,res->linkcvar.string,1,0,qtrue,qtrue);
-					} else {
-						UI_DrawBox( res->rect[0],res->rect[1], res->rect[2],res->rect[3],qfalse );
-						trap_R_Text_Paint( res->font,res->rect[0]+ (res->rect[2] - trap_R_Text_Width( res->font, res->title, 0,qtrue ))/2,res->rect[1]+ (res->rect[3] -trap_R_Text_Height( res->font, res->title, 0,qtrue ))/2,1,0,res->title,1,0,qtrue,qtrue);
+					} else if ( res->statvar==qfalse ) {
+						if (res->borderstyle != UI_BORDER_NONE )
+							UI_DrawBox( res->rect[0],res->rect[1], res->rect[2],res->rect[3],qfalse );
+						switch ( res->textalign ) {
+							case UI_ALIGN_LEFT:
+							trap_R_Text_Paint( res->font,res->rect[0],res->rect[1],1,0,res->title,1,0,qtrue,qtrue);
+							break;
+							case UI_ALIGN_NONE:
+							case UI_ALIGN_CENTER:
+							trap_R_Text_Paint( res->font,res->rect[0]+ (res->rect[2] - trap_R_Text_Width( res->font, res->title, 0,qtrue ))/2,res->rect[1]+ (res->rect[3] -trap_R_Text_Height( res->font, res->title, 0,qtrue ))/2,1,0,res->title,1,0,qtrue,qtrue);
+							break;
+							case UI_ALIGN_RIGHT:
+							trap_R_Text_Paint( res->font,res->rect[0]+ res->rect[2] - trap_R_Text_Width( res->font, res->title, 0,qtrue ),res->rect[1],1,0,res->title,1,0,qtrue,qtrue);
+							break;
+						}
 					}
 				}
 				else if ( res->linkcvartoshader ) {
@@ -452,9 +473,21 @@ void UI_DrawMenu( uiMenu_t *menu, qboolean foreground ) {
 				else if ( res->statbar != STATBAR_NONE ) {
 					switch ( res->statbar ) {
 						case STATBAR_COMPASS:
+						UI_SetColor( res->fgcolor );
 						UI_DrawHandlePic( res->rect[0], res->rect[1], res->rect[2], res->rect[3], res->statbarshader );
 						break;
+						case STATBAR_VERTICAL:
+						UI_SetColor( res->bgcolor );
+						if ( res->statbarshader ) {
+							frac = res->rect[3] * ps_stats[res->playerstat] / ps_stats[res->maxplayerstat];
+							UI_DrawHandlePic( res->rect[0], res->rect[1]+res->rect[3] - frac, res->rect[2], frac, res->statbarshader );
+						}
+						break;
 					}
+				}
+				else if ( res->statvar == qtrue ) {
+					if ( !res->itemstat )
+						trap_R_Text_Paint( res->font,res->rect[0],res->rect[1],1,0,va("%i",ps_stats[res->playerstat]),1,0,qtrue,qtrue);
 				}
 				else {
 					UI_DrawHandlePic( res->rect[0], res->rect[1], res->rect[2], res->rect[3], res->shader );
@@ -500,13 +533,26 @@ void UI_DrawMenu( uiMenu_t *menu, qboolean foreground ) {
 UI_DrawHUD
 =================
 */
-void UI_DrawHUD( int stats[] ) {
+void UI_DrawHUD( int *stats ) {
 	int i;
+//for (i=0;i<STAT_LAST_STAT;i++){
+//	Com_Printf( "%i val: %i\n", i, stats[i] );
+//}
+	ps_stats = stats;
 
-	UI_DrawMenu( &uis.hudMenus[HUD_COMPASS], qtrue );
-	for (i=0; i<HUD_MAX; i++ ) {
-	//	UI_DrawMenu( &uis.hudMenus[i], qtrue );
-	}
+	UI_DrawMenu( &uis.hudMenus[HUD_AMMO], qtrue );
+	UI_DrawMenu( &uis.hudMenus[HUD_COMPASS], qfalse );
+	UI_DrawMenu( &uis.hudMenus[HUD_FRAGLIMIT], qtrue );
+	UI_DrawMenu( &uis.hudMenus[HUD_HEALTH], qtrue );
+//	UI_DrawMenu( &uis.hudMenus[HUD_ITEMS], qtrue );
+	UI_DrawMenu( &uis.hudMenus[HUD_SCORE], qtrue );
+//	UI_DrawMenu( &uis.hudMenus[HUD_STOPWATCH], qtrue );
+//	UI_DrawMenu( &uis.hudMenus[HUD_TIMELIMIT], qfalse );
+//	UI_DrawMenu( &uis.hudMenus[HUD_WEAPONS], qtrue );
+
+	UI_DrawMenu( &uis.crosshair, qtrue );
+	if ( uis.showscores == qtrue )
+		UI_DrawMenu( &uis.scoreboard, qtrue );
 }
 /*
 =================
@@ -619,6 +665,14 @@ qboolean UI_ConsoleCommand( int realTime ) {
 	}
 	else if ( Q_stricmp (cmd, "pushmenu_weaponselect") == 0 ) {
 		UI_PushMenu( "dm_primaryselect" );
+		return qtrue;
+	}
+	else if ( Q_stricmp (cmd, "+scores") == 0 ) {
+		uis.showscores = qtrue;
+		return qtrue;
+	}
+	else if ( Q_stricmp (cmd, "-scores") == 0 ) {
+		uis.showscores = qfalse;
 		return qtrue;
 	}
 
