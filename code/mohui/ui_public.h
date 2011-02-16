@@ -174,6 +174,8 @@ typedef enum {
 
 	UI_REFRESH,
 //	void	UI_Refresh( int time );
+	UI_HUD,
+// void UI_DrawHUD( int stats[] );
 
 	UI_IS_FULLSCREEN,
 //	qboolean UI_IsFullscreen( void );

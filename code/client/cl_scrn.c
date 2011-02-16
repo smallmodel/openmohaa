@@ -484,6 +484,7 @@ void SCR_DrawScreenField( stereoFrame_t stereoFrame ) {
 			break;
 		case CA_ACTIVE:
 			CL_CGameRendering( stereoFrame );
+			VM_Call( uivm, UI_HUD, cl.snap.ps.stats );
 			SCR_DrawDemoRecording();
 			break;
 		}

@@ -179,6 +179,62 @@ void UI_ParseMenuResource( const char *token, char **ptr, uiResource_t *res ) {
 		res->modelanim = UI_Alloc( UI_MAX_NAME );
 		Q_strncpyz( res->modelanim, PARSE_PTR, UI_MAX_NAME );
 	}
+	else if ( !Q_strncmp( token, "fadein", 6 ) ) {
+		res->fadein = atof( PARSE_PTR );
+	}
+	else if ( !Q_strncmp( token, "statbar_shader_flash", 20 ) ) {
+		res->statbarshaderflash = trap_R_RegisterShaderNoMip( PARSE_PTR );
+	}
+	else if ( !Q_strncmp( token, "statbar_shader", 14 ) ) {
+		res->statbarshader = trap_R_RegisterShaderNoMip( PARSE_PTR );
+	}
+	else if ( !Q_strncmp( token, "statbar_tileshader", 14 ) ) {
+		res->statbartileshader = trap_R_RegisterShaderNoMip( PARSE_PTR );
+	}
+	else if ( !Q_strncmp( token, "statbar_endangles", 17 ) ) {
+		res->statbarendangles[0] = atoi( PARSE_PTR );
+		res->statbarendangles[1] = atoi( PARSE_PTR );
+	}
+	else if ( !Q_strncmp( token, "statbar_rotatorsize", 19 ) ) {
+		res->rotatorsize[0] = atof( PARSE_PTR );
+		res->rotatorsize[1] = atof( PARSE_PTR );
+	}
+	else if ( !Q_strncmp( token, "statbar", 7 ) ) {
+		var = PARSE_PTR;
+		if ( !Q_strncmp(var,"compass",7) )
+			res->statbar = STATBAR_COMPASS;
+		else if ( !Q_strncmp(var,"vertical",8) )
+			res->statbar = STATBAR_VERTICAL;
+		else if ( !Q_strncmp(var,"vertical_stagger_even",21) )
+			res->statbar = STATBAR_VERTICAL_STAGGER_EVEN;
+		else if ( !Q_strncmp(var,"vertical_stagger_odd",20) )
+			res->statbar = STATBAR_VERTICAL_STAGGER_ODD;
+		else if ( !Q_strncmp(var,"headingspinner",14) ) {
+			res->statbar = STATBAR_HEADING_SPINNER;
+			res->statbarRange[0] = atoi(PARSE_PTR);
+			res->statbarRange[1] = atoi(PARSE_PTR);
+		}
+		else if ( !Q_strncmp(var,"rotator",7) ) {
+			res->statbar = STATBAR_ROTATOR;
+			res->statbarRange[0] = atoi(PARSE_PTR);
+			res->statbarRange[1] = atoi(PARSE_PTR);
+		}
+		else if ( !Q_strncmp(var,"spinner",7) ) {
+			res->statbar = STATBAR_SPINNER;
+			res->statbarRange[0] = atoi(PARSE_PTR);
+			res->statbarRange[1] = atoi(PARSE_PTR);
+		}
+		else Com_Printf( "UI_ParseMenuResource: unknown statbar %s\n", var );
+	}
+	else if ( !Q_strncmp( token, "playerstat", 10 ) ) {
+		res->playerstat = (statIndex_t)atoi(PARSE_PTR);
+	}
+	else if ( !Q_strncmp( token, "itemstat", 8 ) ) {
+		res->itemstat = (statIndex_t)atoi(PARSE_PTR);
+	}
+	else if ( !Q_strncmp( token, "invmodelhand", 12 ) ) {
+		res->invmodelhand = atoi(PARSE_PTR);
+	}
 	else if ( !Q_strncmp( token, "resource", 8 ) ) {
 		Com_Printf( "UI_ParseMenuResource: new resource not expected: forgot }?\n" );
 	}

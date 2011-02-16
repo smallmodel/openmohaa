@@ -77,6 +77,21 @@ typedef enum uiSlidertype_s {
 	UI_ST_FLOAT
 } uiSlidertype_t;
 
+typedef enum {
+	STATBAR_NONE,
+	STATBAR_HORIZONTAL,
+	STATBAR_VERTICAL,
+	STATBAR_VERTICAL_REVERSE,
+	STATBAR_VERTICAL_STAGGER_EVEN,
+	STATBAR_VERTICAL_STAGGER_ODD,
+	STATBAR_CIRCULAR,
+	STATBAR_NEEDLE,
+	STATBAR_ROTATOR,
+	STATBAR_COMPASS,
+	STATBAR_SPINNER,
+	STATBAR_HEADING_SPINNER
+} uiStatbar_t;
+
 typedef struct uiResource_s {
 	uiResType_t			type;
 	char				name[UI_MAX_NAME];
@@ -128,6 +143,17 @@ typedef struct uiResource_s {
 	qboolean			lastState;
 	qboolean			pressed;
 
+	uiStatbar_t			statbar;
+	statIndex_t			playerstat;
+	statIndex_t			itemstat;
+	qhandle_t			statbarshader;
+	qhandle_t			statbartileshader;
+	qhandle_t			statbarshaderflash;
+	int					statbarRange[2];
+	int					statbarendangles[2];
+	float				rotatorsize[2];
+	int					invmodelhand;
+	float				fadein;
 } uiResource_t;
 
 typedef struct uiMenu_s {
@@ -151,6 +177,19 @@ typedef struct uiMenu_s {
 
 	qboolean		standard;
 } uiMenu_t;
+
+typedef enum {
+	HUD_AMMO,
+	HUD_COMPASS,
+	HUD_FRAGLIMIT,
+	HUD_HEALTH,
+	HUD_ITEMS,
+	HUD_SCORE,
+	HUD_STOPWATCH,
+	HUD_TIMELIMIT,
+	HUD_WEAPONS,
+	HUD_MAX
+} uiHudMenus_t; 
 
 // ui_quarks.c
 typedef struct {
@@ -186,6 +225,9 @@ typedef struct {
 	// for other windows, we use the cache.
 	uiMenu_t			cache[UI_MAX_MENUS];
 	int					CP; // 'Cache Pointer'
+	
+	// HUD
+	uiMenu_t			hudMenus[HUD_MAX];
 } uiStatic_t;
 
 
@@ -197,6 +239,8 @@ qboolean UI_OutOfMemory( void );
 // ui_quarks.c
 //
 extern uiStatic_t uis;
+
+void UI_DrawHUD( int stats[] );
 void UI_Init( void );
 void UI_Shutdown( void );
 void UI_KeyEvent( int key, int down );

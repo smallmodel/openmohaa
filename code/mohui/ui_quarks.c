@@ -180,7 +180,7 @@ UI_Shutdown
 =================
 */
 void UI_Shutdown( void ) {
-	Com_Printf( "*** UI Shutdown ***\n" );
+
 }
 
 
@@ -200,6 +200,17 @@ void UI_RegisterMedia( void ) {
 	uis.main.standard			= qtrue;
 	uis.connecting.standard	= qtrue;
 	uis.loading.standard		= qtrue;
+	
+	// HUD MENUS
+	UI_LoadURC( "hud_ammo_bar", &uis.hudMenus[HUD_AMMO] );
+	UI_LoadURC( "hud_compass", &uis.hudMenus[HUD_COMPASS] );
+	UI_LoadURC( "hud_fraglimit", &uis.hudMenus[HUD_FRAGLIMIT] );
+	UI_LoadURC( "hud_health", &uis.hudMenus[HUD_HEALTH] );
+	UI_LoadURC( "hud_items", &uis.hudMenus[HUD_ITEMS] );
+	UI_LoadURC( "hud_score", &uis.hudMenus[HUD_SCORE] );
+	UI_LoadURC( "hud_stopwatch", &uis.hudMenus[HUD_STOPWATCH] );
+	UI_LoadURC( "hud_timelimit", &uis.hudMenus[HUD_TIMELIMIT] );
+	UI_LoadURC( "hud_weapons", &uis.hudMenus[HUD_WEAPONS] );
 }
 
 /*
@@ -401,7 +412,7 @@ Logic to bring the menu resources to screen
 void UI_DrawMenu( uiMenu_t *menu, qboolean foreground ) {
 	int				j;
 	int				k;
-	;
+
 	uiResource_t	*res;
 	qhandle_t		cvarshader;
 
@@ -438,8 +449,16 @@ void UI_DrawMenu( uiMenu_t *menu, qboolean foreground ) {
 					if ( cvarshader )
 						UI_DrawHandlePic( res->rect[0], res->rect[1], res->rect[2], res->rect[3], cvarshader );
 				}
-				else
+				else if ( res->statbar != STATBAR_NONE ) {
+					switch ( res->statbar ) {
+						case STATBAR_COMPASS:
+						UI_DrawHandlePic( res->rect[0], res->rect[1], res->rect[2], res->rect[3], res->statbarshader );
+						break;
+					}
+				}
+				else {
 					UI_DrawHandlePic( res->rect[0], res->rect[1], res->rect[2], res->rect[3], res->shader );
+				}
 				break;
 
 			case UI_RES_BUTTON:
@@ -476,6 +495,19 @@ void UI_DrawMenu( uiMenu_t *menu, qboolean foreground ) {
 	}
 }
 
+/*
+=================
+UI_DrawHUD
+=================
+*/
+void UI_DrawHUD( int stats[] ) {
+	int i;
+
+	UI_DrawMenu( &uis.hudMenus[HUD_COMPASS], qtrue );
+	for (i=0; i<HUD_MAX; i++ ) {
+	//	UI_DrawMenu( &uis.hudMenus[i], qtrue );
+	}
+}
 /*
 =================
 UI_Refresh
@@ -648,7 +680,7 @@ void UI_DrawConnectScreen( qboolean overlay ) {
 		default:
 			return;
 	}
-	trap_R_Text_Paint( &uis.menuFont, 300,260,1,1,s,0,0,qtrue,qtrue );
+	trap_R_Text_Paint( &uis.menuFont, 250,270,1,1,s,0,0,qtrue,qtrue );
 	// draw cursor
 	UI_SetColor( NULL );
 	UI_DrawHandlePic( uis.cursorx, uis.cursory, 32, 32, uis.cursor);
