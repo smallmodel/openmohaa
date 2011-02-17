@@ -140,7 +140,7 @@ SDLDIR=$(MOUNT_DIR)/sdl
 ASMDIR=$(MOUNT_DIR)/asm
 SYSDIR=$(MOUNT_DIR)/sys
 GDIR=$(MOUNT_DIR)/game
-CGDIR=$(MOUNT_DIR)/cgame
+CGDIR=$(MOUNT_DIR)/mohcgame
 BLIBDIR=$(MOUNT_DIR)/botlib
 NDIR=$(MOUNT_DIR)/null
 UIDIR=$(MOUNT_DIR)/mohui
@@ -1398,29 +1398,10 @@ $(B)/omohaaded.$(ARCH)$(BINEXT): $(Q3DOBJ)
 
 Q3CGOBJ_ = \
   $(B)/main/cgame/cg_main.o \
-  $(B)/main/game/bg_misc.o \
-  $(B)/main/game/bg_pmove.o \
-  $(B)/main/game/bg_slidemove.o \
-  $(B)/main/game/bg_lib.o \
   $(B)/main/cgame/cg_consolecmds.o \
-  $(B)/main/cgame/cg_draw.o \
-  $(B)/main/cgame/cg_drawtools.o \
-  $(B)/main/cgame/cg_effects.o \
-  $(B)/main/cgame/cg_ents.o \
-  $(B)/main/cgame/cg_event.o \
-  $(B)/main/cgame/cg_info.o \
-  $(B)/main/cgame/cg_localents.o \
-  $(B)/main/cgame/cg_marks.o \
-  $(B)/main/cgame/cg_modelanim.o \
-  $(B)/main/cgame/cg_players.o \
-  $(B)/main/cgame/cg_playerstate.o \
-  $(B)/main/cgame/cg_predict.o \
-  $(B)/main/cgame/cg_scoreboard.o \
   $(B)/main/cgame/cg_servercmds.o \
-  $(B)/main/cgame/cg_snapshot.o \
+  $(B)/main/cgame/cg_draw.o \
   $(B)/main/cgame/cg_view.o \
-  $(B)/main/cgame/cg_viewmodelanim.o \
-  $(B)/main/cgame/cg_weapons.o \
   \
   $(B)/main/qcommon/q_math.o \
   $(B)/main/qcommon/q_shared.o

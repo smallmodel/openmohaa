@@ -58,31 +58,57 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
 // CS_SERVERINFO and CS_SYSTEMINFO are defined in q_shared.h
-#define	CS_MUSIC				2
+
 #define	CS_MESSAGE				2		// from the map worldspawn's message field
 #define	CS_MOTD					4		// g_motd string for server message of the day
 #define	CS_WARMUP				5		// server time when the match will be restarted
+
+#define	CS_MUSIC				8		// MUSIC_NewSoundtrack(cs)
+#define CS_FOGINFO				9		// cg.farplane_cull cg.farplane_distance cg.farplane_color[3]
+#define CS_SKYINFO				10		// cg.sky_alpha cg.sky_portal
+
+#define	CS_GAME_VERSION			11
+#define	CS_LEVEL_START_TIME		12		// so the timer only shows the current level cgs.levelStartTime
+
+#define CS_RAIN_DENSITY			14		// cg.rain
+#define CS_RAIN_SPEED			15
+#define CS_RAIN_SPEEDVARY		16
+#define CS_RAIN_SLANT			17
+#define CS_RAIN_LENGTH			18
+#define CS_RAIN_MINDIST			19
+#define CS_RAIN_WIDTH			20
+#define CS_RAIN_SHADER			21
+#define CS_RAIN_NUMSHADERS		22
+
+#define CS_MATCHEND				26		// cgs.matchEndTime
+
+#define	CS_MODELS				32
+#define CS_OBJECTIVES			(CS_MODELS+MAX_MODELS) // 1056
+#define	CS_SOUNDS				(CS_OBJECTIVES+MAX_OBJECTIVES) // 1076
+
+#define CS_UNKNOWN2				(CS_SOUNDS+MAX_SOUNDS) // 1588
+#define NUMCSUNKOWN				64
+
+#define CS_LIGHTSTYLES			(CS_UNKNOWN+NUMCSUNKOWN) //1652
+#define CS_PLAYERS				(CS_LIGHTSTYLES+MAX_LIGHTSTYLES) // 1684
+
+#define CS_WEAPONS				(CS_PLAYERS+MAX_CLIENTS) // su44 was here
+#define CS_UNKNOWN				1876
+#define CS_SPECTATORS			1878
+#define CS_ALLIES				1879
+#define CS_AXIS					1880
+
+//not on mohaa
 #define	CS_SCORES1				6
 #define	CS_SCORES2				7
 #define CS_VOTE_TIME			8
 #define CS_VOTE_STRING			9
 #define	CS_VOTE_YES				10
 #define	CS_VOTE_NO				11
-
 #define CS_TEAMVOTE_TIME		12
 #define CS_TEAMVOTE_STRING		14
 #define	CS_TEAMVOTE_YES			16
 #define	CS_TEAMVOTE_NO			18
-
-#define CS_SOUNDTRACK			8
-#define CS_FOGINFO				9
-#define CS_SKYINFO				10
-
-#define	CS_GAME_VERSION			11
-#define	CS_LEVEL_START_TIME		12		// so the timer only shows the current level
-
-#define CS_OBJECTIVES			13
-
 
 #define	CS_INTERMISSION			22		// when 1, fraglimit/timelimit has been hit and intermission will start in a second or two
 #define CS_FLAGSTATUS			23		// string indicating flag status in CTF
@@ -90,24 +116,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define CS_BOTINFO				25
 
 #define	CS_ITEMS				27		// string of 0's and 1's that tell which items are present
-
-#define	CS_MODELS				32
-#define CS_SOUNDS				1077
-#define CS_PLAYERS				1684
-//#define	CS_SOUNDS				(CS_MODELS+MAX_MODELS)
-//#define	CS_PLAYERS				(CS_SOUNDS+MAX_SOUNDS)
 #define CS_LOCATIONS			(CS_PLAYERS+MAX_CLIENTS)
 #define CS_PARTICLES			(CS_LOCATIONS+MAX_LOCATIONS)
 
-#define CS_WEAPONS				1748 // su44 was here
-#define CS_UNKNOWN				1876
-#define CS_SPECTATORS			1878
-#define CS_ALLIES				1879
-#define CS_AXIS					1880
-
 
 #define CS_MAX					(CS_PARTICLES+MAX_LOCATIONS)
-
 #if (CS_MAX) > MAX_CONFIGSTRINGS
 #error overflow: (CS_MAX) > MAX_CONFIGSTRINGS
 #endif
@@ -619,14 +632,18 @@ typedef struct animation_s {
 // changes so a restart of the same anim can be detected
 #define	ANIM_TOGGLEBIT		128
 
+// these defines could be deleted sometime when code/game/ is cleared of Q3A stuff
+#define TEAM_FREE 0
+#define TEAM_RED 4
+#define TEAM_BLUE 3
+#define TEAM_NUM_TEAMS 5
 
 typedef enum {
-	TEAM_FREE,
-	TEAM_RED,
-	TEAM_BLUE,
+	TEAM_NONE,
 	TEAM_SPECTATOR,
-
-	TEAM_NUM_TEAMS
+	TEAM_FREEFORALL,
+	TEAM_ALLIES,
+	TEAM_AXIS
 } team_t;
 
 // Time between location updates
