@@ -45,24 +45,14 @@ Now run openmohaa with start parameters:
 Note that with non-US keyboard settings, you may have problems toggling
 the in-game console. The right key should type '`' or '~'
 
-The best way for testing is starting a dedicated server with the
-original MOHAA binaries and joining the game with the openmohaa client.
-The network code has been adopted from MOHAA to ensure compatibility,
-but it only works for the client until now.
-The openmohaa server netcode is not yet finished, but even if it works
-the original MOHAA server will be the better choice until fgame code is done.
+
 
 Developing
 =======================
 There is plenty of work to do. Basically, our goal is to get openmohaa
 compatible to MOHAA. If you want to help out, just follow the above
 instructions to get your development system set up.
-It doesn't help anybody if you tell us you'd like to help out but never
-submit one single line of code.
-So *before* you ask to get on the team, do something. Feel free to ask
-for help. Just ask for advise on what to do to help out.
-When you've produced some code, tell us and we will consider access to
-the subversion system for you.
+If you experience problems getting started try get in touch with me (wombat)
 
 After all, you are always welcome in our irc channel and forums!
 
