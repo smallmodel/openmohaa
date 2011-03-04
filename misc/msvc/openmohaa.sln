@@ -10,6 +10,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "quake3", "quake3.vcproj", "
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ui", "ui.vcproj", "{A8EAC38E-C7DA-42F8-811D-77FD092B9D19}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mohui", "mohui.vcproj", "{BCBC4A0D-CB9B-492E-85D0-FC414D7AB8BC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug TA|Win32 = Debug TA|Win32
@@ -58,6 +60,14 @@ Global
 		{A8EAC38E-C7DA-42F8-811D-77FD092B9D19}.Release TA|Win32.Build.0 = Release TA|Win32
 		{A8EAC38E-C7DA-42F8-811D-77FD092B9D19}.Release|Win32.ActiveCfg = Release|Win32
 		{A8EAC38E-C7DA-42F8-811D-77FD092B9D19}.Release|Win32.Build.0 = Release|Win32
+		{BCBC4A0D-CB9B-492E-85D0-FC414D7AB8BC}.Debug TA|Win32.ActiveCfg = Debug TA|Win32
+		{BCBC4A0D-CB9B-492E-85D0-FC414D7AB8BC}.Debug TA|Win32.Build.0 = Debug TA|Win32
+		{BCBC4A0D-CB9B-492E-85D0-FC414D7AB8BC}.Debug|Win32.ActiveCfg = Debug|Win32
+		{BCBC4A0D-CB9B-492E-85D0-FC414D7AB8BC}.Debug|Win32.Build.0 = Debug|Win32
+		{BCBC4A0D-CB9B-492E-85D0-FC414D7AB8BC}.Release TA|Win32.ActiveCfg = Release TA|Win32
+		{BCBC4A0D-CB9B-492E-85D0-FC414D7AB8BC}.Release TA|Win32.Build.0 = Release TA|Win32
+		{BCBC4A0D-CB9B-492E-85D0-FC414D7AB8BC}.Release|Win32.ActiveCfg = Release|Win32
+		{BCBC4A0D-CB9B-492E-85D0-FC414D7AB8BC}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

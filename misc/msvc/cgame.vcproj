@@ -167,7 +167,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="odbc32.lib odbccp32.lib"
-				OutputFile="..\..\build\main\cgamex86.dll"
+				OutputFile="..\..\build\main\cgamex86opm.dll"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
 				ModuleDefinitionFile=".\cgame.def"
