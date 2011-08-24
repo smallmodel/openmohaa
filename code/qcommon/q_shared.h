@@ -1134,7 +1134,7 @@ typedef enum {
 #define	MAX_MODELS			1024		// these are sent over the net as 8 bits
 #define	MAX_SOUNDS			512		// so they cannot be blindly increased
 #define MAX_OBJECTIVES		20
-#define MAX_LIGHTSTYLES		31
+#define MAX_LIGHTSTYLES		32
 
 
 #define	MAX_CONFIGSTRINGS	2736

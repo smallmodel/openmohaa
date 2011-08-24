@@ -700,7 +700,7 @@ CG_InterpolateEntityPosition
 =============================
 */
 static void CG_InterpolateEntityPosition( centity_t *cent ) {
-	vec3_t		current, next;
+	float		*current, *next;
 	float		f;
 
 	// it would be an internal error to find an entity that interpolates without
@@ -713,15 +713,20 @@ static void CG_InterpolateEntityPosition( centity_t *cent ) {
 
 	// this will linearize a sine or parabolic curve, but it is important
 	// to not extrapolate player positions if more recent data is available
-	BG_EvaluateTrajectory( &cent->currentState.pos, cg.snap->serverTime, current );
-	BG_EvaluateTrajectory( &cent->nextState.pos, cg.nextSnap->serverTime, next );
+//	BG_EvaluateTrajectory( &cent->currentState.pos, cg.snap->serverTime, current );
+//	BG_EvaluateTrajectory( &cent->nextState.pos, cg.nextSnap->serverTime, next );
+	// su44: adjusted for MOH
+	current = &cent->currentState.origin[0];
+	next = &cent->nextState.origin[0];
 
 	cent->lerpOrigin[0] = current[0] + f * ( next[0] - current[0] );
 	cent->lerpOrigin[1] = current[1] + f * ( next[1] - current[1] );
 	cent->lerpOrigin[2] = current[2] + f * ( next[2] - current[2] );
 
-	BG_EvaluateTrajectory( &cent->currentState.apos, cg.snap->serverTime, current );
-	BG_EvaluateTrajectory( &cent->nextState.apos, cg.nextSnap->serverTime, next );
+//	BG_EvaluateTrajectory( &cent->currentState.apos, cg.snap->serverTime, current );
+//	BG_EvaluateTrajectory( &cent->nextState.apos, cg.nextSnap->serverTime, next );
+	current = &cent->currentState.angles[0];
+	next = &cent->nextState.angles[0];
 
 	cent->lerpAngles[0] = LerpAngle( current[0], next[0], f );
 	cent->lerpAngles[1] = LerpAngle( current[1], next[1], f );
@@ -736,7 +741,7 @@ CG_CalcEntityLerpPositions
 ===============
 */
 static void CG_CalcEntityLerpPositions( centity_t *cent ) {
-
+#if 0
 	// if this player does not want to see extrapolated players
 	if ( !cg_smoothClients.integer ) {
 		// make sure the clients use TR_INTERPOLATE
@@ -762,7 +767,15 @@ static void CG_CalcEntityLerpPositions( centity_t *cent ) {
 	// just use the current frame and evaluate as best we can
 	BG_EvaluateTrajectory( &cent->currentState.pos, cg.time, cent->lerpOrigin );
 	BG_EvaluateTrajectory( &cent->currentState.apos, cg.time, cent->lerpAngles );
-
+#else
+	if(cg.nextSnap) {
+		CG_InterpolateEntityPosition( cent );
+	} else {
+		VectorCopy(cent->currentState.origin,cent->lerpOrigin );
+		VectorCopy(cent->currentState.angles,cent->lerpAngles );
+	}
+ 
+#endif
 	// adjust for riding a mover if it wasn't rolled into the predicted
 	// player state
 	if ( cent != &cg.predictedPlayerEntity ) {

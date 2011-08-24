@@ -365,10 +365,18 @@ float vectoyaw( const vec3_t vec ) {
 
 
 void G_InitGentity( gentity_t *e ) {
+	int i;
+
 	e->inuse = qtrue;
 	e->classname = "noclass";
 	e->s.number = e - g_entities;
 	e->r.ownerNum = ENTITYNUM_NONE;
+
+	e->r.s.parent = ENTITYNUM_NONE;
+	e->r.s.tag_num = -1;
+	for(i = 0; i < 5; i++) {
+		e->r.s.bone_tag[i] = -1;
+	}
 }
 
 /*
@@ -471,11 +479,6 @@ void G_FreeEntity( gentity_t *ed ) {
 
 	memset (ed, 0, sizeof(*ed));
 
-	ed->r.s.parent = ENTITYNUM_NONE;
-	ed->r.s.tag_num = -1;
-	for(i = 0; i < 5; i++) {
-		ed->r.s.bone_tag[i] = -1;
-	}
 
 	ed->classname = "freed";
 	ed->freetime = level.time;

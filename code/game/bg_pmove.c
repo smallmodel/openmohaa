@@ -2067,5 +2067,10 @@ void Pmove (pmove_t *pmove) {
 
 	//PM_CheckStuck();
 
+	// su44: copy eye position to playerState_t::vEyePos for MoHAA clients
+	VectorCopy(pmove->ps->origin,pmove->ps->vEyePos);
+	pmove->ps->vEyePos[2] += pmove->ps->viewheight;
+	VectorCopy(pmove->ps->vEyePos,pmove->ps->camera_origin);
+	VectorCopy(pmove->ps->vEyePos,pmove->ps->camera_posofs);
 }
 

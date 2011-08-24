@@ -1095,7 +1095,7 @@ static void CG_RegisterGraphics( void ) {
 	for (i=0; i<64; i++) {
 		const char		*itemName;
 		itemName = CG_ConfigString( CS_WEAPONS+i );
-		if(itemName) {
+		if(itemName[0]) {
 			CG_RegisterItemName(i, itemName);
 		}
 	}

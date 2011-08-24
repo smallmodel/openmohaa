@@ -61,8 +61,7 @@ void CG_AttachEntity(refEntity_t *e, centity_t *parent, int boneIndex) {
 	if(parent->bones==0)
 		return;
 	b = &parent->bones[boneIndex];
-//	CG_BoneLocal2World(b,parent->lerpOrigin,parent->lerpAngles,e->origin,e->axis);
-	CG_BoneLocal2World(b,parent->currentState.origin,parent->currentState.angles,e->origin,a);
+	CG_BoneLocal2World(b,parent->lerpOrigin,parent->lerpAngles,e->origin,a);
 	AnglesToAxis(a,e->axis);
 }
 void CG_ModelAnim( centity_t *cent ) {
@@ -78,16 +77,16 @@ void CG_ModelAnim( centity_t *cent ) {
 	memset(&ent,0,sizeof(ent));
 
 	if(s1->tag_num != -1 && s1->parent != 1023) {
-		CG_AttachEntity(&ent,&cg_entities[s1->parent],s1->tag_num);
-		if(cg_entities[s1->parent].currentState.clientNum == cg.clientNum && !cg.renderingThirdPerson) {
+		if(s1->parent == cg.clientNum && !cg.renderingThirdPerson) {
 			ent.renderfx |= RF_THIRD_PERSON;
 			attachedToViewmodel = qtrue;
+		} else {
+			CG_AttachEntity(&ent,&cg_entities[s1->parent],s1->tag_num);
 		}
+
 	} else {
-	//	AnglesToAxis(cent->lerpAngles,ent.axis);
-	//	VectorCopy(cent->lerpOrigin,ent.origin);
-		AnglesToAxis(cent->currentState.angles,ent.axis);
-		VectorCopy(cent->currentState.origin,ent.origin);
+		AnglesToAxis(cent->lerpAngles,ent.axis);
+		VectorCopy(cent->lerpOrigin,ent.origin);
 	}
 
 	ent.hModel = cgs.gameModels[s1->modelindex];
@@ -141,7 +140,7 @@ void CG_ModelAnim( centity_t *cent ) {
 		trap_TIKI_Animate(tiki,ent.bones);
 	}
 	// player model
-	if ( cent->currentState.number == cg.snap->ps.clientNum) {
+	if ( cent->currentState.number == cg.clientNum) {
 #if 1 //calculate eye pos/rot for usereyes_t
 		if(tiki) {
 			vec3_t eyePos,eyeRot;
@@ -155,10 +154,10 @@ void CG_ModelAnim( centity_t *cent ) {
 			eyeBoneName = trap_TIKI_GetBoneNameIndex("eyes bone");//("tag_weapon_right");
 			for(i = 0; i < tiki->numBones; i++) {
 				if(tiki->boneNames[i] == eyeBoneName) {
-					CG_BoneLocal2World(ent.bones + i,ent.origin,cent->currentState.angles,eyePos,eyeRot);
+					CG_BoneLocal2World(ent.bones + i,ent.origin,cent->lerpAngles,eyePos,eyeRot);
 
 					VectorCopy(cg.predictedPlayerState.viewangles,eyeRot);
-					VectorSubtract(eyePos,cent->currentState.origin,eyePos);
+					VectorSubtract(eyePos,cent->lerpOrigin,eyePos);
 					trap_SetEyeInfo(eyePos,eyeRot);
 				}
 			}
