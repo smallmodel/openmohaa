@@ -219,6 +219,11 @@ typedef struct {
 	// wombat
 	fontInfo_t			menuFont;
 
+	sfxHandle_t			main_theme;
+	sfxHandle_t			menu_apply;
+	sfxHandle_t			menu_back;
+	sfxHandle_t			menu_select;
+
 	uiMenu_t			*stack[UI_MAX_MENUS];
 	int					MSP; // 'Menu Stack Pointer'
 

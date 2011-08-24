@@ -1307,8 +1307,8 @@ void MSG_ReadSounds (msg_t *msg, server_sound_t *sounds, int *snapshot_number_of
 					sounds[i].entity_number = MSG_ReadBits(msg, 10 );
 					sounds[i].channel = MSG_ReadBits(msg, 7 );
 				} else {
-					sounds[i].stop_flag = 0;
-					sounds[i].streamed = MSG_ReadBits( msg, 1 );
+					sounds[i].stop_flag = qfalse;
+					sounds[i].streamed = (qboolean)MSG_ReadBits( msg, 1 );
 					if ( MSG_ReadBits(msg, 1) == 1 ) {
 						sounds[i].origin[0] = MSG_ReadFloat( msg );
 						sounds[i].origin[1] = MSG_ReadFloat( msg );

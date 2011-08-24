@@ -60,8 +60,8 @@ int serverTimeResidual;
 
 	int				serverCommandNum;		// execute all commands up to this before
 											// making the snapshot current
-int number_of_sounds;
-server_sound_t sounds[64];
+	int				number_of_sounds;
+	server_sound_t	sounds[64];
 } clSnapshot_t;
 
 

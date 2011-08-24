@@ -206,8 +206,8 @@ void *S_WAV_CodecLoad(const char *filename, snd_info_t *info)
 	if(!file)
 	{
 // wombat: spammed console. remove when sound has been checked
-//		Com_Printf( S_COLOR_RED "ERROR: Could not open \"%s\"\n",
-//				filename);
+		Com_Printf( S_COLOR_RED "ERROR: Could not open \"%s\"\n",
+				filename);
 		return NULL;
 	}
 

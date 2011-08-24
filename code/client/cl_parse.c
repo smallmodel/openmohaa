@@ -417,7 +417,9 @@ void CL_SystemInfoChanged( void ) {
 	if ( !gameSet && *Cvar_VariableString("fs_game") ) {
 		Cvar_Set( "fs_game", "" );
 	}
-	cl_connectedToPureServer = Cvar_VariableValue( "sv_pure" );
+	// wombat: we ignore server's sv_pure for now
+	//cl_connectedToPureServer = Cvar_VariableValue( "sv_pure" );
+	cl_connectedToPureServer = 0;
 }
 
 /*

@@ -37,7 +37,8 @@ USER INTERFACE MAIN
 #define MEM_POOL_SIZE  1024 * 1024
 
 static char		memoryPool[MEM_POOL_SIZE];
-static int		allocPoint, outOfMemory;
+static int		allocPoint;
+qboolean outOfMemory;
 
 
 /*

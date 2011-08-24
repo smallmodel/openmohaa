@@ -1097,6 +1097,21 @@ typedef enum {
 	CHAN_LOCAL_SOUND,	// chat messages, etc
 	CHAN_ANNOUNCER		// announcer voices, etc
 } soundChannel_t;
+/*typedef enum {
+	CHAN_AUTO,
+	CHAN_BODY,
+	CHAN_ITEM,
+	CHAN_WEAPONIDLE,
+	CHAN_VOICE,
+	CHAN_LOCAL,
+	CHAN_WEAPON,
+	CHAN_DIALOG_SECONDARY,
+	CHAN_DIALOG,
+	CHAN_MENU,
+	CHAN_LOCAL_SOUND,	// chat messages, etc
+	CHAN_ANNOUNCER,		// announcer voices, etc
+	CHAN_MAX
+} soundChannel_t;*/
 
 
 /*

@@ -196,6 +196,13 @@ void UI_RegisterMedia( void ) {
 	uis.blackShader = trap_R_RegisterShaderNoMip( "textures/mohmenu/black.tga" );
 	uis.cursor = trap_R_RegisterShaderNoMip( "gfx/2d/mouse_cursor.tga" );
 
+	// SOUNDS
+	//uis.main_theme	= trap_S_RegisterSound( "sound/music/mus_MainTheme.mp3", qfalse );
+	uis.main_theme	= trap_S_RegisterSound( "sound/mechanics/static1.wav", qfalse );
+	uis.menu_apply	= trap_S_RegisterSound( "sound/menu/apply.wav", qfalse );
+	uis.menu_back	= trap_S_RegisterSound( "sound/menu/Back.wav", qfalse );
+	uis.menu_select	= trap_S_RegisterSound( "sound/menu/Scroll.wav", qfalse );
+
 	// STANDARD MENUS
 	UI_LoadURC( "main", &uis.main );
 	UI_LoadURC( "connecting", &uis.connecting );
@@ -253,6 +260,9 @@ void UI_Init( void ) {
 
 	uis.MSP	= -1;
 	uis.CP		= -1;
+
+	// play main theme
+	trap_S_StartLocalSound( uis.main_theme, CHAN_LOCAL );
 }
 
 /*
