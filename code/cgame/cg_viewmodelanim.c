@@ -210,7 +210,10 @@ item 2 "Binoculars"
 	ent->renderfx = RF_FIRST_PERSON;
 	ent->hModel = trap_R_RegisterModel(tmp);
 	ent->bones = trap_TIKI_GetBones(fps->numBones);
-
+	// dont bother culling hands model
+	VectorSet(ent->bounds[0],-99999,-99999,-99999);
+	VectorSet(ent->bounds[1],99999,99999,99999);
+	ent->radius = 99999;
 
 	// su44: kinda strange, but thats how its done by MoHAA
 	// we have two different hand surfaces - one is visible only while carrying rifles,

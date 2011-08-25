@@ -76,9 +76,7 @@ void CG_ModelAnim( centity_t *cent ) {
 
 	memset(&ent,0,sizeof(ent));
 
-	if(s1->tag_num != -1 && s1->parent != 1023
-		&& s1->tag_num != 0 && s1->parent != 0
-		) {
+	if(s1->tag_num != -1 && s1->parent != 1023) {
 		if(s1->parent == cg.clientNum && !cg.renderingThirdPerson) {
 			ent.renderfx |= RF_THIRD_PERSON;
 			attachedToViewmodel = qtrue;
