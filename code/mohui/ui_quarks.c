@@ -197,8 +197,7 @@ void UI_RegisterMedia( void ) {
 	uis.cursor = trap_R_RegisterShaderNoMip( "gfx/2d/mouse_cursor.tga" );
 
 	// SOUNDS
-	//uis.main_theme	= trap_S_RegisterSound( "sound/music/mus_MainTheme.mp3", qfalse );
-	uis.main_theme	= trap_S_RegisterSound( "sound/mechanics/static1.wav", qfalse );
+	uis.main_theme	= trap_S_RegisterSound( "test.wav", qfalse );
 	uis.menu_apply	= trap_S_RegisterSound( "sound/menu/apply.wav", qfalse );
 	uis.menu_back	= trap_S_RegisterSound( "sound/menu/Back.wav", qfalse );
 	uis.menu_select	= trap_S_RegisterSound( "sound/menu/Scroll.wav", qfalse );
@@ -260,9 +259,6 @@ void UI_Init( void ) {
 
 	uis.MSP	= -1;
 	uis.CP		= -1;
-
-	// play main theme
-	trap_S_StartLocalSound( uis.main_theme, CHAN_LOCAL );
 }
 
 /*
@@ -300,6 +296,7 @@ void UI_KeyEvent( int key, int down ) {
 	{
 		case K_MOUSE2:
 		case K_ESCAPE:
+			trap_S_StartLocalSound( uis.menu_back, CHAN_LOCAL_SOUND );
 			UI_PopMenu();
 			break;
 		case K_MOUSE1:
@@ -312,6 +309,7 @@ void UI_KeyEvent( int key, int down ) {
 					continue;
 				switch (res->type) {
 					case UI_RES_BUTTON:
+						trap_S_StartLocalSound( uis.menu_apply, CHAN_LOCAL_SOUND );
 						if ( res->stuffcommand )
 							UI_CmdExecute( res->stuffcommand );
 						break;
@@ -571,6 +569,7 @@ UI_Refresh
 */
 void UI_Refresh( int realtime )
 {
+	static qboolean	first=qtrue;
 	int				i;
 	int				j;
 	int				k;
@@ -596,6 +595,12 @@ void UI_Refresh( int realtime )
 	// draw cursor
 	UI_SetColor( NULL );
 	UI_DrawHandlePic( uis.cursorx, uis.cursory, 32, 32, uis.cursor);
+
+	if ( first == qtrue ) {
+		// play main theme
+		trap_S_StartLocalSound( uis.main_theme, CHAN_LOCAL_SOUND );
+		first=qfalse;
+	}
 }
 
 qboolean UI_IsFullscreen( void ) {

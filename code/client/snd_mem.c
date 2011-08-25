@@ -255,7 +255,8 @@ qboolean S_LoadSound( sfx_t *sfx )
 	}
 	
 	Hunk_FreeTempMemory(samples);
-	Z_Free(data);
+	Hunk_FreeTempMemory(data);
+//	Z_Free(data);
 
 	return qtrue;
 }

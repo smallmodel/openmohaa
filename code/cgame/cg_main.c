@@ -554,7 +554,7 @@ static void CG_RegisterSounds( void ) {
 			continue;	// custom sound
 		}
 		Q_strncpyz( buffer, soundName, sizeof(buffer) );
-		if (buffer[strlen( buffer )-1] == '0')
+//		if (buffer[strlen( buffer )-1] == '0')
 			buffer[strlen( buffer )-1] = 0;
 		cgs.gameSounds[i] = trap_S_RegisterSound( buffer, qfalse );
 	}
@@ -982,7 +982,8 @@ void CG_StartMusic( void ) {
 	Q_strncpyz( parm1, COM_Parse( &s ), sizeof( parm1 ) );
 	Q_strncpyz( parm2, COM_Parse( &s ), sizeof( parm2 ) );
 
-	trap_S_StartBackgroundTrack( parm1, parm2 );
+// TODO: handle MOHAA .mus files
+//	trap_S_StartBackgroundTrack( parm1, parm2 );
 }
 #ifdef MISSIONPACK
 char *CG_GetMenuBuffer(const char *filename) {
