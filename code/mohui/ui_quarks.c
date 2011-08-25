@@ -98,6 +98,7 @@ typedef struct {
 } cvarTable_t;
 
 vmCvar_t	ui_mohui;
+vmCvar_t	ui_playmusic;
 vmCvar_t	ui_voodoo;
 vmCvar_t	ui_signshader;
 vmCvar_t	ui_dmmap;
@@ -122,7 +123,8 @@ vmCvar_t	cg_scoreboardpic;
 
 
 static cvarTable_t		cvarTable[] = {
-	{ &ui_mohui, "ui_mohui", "1", CVAR_INIT },
+	{ &ui_mohui, "ui_mohui", "1", CVAR_ROM },
+	{ &ui_playmusic, "ui_playmusic", "0", CVAR_INIT },
 	{ &ui_voodoo, "ui_voodoo", "0", CVAR_ARCHIVE },
 	{ &ui_signshader, "ui_signshader", "", CVAR_TEMP },
 	{ &ui_dmmap, "ui_dmmap", "dm/mohdm1", CVAR_ARCHIVE },
@@ -197,7 +199,8 @@ void UI_RegisterMedia( void ) {
 	uis.cursor = trap_R_RegisterShaderNoMip( "gfx/2d/mouse_cursor.tga" );
 
 	// SOUNDS
-	uis.main_theme	= trap_S_RegisterSound( "test.wav", qfalse );
+	if (ui_playmusic.integer)
+		uis.main_theme	= trap_S_RegisterSound( "sound/music/mus_MainTheme_01d.mp3", qfalse );
 	uis.menu_apply	= trap_S_RegisterSound( "sound/menu/apply.wav", qfalse );
 	uis.menu_back	= trap_S_RegisterSound( "sound/menu/Back.wav", qfalse );
 	uis.menu_select	= trap_S_RegisterSound( "sound/menu/Scroll.wav", qfalse );
@@ -207,7 +210,7 @@ void UI_RegisterMedia( void ) {
 	UI_LoadURC( "connecting", &uis.connecting );
 	UI_LoadURC( "loading_default", &uis.loading );
 	uis.main.standard			= qtrue;
-	uis.connecting.standard	= qtrue;
+	uis.connecting.standard		= qtrue;
 	uis.loading.standard		= qtrue;
 	
 	// HUD MENUS
@@ -598,7 +601,7 @@ void UI_Refresh( int realtime )
 
 	if ( first == qtrue ) {
 		// play main theme
-		trap_S_StartLocalSound( uis.main_theme, CHAN_LOCAL_SOUND );
+//		trap_S_StartLocalSound( uis.main_theme, CHAN_LOCAL_SOUND );
 		first=qfalse;
 	}
 }
@@ -622,8 +625,11 @@ void UI_SetActiveMenu( uiMenuCommand_t menu ) {
 		case UIMENU_NONE:
 			break;
 		case UIMENU_MAIN:
-			if ( uis.MSP == -1 )
+			if ( uis.MSP == -1 ) {
 				UI_PushMenu( "main " );
+				if (ui_playmusic.integer)
+					trap_S_StartLocalSound( uis.main_theme, CHAN_LOCAL_SOUND );
+			}
 			else trap_Key_SetCatcher( KEYCATCH_UI );
 			break;
 		case UIMENU_INGAME:

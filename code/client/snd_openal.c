@@ -346,7 +346,8 @@ static void S_AL_BufferLoad(sfxHandle_t sfx)
 	}
 
 	// Free the memory
-	Z_Free(data);
+//	Z_Free(data);
+	Hunk_FreeTempMemory(data);
 
 	// Woo!
 	knownSfx[sfx].inMemory = qtrue;

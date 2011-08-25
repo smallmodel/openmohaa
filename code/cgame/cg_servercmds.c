@@ -268,6 +268,7 @@ CG_ConfigStringModified
 static void CG_ConfigStringModified( void ) {
 	const char	*str;
 	int		num;
+	char buffer[MAX_QPATH];
 
 	num = atoi( CG_Argv( 1 ) );
 
@@ -331,7 +332,10 @@ static void CG_ConfigStringModified( void ) {
 		}
 	} else if ( num >= CS_SOUNDS && num < CS_SOUNDS+MAX_SOUNDS ) {
 		if ( str[0] != '*' ) {	// player specific sounds don't register here
-			cgs.gameSounds[ num-CS_SOUNDS] = trap_S_RegisterSound( str, qfalse );
+			Q_strncpyz( buffer, str, sizeof(buffer) );
+			if (buffer[strlen( buffer )-1] == '0' || buffer[strlen( buffer )-1] == '1')
+				buffer[strlen( buffer )-1] = 0;
+			cgs.gameSounds[ num-CS_SOUNDS] = trap_S_RegisterSound( buffer, qfalse );
 		}
 	} else if ( num >= CS_PLAYERS && num < CS_PLAYERS+MAX_CLIENTS ) {
 		CG_NewClientInfo( num - CS_PLAYERS );

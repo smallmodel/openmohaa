@@ -30,6 +30,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 
 #define	MAX_ENTITIES_IN_SNAPSHOT	256
+#define	MAX_SOUNDS_IN_SNAPSHOT		64
 
 // snapshots are a view of the server at a given time
 
@@ -51,6 +52,9 @@ typedef struct {
 
 	int				numServerCommands;		// text based server commands to execute when this
 	int				serverCommandSequence;	// snapshot becomes current
+
+	int				number_of_sounds;
+	server_sound_t	sounds[MAX_SOUNDS_IN_SNAPSHOT];
 } snapshot_t;
 
 enum {

@@ -1088,7 +1088,7 @@ typedef struct {
 // sound channels
 // channel 0 never willingly overrides
 // other channels will allways override a playing sound on that channel
-typedef enum {
+/*typedef enum {
 	CHAN_AUTO,
 	CHAN_LOCAL,		// menu sounds, etc
 	CHAN_WEAPON,
@@ -1097,8 +1097,8 @@ typedef enum {
 	CHAN_BODY,
 	CHAN_LOCAL_SOUND,	// chat messages, etc
 	CHAN_ANNOUNCER		// announcer voices, etc
-} soundChannel_t;
-/*typedef enum {
+} soundChannel_t;*/
+typedef enum {
 	CHAN_AUTO,
 	CHAN_BODY,
 	CHAN_ITEM,
@@ -1112,7 +1112,7 @@ typedef enum {
 	CHAN_LOCAL_SOUND,	// chat messages, etc
 	CHAN_ANNOUNCER,		// announcer voices, etc
 	CHAN_MAX
-} soundChannel_t;*/
+} soundChannel_t;
 
 
 /*

@@ -158,6 +158,15 @@ qboolean	CL_GetSnapshot( int snapshotNumber, snapshot_t *snapshot ) {
 			cl.parseEntities[ ( clSnap->parseEntitiesNum + i ) & (MAX_PARSE_ENTITIES-1) ];
 	}
 
+	// wombat: sounds
+	count = clSnap->number_of_sounds;
+	if ( snapshot->number_of_sounds > MAX_SOUNDS_IN_SNAPSHOT ) {
+		Com_DPrintf( "CL_GetSnapshot: truncated %i sounds to %i\n", count, MAX_SOUNDS_IN_SNAPSHOT );
+		count = MAX_SOUNDS_IN_SNAPSHOT;
+	}
+	snapshot->number_of_sounds = count;
+	Com_Memcpy( snapshot->sounds, clSnap->sounds, sizeof(snapshot->sounds[0])*count );
+
 	// FIXME: configstring changes and server commands!!!
 
 	return qtrue;

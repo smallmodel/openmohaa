@@ -953,9 +953,10 @@ static void CG_AddCEntity( centity_t *cent ) {
 	CG_CalcEntityLerpPositions( cent );
 
 	// add automatic effects
-	CG_EntityEffects( cent );
+//	CG_EntityEffects( cent );
 
 	switch ( cent->currentState.eType ) {
+	case 0: break; // 0 spams console with bad entity type
 	default:
 		//su44: changed to printf, so I can debug our gamex code without getting Com_Error
 		//CG_Error( "Bad entity type: %i\n", cent->currentState.eType );

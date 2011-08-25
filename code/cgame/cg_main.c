@@ -554,7 +554,7 @@ static void CG_RegisterSounds( void ) {
 			continue;	// custom sound
 		}
 		Q_strncpyz( buffer, soundName, sizeof(buffer) );
-//		if (buffer[strlen( buffer )-1] == '0')
+		if (buffer[strlen( buffer )-1] == '0' || buffer[strlen( buffer )-1] == '1')
 			buffer[strlen( buffer )-1] = 0;
 		cgs.gameSounds[i] = trap_S_RegisterSound( buffer, qfalse );
 	}
