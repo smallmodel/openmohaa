@@ -173,6 +173,9 @@ static void CG_AddTestModel (void) {
 	}
 	if( tiki ) {
 		cg.testModelEntity.bones = trap_TIKI_GetBones(tiki->numBones);
+		ClearBounds(cg.testModelEntity.bounds[0],cg.testModelEntity.bounds[1]);
+		cg.testModelEntity.radius = 0;
+		trap_TIKI_AppendFrameBoundsAndRadius(tiki,0,0,&cg.testModelEntity.radius,cg.testModelEntity.bounds);
 		trap_TIKI_SetChannels(tiki,0,0,1,cg.testModelEntity.bones);
 		trap_TIKI_Animate(tiki,cg.testModelEntity.bones);
 	}

@@ -1667,6 +1667,7 @@ void		trap_R_Text_PaintChar(fontInfo_t *font, float x, float y, float scale, int
 tiki_t*		trap_TIKI_RegisterModel( const char *fname );
 bone_t*		trap_TIKI_GetBones( int numBones );
 void		trap_TIKI_SetChannels( struct tiki_s *tiki, int animIndex, float animTime, float animWeight, bone_t *bones );
+void		trap_TIKI_AppendFrameBoundsAndRadius( struct tiki_s *tiki, int animIndex, float animTime, float *outRadius, vec3_t outBounds[2] );
 void		trap_TIKI_Animate( struct tiki_s *tiki, bone_t *bones );
 int			trap_TIKI_GetBoneNameIndex( const char *boneName );
 void		trap_SetEyeInfo( vec3_t origin, vec3_t angles );

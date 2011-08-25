@@ -227,6 +227,40 @@ void TIKI_SetChannels_interpolate(tiki_t *tiki, bone_t *bones, tikiAnim_t *anim,
 		bones++;
 	}
 }
+static void TIKI_AppendFrameBoundsAndRadiusSingle( tikiFrame_t *frame, float *outRadius, vec3_t outBounds[2]) {
+	BoundsAdd(outBounds[0],outBounds[1],frame->bounds[0],frame->bounds[1]);
+	if(frame->radius > *outRadius) {
+		*outRadius = frame->radius;
+	}
+}
+void TIKI_AppendFrameBoundsAndRadius( struct tiki_s *tiki, int animIndex, float animTime, float *outRadius, vec3_t outBounds[2] ) {
+	tikiAnim_t *anim;
+	tikiFrame_t *frame;
+	int i;
+
+	if(tiki->numAnims <= animIndex) {
+		Com_Printf("TIKI_AppendFrameBoundsAndRadius: animIndex %i out of range %i\n",animIndex,tiki->numAnims);
+		return;
+	}
+	anim = tiki->anims[animIndex];
+	if(anim->numFrames == 1) {
+		TIKI_AppendFrameBoundsAndRadiusSingle(anim->frames,outRadius,outBounds);
+		return;
+	}
+	i = 1;
+	frame = anim->frames;
+	while(animTime > anim->frameTime) {
+		animTime-=anim->frameTime;
+		frame++;
+		i++;
+		if(i == anim->numFrames) {
+			TIKI_AppendFrameBoundsAndRadiusSingle(frame,outRadius,outBounds);
+			return;
+		}
+	}
+	TIKI_AppendFrameBoundsAndRadiusSingle(frame,outRadius,outBounds);
+	TIKI_AppendFrameBoundsAndRadiusSingle(frame+1,outRadius,outBounds);
+}
 void TIKI_SetChannels(tiki_t *tiki, int animIndex, float animTime, float animWeight, bone_t *bones) {
 	int i;
 	skdJointType_t **ptr;
@@ -1021,6 +1055,9 @@ tikiAnim_t *TIKI_CacheAnim(char *fname, float scale) {
 			}
 			values += 4;
 		}
+		anim->frames[i].radius = frame->radius;
+		VectorCopy(frame->bounds[0],anim->frames[i].bounds[0]);
+		VectorCopy(frame->bounds[1],anim->frames[i].bounds[1]);
 		frame++;
 	}
 	FS_FreeFile(buf);

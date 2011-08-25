@@ -739,6 +739,9 @@ typedef struct {
 	qhandle_t		model;
 	float			scale;
 	bone_t			*bones; // su44: model bones are calculated once and stored here for efficient rendering
+	// for culling
+	float			radius;
+	vec3_t			bounds[2];
 } mstaticModel_t;
 
 typedef struct {
@@ -890,6 +893,8 @@ typedef struct {
 	int		c_box_cull_patch_in, c_box_cull_patch_clip, c_box_cull_patch_out;
 	int		c_sphere_cull_md3_in, c_sphere_cull_md3_clip, c_sphere_cull_md3_out;
 	int		c_box_cull_md3_in, c_box_cull_md3_clip, c_box_cull_md3_out;
+	int		c_sphere_cull_tiki_in, c_sphere_cull_tiki_clip, c_sphere_cull_tiki_out;
+	int		c_box_cull_tiki_in, c_box_cull_tiki_clip, c_box_cull_tiki_out;
 
 	int		c_leafs;
 	int		c_dlightSurfaces;

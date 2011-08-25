@@ -788,3 +788,25 @@ int trap_PC_ReadToken( int handle, pc_token_t *pc_token ) {
 int trap_PC_SourceFileAndLine( int handle, char *filename, int *line ) {
 	return syscall( BOTLIB_PC_SOURCE_FILE_AND_LINE, handle, filename, line );
 }
+
+tiki_t* trap_TIKI_RegisterModel( const char *fname ) {
+	return syscall(G_TIKI_REGISTERMODEL, fname);
+}
+
+bone_t* trap_TIKI_GetBones( int numBones ) {
+	return syscall(G_TIKI_GETBONES, numBones);
+}
+
+void trap_TIKI_SetChannels( tiki_t *tiki, int animIndex, float animTime, float animWeight, bone_t *bones ) {
+	syscall(G_TIKI_SETCHANNELS, tiki, animIndex, PASSFLOAT(animTime), PASSFLOAT(animWeight), bones);
+}
+void trap_TIKI_AppendFrameBoundsAndRadius( struct tiki_s *tiki, int animIndex, float animTime, float *outRadius, vec3_t outBounds[2] ) {
+	syscall(G_TIKI_APPENDFRAMEBOUNDSANDRADIUS, tiki, animIndex, PASSFLOAT(animTime), outRadius, outBounds);
+}
+void trap_TIKI_Animate( tiki_t *tiki, bone_t *bones ) {
+	syscall(G_TIKI_ANIMATE, tiki, bones);
+}
+
+int	trap_TIKI_GetBoneNameIndex( const char *boneName ) {
+	return syscall(G_TIKI_GETBONENAMEINDEX, boneName);
+}

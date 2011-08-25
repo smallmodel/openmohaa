@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
 #include "g_local.h"
+#include "../qcommon/tiki_local.h" // fixme!
 
 qboolean	G_SpawnString( const char *key, const char *defaultString, char **out ) {
 	int		i;
@@ -93,9 +94,9 @@ typedef struct
 	int		ofs;
 	fieldtype_t	type;
 	int		flags;
-} field_t;
+} gfield_t;
 
-field_t fields[] = {
+gfield_t fields[] = {
 	{"classname", FOFS(classname), F_LSTRING},
 	{"origin", FOFS(s.origin), F_VECTOR},
 	{"model", FOFS(model), F_LSTRING},
@@ -283,6 +284,7 @@ returning qfalse if not found
 qboolean G_CallSpawn( gentity_t *ent ) {
 	spawn_t	*s;
 	gitem_t	*item;
+	tiki_t *tiki;
 
 	if ( !ent->classname ) {
 		G_Printf ("G_CallSpawn: NULL classname\n");
@@ -305,6 +307,26 @@ qboolean G_CallSpawn( gentity_t *ent ) {
 			return qtrue;
 		}
 	}
+
+	// try to spawn a tiki model
+	if(ent->model && ent->model[0]&& ent->model[0] != '*') {
+		tiki = trap_TIKI_RegisterModel(ent->model);
+		if(!tiki) {
+			tiki = trap_TIKI_RegisterModel(va("models/%s",ent->model));
+		}
+		if(tiki) {
+			float dummy;
+			ent->s.modelindex = G_ModelIndex(tiki->name);
+			ent->s.eType = ET_MODELANIM;
+			trap_TIKI_AppendFrameBoundsAndRadius(tiki,0,0,&dummy,ent->r.mins);
+			ent->s.frameInfo[0].weight = 1.f;
+			G_SetOrigin( ent, ent->s.origin );
+			VectorCopy( ent->s.angles, ent->s.apos.trBase );
+			trap_LinkEntity (ent);
+			return qtrue;
+		}
+	}
+
 	G_Printf ("%s doesn't have a spawn function\n", ent->classname);
 	return qfalse;
 }
@@ -356,7 +378,7 @@ in a gentity
 ===============
 */
 void G_ParseField( const char *key, const char *value, gentity_t *ent ) {
-	field_t	*f;
+	gfield_t	*f;
 	byte	*b;
 	float	v;
 	vec3_t	vec;

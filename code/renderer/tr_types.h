@@ -105,8 +105,10 @@ typedef struct {
 	float		radius;
 	float		rotation;
 
+	// su44: added for MoHAA .tik models
 	bone_t		*bones;
 	int			surfaceBits;
+	vec3_t		bounds[2];
 } refEntity_t;
 
 

@@ -634,6 +634,9 @@ intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 	case CG_TIKI_SETCHANNELS:
 		TIKI_SetChannels(VMA(1),args[2],VMF(3),VMF(4),VMA(5));
 		return 0;
+	case CG_TIKI_APPENDFRAMEBOUNDSANDRADIUS:
+		TIKI_AppendFrameBoundsAndRadius(VMA(1),args[2],VMF(3),(void*)args[4],(void*)args[5]);
+		return 0;
 	case CG_TIKI_ANIMATE:
 		TIKI_Animate(VMA(1),VMA(2));
 		return 0;

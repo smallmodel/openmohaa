@@ -766,6 +766,7 @@ void R_AddStaticModelEntities(void) {
 			VectorScale(ent.axis[0],tr.world->staticModels[i].scale,ent.axis[0]);
 			VectorScale(ent.axis[1],tr.world->staticModels[i].scale,ent.axis[1]);
 			VectorScale(ent.axis[2],tr.world->staticModels[i].scale,ent.axis[2]);
+			ent.nonNormalizedAxes = qtrue;
 		}
 #if 0
 		ent.bones = TIKI_GetBones(tr.models[ent.hModel]->tiki->numBones);
@@ -774,6 +775,9 @@ void R_AddStaticModelEntities(void) {
 #else
 		ent.bones = tr.world->staticModels[i].bones;
 #endif
+		ent.radius = tr.world->staticModels[i].radius;
+		memcpy(ent.bounds,tr.world->staticModels[i].bounds,sizeof(vec3_t)*2);
+
 		RE_AddRefEntityToScene(&ent);
 	}
 }

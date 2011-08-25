@@ -66,6 +66,7 @@ typedef enum {
 
 typedef struct gentity_s gentity_t;
 typedef struct gclient_s gclient_t;
+typedef struct tiki_s tiki_t;
 
 struct gentity_s {
 	entityState_t	s;				// communicated by server to clients
@@ -1063,4 +1064,10 @@ void	trap_BotResetWeaponState(int weaponstate);
 int		trap_GeneticParentsAndChildSelection(int numranks, float *ranks, int *parent1, int *parent2, int *child);
 
 void	trap_SnapVector( float *v );
-
+// su44
+tiki_t*		trap_TIKI_RegisterModel( const char *fname );
+bone_t*		trap_TIKI_GetBones( int numBones );
+void		trap_TIKI_SetChannels( struct tiki_s *tiki, int animIndex, float animTime, float animWeight, bone_t *bones );
+void		trap_TIKI_AppendFrameBoundsAndRadius( struct tiki_s *tiki, int animIndex, float animTime, float *outRadius, vec3_t outBounds[2] );
+void		trap_TIKI_Animate( struct tiki_s *tiki, bone_t *bones );
+int			trap_TIKI_GetBoneNameIndex( const char *boneName );

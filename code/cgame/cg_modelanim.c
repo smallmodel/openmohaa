@@ -76,7 +76,9 @@ void CG_ModelAnim( centity_t *cent ) {
 
 	memset(&ent,0,sizeof(ent));
 
-	if(s1->tag_num != -1 && s1->parent != 1023) {
+	if(s1->tag_num != -1 && s1->parent != 1023
+		&& s1->tag_num != 0 && s1->parent != 0
+		) {
 		if(s1->parent == cg.clientNum && !cg.renderingThirdPerson) {
 			ent.renderfx |= RF_THIRD_PERSON;
 			attachedToViewmodel = qtrue;
@@ -109,9 +111,13 @@ void CG_ModelAnim( centity_t *cent ) {
 #endif
 		{
 			frameInfo_t *fi = s1->frameInfo;
+			ClearBounds(ent.bounds[0],ent.bounds[1]);
+			ent.radius = 0;
 			for(i = 0; i < 16; i++)	{
-				if(fi->weight!=0)
+				if(fi->weight!=0) {
+					trap_TIKI_AppendFrameBoundsAndRadius(tiki,fi->index,fi->time,&ent.radius,ent.bounds);
 					trap_TIKI_SetChannels(tiki,fi->index,fi->time,fi->weight,ent.bones);
+				}
 				fi++;
 			}
 		}

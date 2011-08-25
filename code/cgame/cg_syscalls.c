@@ -471,7 +471,9 @@ bone_t* trap_TIKI_GetBones( int numBones ) {
 void trap_TIKI_SetChannels( tiki_t *tiki, int animIndex, float animTime, float animWeight, bone_t *bones ) {
 	syscall(CG_TIKI_SETCHANNELS, tiki, animIndex, PASSFLOAT(animTime), PASSFLOAT(animWeight), bones);
 }
-
+void trap_TIKI_AppendFrameBoundsAndRadius( struct tiki_s *tiki, int animIndex, float animTime, float *outRadius, vec3_t outBounds[2] ) {
+	syscall(CG_TIKI_APPENDFRAMEBOUNDSANDRADIUS, tiki, animIndex, PASSFLOAT(animTime), outRadius, outBounds);
+}
 void trap_TIKI_Animate( tiki_t *tiki, bone_t *bones ) {
 	syscall(CG_TIKI_ANIMATE, tiki, bones);
 }

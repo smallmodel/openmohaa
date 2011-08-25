@@ -24,6 +24,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "server.h"
 
 #include "../botlib/botlib.h"
+#include "../qcommon/tiki_local.h"
 
 botlib_export_t	*botlib_export;
 
@@ -809,6 +810,22 @@ intptr_t SV_GameSystemCalls( intptr_t *args ) {
 
 	case BOTLIB_AI_GENETIC_PARENTS_AND_CHILD_SELECTION:
 		return botlib_export->ai.GeneticParentsAndChildSelection(args[1], VMA(2), VMA(3), VMA(4), VMA(5));
+
+	case G_TIKI_REGISTERMODEL:
+		return TIKI_RegisterModel(VMA(1));
+	case G_TIKI_GETBONES:
+		return TIKI_GetBones(VMA(1));
+	case G_TIKI_SETCHANNELS:
+		TIKI_SetChannels(VMA(1),args[2],VMF(3),VMF(4),VMA(5));
+		return 0;
+	case G_TIKI_APPENDFRAMEBOUNDSANDRADIUS:
+		TIKI_AppendFrameBoundsAndRadius(VMA(1),args[2],VMF(3),args[4],args[5]);
+		return 0;
+	case G_TIKI_ANIMATE:
+		TIKI_Animate(VMA(1),VMA(2));
+		return 0;
+	case G_TIKI_GETBONENAMEINDEX:
+		return TIKI_RegisterBoneName(args[1]);
 
 	case TRAP_MEMSET:
 		Com_Memset( VMA(1), args[2], args[3] );

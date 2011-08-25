@@ -790,6 +790,49 @@ void RB_SurfaceSkeleton( skdSurface_t *sf ) {
 	}
 }
 /*
+=============
+R_CullTIKI
+=============
+*/
+static int R_CullTIKI( tiki_t *tiki, trRefEntity_t *ent ) {
+	vec3_t		bounds[2];
+	md3Frame_t	*oldFrame, *newFrame;
+	int			i;
+
+	//// cull bounding sphere ONLY if this is not an upscaled entity
+	if ( !ent->e.nonNormalizedAxes )
+	{
+		switch ( R_CullPointAndRadius( ent->e.origin, ent->e.radius ) )
+		{
+		case CULL_OUT:
+			tr.pc.c_sphere_cull_tiki_out++;
+			return CULL_OUT;
+
+		case CULL_IN:
+			tr.pc.c_sphere_cull_tiki_in++;
+			return CULL_IN;
+
+		case CULL_CLIP:
+			tr.pc.c_sphere_cull_tiki_clip++;
+			break;
+		}
+	}
+
+	switch ( R_CullLocalBox( ent->e.bounds ) )
+	{
+	case CULL_IN:
+		tr.pc.c_box_cull_tiki_in++;
+		return CULL_IN;
+	case CULL_CLIP:
+		tr.pc.c_box_cull_tiki_clip++;
+		return CULL_CLIP;
+	case CULL_OUT:
+	default:
+		tr.pc.c_box_cull_tiki_out++;
+		return CULL_OUT;
+	}
+}
+/*
 ==============
 R_AddTIKISurfaces
 ==============
@@ -804,6 +847,9 @@ void R_AddTIKISurfaces( trRefEntity_t *ent ) {
 		ri.Printf(0,"..");
 	}
 #endif
+	if(R_CullTIKI(tiki,tr.currentEntity)==CULL_OUT) {
+		return;
+	}
 	for(i = 0; i < tiki->numSurfaces; i++) {
 		if(!(tr.currentEntity->e.surfaceBits & (1<<i))) {
 			R_AddDrawSurf( (void *)sf, R_GetShaderByHandle(tiki->surfShaders[i]), 0 /*fogNum*/, qfalse );

@@ -51,6 +51,9 @@ void R_PerformanceCounters( void ) {
 		ri.Printf (PRINT_ALL, "(md3) %i sin %i sclip  %i sout %i bin %i bclip %i bout\n",
 			tr.pc.c_sphere_cull_md3_in, tr.pc.c_sphere_cull_md3_clip, tr.pc.c_sphere_cull_md3_out, 
 			tr.pc.c_box_cull_md3_in, tr.pc.c_box_cull_md3_clip, tr.pc.c_box_cull_md3_out );
+		ri.Printf (PRINT_ALL, "(tiki) %i sin %i sclip  %i sout %i bin %i bclip %i bout\n",
+			tr.pc.c_sphere_cull_tiki_in, tr.pc.c_sphere_cull_tiki_clip, tr.pc.c_sphere_cull_tiki_out, 
+			tr.pc.c_box_cull_tiki_in, tr.pc.c_box_cull_tiki_clip, tr.pc.c_box_cull_tiki_out );
 	} else if (r_speeds->integer == 3) {
 		ri.Printf (PRINT_ALL, "viewcluster: %i\n", tr.viewCluster );
 	} else if (r_speeds->integer == 4) {
