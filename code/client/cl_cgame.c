@@ -628,7 +628,7 @@ intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 
 	// su44
 	case CG_TIKI_REGISTERMODEL:
-		return TIKI_RegisterModel(VMA(1));
+		return (tiki_t*)TIKI_RegisterModel(VMA(1));
 	case CG_TIKI_GETBONES:
 		return TIKI_GetBones(VMA(1));
 	case CG_TIKI_SETCHANNELS:

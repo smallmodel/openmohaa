@@ -1,6 +1,7 @@
 /*
 ===========================================================================
 Copyright (C) 2008 Leszek Godlewski
+Copyright (C) 2010-2011 su44
 
 This file is part of OpenMoHAA source code.
 

@@ -2965,6 +2965,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\code\renderer\tr_sprite.c"
+					>
+				</File>
+				<File
 					RelativePath="..\..\code\renderer\tr_surface.c"
 					>
 				</File>

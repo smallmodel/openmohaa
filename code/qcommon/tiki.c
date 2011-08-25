@@ -1,6 +1,7 @@
 /*
 ===========================================================================
 Copyright (C) 2008 Leszek Godlewski
+Copyright (C) 2010-2011 su44
 
 This file is part of OpenMoHAA source code.
 
@@ -131,7 +132,7 @@ qboolean TIKI_FindAndCopyRotFKChannel(tikiAnim_t *anim, int globalBoneName, tiki
 }
 void TIKI_SetChannels_internal(tiki_t *tiki, bone_t *bones, tikiAnim_t *anim, tikiFrame_t *frame) {
 	int i;
-	int **ptr = tiki->bones;
+	int **ptr = (int**)tiki->bones;
 	for(i = 0; i < tiki->numBones; i++)	{
 		switch(**ptr) {
 			case JT_ROTATION:
@@ -172,7 +173,7 @@ void TIKI_SetChannels_interpolate(tiki_t *tiki, bone_t *bones, tikiAnim_t *anim,
 	vec3_t v1, v2;
 	int **ptr;
 
-	ptr = tiki->bones;
+	ptr = (int**)tiki->bones;
 	for(i = 0; i < tiki->numBones; i++)	{
 		switch(**ptr) {
 			case JT_ROTATION:
@@ -490,7 +491,6 @@ int TIKI_GetLocalBoneIndex2(tiki_t *out, int globalBoneName) {
 	return -1;
 }
 int TIKI_GetLocalBoneIndex(tiki_t *out, char *boneName) {
-	int b;
 	int globalIndex;
 	if(!strcmp(boneName,"worldbone")) {
 		return -1;
@@ -575,7 +575,7 @@ void TIKI_MergeSKD(tiki_t *out, char *fname) {
 		newBoneList = Z_Malloc((out->numBones + numAddBones)*4);
 		memcpy(newBoneList,out->bones,out->numBones*4);
 		Z_Free(out->bones);
-		out->bones = newBoneList;
+		out->bones = (void**)newBoneList;
 		newBoneList+=out->numBones;
 		out->numBones+=numAddBones;
 		
@@ -585,7 +585,7 @@ void TIKI_MergeSKD(tiki_t *out, char *fname) {
 				switch(bone->jointType)	{
 					case JT_ROTATION:
 					{
-						*newBoneList = Hunk_Alloc(sizeof(tikiBoneRotation_t),h_low);
+						*newBoneList = (int*)Hunk_Alloc(sizeof(tikiBoneRotation_t),h_low);
 						rot = (tikiBoneRotation_t*)*newBoneList;
 						rot->type=bone->jointType;
 						rot->parentIndex = TIKI_GetLocalBoneIndex(out,bone->parent);
@@ -595,7 +595,7 @@ void TIKI_MergeSKD(tiki_t *out, char *fname) {
 					break;
 					case JT_POSROT_SKC:
 					{
-						*newBoneList = Hunk_Alloc(sizeof(tikiBonePosRot_t),h_low);
+						*newBoneList = (int*)Hunk_Alloc(sizeof(tikiBonePosRot_t),h_low);
 						posrot = (tikiBonePosRot_t*)*newBoneList;
 						posrot->type=bone->jointType;
 						posrot->parentIndex = TIKI_GetLocalBoneIndex(out,bone->parent);
@@ -636,7 +636,7 @@ void TIKI_MergeSKD(tiki_t *out, char *fname) {
 					case JT_HOSEROT:
 					{
 						char*txt;
-						*newBoneList = Hunk_Alloc(sizeof(tikiBoneHoseRot_t),h_low);
+						*newBoneList = (int*)Hunk_Alloc(sizeof(tikiBoneHoseRot_t),h_low);
 						hose = (tikiBoneHoseRot_t*)*newBoneList;
 						hose->type=bone->jointType;
 						hose->parentIndex = TIKI_GetLocalBoneIndex(out,bone->parent);
@@ -658,7 +658,7 @@ void TIKI_MergeSKD(tiki_t *out, char *fname) {
 					case JT_AVROT: //
 					{
 						int size;
-						*newBoneList = Hunk_Alloc(sizeof(tikiBoneAVRot_t),h_low);
+						*newBoneList = (int*)Hunk_Alloc(sizeof(tikiBoneAVRot_t),h_low);
 						av = (tikiBoneAVRot_t*)*newBoneList;
 						av->type=bone->jointType;
 						av->parentIndex = TIKI_GetLocalBoneIndex(out,bone->parent);
@@ -1076,7 +1076,7 @@ static tiki_t *TIKI_Load(const char *fname) {
 	numSurfShaders = 0;
 
 	out = Hunk_Alloc(sizeof(*out), h_high);
-	out->scale = 0.52; // set default scale to 16/30.5 since world 
+	out->scale = 0.52f; // set default scale to 16/30.5 since world 
 				// is in 16 units per foot and model is in cm's
 	strcpy(out->name,fname);
 	text = buf;
