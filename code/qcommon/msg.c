@@ -1187,7 +1187,7 @@ void MSG_WriteDeltaEntity( msg_t *msg, struct entityState_s *from, struct entity
 			}
 			break;
 			case 1: // angles, what a mess! it wouldnt surprise me if something goes wrong here ;)
-				tmp = *(float *)to;
+				tmp = *(float *)toF;
 				if ( field->bits < 0 ) {
 					if ( tmp < 0.0f ) {
 						MSG_WriteBits( msg, 1, 1 );
@@ -1218,7 +1218,7 @@ void MSG_WriteDeltaEntity( msg_t *msg, struct entityState_s *from, struct entity
 				}
 				break;
 			case 2: // time
-				tmp = *(float *)to;
+				tmp = *(float *)toF;
 				bits = tmp * 100.0f;
 				if ( bits < 0 )
 					bits = 0;
@@ -1227,7 +1227,7 @@ void MSG_WriteDeltaEntity( msg_t *msg, struct entityState_s *from, struct entity
 				MSG_WriteBits( msg, bits, 15 );
 				break;
 			case 3: // nasty!
-				tmp = *(float *)to;
+				tmp = *(float *)toF;
 
 				bits = (tmp * 255.0f) + 0.5f;
 				if ( bits < 0 )
@@ -1237,7 +1237,7 @@ void MSG_WriteDeltaEntity( msg_t *msg, struct entityState_s *from, struct entity
 				MSG_WriteBits( msg, bits, 8 );
 				break;
 			case 4:
-				tmp = *(float *)to;
+				tmp = *(float *)toF;
 				bits = tmp * 100.0f;
 				if ( bits < 0 )
 					bits = 0;
@@ -1246,7 +1246,7 @@ void MSG_WriteDeltaEntity( msg_t *msg, struct entityState_s *from, struct entity
 				MSG_WriteBits( msg, bits, 10 );
 				break;
 			case 5:
-				tmp = *(float *)to;
+				tmp = *(float *)toF;
 
 				bits = (tmp * 255.0f) + 0.5f;
 				if ( bits < 0 )
@@ -1256,7 +1256,7 @@ void MSG_WriteDeltaEntity( msg_t *msg, struct entityState_s *from, struct entity
 				MSG_WriteBits( msg, bits, 8 );
 				break;
 			case 6:
-				tmp = *(float *)to;
+				tmp = *(float *)toF;
 
 				bits = tmp * 16.0f;
 				if ( tmp < 0 )
@@ -1266,7 +1266,7 @@ void MSG_WriteDeltaEntity( msg_t *msg, struct entityState_s *from, struct entity
 				MSG_WriteBits( msg, bits, 19 );
 				break;
 			case 7:
-				tmp = *(float *)to;
+				tmp = *(float *)toF;
 
 				bits = tmp * 8.0f;
 				if ( tmp < 0 )
