@@ -139,6 +139,7 @@ void CG_ViewModelAnim() {
 	bone_t *bone;
 	vec3_t v,a;
 	int boneName;
+	matrix_t m;
 
 	if(cg.renderingThirdPerson)
 		return;
@@ -228,24 +229,23 @@ item 2 "Binoculars"
 
 	trap_TIKI_SetChannels(fps,i,cg.viewModelAnimTime,1,ent->bones);
 	trap_TIKI_Animate(fps,ent->bones);
-	
-#if 1
+
 	boneName = trap_TIKI_GetBoneNameIndex("eyes bone");
+//	boneName = trap_TIKI_GetBoneNameIndex("Bip01 Head");
 	for(i = 0; i < fps->numBones; i++) {
 		if(fps->boneNames[i] == boneName) {
 			bone = ent->bones+i;
 			break;
 		}
 	}
-	CG_BoneLocal2World(bone,cg.refdef.vieworg,cg.refdefViewAngles,v,a);
-	VectorSubtract(v,cg.refdef.vieworg,v);
-
-#endif
 #if 0
-	VectorCopy( cg.refdef.vieworg, ent->origin );
+	CG_BoneLocal2World(bone,vec3_origin,cg.refdefViewAngles,v,a);
 #else
-	VectorSubtract( cg.refdef.vieworg,v,ent->origin);
+	MatrixFromAngles(m,cg.refdefViewAngles[0],cg.refdefViewAngles[1],cg.refdefViewAngles[2]);
+	MatrixTransformPoint(m,bone->p,v);
 #endif
+	VectorSubtract( cg.refdef.vieworg,v,ent->origin);
+
 	VectorMA( ent->origin, cg_gun_x.value, cg.refdef.viewaxis[0], ent->origin );
 	VectorMA( ent->origin, cg_gun_y.value, cg.refdef.viewaxis[1], ent->origin );
 	VectorMA( ent->origin, cg_gun_z.value, cg.refdef.viewaxis[2], ent->origin );

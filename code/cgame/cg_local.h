@@ -1192,6 +1192,31 @@ extern	vmCvar_t		cg_oldRail;
 extern	vmCvar_t		cg_oldRocket;
 extern	vmCvar_t		cg_oldPlasma;
 extern	vmCvar_t		cg_trueLightning;
+
+extern	vmCvar_t		vm_offset_max;
+extern	vmCvar_t		vm_offset_speed;
+extern	vmCvar_t		vm_sway_front;
+extern	vmCvar_t		vm_sway_side;
+extern	vmCvar_t		vm_sway_up;
+extern	vmCvar_t		vm_offset_air_front;
+extern	vmCvar_t		vm_offset_air_side;
+extern	vmCvar_t		vm_offset_air_up;
+extern	vmCvar_t		vm_offset_crouch_front;
+extern	vmCvar_t		vm_offset_crouch_side;
+extern	vmCvar_t		vm_offset_crouch_up;
+extern	vmCvar_t		vm_offset_rocketcrouch_front;
+extern	vmCvar_t		vm_offset_rocketcrouch_side;
+extern	vmCvar_t		vm_offset_rocketcrouch_up;
+extern	vmCvar_t		vm_offset_shotguncrouch_front;
+extern	vmCvar_t		vm_offset_shotguncrouch_side;
+extern	vmCvar_t		vm_offset_shotguncrouch_up;
+extern	vmCvar_t		vm_offset_vel_base;
+extern	vmCvar_t		vm_offset_vel_front;
+extern	vmCvar_t		vm_offset_vel_side;
+extern	vmCvar_t		vm_offset_vel_up;
+extern	vmCvar_t		vm_offset_upvel;
+extern	vmCvar_t		vm_lean_lower;
+
 #ifdef MISSIONPACK
 extern	vmCvar_t		cg_redTeamName;
 extern	vmCvar_t		cg_blueTeamName;

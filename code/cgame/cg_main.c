@@ -190,6 +190,29 @@ vmCvar_t	cg_oldRocket;
 vmCvar_t	cg_oldPlasma;
 vmCvar_t	cg_trueLightning;
 
+vmCvar_t	vm_offset_max;
+vmCvar_t	vm_offset_speed;
+vmCvar_t	vm_sway_front;
+vmCvar_t	vm_sway_side;
+vmCvar_t	vm_sway_up;
+vmCvar_t	vm_offset_air_front;
+vmCvar_t	vm_offset_air_side;
+vmCvar_t	vm_offset_air_up;
+vmCvar_t	vm_offset_crouch_front;
+vmCvar_t	vm_offset_crouch_side;
+vmCvar_t	vm_offset_crouch_up;
+vmCvar_t	vm_offset_rocketcrouch_front;
+vmCvar_t	vm_offset_rocketcrouch_side;
+vmCvar_t	vm_offset_rocketcrouch_up;
+vmCvar_t	vm_offset_shotguncrouch_front;
+vmCvar_t	vm_offset_shotguncrouch_side;
+vmCvar_t	vm_offset_shotguncrouch_up;
+vmCvar_t	vm_offset_vel_base;
+vmCvar_t	vm_offset_vel_front;
+vmCvar_t	vm_offset_vel_side;
+vmCvar_t	vm_offset_vel_up;
+vmCvar_t	vm_offset_upvel;
+vmCvar_t	vm_lean_lower;
 #ifdef MISSIONPACK
 vmCvar_t 	cg_redTeamName;
 vmCvar_t 	cg_blueTeamName;
@@ -322,8 +345,33 @@ static cvarTable_t cvarTable[] = {
 	{ &cg_oldRail, "cg_oldRail", "1", CVAR_ARCHIVE},
 	{ &cg_oldRocket, "cg_oldRocket", "1", CVAR_ARCHIVE},
 	{ &cg_oldPlasma, "cg_oldPlasma", "1", CVAR_ARCHIVE},
-	{ &cg_trueLightning, "cg_trueLightning", "0.0", CVAR_ARCHIVE}
-//	{ &cg_pmove_fixed, "cg_pmove_fixed", "0", CVAR_USERINFO | CVAR_ARCHIVE }
+	{ &cg_trueLightning, "cg_trueLightning", "0.0", CVAR_ARCHIVE},
+//	{ &cg_pmove_fixed, "cg_pmove_fixed", "0", CVAR_USERINFO | CVAR_ARCHIVE },
+
+	// su44: MoHAA viewmodel-related cvars
+	{ &vm_offset_max, "vm_offset_max", "8.0", 0},
+	{ &vm_offset_speed, "vm_offset_speed", "8.0", 0},
+	{ &vm_sway_front, "vm_sway_front", "0.1", 0},
+	{ &vm_sway_side, "vm_sway_side", "0.005", 0},
+	{ &vm_sway_up, "vm_sway_up", "0.003", 0},
+	{ &vm_offset_air_front, "vm_offset_air_front", "-3.0", 0},
+	{ &vm_offset_air_side, "vm_offset_air_side", "1.5", 0},
+	{ &vm_offset_air_up, "vm_offset_air_up", "-6.0", 0},
+	{ &vm_offset_crouch_front, "vm_offset_crouch_front", "-0.5", 0},
+	{ &vm_offset_crouch_side, "vm_offset_crouch_side", "2.25", 0},
+	{ &vm_offset_crouch_up, "vm_offset_crouch_up", "0.2", 0},
+	{ &vm_offset_rocketcrouch_front, "vm_offset_rocketcrouch_front", "0", 0},
+	{ &vm_offset_rocketcrouch_side, "vm_offset_rocketcrouch_side", "0", 0},
+	{ &vm_offset_rocketcrouch_up, "vm_offset_rocketcrouch_up", "0", 0},
+	{ &vm_offset_shotguncrouch_front, "vm_offset_shotguncrouch_front", "-1", 0},
+	{ &vm_offset_shotguncrouch_side, "vm_offset_shotguncrouch_side", "-1.1", 0},
+	{ &vm_offset_shotguncrouch_up, "vm_offset_shotguncrouch_up", "-1.1", 0},
+	{ &vm_offset_vel_base, "vm_offset_vel_base", "100", 0},
+	{ &vm_offset_vel_front, "vm_offset_vel_front", "-2.0", 0},
+	{ &vm_offset_vel_side, "vm_offset_vel_side", "1.5", 0},
+	{ &vm_offset_vel_up, "vm_offset_vel_up", "-4.0", 0},
+	{ &vm_offset_upvel, "vm_offset_upvel", "0.0025", 0},
+	{ &vm_lean_lower, "vm_lean_lower", "0.1", 0},
 };
 
 static int  cvarTableSize = sizeof( cvarTable ) / sizeof( cvarTable[0] );
