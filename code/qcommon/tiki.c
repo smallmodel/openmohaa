@@ -670,23 +670,30 @@ void TIKI_MergeSKD(tiki_t *out, char *fname) {
 					case JT_HOSEROT:
 					{
 						char*txt;
-						*newBoneList = (int*)Hunk_Alloc(sizeof(tikiBoneHoseRot_t),h_low);
+						*newBoneList = Hunk_Alloc(sizeof(tikiBoneHoseRot_t),h_low);
 						hose = (tikiBoneHoseRot_t*)*newBoneList;
 						hose->type=bone->jointType;
 						hose->parentIndex = TIKI_GetLocalBoneIndex(out,bone->parent);
 						ptr = (float *) ( (byte *)bone + sizeof(skdBone_t) );
-						ptr+=(42/4);
-						txt = (char*)ptr;
-					//	Com_Printf("\n HOSEref <%s>\n",txt);
-						hose->targetIndex = TIKI_GetLocalBoneIndex(out,txt);
-						ptr = (float *) ( (byte *)bone + sizeof(skdBone_t) );
-				//		Com_Printf("HOSEROT TYPE %f \n",*ptr); //1, 0.5
+						Com_Printf("HOSEROT dummy0 %f \n",*ptr);
+						hose->dummy0 = *ptr;
 						ptr++;
-						hose->angle=*ptr;
-					//	Com_Printf("HOSEROT ANGLE %f \n",*ptr);
-						ptr+=2;//12
-						VectorCopy(ptr,hose->const_offset);
-						VectorScale(hose->const_offset,out->scale,hose->const_offset);
+						Com_Printf("HOSEROT angle %f \n",*ptr);
+						hose->angle = *ptr;
+						ptr++;
+						Com_Printf("HOSEROT dummy1 %f \n",*ptr);
+						hose->dummy1 = *ptr;
+						ptr++;
+						VectorScale(ptr,out->scale,hose->const_offset);
+						ptr+=3;
+						//Com_Printf("%f %f %f \n",ptr[0],ptr[1],ptr[2]);
+						ptr+=3; // skip 1.f 1.f 1.f
+						Com_Printf("HOSEROT dummy2 %f \n",*ptr);
+						hose->dummy2 = *ptr;
+						ptr++;
+						txt = (char*)ptr;
+						//Com_Printf("\n HOSEref <%s>\n",txt);
+						hose->targetIndex = TIKI_GetLocalBoneIndex(out,txt);
 					}
 					break;
 					case JT_AVROT: //
@@ -877,17 +884,25 @@ void TIKI_AppendSKD(tiki_t *out, char *fname) {
 				hose->type=bone->jointType;
 				hose->parentIndex = TIKI_GetLocalBoneIndex(out,bone->parent);
 				ptr = (float *) ( (byte *)bone + sizeof(skdBone_t) );
-				ptr+=(42/4);
-				txt = (char*)ptr;
-			//	Com_Printf("\n HOSEref <%s>\n",txt);
-				hose->targetIndex = TIKI_GetLocalBoneIndex(out,txt);
-				ptr = (float *) ( (byte *)bone + sizeof(skdBone_t) );
-		//		Com_Printf("HOSEROT TYPE %f \n",*ptr); //1, 0.5
+				Com_Printf("HOSEROT dummy0 %f \n",*ptr);
+				hose->dummy0 = *ptr;
 				ptr++;
-				hose->angle=*ptr;
-			//	Com_Printf("HOSEROT ANGLE %f \n",*ptr);
-				ptr+=2;//12
+				Com_Printf("HOSEROT angle %f \n",*ptr);
+				hose->angle = *ptr;
+				ptr++;
+				Com_Printf("HOSEROT dummy1 %f \n",*ptr);
+				hose->dummy1 = *ptr;
+				ptr++;
 				VectorScale(ptr,out->scale,hose->const_offset);
+				ptr+=3;
+				//Com_Printf("%f %f %f \n",ptr[0],ptr[1],ptr[2]);
+				ptr+=3; // skip 1.f 1.f 1.f
+				Com_Printf("HOSEROT dummy2 %f \n",*ptr);
+				hose->dummy2 = *ptr;
+				ptr++;
+				txt = (char*)ptr;
+				//Com_Printf("\n HOSEref <%s>\n",txt);
+				hose->targetIndex = TIKI_GetLocalBoneIndex(out,txt);
 			}
 			break;
 			case JT_AVROT: //

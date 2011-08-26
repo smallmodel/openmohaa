@@ -121,6 +121,10 @@ typedef struct {
 //	short			rotFKIndex;
 	vec3_t			const_offset;
 	float			angle;
+	int hoseRotType;
+	float dummy0;
+	float dummy1;
+	float dummy2;
 } tikiBoneHoseRot_t;
 
 typedef struct {
