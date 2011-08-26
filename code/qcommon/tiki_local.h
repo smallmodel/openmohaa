@@ -114,17 +114,22 @@ typedef struct {
 	vec3_t			const_offset;
 } tikiBoneWrist_t;
 
+typedef enum {
+	HRTYPE_PLAIN,
+	HRTYPE_ROTATEPARENT180Y,
+	HRTYPE_ROTATEBOTH180Y
+} hoseRotType_t;
+
 typedef struct {
 	skdJointType_t	type;
 	int				parentIndex;
 	int				targetIndex;
 //	short			rotFKIndex;
-	vec3_t			const_offset;
-	float			angle;
-	int hoseRotType;
-	float dummy0;
-	float dummy1;
-	float dummy2;
+	vec3_t			basePos;
+	hoseRotType_t	hoseRotType;
+	float			bendRatio;
+	float			bendMax;
+	float			spinRatio;
 } tikiBoneHoseRot_t;
 
 typedef struct {
