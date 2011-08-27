@@ -1069,6 +1069,19 @@ static qboolean ParseStage( shaderStage_t *stage, char **text )
 					ri.Printf(PRINT_WARNING, "WARNING: missing distance2 parm for alphaGen distFade in shader '%s'\n", shader.name);
 				}
 			}
+			// su44: see shader static_tree1sprite
+			else if (!Q_stricmp(token, "oneMinusDistFade"))
+			{
+				//stage->alphaGen = AGEN_ONEMINUSDISTFADE;
+				token = COM_ParseExt(text, qfalse);
+				if (token[0] == 0) {
+					ri.Printf(PRINT_WARNING, "WARNING: missing distance1 parm for alphaGen oneMinusDistFade in shader '%s'\n", shader.name);
+				}
+				token = COM_ParseExt(text, qfalse);
+				if (token[0] == 0) {
+					ri.Printf(PRINT_WARNING, "WARNING: missing distance2 parm for alphaGen oneMinusDistFade in shader '%s'\n", shader.name);
+				}
+			}
 			else
 			{
 				ri.Printf( PRINT_WARNING, "WARNING: unknown alphaGen parameter '%s' in shader '%s'\n", token, shader.name );
