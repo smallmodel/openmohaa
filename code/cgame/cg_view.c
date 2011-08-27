@@ -333,6 +333,11 @@ static void CG_OffsetFirstPersonView( void ) {
 	float			f;
 	vec3_t			predictedVelocity;
 	int				timeDelta;
+	vec3_t a,tmp;
+	vec3_t forward, right;
+	trace_t trace;
+	vec3_t mins = { -8, -8, -8 };
+	vec3_t maxs = { 8, 8, 8 };
 	
 	if ( cg.snap->ps.pm_type == PM_INTERMISSION ) {
 		return;
@@ -452,6 +457,28 @@ static void CG_OffsetFirstPersonView( void ) {
 	VectorMA( cg.refdef.vieworg, 3, forward, cg.refdef.vieworg );
 	VectorMA( cg.refdef.vieworg, NECK_LENGTH, up, cg.refdef.vieworg );
 	}
+#endif
+
+	// add leaning rotation
+	cg.refdefViewAngles[ROLL] = cg.predictedPlayerState.fLeanAngle * 0.300000011920929;
+
+	// add leaning offset
+#if 0
+	a[0] = cg.refdefViewAngles[0];
+	a[1] = cg.refdefViewAngles[1];
+	a[2] = 0;
+	AngleVectors(a,forward,0,0);
+
+	//VectorCopy(cg.refdef.vieworg,tmp);
+	RotatePointAroundVector(tmp, forward, vec3_origin, cg.predictedPlayerState.fLeanAngle);
+	VectorAdd(tmp,cg.refdef.vieworg,cg.refdef.vieworg);
+#else
+	//add leaning offset
+	AngleVectors( cg.refdefViewAngles, 0, right, 0 );
+	VectorMA( cg.refdef.vieworg, cg.predictedPlayerState.fLeanAngle*0.5f, right, tmp );
+	CG_Trace(&trace,cg.refdef.vieworg,mins,maxs,tmp,-1,CONTENTS_SOLID);
+	VectorCopy(trace.endpos,cg.refdef.vieworg);
+
 #endif
 }
 

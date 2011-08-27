@@ -104,7 +104,9 @@ static void CG_ClipMoveToEntities ( const vec3_t start, const vec3_t mins, const
 			// special value for bmodel
 			cmodel = trap_CM_InlineModel( ent->modelindex );
 			VectorCopy( cent->lerpAngles, angles );
-			BG_EvaluateTrajectory( &cent->currentState.pos, cg.physicsTime, origin );
+			//BG_EvaluateTrajectory( &cent->currentState.pos, cg.physicsTime, origin );
+			// su44: BG_EvaluateTrajectory isnt used in MoHAA
+			VectorCopy(cent->lerpOrigin,origin);
 		} else {
 			// encoded bbox
 			x = (ent->solid & 255);
@@ -240,6 +242,9 @@ static void CG_InterpolatePlayerState( qboolean grabAngles ) {
 		i += 256;		// handle wraparound
 	}
 	out->bobCycle = prev->ps.bobCycle + f * ( i - prev->ps.bobCycle );
+
+	out->fLeanAngle = prev->ps.fLeanAngle + 
+		f * (next->ps.fLeanAngle - prev->ps.fLeanAngle );
 
 	for ( i = 0 ; i < 3 ; i++ ) {
 		out->origin[i] = prev->ps.origin[i] + f * (next->ps.origin[i] - prev->ps.origin[i] );
@@ -441,6 +446,12 @@ void CG_PredictPlayerState( void ) {
 		CG_InterpolatePlayerState( qtrue );
 		return;
 	}
+
+#if 1
+	// su44: temporary disabling playerstate prediction
+	CG_InterpolatePlayerState( qtrue );
+	return;
+#endif
 
 	// prepare for pmove
 	cg_pmove.ps = &cg.predictedPlayerState;

@@ -128,6 +128,118 @@ void CG_AddViewModelAnimAttachment(refEntity_t *ent, centity_t *cent) {
 
 	trap_R_AddRefEntityToScene(ent);
 }
+void CG_CalcViewModelMovement(float fViewBobPhase, float fViewBobAmp, 
+		float *vVelocity, float *vMovement ) {
+	float tmp,tmp2;
+	float frac;
+	vec3_t vmOfs;
+	float vMovementLen;
+	vec3_t vMovementNormalized;
+	float *curAnimVMPosOfs;
+	int i;
+
+	vMovement[1] = sin(fViewBobPhase + 0.3141592700403172) * fViewBobAmp * vm_sway_side.value;
+	vMovement[0] = vMovement[1] * vm_sway_front.value;
+	tmp = sin(fViewBobPhase - 0.9424778335276408 + fViewBobPhase - 0.9424778335276408 + 3.141592653589793)
+	 + sin((fViewBobPhase - 0.9424778335276408) * 4.0 + 1.570796326794897) * 0.125;
+	vMovement[2] = fViewBobAmp * tmp * vm_sway_up.value;
+
+	//if(!cg.predictedPlayerState.walking) {
+	if(cg.predictedPlayerState.groundEntityNum == ENTITYNUM_NONE) {
+		// player is in air
+		vmOfs[0] = vm_offset_air_front.value;
+		vmOfs[1] = vm_offset_air_side.value;
+		vmOfs[2] = vm_offset_air_up.value;
+		// append offset depending on Z velocity
+		if(vVelocity[2] != 0.f) {
+			vmOfs[2] -= vVelocity[2] * vm_offset_upvel.value;
+		}
+	} else {
+		// player is walking
+		if ( cg.predictedPlayerState.viewheight == 48 ) {
+			// and crouching?
+
+			/*
+			// special cases for shotgun and rocked launchers - TODO
+			if(using shotgun) {
+				vmOfs[0] = vm_offset_shotguncrouch_front.value;
+				vmOfs[1] = vm_offset_shotguncrouch_side.value;
+				vmOfs[2] = vm_offset_shotguncrouch_up.value;
+			} else if(using rockets) {
+				vmOfs[0] = vm_offset_rocketcrouch_front.value;
+				vmOfs[1] = vm_offset_rocketcrouch_side.value;
+				vmOfs[2] = vm_offset_rocketcrouch_up.value;
+			} else
+			*/
+			{
+				vmOfs[0] = vm_offset_crouch_front.value;
+				vmOfs[1] = vm_offset_crouch_side.value;
+				vmOfs[2] = vm_offset_crouch_up.value;
+			}
+		} else {
+			// player is standing
+			VectorClear(vmOfs);
+		}
+		tmp = VectorLength(vVelocity) - vm_offset_vel_base.value;
+
+		if(tmp > 0) {
+			tmp2 = 250.0 - vm_offset_vel_base.value;
+			if( tmp > tmp2 )
+				tmp = tmp2;
+			frac = tmp / tmp2;	
+
+			vmOfs[0] += frac * vm_offset_vel_front.value;
+			vmOfs[1] += frac * vm_offset_vel_side.value;
+			vmOfs[2] += frac * vm_offset_vel_up.value;
+		}
+
+
+
+	}
+
+
+	// for each coordinate
+	curAnimVMPosOfs = &cg.g_vCurrentVMPosOffset[0];
+	for(i = 0; i < 3; i++) {
+		float ofsDelta;
+		ofsDelta = vmOfs[i] - curAnimVMPosOfs[i];
+		curAnimVMPosOfs[i] += (float)cg.frametime
+			* 0.001
+			* ofsDelta
+			* vm_offset_speed.value;
+		//if(ofsDelta < 0) {
+		//	if ( vmOfs[i] <= curAnimVMPosOfs[i] ) {
+
+		//	} else {
+		//		curAnimVMPosOfs[i] = vmOfs[i];
+		//	}
+		//} else if(ofsDelta > 0) {
+		//	if ( vmOfs[i] < curAnimVMPosOfs[i] ) {
+
+		//	} else {
+		//		curAnimVMPosOfs[i] = vmOfs[i];
+		//	}
+		//}
+	}
+
+	vMovement[0] = vMovement[0] + cg.g_vCurrentVMPosOffset[0];
+	vMovement[1] = vMovement[1] + cg.g_vCurrentVMPosOffset[1];
+	vMovement[2] = vMovement[2] + cg.g_vCurrentVMPosOffset[2];
+
+	// add lean offset
+	if(cg.predictedPlayerState.fLeanAngle != 0.f) {
+		vMovement[2] -= fabs(cg.predictedPlayerState.fLeanAngle) * vm_lean_lower.value;
+	}
+	vMovementLen = VectorNormalize2(vMovement, vMovementNormalized);
+	if(vm_offset_max.value < vMovementLen) {
+		vMovement[0] = vm_offset_max.value * vMovementNormalized[0];
+		vMovement[1] = vm_offset_max.value * vMovementNormalized[1];
+		vMovement[2] = vm_offset_max.value * vMovementNormalized[2];
+	}
+
+
+
+}
 #define ITEM_WEAPON 1
 void CG_ViewModelAnim() {
 	char anim[128];
@@ -140,6 +252,7 @@ void CG_ViewModelAnim() {
 	vec3_t v,a;
 	int boneName;
 	matrix_t m;
+	vec3_t vMovement;
 
 	if(cg.renderingThirdPerson)
 		return;
@@ -229,15 +342,29 @@ item 2 "Binoculars"
 
 	trap_TIKI_SetChannels(fps,i,cg.viewModelAnimTime,1,ent->bones);
 	trap_TIKI_Animate(fps,ent->bones);
+	// TODO: calculate fViewBobPhase and fViewBobAmp
+	CG_CalcViewModelMovement(0,0,cg.predictedPlayerState.velocity,vMovement);
+	CG_Printf("Movement: %f %f %f\n",vMovement[0],vMovement[1],vMovement[2]);
 
-	boneName = trap_TIKI_GetBoneNameIndex("eyes bone");
-//	boneName = trap_TIKI_GetBoneNameIndex("Bip01 Head");
+	// in MoHAA "eyes bone" is used here
+	bone = 0;
+	boneName = trap_TIKI_GetBoneNameIndex("eyes bone"); 
 	for(i = 0; i < fps->numBones; i++) {
 		if(fps->boneNames[i] == boneName) {
 			bone = ent->bones+i;
 			break;
 		}
 	}
+	if(bone == 0) {
+		CG_Printf("CG_OffsetFirstPersonView warning: Couldn't find 'eyes bone' for player\n");
+	}
+#if 1
+
+
+	//VectorAdd(bone->p,vMovement,bone->p);
+	VectorSubtract(bone->p,vMovement,bone->p);
+
+
 #if 0
 	CG_BoneLocal2World(bone,vec3_origin,cg.refdefViewAngles,v,a);
 #else
@@ -245,10 +372,22 @@ item 2 "Binoculars"
 	MatrixTransformPoint(m,bone->p,v);
 #endif
 	VectorSubtract( cg.refdef.vieworg,v,ent->origin);
+#else
+	VectorCopy(cg.predictedPlayerState.origin,ent->origin);
+	ent->origin[2] += cg.predictedPlayerState.viewheight;
+	//ent->origin[2] += bone->p[2];
+	// transform vMovement from players model space to worldspace
+	MatrixFromAngles(m,cg.refdefViewAngles[0],cg.refdefViewAngles[1],cg.refdefViewAngles[2]);
+	MatrixTransformPoint(m,vMovement,v);
+	// add it
+	VectorAdd(ent->origin,v,ent->origin);
+#endif
 
 	VectorMA( ent->origin, cg_gun_x.value, cg.refdef.viewaxis[0], ent->origin );
 	VectorMA( ent->origin, cg_gun_y.value, cg.refdef.viewaxis[1], ent->origin );
 	VectorMA( ent->origin, cg_gun_z.value, cg.refdef.viewaxis[2], ent->origin );
+
+
 
 	VectorCopy(cg.refdef.viewaxis[0],ent->axis[0]);
 	VectorCopy(cg.refdef.viewaxis[1],ent->axis[1]);

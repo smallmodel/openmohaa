@@ -652,6 +652,7 @@ typedef struct {
 	refEntity_t viewModelEnt;
 	tiki_t		*viewModelTiki;
 	//vec3_t		viewModelEntRot;
+	vec3_t g_vCurrentVMPosOffset; // cgi.anim->g_vCurrentVMPosOffset
 
 
 	//qboolean cameraMode;		// if rendering from a loaded camera
