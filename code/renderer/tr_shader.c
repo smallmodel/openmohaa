@@ -847,6 +847,13 @@ static qboolean ParseStage( shaderStage_t *stage, char **text )
 				ParseWaveForm( text, &stage->rgbWave );
 				stage->rgbGen = CGEN_WAVEFORM;
 			}
+			else if ( !Q_stricmp( token, "constant" ) ) {
+				stage->constantColor[0] = atof( COM_ParseExt( text, qfalse ) );
+				stage->constantColor[1] = atof( COM_ParseExt( text, qfalse ) );
+				stage->constantColor[2] = atof( COM_ParseExt( text, qfalse ) );
+
+				stage->rgbGen = CGEN_CONST;
+			}
 			else if ( !Q_stricmp( token, "const" ) )
 			{
 				vec3_t	color;
@@ -906,6 +913,10 @@ static qboolean ParseStage( shaderStage_t *stage, char **text )
 			else if ( !Q_stricmp( token, "lightingSpherical" ) )
 			{
 				//stage->rgbGen = CGEN_ONE_MINUS_VERTEX;
+			}
+			else if ( !Q_stricmp( token, "global" ) )
+			{
+				stage->rgbGen = CGEN_IDENTITY;
 			}
 			else
 			{

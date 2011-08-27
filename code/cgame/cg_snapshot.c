@@ -172,11 +172,9 @@ static void CG_TransitionSnapshot( void ) {
 	for ( i=0;i<cg.snap->number_of_sounds;i++ ) {
 		snd = &cg.snap->sounds[i];
 		if (snd->stop_flag) {
-			Com_Printf( "%i Stopping sound %s on channel %i\n",i, CG_ConfigString(CS_SOUNDS+snd->sound_index),snd->channel);
 			trap_S_StopLoopingSound( snd->entity_number );
 		}
 		else {
-			Com_Printf( "%i Starting sound %s on channel %i\n",i, CG_ConfigString(CS_SOUNDS+snd->sound_index),snd->channel);
 			trap_S_StartSound( snd->origin, snd->entity_number, snd->channel, cgs.gameSounds[snd->sound_index] );
 		}
 	}

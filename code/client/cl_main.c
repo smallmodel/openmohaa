@@ -78,6 +78,8 @@ cvar_t	*cl_lanForcePackets;
 
 cvar_t	*cl_guidServerUniq;
 
+cvar_t	*wombat;
+
 clientActive_t		cl;
 clientConnection_t	clc;
 clientStatic_t		cls;
@@ -1144,13 +1146,14 @@ CL_Connect_f
 
 ================
 */
+#define TEST_SERVER "87.106.44.167:12205"
 void CL_Connect_f( void ) {
 	char	*server;
 	char	serverString[ 22 ];
 
 	if ( Cmd_Argc() != 2 ) {
 		Com_Printf( "usage: connect [server]\n");
-		return;
+//		return;
 	}
 
 	Cvar_Set("ui_singlePlayerActive", "0");
@@ -1161,7 +1164,10 @@ void CL_Connect_f( void ) {
 	// clear any previous "server full" type messages
 	clc.serverMessage[0] = 0;
 
-	server = Cmd_Argv (1);
+	if ( Cmd_Argc() != 2 )
+		server = TEST_SERVER;
+	else
+		server = Cmd_Argv (1);
 
 	if ( com_sv_running->integer && !strcmp( server, "localhost" ) ) {
 		// if running a local server, kill it
@@ -2407,7 +2413,7 @@ void CL_InitRenderer( void ) {
 	// load character sets
 	cls.charSetShader = re.RegisterShader( "gfx/2d/bigchars" );
 	cls.whiteShader = re.RegisterShader( "*white" );
-	cls.consoleShader = re.RegisterShader( "console" );
+//	cls.consoleShader = re.RegisterShader( "console" );
 	re.RegisterFont("courier-16", 0, &cls.consoleFont);
 	g_console_field_width = cls.glconfig.vidWidth / SMALLCHAR_WIDTH - 2;
 	g_consoleField.widthInChars = g_console_field_width;
@@ -2688,6 +2694,7 @@ void CL_Init( void ) {
 	//
 	// register our variables
 	//
+	wombat = Cvar_Get( "wombat", "0", 0 );
 	cl_noprint = Cvar_Get( "cl_noprint", "0", 0 );
 	cl_motd = Cvar_Get ("cl_motd", "1", 0);
 

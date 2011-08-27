@@ -661,7 +661,7 @@ CL_ParseCGMessage
 
 MOHAA does this inside its cgame. its some big function with a 37-switch case
 but unless we properly read the CG message, we don't know when the message
-hase finished :-(
+hase finished
 =====================
 */
 void CL_ParseCGMessage( msg_t *msg ) {

@@ -73,7 +73,8 @@ S_StartSound
 void S_StartSound( vec3_t origin, int entnum, int entchannel, sfxHandle_t sfx )
 {
 	if( si.StartSound ) {
-		si.StartSound( origin, entnum, entchannel, sfx );
+		if ( sfx != -1 )
+			si.StartSound( origin, entnum, entchannel, sfx );
 	}
 }
 
@@ -262,7 +263,9 @@ S_RegisterSound
 sfxHandle_t	S_RegisterSound( const char *sample, qboolean compressed )
 {
 	if( si.RegisterSound ) {
-		return si.RegisterSound( sample, compressed );
+		if ( !strstr(sample, "sound/null.wav") )
+			return si.RegisterSound( sample, compressed );
+		else return -1;
 	} else {
 		return 0;
 	}

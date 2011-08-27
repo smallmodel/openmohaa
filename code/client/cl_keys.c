@@ -66,8 +66,14 @@ keyname_t keynames[] =
 	{"RIGHTARROW", K_RIGHTARROW},
 
 	{"ALT", K_ALT},
+	// wombat: mohaa knows LCTRL and RCTRL, LSHIFT, RSHIFT
 	{"CTRL", K_CTRL},
+	{"LCTRL", K_CTRL},
+	{"RCTRL", K_CTRL},
+
 	{"SHIFT", K_SHIFT},
+	{"LSHIFT", K_SHIFT},
+	{"RSHIFT", K_SHIFT},
 
 	{"COMMAND", K_COMMAND},
 
