@@ -73,23 +73,6 @@ void CG_LoadingString( const char *s ) {
 
 /*
 ===================
-CG_LoadingItem
-===================
-*/
-void CG_LoadingItem( int itemNum ) {
-	gitem_t		*item;
-
-	item = &bg_itemlist[itemNum];
-	
-	if ( item->icon && loadingItemIconCount < MAX_LOADING_ITEM_ICONS ) {
-		loadingItemIcons[loadingItemIconCount++] = trap_R_RegisterShaderNoMip( item->icon );
-	}
-
-	CG_LoadingString( item->pickup_name );
-}
-
-/*
-===================
 CG_LoadingClient
 ===================
 */
@@ -265,17 +248,6 @@ void CG_DrawInformation( void ) {
 	case GT_OBJECTIVE:
 		s = "Objective Match";
 		break;
-#ifdef MISSIONPACK
-	case GT_1FCTF:
-		s = "One Flag CTF";
-		break;
-	case GT_OBELISK:
-		s = "Overload";
-		break;
-	case GT_HARVESTER:
-		s = "Harvester";
-		break;
-#endif
 	default:
 		s = "Unknown Gametype";
 		break;
@@ -291,22 +263,12 @@ void CG_DrawInformation( void ) {
 		y += PROP_HEIGHT;
 	}
 
-	if (cgs.gametype < GT_CTF ) {
 		value = atoi( Info_ValueForKey( info, "fraglimit" ) );
 		if ( value ) {
 			UI_DrawProportionalString( 320, y, va( "fraglimit %i", value ),
 				UI_CENTER|UI_SMALLFONT|UI_DROPSHADOW, colorWhite );
 			y += PROP_HEIGHT;
 		}
-	}
 
-	if (cgs.gametype >= GT_CTF) {
-		value = atoi( Info_ValueForKey( info, "capturelimit" ) );
-		if ( value ) {
-			UI_DrawProportionalString( 320, y, va( "capturelimit %i", value ),
-				UI_CENTER|UI_SMALLFONT|UI_DROPSHADOW, colorWhite );
-			y += PROP_HEIGHT;
-		}
-	}
 }
 

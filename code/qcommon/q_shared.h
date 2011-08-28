@@ -1231,7 +1231,7 @@ typedef struct playerState_s {
 
 	vec3_t		origin;
 	vec3_t		velocity;
-	int			weaponTime;
+
 	int			gravity;
 	int			speed;
 	int			delta_angles[3];	// add to command angles to get view direction
@@ -1239,87 +1239,46 @@ typedef struct playerState_s {
 
 	int			groundEntityNum;// ENTITYNUM_NONE = in air
 
-	int			legsTimer;		// don't change low priority animations until this runs out
-	int			legsAnim;		// mask off ANIM_TOGGLEBIT
-
-	int			torsoTimer;		// don't change low priority animations until this runs out
-	int			torsoAnim;		// mask off ANIM_TOGGLEBIT
-
-	float vEyePos[3];
-
-	int			movementDir;	// a number 0 to 7 that represents the reletive angle
-								// of movement to the view angle (axial and diagonals)
-								// when at rest, the value will remain unchanged
-								// used to twist the legs during strafing
-
-	vec3_t		grapplePoint;	// location of grapple to pull towards if PMF_GRAPPLE_PULL
-
-	int			eFlags;			// copied to entityState_t->eFlags
-
-	int			eventSequence;	// pmove generated events
-	int			events[MAX_PS_EVENTS];
-	int			eventParms[MAX_PS_EVENTS];
-
-	int			externalEvent;	// events set on player from another source
-	int			externalEventParm;
-	int			externalEventTime;
-
-	qboolean walking;
-	qboolean groundPlane;
-	int feetfalling;
-	float falldir[3];
-	trace_t groundTrace;
+	qboolean	walking;
+	qboolean	groundPlane;
+	int			feetfalling;
+	float		falldir[3];
+	trace_t		groundTrace;
 
 	int			clientNum;		// ranges from 0 to MAX_CLIENTS-1
-	int			weapon;			// copied to entityState_t->weapon
-	int			weaponstate;
 
 	vec3_t		viewangles;		// for fixed views
 	int			viewheight;
 
-	float fLeanAngle;
-	int iViewModelAnim;
-	int iViewModelAnimChanged;
-	// damage feedback
-	int			damageEvent;	// when it changes, latch the other parms
-	int			damageYaw;
-	int			damagePitch;
-	int			damageCount;
+	float		fLeanAngle;
+	int			iViewModelAnim;
+	int			iViewModelAnimChanged;
 
 	int			stats[MAX_STATS];
-	int			persistant[MAX_PERSISTANT];	// stats that aren't cleared on death
-	int			powerups[MAX_POWERUPS];	// level.time that the powerup runs out
-	int			ammo[MAX_WEAPONS];
+	int			activeItems[8];
+	int			ammo_name_index[16];
+	int			ammo_amount[16];
+	int			max_ammo_amount[16];
 
-	int activeItems[8];
-	int ammo_name_index[16];
-	int ammo_amount[16];
-	int max_ammo_amount[16];
-	int current_music_mood;
-	int fallback_music_mood;
-	float music_volume;
-	float music_volume_fade_time;
-	int reverb_type;
-	float reverb_level;
-	float blend[4];
-	float fov;
-	float camera_origin[3];
-	float camera_angles[3];
-	float camera_time;
-	float camera_offset[3];
-	float camera_posofs[3];
-	int camera_flags;
-	float damage_angles[3];
-
-	int			generic1;
-	int			loopSound;
-	int			jumppad_ent;	// jumppad entity hit this frame
+	int			current_music_mood;
+	int			fallback_music_mood;
+	float		music_volume;
+	float		music_volume_fade_time;
+	int			reverb_type;
+	float		reverb_level;
+	float		blend[4];
+	float		fov;
+	float		camera_origin[3];
+	float		camera_angles[3];
+	float		camera_time;
+	float		camera_offset[3];
+	float		camera_posofs[3];
+	int			camera_flags;
+	float		damage_angles[3];
 
 	// not communicated over the net at all
 	int			ping;			// server to game info for scoreboard
-	int			pmove_framecount;	// FIXME: don't transmit over the network
-	int			jumppad_frame;
-	int			entityEventSequence;
+	float		vEyePos[3];
 } playerState_t;
 
 

@@ -91,9 +91,6 @@ intptr_t vmMain( int command, int arg0, int arg1, int arg2, int arg3, int arg4, 
 cg_t				cg;
 cgs_t				cgs;
 centity_t			cg_entities[MAX_GENTITIES];
-weaponInfo_t		cg_weapons[MAX_WEAPONS];
-itemInfo_t			cg_items[MAX_ITEMS];
-
 
 vmCvar_t	cg_railTrailTime;
 vmCvar_t	cg_centertime;
@@ -467,7 +464,7 @@ int CG_LastAttacker( void ) {
 	if ( !cg.attackerTime ) {
 		return -1;
 	}
-	return cg.snap->ps.persistant[PERS_ATTACKER];
+	return cg.snap->ps.stats[STAT_ATTACKERCLIENT];
 }
 
 void QDECL CG_Printf( const char *msg, ... ) {
@@ -529,55 +526,6 @@ const char *CG_Argv( int arg ) {
 
 
 //========================================================================
-
-/*
-=================
-CG_RegisterItemSounds
-
-The server says this item is used on this level
-=================
-*/
-static void CG_RegisterItemSounds( int itemNum ) {
-	gitem_t			*item;
-	char			data[MAX_QPATH];
-	char			*s, *start;
-	int				len;
-
-	item = &bg_itemlist[ itemNum ];
-
-	if( item->pickup_sound ) {
-		trap_S_RegisterSound( item->pickup_sound, qfalse );
-	}
-
-	// parse the space seperated precache string for other media
-	s = item->sounds;
-	if (!s || !s[0])
-		return;
-
-	while (*s) {
-		start = s;
-		while (*s && *s != ' ') {
-			s++;
-		}
-
-		len = s-start;
-		if (len >= MAX_QPATH || len < 5) {
-			CG_Error( "PrecacheItem: %s has bad precache string",
-				item->classname);
-			return;
-		}
-		memcpy (data, start, len);
-		data[len] = 0;
-		if ( *s ) {
-			s++;
-		}
-
-		if ( !strcmp(data+len-3, "wav" )) {
-			trap_S_RegisterSound( data, qfalse );
-		}
-	}
-}
-
 
 /*
 =================
@@ -1087,8 +1035,6 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum ) {
 	memset( &cgs, 0, sizeof( cgs ) );
 	memset( &cg, 0, sizeof( cg ) );
 	memset( cg_entities, 0, sizeof(cg_entities) );
-	memset( cg_weapons, 0, sizeof(cg_weapons) );
-	memset( cg_items, 0, sizeof(cg_items) );
 
 	cg.clientNum = clientNum;
 
@@ -1108,10 +1054,6 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum ) {
 
 	CG_InitConsoleCommands();
 
-	cg.weaponSelect = WP_MACHINEGUN;
-
-	cgs.redflag = cgs.blueflag = -1; // For compatibily, default to unset for
-	cgs.flagStatus = -1;
 	// old servers
 
 	// get the rendering configuration from the client system
@@ -1182,7 +1124,7 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum ) {
 	CG_InitTeamChat();
 #endif
 
-	CG_ShaderStateChanged();
+	//CG_ShaderStateChanged();
 
 	trap_S_ClearLoopingSounds( qtrue );
 }

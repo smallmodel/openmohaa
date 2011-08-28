@@ -1981,7 +1981,7 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, struct playerState_s *from, struct p
 		MSG_WriteBits( msg, max_ammo_amountbits, MAX_MAX_AMMO_AMOUNT );
 		for (i=0 ; i<MAX_MAX_AMMO_AMOUNT ; i++)
 			if (max_ammo_amountbits & (1<<i) )
-				MSG_WriteShort( msg, to->powerups[i] );
+				MSG_WriteShort( msg, to->max_ammo_amount[i] );
 	} else {
 		MSG_WriteBits( msg, 0, 1 );	// no change
 	}

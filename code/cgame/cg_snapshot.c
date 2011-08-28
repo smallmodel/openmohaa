@@ -79,7 +79,7 @@ static void CG_ExecuteFrameCommands(centity_t *cent, tikiAnim_t *anim, int frame
 	cmd = anim->clientCmds;
 	for(i = 0; i < anim->numClientCmds; i++,cmd++) {
 		if(cmd->frame == frameIndex) {
-			CG_Printf("Frame %i command %s\n",cmd->frame,cmd->text);
+			//CG_Printf("Frame %i command %s\n",cmd->frame,cmd->text);
 			//CG_ProcessEventText(cent,cmd->text);
 			CG_PostEvent(cent,cmd->text,0);
 		}
@@ -91,7 +91,7 @@ static void CG_ExecuteFramesCommands(centity_t *cent, tikiAnim_t *anim, int star
 	cmd = anim->clientCmds;
 	for(i = 0; i < anim->numClientCmds; i++,cmd++) {
 		if(cmd->frame >= start && cmd->frame <= stop) {
-			CG_Printf("Frame %i command %s\n",cmd->frame,cmd->text);
+			//CG_Printf("Frame %i command %s\n",cmd->frame,cmd->text);
 			//CG_ProcessEventText(cent,cmd->text);
 			CG_PostEvent(cent,cmd->text,0);
 		}
@@ -273,13 +273,13 @@ static void CG_TransitionSnapshot( void ) {
 		ops = &oldFrame->ps;
 		ps = &cg.snap->ps;
 		// teleporting checks are irrespective of prediction
-		if ( ( ps->eFlags ^ ops->eFlags ) & EF_TELEPORT_BIT ) {
-			cg.thisFrameTeleport = qtrue;	// will be cleared by prediction code
-		}
+		//if ( ( ps->eFlags ^ ops->eFlags ) & EF_TELEPORT_BIT ) {
+		//	cg.thisFrameTeleport = qtrue;	// will be cleared by prediction code
+		//}
 
 		// if we are not doing client side movement prediction for any
 		// reason, then the client events and view changes will be issued now
-		if ( cg.demoPlayback || (cg.snap->ps.pm_flags & PMF_FOLLOW)
+		if ( cg.demoPlayback /*|| (cg.snap->ps.pm_flags & PMF_FOLLOW)*/
 			|| cg_nopredict.integer || cg_synchronousClients.integer ) {
 			CG_TransitionPlayerState( ps, ops );
 		}
@@ -324,9 +324,11 @@ static void CG_SetNextSnap( snapshot_t *snap ) {
 
 	// if the next frame is a teleport for the playerstate, we
 	// can't interpolate during demos
-	if ( cg.snap && ( ( snap->ps.eFlags ^ cg.snap->ps.eFlags ) & EF_TELEPORT_BIT ) ) {
-		cg.nextFrameTeleport = qtrue;
-	} else {
+	//if ( cg.snap && ( ( snap->ps.eFlags ^ cg.snap->ps.eFlags ) & EF_TELEPORT_BIT ) ) {
+	//	cg.nextFrameTeleport = qtrue;
+	//} else 
+	
+	{
 		cg.nextFrameTeleport = qfalse;
 	}
 

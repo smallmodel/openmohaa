@@ -99,25 +99,25 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define CS_AXIS					1880
 
 //not on mohaa
-#define	CS_SCORES1				6
-#define	CS_SCORES2				7
-#define CS_VOTE_TIME			8
-#define CS_VOTE_STRING			9
-#define	CS_VOTE_YES				10
-#define	CS_VOTE_NO				11
-#define CS_TEAMVOTE_TIME		12
-#define CS_TEAMVOTE_STRING		14
-#define	CS_TEAMVOTE_YES			16
-#define	CS_TEAMVOTE_NO			18
-
-#define	CS_INTERMISSION			22		// when 1, fraglimit/timelimit has been hit and intermission will start in a second or two
-#define CS_FLAGSTATUS			23		// string indicating flag status in CTF
-#define CS_SHADERSTATE			24
-#define CS_BOTINFO				25
-
-#define	CS_ITEMS				27		// string of 0's and 1's that tell which items are present
-#define CS_LOCATIONS			(CS_PLAYERS+MAX_CLIENTS)
-#define CS_PARTICLES			(CS_LOCATIONS+MAX_LOCATIONS)
+//#define	CS_SCORES1				6
+//#define	CS_SCORES2				7
+//#define CS_VOTE_TIME			8
+//#define CS_VOTE_STRING			9
+//#define	CS_VOTE_YES				10
+//#define	CS_VOTE_NO				11
+//#define CS_TEAMVOTE_TIME		12
+//#define CS_TEAMVOTE_STRING		14
+//#define	CS_TEAMVOTE_YES			16
+//#define	CS_TEAMVOTE_NO			18
+//
+//#define	CS_INTERMISSION			22		// when 1, fraglimit/timelimit has been hit and intermission will start in a second or two
+//#define CS_FLAGSTATUS			23		// string indicating flag status in CTF
+//#define CS_SHADERSTATE			24
+//#define CS_BOTINFO				25
+//
+//#define	CS_ITEMS				27		// string of 0's and 1's that tell which items are present
+//#define CS_LOCATIONS			(CS_PLAYERS+MAX_CLIENTS)
+//#define CS_PARTICLES			(CS_LOCATIONS+MAX_LOCATIONS)
 
 
 #define CS_MAX					(CS_PARTICLES+MAX_LOCATIONS)
@@ -132,18 +132,6 @@ typedef enum {
 	GT_TEAM,			// team deathmatch
 	GT_TEAM_ROUNDS,
 	GT_OBJECTIVE,
-	//GT_MAX_GAME_TYPE for mohaa
-
-	GT_TOURNAMENT,		// one on one tournament
-	
-
-	//-- team games go after this --
-
-	
-	GT_CTF,				// capture the flag
-	GT_1FCTF,
-	GT_OBELISK,
-	GT_HARVESTER,
 	GT_MAX_GAME_TYPE
 } gametype_t;
 
@@ -305,7 +293,7 @@ typedef enum {
 } statIndex_t;
 #define STAT_DEAD_YAW 5 // su44: Is there a DEAD_YAW stat in MoHAA?
 #endif
-
+#if 0
 // player_state->persistant[] indexes
 // these fields are the only part of player_state that isn't
 // cleared on respawn
@@ -328,7 +316,7 @@ typedef enum {
 	PERS_GAUNTLET_FRAG_COUNT,		// kills with the guantlet
 	PERS_CAPTURES					// captures
 } persEnum_t;
-
+#endif
 
 // entityState_t->eFlags
 #define	EF_DEAD				0x00000001		// don't draw a foe marker over players with EF_DEAD
@@ -355,67 +343,6 @@ typedef enum {
 #define EF_AWARD_DENIED		0x00040000		// denied
 #define EF_TEAMVOTED		0x00080000		// already cast a team vote
 
-// NOTE: may not have more than 16
-typedef enum {
-	PW_NONE,
-
-	PW_QUAD,
-	PW_BATTLESUIT,
-	PW_HASTE,
-	PW_INVIS,
-	PW_REGEN,
-	PW_FLIGHT,
-
-	PW_REDFLAG,
-	PW_BLUEFLAG,
-	PW_NEUTRALFLAG,
-
-	PW_SCOUT,
-	PW_GUARD,
-	PW_DOUBLER,
-	PW_AMMOREGEN,
-	PW_INVULNERABILITY,
-
-	PW_NUM_POWERUPS
-
-} powerup_t;
-
-typedef enum {
-	HI_NONE,
-
-	HI_TELEPORTER,
-	HI_MEDKIT,
-	HI_KAMIKAZE,
-	HI_PORTAL,
-	HI_INVULNERABILITY,
-
-	HI_NUM_HOLDABLE
-} holdable_t;
-
-
-typedef enum {
-	WP_NONE,
-
-	WP_GAUNTLET,
-	WP_MACHINEGUN,
-	WP_SHOTGUN,
-	WP_GRENADE_LAUNCHER,
-	WP_ROCKET_LAUNCHER,
-	WP_LIGHTNING,
-	WP_RAILGUN,
-	WP_PLASMAGUN,
-	WP_BFG,
-	WP_GRAPPLING_HOOK,
-#ifdef MISSIONPACK
-	WP_NAILGUN,
-	WP_PROX_LAUNCHER,
-	WP_CHAINGUN,
-#endif
-
-	WP_NUM_WEAPONS
-} weapon_t;
-
-
 // reward sounds (stored in ps->persistant[PERS_PLAYEREVENTS])
 #define	PLAYEREVENT_DENIEDREWARD		0x0001
 #define	PLAYEREVENT_GAUNTLETREWARD		0x0002
@@ -435,114 +362,6 @@ typedef enum {
 #define	EV_EVENT_BITS		(EV_EVENT_BIT1|EV_EVENT_BIT2)
 
 #define	EVENT_VALID_MSEC	300
-
-typedef enum {
-	EV_NONE,
-
-	EV_FOOTSTEP,
-	EV_FOOTSTEP_METAL,
-	EV_FOOTSPLASH,
-	EV_FOOTWADE,
-	EV_SWIM,
-
-	EV_STEP_4,
-	EV_STEP_8,
-	EV_STEP_12,
-	EV_STEP_16,
-
-	EV_FALL_SHORT,
-	EV_FALL_MEDIUM,
-	EV_FALL_FAR,
-
-	EV_JUMP_PAD,			// boing sound at origin, jump sound on player
-
-	EV_JUMP,
-	EV_WATER_TOUCH,	// foot touches
-	EV_WATER_LEAVE,	// foot leaves
-	EV_WATER_UNDER,	// head touches
-	EV_WATER_CLEAR,	// head leaves
-
-	EV_ITEM_PICKUP,			// normal item pickups are predictable
-	EV_GLOBAL_ITEM_PICKUP,	// powerup / team sounds are broadcast to everyone
-
-	EV_NOAMMO,
-	EV_CHANGE_WEAPON,
-	EV_FIRE_WEAPON,
-
-	EV_USE_ITEM0,
-	EV_USE_ITEM1,
-	EV_USE_ITEM2,
-	EV_USE_ITEM3,
-	EV_USE_ITEM4,
-	EV_USE_ITEM5,
-	EV_USE_ITEM6,
-	EV_USE_ITEM7,
-	EV_USE_ITEM8,
-	EV_USE_ITEM9,
-	EV_USE_ITEM10,
-	EV_USE_ITEM11,
-	EV_USE_ITEM12,
-	EV_USE_ITEM13,
-	EV_USE_ITEM14,
-	EV_USE_ITEM15,
-
-	EV_ITEM_RESPAWN,
-	EV_ITEM_POP,
-	EV_PLAYER_TELEPORT_IN,
-	EV_PLAYER_TELEPORT_OUT,
-
-	EV_GRENADE_BOUNCE,		// eventParm will be the soundindex
-
-	EV_GENERAL_SOUND,
-	EV_GLOBAL_SOUND,		// no attenuation
-	EV_GLOBAL_TEAM_SOUND,
-
-	EV_BULLET_HIT_FLESH,
-	EV_BULLET_HIT_WALL,
-
-	EV_MISSILE_HIT,
-	EV_MISSILE_MISS,
-	EV_MISSILE_MISS_METAL,
-	EV_RAILTRAIL,
-	EV_SHOTGUN,
-	EV_BULLET,				// otherEntity is the shooter
-
-	EV_PAIN,
-	EV_DEATH1,
-	EV_DEATH2,
-	EV_DEATH3,
-	EV_OBITUARY,
-
-	EV_POWERUP_QUAD,
-	EV_POWERUP_BATTLESUIT,
-	EV_POWERUP_REGEN,
-
-	EV_GIB_PLAYER,			// gib a previously living player
-	EV_SCOREPLUM,			// score plum
-
-//#ifdef MISSIONPACK
-	EV_PROXIMITY_MINE_STICK,
-	EV_PROXIMITY_MINE_TRIGGER,
-	EV_KAMIKAZE,			// kamikaze explodes
-	EV_OBELISKEXPLODE,		// obelisk explodes
-	EV_OBELISKPAIN,			// obelisk is in pain
-	EV_INVUL_IMPACT,		// invulnerability sphere impact
-	EV_JUICED,				// invulnerability juiced effect
-	EV_LIGHTNINGBOLT,		// lightning bolt bounced of invulnerability sphere
-//#endif
-
-	EV_DEBUG_LINE,
-	EV_STOPLOOPINGSOUND,
-	EV_TAUNT,
-	EV_TAUNT_YES,
-	EV_TAUNT_NO,
-	EV_TAUNT_FOLLOWME,
-	EV_TAUNT_GETFLAG,
-	EV_TAUNT_GUARDBASE,
-	EV_TAUNT_PATROL
-
-} entity_event_t;
-
 
 typedef enum {
 	GTS_RED_CAPTURE,
@@ -702,53 +521,6 @@ typedef enum {
 
 //---------------------------------------------------------
 
-// gitem_t->type
-typedef enum {
-	IT_BAD,
-	IT_WEAPON,				// EFX: rotate + upscale + minlight
-	IT_AMMO,				// EFX: rotate
-	IT_ARMOR,				// EFX: rotate + minlight
-	IT_HEALTH,				// EFX: static external sphere + rotating internal
-	IT_POWERUP,				// instant on, timer based
-							// EFX: rotate + external ring that rotates
-	IT_HOLDABLE,			// single use, holdable item
-							// EFX: rotate + bob
-	IT_PERSISTANT_POWERUP,
-	IT_TEAM
-} itemType_t;
-
-#define MAX_ITEM_MODELS 4
-
-typedef struct gitem_s {
-	char		*classname;	// spawning name
-	char		*pickup_sound;
-	char		*world_model[MAX_ITEM_MODELS];
-
-	char		*icon;
-	char		*pickup_name;	// for printing on pickup
-
-	int			quantity;		// for ammo how much, or duration of powerup
-	itemType_t  giType;			// IT_* flags
-
-	int			giTag;
-
-	char		*precaches;		// string of all models and images this item will use
-	char		*sounds;		// string of all sounds this item will use
-} gitem_t;
-
-// included in both the game dll and the client
-extern	gitem_t	bg_itemlist[];
-extern	int		bg_numItems;
-
-gitem_t	*BG_FindItem( const char *pickupName );
-gitem_t	*BG_FindItemForWeapon( weapon_t weapon );
-gitem_t	*BG_FindItemForPowerup( powerup_t pw );
-gitem_t	*BG_FindItemForHoldable( holdable_t pw );
-#define	ITEM_INDEX(x) ((x)-bg_itemlist)
-
-qboolean	BG_CanItemBeGrabbed( int gametype, const entityState_t *ent, const playerState_t *ps );
-
-
 // g_dmflags->integer flags
 #define	DF_NO_FALLING			8
 #define DF_FIXED_FOV			16
@@ -819,10 +591,6 @@ typedef enum {
 
 void	BG_EvaluateTrajectory( const trajectory_t *tr, int atTime, vec3_t result );
 void	BG_EvaluateTrajectoryDelta( const trajectory_t *tr, int atTime, vec3_t result );
-
-void	BG_AddPredictableEventToPlayerstate( int newEvent, int eventParm, playerState_t *ps );
-
-void	BG_TouchJumpPad( playerState_t *ps, entityState_t *jumppad );
 
 void	BG_PlayerStateToEntityState( playerState_t *ps, entityState_t *s, qboolean snap );
 void	BG_PlayerStateToEntityStateExtraPolate( playerState_t *ps, entityState_t *s, int time, qboolean snap );

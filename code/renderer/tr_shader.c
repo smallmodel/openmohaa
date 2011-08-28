@@ -918,6 +918,10 @@ static qboolean ParseStage( shaderStage_t *stage, char **text )
 			{
 				stage->rgbGen = CGEN_IDENTITY;
 			}
+			else if ( !Q_stricmp( token, "static" ) )
+			{
+				//stage->rgbGen = CGEN_STATIC;
+			}
 			else
 			{
 				ri.Printf( PRINT_WARNING, "WARNING: unknown rgbGen parameter '%s' in shader '%s'\n", token, shader.name );

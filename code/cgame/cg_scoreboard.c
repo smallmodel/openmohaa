@@ -79,6 +79,7 @@ CG_DrawScoreboard
 =================
 */
 static void CG_DrawClientScore( int y, score_t *score, float *color, float fade, qboolean largeFormat ) {
+#if 0
 	char	string[1024];
 	vec3_t	headAngles;
 	clientInfo_t	*ci;
@@ -187,7 +188,7 @@ static void CG_DrawClientScore( int y, score_t *score, float *color, float fade,
 
 		localClient = qtrue;
 
-		if ( cg.snap->ps.persistant[PERS_TEAM] == TEAM_SPECTATOR 
+		if ( cg.snap->ps.stats[STAT_TEAM] == TEAM_SPECTATOR 
 			|| cgs.gametype >= GT_TEAM ) {
 			rank = -1;
 		} else {
@@ -222,6 +223,7 @@ static void CG_DrawClientScore( int y, score_t *score, float *color, float fade,
 	if ( cg.snap->ps.stats[ STAT_CLIENTS_READY ] & ( 1 << score->client ) ) {
 		CG_DrawBigStringColor( iconx, y, "READY", color );
 	}
+#endif
 #endif
 }
 
@@ -265,6 +267,7 @@ Draw the normal in-game scoreboard
 =================
 */
 qboolean CG_DrawOldScoreboard( void ) {
+#if 0
 	int		x, y, w, i, n1, n2;
 	float	fade;
 	float	*fadeColor;
@@ -317,7 +320,7 @@ qboolean CG_DrawOldScoreboard( void ) {
 
 	// current rank
 	if ( cgs.gametype < GT_TEAM) {
-		if (cg.snap->ps.persistant[PERS_TEAM] != TEAM_SPECTATOR ) {
+		if (cg.snap->ps.stats[STAT_TEAM] != TEAM_SPECTATOR ) {
 			s = va("%s place with %i",
 				CG_PlaceString( cg.snap->ps.persistant[PERS_RANK] + 1 ),
 				cg.snap->ps.persistant[PERS_SCORE] );
@@ -418,7 +421,7 @@ qboolean CG_DrawOldScoreboard( void ) {
 	if ( ++cg.deferredPlayerLoading > 10 ) {
 		CG_LoadDeferredPlayers();
 	}
-
+#endif
 	return qtrue;
 }
 

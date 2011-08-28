@@ -259,71 +259,6 @@ static void CG_InterpolatePlayerState( qboolean grabAngles ) {
 }
 
 /*
-===================
-CG_TouchItem
-===================
-*/
-static void CG_TouchItem( centity_t *cent ) {
-	gitem_t		*item;
-
-	if ( !cg_predictItems.integer ) {
-		return;
-	}
-	if ( !BG_PlayerTouchesItem( &cg.predictedPlayerState, &cent->currentState, cg.time ) ) {
-		return;
-	}
-
-	// never pick an item up twice in a prediction
-	if ( cent->miscTime == cg.time ) {
-		return;
-	}
-
-	if ( !BG_CanItemBeGrabbed( cgs.gametype, &cent->currentState, &cg.predictedPlayerState ) ) {
-		return;		// can't hold it
-	}
-
-	item = &bg_itemlist[ cent->currentState.modelindex ];
-
-	// Special case for flags.  
-	// We don't predict touching our own flag
-#ifdef MISSIONPACK
-	if( cgs.gametype == GT_1FCTF ) {
-		if( item->giTag != PW_NEUTRALFLAG ) {
-			return;
-		}
-	}
-	if( cgs.gametype == GT_CTF || cgs.gametype == GT_HARVESTER ) {
-#else
-	if( cgs.gametype == GT_CTF ) {
-#endif
-		if (cg.predictedPlayerState.persistant[PERS_TEAM] == TEAM_RED &&
-			item->giTag == PW_REDFLAG)
-			return;
-		if (cg.predictedPlayerState.persistant[PERS_TEAM] == TEAM_BLUE &&
-			item->giTag == PW_BLUEFLAG)
-			return;
-	}
-
-	// grab it
-	BG_AddPredictableEventToPlayerstate( EV_ITEM_PICKUP, cent->currentState.modelindex , &cg.predictedPlayerState);
-
-	// remove it from the frame so it won't be drawn
-	cent->currentState.eFlags |= EF_NODRAW;
-
-	// don't touch it again this prediction
-	cent->miscTime = cg.time;
-
-	// if its a weapon, give them some predicted ammo so the autoswitch will work
-	if ( item->giType == IT_WEAPON ) {
-		cg.predictedPlayerState.stats[ STAT_WEAPONS ] |= 1 << item->giTag;
-		if ( !cg.predictedPlayerState.ammo[ item->giTag ] ) {
-			cg.predictedPlayerState.ammo[ item->giTag ] = 1;
-		}
-	}
-}
-
-
-/*
 =========================
 CG_TouchTriggerPrediction
 
@@ -352,12 +287,6 @@ static void CG_TouchTriggerPrediction( void ) {
 	for ( i = 0 ; i < cg_numTriggerEntities ; i++ ) {
 		cent = cg_triggerEntities[ i ];
 		ent = &cent->currentState;
-/*
-		if ( ent->eType == ET_ITEM && !spectator ) {
-			CG_TouchItem( cent );
-			continue;
-		}
-*/
 
 		if ( ent->solid != SOLID_BMODEL ) {
 			continue;
@@ -378,14 +307,8 @@ static void CG_TouchTriggerPrediction( void ) {
 		if ( ent->eType == ET_TELEPORT_TRIGGER ) {
 			cg.hyperspace = qtrue;
 		} else if ( ent->eType == ET_PUSH_TRIGGER ) {
-			BG_TouchJumpPad( &cg.predictedPlayerState, ent );
+			//BG_TouchJumpPad( &cg.predictedPlayerState, ent );
 		}
-	}
-
-	// if we didn't touch a jump pad this pmove frame
-	if ( cg.predictedPlayerState.jumppad_frame != cg.predictedPlayerState.pmove_framecount ) {
-		cg.predictedPlayerState.jumppad_frame = 0;
-		cg.predictedPlayerState.jumppad_ent = 0;
 	}
 }
 
@@ -463,7 +386,7 @@ void CG_PredictPlayerState( void ) {
 	else {
 		cg_pmove.tracemask = MASK_PLAYERSOLID;
 	}
-	if ( cg.snap->ps.persistant[PERS_TEAM] == TEAM_SPECTATOR ) {
+	if ( cg.snap->ps.stats[STAT_TEAM] == TEAM_SPECTATOR ) {
 		cg_pmove.tracemask &= ~CONTENTS_BODY;	// spectators can fly through bodies
 	}
 	cg_pmove.noFootsteps = ( cgs.dmflags & DF_NO_FOOTSTEPS ) > 0;
@@ -620,21 +543,8 @@ void CG_PredictPlayerState( void ) {
 		cg.predictedPlayerState.groundEntityNum, 
 		cg.physicsTime, cg.time, cg.predictedPlayerState.origin );
 
-	if ( cg_showmiss.integer ) {
-		if (cg.predictedPlayerState.eventSequence > oldPlayerState.eventSequence + MAX_PS_EVENTS) {
-			CG_Printf("WARNING: dropped event\n");
-		}
-	}
-
 	// fire events and other transition triggered things
 	CG_TransitionPlayerState( &cg.predictedPlayerState, &oldPlayerState );
-
-	if ( cg_showmiss.integer ) {
-		if (cg.eventSequence > cg.predictedPlayerState.eventSequence) {
-			CG_Printf("WARNING: double event\n");
-			cg.eventSequence = cg.predictedPlayerState.eventSequence;
-		}
-	}
 }
 
 

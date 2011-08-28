@@ -92,46 +92,22 @@ PM_StartTorsoAnim
 ===================
 */
 static void PM_StartTorsoAnim( int anim ) {
-	if ( pm->ps->pm_type >= PM_DEAD ) {
-		return;
-	}
-	pm->ps->torsoAnim = ( ( pm->ps->torsoAnim & ANIM_TOGGLEBIT ) ^ ANIM_TOGGLEBIT )
-		| anim;
+
 }
 static void PM_StartLegsAnim( int anim ) {
-	if ( pm->ps->pm_type >= PM_DEAD ) {
-		return;
-	}
-	if ( pm->ps->legsTimer > 0 ) {
-		return;		// a high priority animation is running
-	}
-	pm->ps->legsAnim = ( ( pm->ps->legsAnim & ANIM_TOGGLEBIT ) ^ ANIM_TOGGLEBIT )
-		| anim;
+
 }
 
 static void PM_ContinueLegsAnim( int anim ) {
-	if ( ( pm->ps->legsAnim & ~ANIM_TOGGLEBIT ) == anim ) {
-		return;
-	}
-	if ( pm->ps->legsTimer > 0 ) {
-		return;		// a high priority animation is running
-	}
-	PM_StartLegsAnim( anim );
+
 }
 
 static void PM_ContinueTorsoAnim( int anim ) {
-	if ( ( pm->ps->torsoAnim & ~ANIM_TOGGLEBIT ) == anim ) {
-		return;
-	}
-	if ( pm->ps->torsoTimer > 0 ) {
-		return;		// a high priority animation is running
-	}
-	PM_StartTorsoAnim( anim );
+	
 }
 
 static void PM_ForceLegsAnim( int anim ) {
-	pm->ps->legsTimer = 0;
-	PM_StartLegsAnim( anim );
+	
 }
 
 
@@ -209,9 +185,9 @@ static void PM_Friction( void ) {
 	}
 
 	// apply flying friction
-	if ( pm->ps->powerups[PW_FLIGHT]) {
-		drop += speed*pm_flightfriction*pml.frametime;
-	}
+	//if ( pm->ps->powerups[PW_FLIGHT]) {
+	//	drop += speed*pm_flightfriction*pml.frametime;
+	//}
 
 	if ( pm->ps->pm_type == PM_SPECTATOR) {
 		drop += speed*pm_spectatorfriction*pml.frametime;
@@ -320,34 +296,34 @@ to the facing dir
 ================
 */
 static void PM_SetMovementDir( void ) {
-	if ( pm->cmd.forwardmove || pm->cmd.rightmove ) {
-		if ( pm->cmd.rightmove == 0 && pm->cmd.forwardmove > 0 ) {
-			pm->ps->movementDir = 0;
-		} else if ( pm->cmd.rightmove < 0 && pm->cmd.forwardmove > 0 ) {
-			pm->ps->movementDir = 1;
-		} else if ( pm->cmd.rightmove < 0 && pm->cmd.forwardmove == 0 ) {
-			pm->ps->movementDir = 2;
-		} else if ( pm->cmd.rightmove < 0 && pm->cmd.forwardmove < 0 ) {
-			pm->ps->movementDir = 3;
-		} else if ( pm->cmd.rightmove == 0 && pm->cmd.forwardmove < 0 ) {
-			pm->ps->movementDir = 4;
-		} else if ( pm->cmd.rightmove > 0 && pm->cmd.forwardmove < 0 ) {
-			pm->ps->movementDir = 5;
-		} else if ( pm->cmd.rightmove > 0 && pm->cmd.forwardmove == 0 ) {
-			pm->ps->movementDir = 6;
-		} else if ( pm->cmd.rightmove > 0 && pm->cmd.forwardmove > 0 ) {
-			pm->ps->movementDir = 7;
-		}
-	} else {
-		// if they aren't actively going directly sideways,
-		// change the animation to the diagonal so they
-		// don't stop too crooked
-		if ( pm->ps->movementDir == 2 ) {
-			pm->ps->movementDir = 1;
-		} else if ( pm->ps->movementDir == 6 ) {
-			pm->ps->movementDir = 7;
-		}
-	}
+	//if ( pm->cmd.forwardmove || pm->cmd.rightmove ) {
+	//	if ( pm->cmd.rightmove == 0 && pm->cmd.forwardmove > 0 ) {
+	//		pm->ps->movementDir = 0;
+	//	} else if ( pm->cmd.rightmove < 0 && pm->cmd.forwardmove > 0 ) {
+	//		pm->ps->movementDir = 1;
+	//	} else if ( pm->cmd.rightmove < 0 && pm->cmd.forwardmove == 0 ) {
+	//		pm->ps->movementDir = 2;
+	//	} else if ( pm->cmd.rightmove < 0 && pm->cmd.forwardmove < 0 ) {
+	//		pm->ps->movementDir = 3;
+	//	} else if ( pm->cmd.rightmove == 0 && pm->cmd.forwardmove < 0 ) {
+	//		pm->ps->movementDir = 4;
+	//	} else if ( pm->cmd.rightmove > 0 && pm->cmd.forwardmove < 0 ) {
+	//		pm->ps->movementDir = 5;
+	//	} else if ( pm->cmd.rightmove > 0 && pm->cmd.forwardmove == 0 ) {
+	//		pm->ps->movementDir = 6;
+	//	} else if ( pm->cmd.rightmove > 0 && pm->cmd.forwardmove > 0 ) {
+	//		pm->ps->movementDir = 7;
+	//	}
+	//} else {
+	//	// if they aren't actively going directly sideways,
+	//	// change the animation to the diagonal so they
+	//	// don't stop too crooked
+	//	if ( pm->ps->movementDir == 2 ) {
+	//		pm->ps->movementDir = 1;
+	//	} else if ( pm->ps->movementDir == 6 ) {
+	//		pm->ps->movementDir = 7;
+	//	}
+	//}
 }
 
 
@@ -379,7 +355,6 @@ static qboolean PM_CheckJump( void ) {
 
 	pm->ps->groundEntityNum = ENTITYNUM_NONE;
 	pm->ps->velocity[2] = JUMP_VELOCITY;
-	PM_AddEvent( EV_JUMP );
 
 	if ( pm->cmd.forwardmove >= 0 ) {
 		PM_ForceLegsAnim( LEGS_JUMP );
@@ -664,23 +639,7 @@ PM_GrappleMove
 ===================
 */
 static void PM_GrappleMove( void ) {
-	vec3_t vel, v;
-	float vlen;
 
-	VectorScale(pml.forward, -16, v);
-	VectorAdd(pm->ps->grapplePoint, v, v);
-	VectorSubtract(v, pm->ps->origin, vel);
-	vlen = VectorLength(vel);
-	VectorNormalize( vel );
-
-	if (vlen <= 100)
-		VectorScale(vel, 10 * vlen, vel);
-	else
-		VectorScale(vel, 800, vel);
-
-	VectorCopy(vel, pm->ps->velocity);
-
-	pml.groundPlane = qfalse;
 }
 
 /*
@@ -897,24 +856,6 @@ static void PM_NoclipMove( void ) {
 //============================================================================
 
 /*
-================
-PM_FootstepForSurface
-
-Returns an event number apropriate for the groundsurface
-================
-*/
-static int PM_FootstepForSurface( void ) {
-	if ( pml.groundTrace.surfaceFlags & SURF_NOSTEPS ) {
-		return 0;
-	}
-	if ( pml.groundTrace.surfaceFlags & SURF_METAL ) {
-		return EV_FOOTSTEP_METAL;
-	}
-	return EV_FOOTSTEP;
-}
-
-
-/*
 =================
 PM_CrashLand
 
@@ -935,7 +876,7 @@ static void PM_CrashLand( void ) {
 		PM_ForceLegsAnim( LEGS_LAND );
 	}
 
-	pm->ps->legsTimer = TIMER_LAND;
+//	pm->ps->legsTimer = TIMER_LAND;
 
 	// calculate the exact velocity on landing
 	dist = pm->ps->origin[2] - pml.previous_origin[2];
@@ -981,20 +922,20 @@ static void PM_CrashLand( void ) {
 
 	// SURF_NODAMAGE is used for bounce pads where you don't ever
 	// want to take damage or play a crunch sound
-	if ( !(pml.groundTrace.surfaceFlags & SURF_NODAMAGE) )  {
-		if ( delta > 60 ) {
-			PM_AddEvent( EV_FALL_FAR );
-		} else if ( delta > 40 ) {
-			// this is a pain grunt, so don't play it if dead
-			if ( pm->ps->stats[STAT_HEALTH] > 0 ) {
-				PM_AddEvent( EV_FALL_MEDIUM );
-			}
-		} else if ( delta > 7 ) {
-			PM_AddEvent( EV_FALL_SHORT );
-		} else {
-			PM_AddEvent( PM_FootstepForSurface() );
-		}
-	}
+	//if ( !(pml.groundTrace.surfaceFlags & SURF_NODAMAGE) )  {
+	//	if ( delta > 60 ) {
+	//		PM_AddEvent( EV_FALL_FAR );
+	//	} else if ( delta > 40 ) {
+	//		// this is a pain grunt, so don't play it if dead
+	//		if ( pm->ps->stats[STAT_HEALTH] > 0 ) {
+	//			PM_AddEvent( EV_FALL_MEDIUM );
+	//		}
+	//	} else if ( delta > 7 ) {
+	//		PM_AddEvent( EV_FALL_SHORT );
+	//	} else {
+	//		PM_AddEvent( PM_FootstepForSurface() );
+	//	}
+	//}
 
 	// start footstep cycle over
 	pm->ps->bobCycle = 0;
@@ -1250,20 +1191,20 @@ static void PM_CheckDuck (void)
 {
 	trace_t	trace;
 
-	if ( pm->ps->powerups[PW_INVULNERABILITY] ) {
-		if ( pm->ps->pm_flags & PMF_INVULEXPAND ) {
-			// invulnerability sphere has a 42 units radius
-			VectorSet( pm->mins, -42, -42, -42 );
-			VectorSet( pm->maxs, 42, 42, 42 );
-		}
-		else {
-			VectorSet( pm->mins, -16, -16, MINS_Z );
-			VectorSet( pm->maxs, 16, 16, 62 );	// FIXME: IneQuation: not sure if it really is 62 in MoHAA, but since stand viewheight is 82 and stand bbox max[2] is 96, 62 is my best guess
-		}
-		pm->ps->pm_flags |= PMF_DUCKED;
-		pm->ps->viewheight = CROUCH_VIEWHEIGHT;
-		return;
-	}
+	//if ( pm->ps->powerups[PW_INVULNERABILITY] ) {
+	//	if ( pm->ps->pm_flags & PMF_INVULEXPAND ) {
+	//		// invulnerability sphere has a 42 units radius
+	//		VectorSet( pm->mins, -42, -42, -42 );
+	//		VectorSet( pm->maxs, 42, 42, 42 );
+	//	}
+	//	else {
+	//		VectorSet( pm->mins, -16, -16, MINS_Z );
+	//		VectorSet( pm->maxs, 16, 16, 62 );	// FIXME: IneQuation: not sure if it really is 62 in MoHAA, but since stand viewheight is 82 and stand bbox max[2] is 96, 62 is my best guess
+	//	}
+	//	pm->ps->pm_flags |= PMF_DUCKED;
+	//	pm->ps->viewheight = CROUCH_VIEWHEIGHT;
+	//	return;
+	//}
 	pm->ps->pm_flags &= ~PMF_INVULEXPAND;
 
 	pm->mins[0] = -16;
@@ -1333,9 +1274,9 @@ static void PM_Footsteps( void ) {
 
 	if ( pm->ps->groundEntityNum == ENTITYNUM_NONE ) {
 
-		if ( pm->ps->powerups[PW_INVULNERABILITY] ) {
-			PM_ContinueLegsAnim( LEGS_IDLECR );
-		}
+//		if ( pm->ps->powerups[PW_INVULNERABILITY] ) {
+//			PM_ContinueLegsAnim( LEGS_IDLECR );
+//		}
 		// airborne leaves position in cycle intact, but doesn't advance
 		if ( pm->waterlevel > 1 ) {
 			PM_ContinueLegsAnim( LEGS_SWIM );
@@ -1408,14 +1349,14 @@ static void PM_Footsteps( void ) {
 		if ( pm->waterlevel == 0 ) {
 			// on ground will only play sounds if running
 			if ( footstep && !pm->noFootsteps ) {
-				PM_AddEvent( PM_FootstepForSurface() );
+//				PM_AddEvent( PM_FootstepForSurface() );
 			}
 		} else if ( pm->waterlevel == 1 ) {
 			// splashing
-			PM_AddEvent( EV_FOOTSPLASH );
+//			PM_AddEvent( EV_FOOTSPLASH );
 		} else if ( pm->waterlevel == 2 ) {
 			// wading / swimming at surface
-			PM_AddEvent( EV_SWIM );
+//			PM_AddEvent( EV_SWIM );
 		} else if ( pm->waterlevel == 3 ) {
 			// no sound when completely underwater
 
@@ -1435,28 +1376,28 @@ static void PM_WaterEvents( void ) {		// FIXME?
 	// if just entered a water volume, play a sound
 	//
 	if (!pml.previous_waterlevel && pm->waterlevel) {
-		PM_AddEvent( EV_WATER_TOUCH );
+//		PM_AddEvent( EV_WATER_TOUCH );
 	}
 
 	//
 	// if just completely exited a water volume, play a sound
 	//
 	if (pml.previous_waterlevel && !pm->waterlevel) {
-		PM_AddEvent( EV_WATER_LEAVE );
+//		PM_AddEvent( EV_WATER_LEAVE );
 	}
 
 	//
 	// check for head just going under water
 	//
 	if (pml.previous_waterlevel != 3 && pm->waterlevel == 3) {
-		PM_AddEvent( EV_WATER_UNDER );
+//		PM_AddEvent( EV_WATER_UNDER );
 	}
 
 	//
 	// check for head just coming out of water
 	//
 	if (pml.previous_waterlevel == 3 && pm->waterlevel != 3) {
-		PM_AddEvent( EV_WATER_CLEAR );
+//		PM_AddEvent( EV_WATER_CLEAR );
 	}
 }
 
@@ -1467,22 +1408,7 @@ PM_BeginWeaponChange
 ===============
 */
 static void PM_BeginWeaponChange( int weapon ) {
-	if ( weapon <= WP_NONE || weapon >= WP_NUM_WEAPONS ) {
-		return;
-	}
 
-	if ( !( pm->ps->stats[STAT_WEAPONS] & ( 1 << weapon ) ) ) {
-		return;
-	}
-
-	if ( pm->ps->weaponstate == WEAPON_DROPPING ) {
-		return;
-	}
-
-	PM_AddEvent( EV_CHANGE_WEAPON );
-	pm->ps->weaponstate = WEAPON_DROPPING;
-	pm->ps->weaponTime += 200;
-	PM_StartTorsoAnim( TORSO_DROP );
 }
 
 
@@ -1492,21 +1418,7 @@ PM_FinishWeaponChange
 ===============
 */
 static void PM_FinishWeaponChange( void ) {
-	int		weapon;
-
-	weapon = pm->cmd.weapon;
-	if ( weapon < WP_NONE || weapon >= WP_NUM_WEAPONS ) {
-		weapon = WP_NONE;
-	}
-
-	if ( !( pm->ps->stats[STAT_WEAPONS] & ( 1 << weapon ) ) ) {
-		weapon = WP_NONE;
-	}
-
-	pm->ps->weapon = weapon;
-	pm->ps->weaponstate = WEAPON_RAISING;
-	pm->ps->weaponTime += 250;
-	PM_StartTorsoAnim( TORSO_RAISE );
+	
 }
 
 
@@ -1517,14 +1429,14 @@ PM_TorsoAnimation
 ==============
 */
 static void PM_TorsoAnimation( void ) {
-	if ( pm->ps->weaponstate == WEAPON_READY ) {
-		if ( pm->ps->weapon == WP_GAUNTLET ) {
-			PM_ContinueTorsoAnim( TORSO_STAND2 );
-		} else {
-			PM_ContinueTorsoAnim( TORSO_STAND );
-		}
-		return;
-	}
+	//if ( pm->ps->weaponstate == WEAPON_READY ) {
+	//	if ( pm->ps->weapon == WP_GAUNTLET ) {
+	//		PM_ContinueTorsoAnim( TORSO_STAND2 );
+	//	} else {
+	//		PM_ContinueTorsoAnim( TORSO_STAND );
+	//	}
+	//	return;
+	//}
 }
 
 
@@ -1536,174 +1448,7 @@ Generates weapon events and modifes the weapon counter
 ==============
 */
 static void PM_Weapon( void ) {
-	int		addTime;
-
-	// don't allow attack until all buttons are up
-	if ( pm->ps->pm_flags & PMF_RESPAWNED ) {
-		return;
-	}
-
-	// ignore if spectator
-	if ( pm->ps->persistant[PERS_TEAM] == TEAM_SPECTATOR ) {
-		return;
-	}
-
-	// check for dead player
-	if ( pm->ps->stats[STAT_HEALTH] <= 0 ) {
-		pm->ps->weapon = WP_NONE;
-		return;
-	}
-
-	// check for item using
-	if ( pm->cmd.buttons & BUTTON_USE ) {
-		if ( ! ( pm->ps->pm_flags & PMF_USE_ITEM_HELD ) ) {
-			// IneQuation
-			/*if ( bg_itemlist[pm->ps->stats[STAT_HOLDABLE_ITEM]].giTag == HI_MEDKIT
-				&& pm->ps->stats[STAT_HEALTH] >= (pm->ps->stats[STAT_MAX_HEALTH] + 25) ) {
-				// don't use medkit if at max health
-			} else {*/
-				pm->ps->pm_flags |= PMF_USE_ITEM_HELD;
-				PM_AddEvent( EV_USE_ITEM0 /*+ bg_itemlist[pm->ps->stats[STAT_HOLDABLE_ITEM]].giTag */);
-				/*pm->ps->stats[STAT_HOLDABLE_ITEM] = 0;
-			}*/
-			return;
-		}
-	} else {
-		pm->ps->pm_flags &= ~PMF_USE_ITEM_HELD;
-	}
-
-
-	// make weapon function
-	if ( pm->ps->weaponTime > 0 ) {
-		pm->ps->weaponTime -= pml.msec;
-	}
-
-	// check for weapon change
-	// can't change if weapon is firing, but can change
-	// again if lowering or raising
-	if ( pm->ps->weaponTime <= 0 || pm->ps->weaponstate != WEAPON_FIRING ) {
-		if ( pm->ps->weapon != pm->cmd.weapon ) {
-			PM_BeginWeaponChange( pm->cmd.weapon );
-		}
-	}
-
-	if ( pm->ps->weaponTime > 0 ) {
-		return;
-	}
-
-	// change weapon if time
-	if ( pm->ps->weaponstate == WEAPON_DROPPING ) {
-		PM_FinishWeaponChange();
-		return;
-	}
-
-	if ( pm->ps->weaponstate == WEAPON_RAISING ) {
-		pm->ps->weaponstate = WEAPON_READY;
-		if ( pm->ps->weapon == WP_GAUNTLET ) {
-			PM_StartTorsoAnim( TORSO_STAND2 );
-		} else {
-			PM_StartTorsoAnim( TORSO_STAND );
-		}
-		return;
-	}
-
-	// check for fire
-	if ( ! (pm->cmd.buttons & BUTTON_ATTACK) ) {
-		pm->ps->weaponTime = 0;
-		pm->ps->weaponstate = WEAPON_READY;
-		return;
-	}
-
-	// start the animation even if out of ammo
-	if ( pm->ps->weapon == WP_GAUNTLET ) {
-		// the guantlet only "fires" when it actually hits something
-		if ( !pm->gauntletHit ) {
-			pm->ps->weaponTime = 0;
-			pm->ps->weaponstate = WEAPON_READY;
-			return;
-		}
-		PM_StartTorsoAnim( TORSO_ATTACK2 );
-	} else {
-		PM_StartTorsoAnim( TORSO_ATTACK );
-	}
-
-	pm->ps->weaponstate = WEAPON_FIRING;
-
-	// check for out of ammo
-	if ( ! pm->ps->ammo[ pm->ps->weapon ] ) {
-		PM_AddEvent( EV_NOAMMO );
-		pm->ps->weaponTime += 500;
-		return;
-	}
-
-	// take an ammo away if not infinite
-	if ( pm->ps->ammo[ pm->ps->weapon ] != -1 ) {
-		pm->ps->ammo[ pm->ps->weapon ]--;
-	}
-
-	// fire weapon
-	PM_AddEvent( EV_FIRE_WEAPON );
-
-	switch( pm->ps->weapon ) {
-	default:
-	case WP_GAUNTLET:
-		addTime = 400;
-		break;
-	case WP_LIGHTNING:
-		addTime = 50;
-		break;
-	case WP_SHOTGUN:
-		addTime = 1000;
-		break;
-	case WP_MACHINEGUN:
-		addTime = 100;
-		break;
-	case WP_GRENADE_LAUNCHER:
-		addTime = 800;
-		break;
-	case WP_ROCKET_LAUNCHER:
-		addTime = 800;
-		break;
-	case WP_PLASMAGUN:
-		addTime = 100;
-		break;
-	case WP_RAILGUN:
-		addTime = 1500;
-		break;
-	case WP_BFG:
-		addTime = 200;
-		break;
-	case WP_GRAPPLING_HOOK:
-		addTime = 400;
-		break;
-#ifdef MISSIONPACK
-	case WP_NAILGUN:
-		addTime = 1000;
-		break;
-	case WP_PROX_LAUNCHER:
-		addTime = 800;
-		break;
-	case WP_CHAINGUN:
-		addTime = 30;
-		break;
-#endif
-	}
-
-#ifdef MISSIONPACK
-	if( bg_itemlist[pm->ps->stats[STAT_PERSISTANT_POWERUP]].giTag == PW_SCOUT ) {
-		addTime /= 1.5;
-	}
-	else
-	if( bg_itemlist[pm->ps->stats[STAT_PERSISTANT_POWERUP]].giTag == PW_AMMOREGEN ) {
-		addTime /= 1.3;
-  }
-  else
-#endif
-	if ( pm->ps->powerups[PW_HASTE] ) {
-		addTime /= 1.3;
-	}
-
-	pm->ps->weaponTime += addTime;
+	
 }
 
 /*
@@ -1713,45 +1458,7 @@ PM_Animate
 */
 
 static void PM_Animate( void ) {
-	if ( pm->cmd.buttons & BUTTON_GESTURE ) {
-		if ( pm->ps->torsoTimer == 0 ) {
-			PM_StartTorsoAnim( TORSO_GESTURE );
-			pm->ps->torsoTimer = TIMER_GESTURE;
-			PM_AddEvent( EV_TAUNT );
-		}
-#ifdef MISSIONPACK
-	} else if ( pm->cmd.buttons & BUTTON_GETFLAG ) {
-		if ( pm->ps->torsoTimer == 0 ) {
-			PM_StartTorsoAnim( TORSO_GETFLAG );
-			pm->ps->torsoTimer = 600;	//TIMER_GESTURE;
-		}
-	} else if ( pm->cmd.buttons & BUTTON_GUARDBASE ) {
-		if ( pm->ps->torsoTimer == 0 ) {
-			PM_StartTorsoAnim( TORSO_GUARDBASE );
-			pm->ps->torsoTimer = 600;	//TIMER_GESTURE;
-		}
-	} else if ( pm->cmd.buttons & BUTTON_PATROL ) {
-		if ( pm->ps->torsoTimer == 0 ) {
-			PM_StartTorsoAnim( TORSO_PATROL );
-			pm->ps->torsoTimer = 600;	//TIMER_GESTURE;
-		}
-	} else if ( pm->cmd.buttons & BUTTON_FOLLOWME ) {
-		if ( pm->ps->torsoTimer == 0 ) {
-			PM_StartTorsoAnim( TORSO_FOLLOWME );
-			pm->ps->torsoTimer = 600;	//TIMER_GESTURE;
-		}
-	} else if ( pm->cmd.buttons & BUTTON_AFFIRMATIVE ) {
-		if ( pm->ps->torsoTimer == 0 ) {
-			PM_StartTorsoAnim( TORSO_AFFIRMATIVE);
-			pm->ps->torsoTimer = 600;	//TIMER_GESTURE;
-		}
-	} else if ( pm->cmd.buttons & BUTTON_NEGATIVE ) {
-		if ( pm->ps->torsoTimer == 0 ) {
-			PM_StartTorsoAnim( TORSO_NEGATIVE );
-			pm->ps->torsoTimer = 600;	//TIMER_GESTURE;
-		}
-#endif
-	}
+
 }
 
 
@@ -1772,19 +1479,19 @@ static void PM_DropTimers( void ) {
 	}
 
 	// drop animation counter
-	if ( pm->ps->legsTimer > 0 ) {
-		pm->ps->legsTimer -= pml.msec;
-		if ( pm->ps->legsTimer < 0 ) {
-			pm->ps->legsTimer = 0;
-		}
-	}
+	//if ( pm->ps->legsTimer > 0 ) {
+	//	pm->ps->legsTimer -= pml.msec;
+	//	if ( pm->ps->legsTimer < 0 ) {
+	//		pm->ps->legsTimer = 0;
+	//	}
+	//}
 
-	if ( pm->ps->torsoTimer > 0 ) {
-		pm->ps->torsoTimer -= pml.msec;
-		if ( pm->ps->torsoTimer < 0 ) {
-			pm->ps->torsoTimer = 0;
-		}
-	}
+	//if ( pm->ps->torsoTimer > 0 ) {
+	//	pm->ps->torsoTimer -= pml.msec;
+	//	if ( pm->ps->torsoTimer < 0 ) {
+	//		pm->ps->torsoTimer = 0;
+	//	}
+	//}
 }
 
 /*
@@ -1857,19 +1564,19 @@ void PmoveSingle (pmove_t *pmove) {
 	//}
 
 	// set the talk balloon flag
-	if ( pm->cmd.buttons & BUTTON_TALK ) {
+	/*if ( pm->cmd.buttons & BUTTON_TALK ) {
 		pm->ps->eFlags |= EF_TALK;
 	} else {
 		pm->ps->eFlags &= ~EF_TALK;
-	}
+	}*/
 
 	// set the firing flag for continuous beam weapons
-	if ( !(pm->ps->pm_flags & PMF_RESPAWNED) && pm->ps->pm_type != PM_INTERMISSION
-		&& ( pm->cmd.buttons & BUTTON_ATTACK ) && pm->ps->ammo[ pm->ps->weapon ] ) {
-		pm->ps->eFlags |= EF_FIRING;
-	} else {
-		pm->ps->eFlags &= ~EF_FIRING;
-	}
+	//if ( !(pm->ps->pm_flags & PMF_RESPAWNED) && pm->ps->pm_type != PM_INTERMISSION
+	//	&& ( pm->cmd.buttons & BUTTON_ATTACK ) && pm->ps->ammo[ pm->ps->weapon ] ) {
+	//	pm->ps->eFlags |= EF_FIRING;
+	//} else {
+	//	pm->ps->eFlags &= ~EF_FIRING;
+	//}
 
 	// clear the respawned flag if attack and use are cleared
 	if ( pm->ps->stats[STAT_HEALTH] > 0 &&
@@ -1975,14 +1682,16 @@ void PmoveSingle (pmove_t *pmove) {
 		PM_InvulnerabilityMove();
 	} else
 #endif
-	if ( pm->ps->powerups[PW_FLIGHT] ) {
-		// flight powerup doesn't allow jump and has different friction
-		PM_FlyMove();
-	} else if (pm->ps->pm_flags & PMF_GRAPPLE_PULL) {
-		PM_GrappleMove();
-		// We can wiggle a bit
-		PM_AirMove();
-	} else if (pm->ps->pm_flags & PMF_TIME_WATERJUMP) {
+	//if ( pm->ps->powerups[PW_FLIGHT] ) {
+	//	// flight powerup doesn't allow jump and has different friction
+	//	PM_FlyMove();
+	//} else 
+	//if (pm->ps->pm_flags & PMF_GRAPPLE_PULL) {
+	//	PM_GrappleMove();
+	//	// We can wiggle a bit
+	//	PM_AirMove();
+	//} else
+	if (pm->ps->pm_flags & PMF_TIME_WATERJUMP) {
 		PM_WaterJumpMove();
 	} else if ( pm->waterlevel > 1 ) {
 		// swimming
@@ -2038,7 +1747,7 @@ void Pmove (pmove_t *pmove) {
 		pmove->ps->commandTime = finalTime - 1000;
 	}
 
-	pmove->ps->pmove_framecount = (pmove->ps->pmove_framecount+1) & ((1<<PS_PMOVEFRAMECOUNTBITS)-1);
+//	pmove->ps->pmove_framecount = (pmove->ps->pmove_framecount+1) & ((1<<PS_PMOVEFRAMECOUNTBITS)-1);
 
 	// chop the move up if it is too long, to prevent framerate
 	// dependent behavior

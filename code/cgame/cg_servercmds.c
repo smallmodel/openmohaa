@@ -202,61 +202,10 @@ Called on load to set the initial values from configure strings
 void CG_SetConfigValues( void ) {
 	const char *s;
 
-	cgs.scores1 = atoi( CG_ConfigString( CS_SCORES1 ) );
-	cgs.scores2 = atoi( CG_ConfigString( CS_SCORES2 ) );
+	//cgs.scores1 = atoi( CG_ConfigString( CS_SCORES1 ) );
+	//cgs.scores2 = atoi( CG_ConfigString( CS_SCORES2 ) );
 	cgs.levelStartTime = atoi( CG_ConfigString( CS_LEVEL_START_TIME ) );
-	if( cgs.gametype == GT_CTF ) {
-		s = CG_ConfigString( CS_FLAGSTATUS );
-		cgs.redflag = s[0] - '0';
-		cgs.blueflag = s[1] - '0';
-	}
-#ifdef MISSIONPACK
-	else if( cgs.gametype == GT_1FCTF ) {
-		s = CG_ConfigString( CS_FLAGSTATUS );
-		cgs.flagStatus = s[0] - '0';
-	}
-#endif
 	cg.warmup = atoi( CG_ConfigString( CS_WARMUP ) );
-}
-
-/*
-=====================
-CG_ShaderStateChanged
-=====================
-*/
-void CG_ShaderStateChanged(void) {
-	char originalShader[MAX_QPATH];
-	char newShader[MAX_QPATH];
-	char timeOffset[16];
-	const char *o;
-	char *n,*t;
-
-	o = CG_ConfigString( CS_SHADERSTATE );
-	while (o && *o) {
-		n = strstr(o, "=");
-		if (n && *n) {
-			strncpy(originalShader, o, n-o);
-			originalShader[n-o] = 0;
-			n++;
-			t = strstr(n, ":");
-			if (t && *t) {
-				strncpy(newShader, n, t-n);
-				newShader[t-n] = 0;
-			} else {
-				break;
-			}
-			t++;
-			o = strstr(t, "@");
-			if (o) {
-				strncpy(timeOffset, t, o-t);
-				timeOffset[o-t] = 0;
-				o++;
-				trap_R_RemapShader( originalShader, newShader, timeOffset );
-			}
-		} else {
-			break;
-		}
-	}
 }
 
 /*
@@ -286,42 +235,42 @@ static void CG_ConfigStringModified( void ) {
 		CG_ParseServerinfo();
 	} else if ( num == CS_WARMUP ) {
 		CG_ParseWarmup();
-	} else if ( num == CS_SCORES1 ) {
-		cgs.scores1 = atoi( str );
-	} else if ( num == CS_SCORES2 ) {
-		cgs.scores2 = atoi( str );
+	//} else if ( num == CS_SCORES1 ) {
+	//	cgs.scores1 = atoi( str );
+	//} else if ( num == CS_SCORES2 ) {
+	//	cgs.scores2 = atoi( str );
 	} else if ( num == CS_LEVEL_START_TIME ) {
 		cgs.levelStartTime = atoi( str );
-	} else if ( num == CS_VOTE_TIME ) {
-		cgs.voteTime = atoi( str );
-		cgs.voteModified = qtrue;
-	} else if ( num == CS_VOTE_YES ) {
-		cgs.voteYes = atoi( str );
-		cgs.voteModified = qtrue;
-	} else if ( num == CS_VOTE_NO ) {
-		cgs.voteNo = atoi( str );
-		cgs.voteModified = qtrue;
-	} else if ( num == CS_VOTE_STRING ) {
-		Q_strncpyz( cgs.voteString, str, sizeof( cgs.voteString ) );
-#ifdef MISSIONPACK
-		trap_S_StartLocalSound( cgs.media.voteNow, CHAN_ANNOUNCER );
-#endif //MISSIONPACK
-	} else if ( num >= CS_TEAMVOTE_TIME && num <= CS_TEAMVOTE_TIME + 1) {
-		cgs.teamVoteTime[num-CS_TEAMVOTE_TIME] = atoi( str );
-		cgs.teamVoteModified[num-CS_TEAMVOTE_TIME] = qtrue;
-	} else if ( num >= CS_TEAMVOTE_YES && num <= CS_TEAMVOTE_YES + 1) {
-		cgs.teamVoteYes[num-CS_TEAMVOTE_YES] = atoi( str );
-		cgs.teamVoteModified[num-CS_TEAMVOTE_YES] = qtrue;
-	} else if ( num >= CS_TEAMVOTE_NO && num <= CS_TEAMVOTE_NO + 1) {
-		cgs.teamVoteNo[num-CS_TEAMVOTE_NO] = atoi( str );
-		cgs.teamVoteModified[num-CS_TEAMVOTE_NO] = qtrue;
-	} else if ( num >= CS_TEAMVOTE_STRING && num <= CS_TEAMVOTE_STRING + 1) {
-		Q_strncpyz( cgs.teamVoteString[num-CS_TEAMVOTE_STRING], str, sizeof( cgs.teamVoteString ) );
-#ifdef MISSIONPACK
-		trap_S_StartLocalSound( cgs.media.voteNow, CHAN_ANNOUNCER );
-#endif
-	} else if ( num == CS_INTERMISSION ) {
-		cg.intermissionStarted = atoi( str );
+//	} else if ( num == CS_VOTE_TIME ) {
+//		cgs.voteTime = atoi( str );
+//		cgs.voteModified = qtrue;
+//	} else if ( num == CS_VOTE_YES ) {
+//		cgs.voteYes = atoi( str );
+//		cgs.voteModified = qtrue;
+//	} else if ( num == CS_VOTE_NO ) {
+//		cgs.voteNo = atoi( str );
+//		cgs.voteModified = qtrue;
+//	} else if ( num == CS_VOTE_STRING ) {
+//		Q_strncpyz( cgs.voteString, str, sizeof( cgs.voteString ) );
+//#ifdef MISSIONPACK
+//		trap_S_StartLocalSound( cgs.media.voteNow, CHAN_ANNOUNCER );
+//#endif //MISSIONPACK
+//	} else if ( num >= CS_TEAMVOTE_TIME && num <= CS_TEAMVOTE_TIME + 1) {
+//		cgs.teamVoteTime[num-CS_TEAMVOTE_TIME] = atoi( str );
+//		cgs.teamVoteModified[num-CS_TEAMVOTE_TIME] = qtrue;
+//	} else if ( num >= CS_TEAMVOTE_YES && num <= CS_TEAMVOTE_YES + 1) {
+//		cgs.teamVoteYes[num-CS_TEAMVOTE_YES] = atoi( str );
+//		cgs.teamVoteModified[num-CS_TEAMVOTE_YES] = qtrue;
+//	} else if ( num >= CS_TEAMVOTE_NO && num <= CS_TEAMVOTE_NO + 1) {
+//		cgs.teamVoteNo[num-CS_TEAMVOTE_NO] = atoi( str );
+//		cgs.teamVoteModified[num-CS_TEAMVOTE_NO] = qtrue;
+//	} else if ( num >= CS_TEAMVOTE_STRING && num <= CS_TEAMVOTE_STRING + 1) {
+//		Q_strncpyz( cgs.teamVoteString[num-CS_TEAMVOTE_STRING], str, sizeof( cgs.teamVoteString ) );
+//#ifdef MISSIONPACK
+//		trap_S_StartLocalSound( cgs.media.voteNow, CHAN_ANNOUNCER );
+//#endif
+	//} else if ( num == CS_INTERMISSION ) {
+	//	cg.intermissionStarted = atoi( str );
 	} else if ( num >= CS_MODELS && num < CS_MODELS+MAX_MODELS ) {
 		cgs.gameModels[ num-CS_MODELS ] = trap_R_RegisterModel( str );
 		if(str[0] && str[0] != '*') {
@@ -342,22 +291,7 @@ static void CG_ConfigStringModified( void ) {
 		CG_BuildSpectatorString();
 	} else if ( num >= CS_WEAPONS && num < CS_UNKNOWN) {
 		CG_RegisterItemName(num - CS_WEAPONS, str);
-	} else if ( num == CS_FLAGSTATUS ) {
-		if( cgs.gametype == GT_CTF ) {
-			// format is rb where its red/blue, 0 is at base, 1 is taken, 2 is dropped
-			cgs.redflag = str[0] - '0';
-			cgs.blueflag = str[1] - '0';
-		}
-#ifdef MISSIONPACK
-		else if( cgs.gametype == GT_1FCTF ) {
-			cgs.flagStatus = str[0] - '0';
-		}
-#endif
-	}
-	else if ( num == CS_SHADERSTATE ) {
-		CG_ShaderStateChanged();
-	}
-		
+	} 	
 }
 
 
@@ -967,7 +901,9 @@ typedef struct {
 stufftextCommand_t stufftextSafe[] = {
 	{ "pushmenu_teamselect", 0 },
 	{ "pushmenu_weaponselect", 0 },
-	{ "wait", 1 }
+	{ "wait", 1 },
+	{ "locationprint", 3 }, // locationprint <x> <y> <text ... >
+	{ "add", 2 }, // add <variable> <amount>
 };
 
 /*
@@ -1142,6 +1078,19 @@ static void CG_ServerCommand( void ) {
 		cg.levelShot = qtrue;
 		return;
 	}
+
+	// MoHAA's stopwatch
+	if ( !strcmp( cmd, "stopwatch" ) ) {
+		// TODO		
+		return;
+	}
+
+	if ( !strcmp( cmd, "svlag" ) ) {
+		// TODO
+		return;
+	}
+
+	
 
 	CG_Printf( "Unknown client game command: %s\n", cmd );
 }

@@ -92,6 +92,7 @@ void CG_ProcessSpawnEvent(centity_t *ent, vec3_t spawnOrigin, vec3_t spawnAngles
 	tiki_t *tiki;
 	vec3_t v;
 	localEntity_t *le;
+	char *dot;
 
 	// skip optional paramter(s) ? see rechamber anim of weapons/kar98.tik
 	do {
@@ -140,12 +141,18 @@ void CG_ProcessSpawnEvent(centity_t *ent, vec3_t spawnOrigin, vec3_t spawnAngles
 			h = trap_R_RegisterModel(token);
 			le->refEntity.hModel = h;
 			le->leType = LE_FRAGMENT;
-			le->tiki = trap_TIKI_RegisterModel(token);
+			dot = strchr(token,'.');
+			if(dot && !Q_stricmp(dot+1,"tik")) {
+				le->tiki = trap_TIKI_RegisterModel(token);
+			}
 		} else if(!strcmp(token,"color")) {
 			token = COM_ParseExt( &text, qfalse );
 			token = COM_ParseExt( &text, qfalse );
 			token = COM_ParseExt( &text, qfalse );
 
+		} else if(!strcmp(token,"varycolor")) {
+			token = COM_ParseExt( &text, qfalse );
+			
 		} else if(!strcmp(token,"alpha")) {
 			token = COM_ParseExt( &text, qfalse );
 
@@ -178,6 +185,13 @@ void CG_ProcessSpawnEvent(centity_t *ent, vec3_t spawnOrigin, vec3_t spawnAngles
 
 		} else if(!strcmp(token,"velocity")) {
 			token = COM_ParseExt( &text, qtrue ); // forwardVelocity 
+
+		} else if(!strcmp(token,"angles")) {
+			v[0] = CG_ParseEventFloatParm(&text);
+			v[1] = CG_ParseEventFloatParm(&text);
+			v[2] = CG_ParseEventFloatParm(&text);
+			VectorCopy(v,le->angles.trBase);
+			AnglesToAxis(v,le->refEntity.axis);
 
 		} else if(!strcmp(token,"randvel")) {
 			v[0] = CG_ParseEventFloatParm(&text);
@@ -213,6 +227,13 @@ void CG_ProcessSpawnEvent(centity_t *ent, vec3_t spawnOrigin, vec3_t spawnAngles
 		} else if(!strcmp(token,"fadedelay")) {
 			token = COM_ParseExt( &text, qtrue );
 
+		} else if(!strcmp(token,"alignstretch")) {
+			token = COM_ParseExt( &text, qfalse ); // scaleMultiplier 
+
+		} else if(!strcmp(token,"alignonce")) {
+
+		} else if(!strcmp(token,"align")) {
+
 		} else if(!strcmp(token,"collision")) {
 
 		} else if(!strcmp(token,"fade")) {
@@ -241,7 +262,7 @@ void CG_ProcessSpawnEvent(centity_t *ent, vec3_t spawnOrigin, vec3_t spawnAngles
 			token = COM_ParseExt( &text, qtrue );
 
 		} else {
-			CG_Printf("Uknown '***spawn' parameter %s\n",token);
+			//CG_Printf("Uknown '***spawn' parameter %s\n",token);
 		}
 		COM_ParseExt( &text, qtrue );
 	}
@@ -264,7 +285,7 @@ void CG_ProcessEventText(centity_t *ent, const char *eventText) {
 	text = eventText;
 again:
 	// if(cg_printEvents.integer)
-		CG_Printf("CG_ProcessEventText: event %s\n",eventText);
+	//	CG_Printf("CG_ProcessEventText: event %s\n",eventText);
 
 	// get event name
 	token = COM_ParseExt( &text, qtrue );
@@ -275,7 +296,7 @@ again:
 	// [ Float min_distance ], [ Float pitch ],
 	// [ Float randompitch ], [ String randomvolume ] )
 		token = COM_ParseExt( &text, qtrue );
-		CG_Printf("sound event with sound %s\n",token);
+		//CG_Printf("sound event with sound %s\n",token);
 		token = COM_ParseExt( &text, qtrue );
 		if(token[0]) {
 
@@ -301,7 +322,7 @@ again:
 		// TODO
 	} else if(!strcmp(token,"cache")) {
 		token = COM_ParseExt( &text, qtrue );
-		CG_Printf("Caching %s...\n",token);
+		//CG_Printf("Caching %s...\n",token);
 		trap_R_RegisterModel(token);
 	} else if(!strcmp(token,"commanddelay")) {
 		token = COM_ParseExt( &text, qtrue );
