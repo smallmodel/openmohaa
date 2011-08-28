@@ -1147,20 +1147,20 @@ extern	vmCvar_t		vm_lean_lower;
 #define UBERSOUND_SIZE	300000
 
 typedef struct ubersound_s {
-	char			name[MAX_QPATH];
-	char			wavfile[MAX_QPATH];
-	float			basevol;
-	float			volmod;
-	float			basepitch;
-	float			pitchmod;
-	float			minDist;
-	float			maxDist;
-	soundChannel_t	channel;
-	qboolean		loaded;	// loaded or streamed
-	char			mapstring[MAX_QPATH];
+	char				name[MAX_QPATH];
+	char				wavfile[MAX_QPATH];
+	float				basevol;
+	float				volmod;
+	float				basepitch;
+	float				pitchmod;
+	float				minDist;
+	float				maxDist;
+	soundChannel_t		channel;
+	qboolean			loaded;	// loaded or streamed
+	char				mapstring[MAX_QPATH];
 
-	sfxHandle_t		sfxHandle;
-	ubersound_t*	hashNext;
+	sfxHandle_t			sfxHandle;
+	struct ubersound_s*	hashNext;
 } ubersound_t;
 
 //

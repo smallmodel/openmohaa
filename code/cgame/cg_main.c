@@ -201,19 +201,6 @@ vmCvar_t	vm_offset_vel_side;
 vmCvar_t	vm_offset_vel_up;
 vmCvar_t	vm_offset_upvel;
 vmCvar_t	vm_lean_lower;
-#ifdef MISSIONPACK
-vmCvar_t 	cg_redTeamName;
-vmCvar_t 	cg_blueTeamName;
-vmCvar_t	cg_currentSelectedPlayer;
-vmCvar_t	cg_currentSelectedPlayerName;
-vmCvar_t	cg_singlePlayer;
-vmCvar_t	cg_enableDust;
-vmCvar_t	cg_enableBreath;
-vmCvar_t	cg_singlePlayerActive;
-vmCvar_t	cg_recordSPDemo;
-vmCvar_t	cg_recordSPDemoName;
-vmCvar_t	cg_obeliskRespawnDelay;
-#endif
 
 typedef struct {
 	vmCvar_t	*vmCvar;

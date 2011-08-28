@@ -178,4 +178,5 @@ void CG_LoadUbersound( void ) {
 		Com_Printf( "CG_LoadUbersound hit end of file without end statement\n" );
 
 	trap_FS_FCloseFile( f );
+	CG_Printf( "=== Finished %s ===\n", UBERSOUND_FILE );
 }

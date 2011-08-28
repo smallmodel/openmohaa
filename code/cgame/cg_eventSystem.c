@@ -282,7 +282,7 @@ void CG_ProcessEventText(centity_t *ent, const char *eventText) {
 	vec3_t v,a;
 
 
-	text = eventText;
+	text = (char*)eventText;
 again:
 	// if(cg_printEvents.integer)
 	//	CG_Printf("CG_ProcessEventText: event %s\n",eventText);
@@ -295,14 +295,44 @@ again:
 	// [ String channelName ], [ Float volume ],
 	// [ Float min_distance ], [ Float pitch ],
 	// [ Float randompitch ], [ String randomvolume ] )
-		token = COM_ParseExt( &text, qtrue );
-		//CG_Printf("sound event with sound %s\n",token);
-		token = COM_ParseExt( &text, qtrue );
-		if(token[0]) {
+		char *name,*channelName,*randomvolume;
+		float volume, minDist, pitch, randompitch;
+		soundChannel_t channel;
+		name = COM_ParseExt( &text, qtrue );
+		channelName = COM_ParseExt( &text, qtrue );
 
+		if ( !Q_strncmp( channelName, "auto", MAX_QPATH ) )
+			channel = CHAN_AUTO;
+		else if ( !Q_strncmp( channelName, "body", MAX_QPATH ) )
+			channel = CHAN_BODY;
+		else if ( !Q_strncmp( channelName, "item", MAX_QPATH ) )
+			channel = CHAN_ITEM;
+		else if ( !Q_strncmp( channelName, "weaponidle", MAX_QPATH ) )
+			channel = CHAN_WEAPONIDLE;
+		else if ( !Q_strncmp( channelName, "voice", MAX_QPATH ) )
+			channel = CHAN_VOICE;
+		else if ( !Q_strncmp( channelName, "local", MAX_QPATH ) )
+			channel = CHAN_LOCAL;
+		else if ( !Q_strncmp( channelName, "weapon", MAX_QPATH ) )
+			channel = CHAN_WEAPON;
+		else if ( !Q_strncmp( channelName, "dialog_secondary", MAX_QPATH ) )
+			channel = CHAN_DIALOG_SECONDARY;
+		else if ( !Q_strncmp( channelName, "dialog", MAX_QPATH ) )
+			channel = CHAN_DIALOG;
+		else if ( !Q_strncmp( channelName, "menu", MAX_QPATH ) )
+			channel = CHAN_MENU;
+		else {
+			CG_Printf( "Event sound unrecognized channel %s for %s\n", channelName, name );
+			return;
 		}
 
-		// TODO
+		volume		= atof( COM_ParseExt( &text, qtrue ) );
+		minDist		= atof( COM_ParseExt( &text, qtrue ) );
+		pitch		= atof( COM_ParseExt( &text, qtrue ) );
+		randompitch	= atof( COM_ParseExt( &text, qtrue ) );
+		randomvolume = COM_ParseExt( &text, qtrue );
+
+		trap_S_StartSound( ent->currentState.origin, ent->currentState.number, channel, CG_GetUbersound(name) );
 
 	} else if(!strcmp(token,"stopsound")) {
 		// syntax: stopsound( String channelName )
@@ -310,9 +340,16 @@ again:
 	} else if(!strcmp(token,"loopsound")) {
 		// syntax: loopsound( String soundName, [ Float volume ],
 		// [ Float min_distance ], Float pitch )
-		// TODO
+		char *name;
+		float volume, minDist, pitch;
+		name = COM_ParseExt( &text, qtrue );
+		volume	= atof( COM_ParseExt( &text, qtrue ) );
+		minDist	= atof( COM_ParseExt( &text, qtrue ) );
+		pitch	= atof( COM_ParseExt( &text, qtrue ) );
+
+		trap_S_AddLoopingSound( ent->currentState.number, ent->currentState.origin, vec3_origin, CG_GetUbersound(name) );
 	} else if(!strcmp(token,"stoploopsound")) {
-		// TODO
+		trap_S_StopLoopingSound( ent->currentState.number );
 	} else if(!strcmp(token,"stopaliaschannel")) {
 		// TODO
 	} else if(!strcmp(token,"viewkick")) {
