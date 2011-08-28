@@ -245,6 +245,8 @@ CG_AddFragment
 void CG_AddFragment( localEntity_t *le ) {
 	vec3_t	newOrigin;
 	trace_t	trace;
+	refEntity_t *e;
+	tiki_t *tiki;
 
 	if ( le->pos.trType == TR_STATIONARY ) {
 		// sink into the ground if near the removal time
@@ -284,7 +286,17 @@ void CG_AddFragment( localEntity_t *le ) {
 			BG_EvaluateTrajectory( &le->angles, cg.time, angles );
 			AnglesToAxis( angles, le->refEntity.axis );
 		}
-
+		// if that's a tiki, we need to animate it
+		if(le->tiki) {
+			float time = 0;
+			int anim = 0;
+			e = &le->refEntity;
+			tiki = le->tiki;
+			e->bones = trap_TIKI_GetBones(tiki->numBones);
+			trap_TIKI_AppendFrameBoundsAndRadius(tiki,anim,time,&e->radius,e->bounds);
+			trap_TIKI_SetChannels(tiki,anim,time,1,e->bones);
+			trap_TIKI_Animate(tiki,e->bones);
+		}
 		trap_R_AddRefEntityToScene( &le->refEntity );
 
 		// add a blood trail
@@ -827,7 +839,9 @@ void CG_AddLocalEntities( void ) {
 		default:
 			CG_Error( "Bad leType: %i", le->leType );
 			break;
-
+		case LE_SKIP:
+			// do nothing
+			break;
 		case LE_MARK:
 			break;
 

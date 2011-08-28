@@ -220,6 +220,7 @@ typedef struct markPoly_s {
 
 
 typedef enum {
+	LE_SKIP,
 	LE_MARK,
 	LE_EXPLOSION,
 	LE_SPRITE_EXPLOSION,
@@ -283,6 +284,8 @@ typedef struct localEntity_s {
 	leBounceSoundType_t	leBounceSoundType;
 
 	refEntity_t		refEntity;
+
+	tiki_t *tiki;
 } localEntity_t;
 
 //======================================================================

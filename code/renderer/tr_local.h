@@ -553,7 +553,7 @@ typedef enum {
 	// su44 was here
 	SF_SKD,
 	SF_SKELETON, // only if r_showSkeleton->integer!=0
-
+	SF_SPRITE_MOH, // MoHAA .spr sprite
 	SF_NUM_SURFACE_TYPES,
 	SF_MAX = 0x7fffffff			// ensures that sizeof( surfaceType_t ) == sizeof( int )
 } surfaceType_t;

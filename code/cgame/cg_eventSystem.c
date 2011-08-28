@@ -86,11 +86,12 @@ float CG_ParseEventFloatParm(char **text) {
 	return value;
 }
 // this is used by both "tagspawn" and "originspawn" events
-void CG_ProcessSpawnEvent(centity_t *ent, vec3_t spawnOrigin, char *text) {
+void CG_ProcessSpawnEvent(centity_t *ent, vec3_t spawnOrigin, vec3_t spawnAngles, char *text) {
 	char *token;
 	qhandle_t h;
 	tiki_t *tiki;
 	vec3_t v;
+	localEntity_t *le;
 
 	// skip optional paramter(s) ? see rechamber anim of weapons/kar98.tik
 	do {
@@ -106,6 +107,17 @@ void CG_ProcessSpawnEvent(centity_t *ent, vec3_t spawnOrigin, char *text) {
 		token++;
 	}
 
+	le = CG_AllocLocalEntity();
+	le->endTime = cg.time + 100;
+	le->leType = LE_SKIP;
+	//le->leFlags = LEF_TUMBLE;
+	le->pos.trType = TR_GRAVITY;
+	le->pos.trTime = cg.time - (rand()&15);
+	VectorCopy(spawnOrigin,le->pos.trBase);
+	VectorCopy(spawnOrigin,le->refEntity.origin);
+	le->angles.trType = TR_STATIONARY;
+	VectorCopy(spawnAngles,le->angles.trBase);
+	AnglesToAxis(spawnAngles,le->refEntity.axis);
 	// parse parameters ( ... ) block
 	while(token[0] != ')') {
 		if(token[0]==0) {
@@ -126,7 +138,9 @@ void CG_ProcessSpawnEvent(centity_t *ent, vec3_t spawnOrigin, char *text) {
 			// both .tik and .spr models are used here
 			token = COM_ParseExt( &text, qtrue );
 			h = trap_R_RegisterModel(token);
-
+			le->refEntity.hModel = h;
+			le->leType = LE_FRAGMENT;
+			le->tiki = trap_TIKI_RegisterModel(token);
 		} else if(!strcmp(token,"color")) {
 			token = COM_ParseExt( &text, qfalse );
 			token = COM_ParseExt( &text, qfalse );
@@ -169,17 +183,18 @@ void CG_ProcessSpawnEvent(centity_t *ent, vec3_t spawnOrigin, char *text) {
 			v[0] = CG_ParseEventFloatParm(&text);
 			v[1] = CG_ParseEventFloatParm(&text);
 			v[2] = CG_ParseEventFloatParm(&text);
-
+			VectorCopy(v,le->pos.trDelta);
 		} else if(!strcmp(token,"emitterangles")) {
 			token = COM_ParseExt( &text, qfalse ); // pitchofs
 			token = COM_ParseExt( &text, qfalse ); // yawofs
 			token = COM_ParseExt( &text, qfalse ); // rollofs
 		} else if(!strcmp(token,"avelocity")) {
 			// crandom keyword is used for avelocity in weapons/mp40.tik
-			v[0] = CG_ParseEventFloatParm(&text); // yawVel
-			v[1] = CG_ParseEventFloatParm(&text); // pitchVel
-			v[2] = CG_ParseEventFloatParm(&text); // rollVel
+			v[YAW] = CG_ParseEventFloatParm(&text); // yawVel
+			v[PITCH] = CG_ParseEventFloatParm(&text); // pitchVel
+			v[ROLL] = CG_ParseEventFloatParm(&text); // rollVel
 
+			//VectorCopy(v,le->apos.trDelta);
 
 		} else if(!strcmp(token,"accel")) {
 			// NOTE: This acceleration is applied using the world axis
@@ -194,7 +209,7 @@ void CG_ProcessSpawnEvent(centity_t *ent, vec3_t spawnOrigin, char *text) {
 			}
 		} else if(!strcmp(token,"life")) {
 			token = COM_ParseExt( &text, qtrue );
-
+			le->endTime = cg.time + atof(token)*1000;
 		} else if(!strcmp(token,"fadedelay")) {
 			token = COM_ParseExt( &text, qtrue );
 
@@ -217,7 +232,7 @@ void CG_ProcessSpawnEvent(centity_t *ent, vec3_t spawnOrigin, char *text) {
 
 		} else if(!strcmp(token,"bouncefactor")) {
 			token = COM_ParseExt( &text, qtrue );
-
+			le->bounceFactor  = atof(token);
 		} else if(!strcmp(token,"bouncesoundonce")) {
 			token = COM_ParseExt( &text, qtrue );
 
@@ -243,7 +258,7 @@ void CG_ProcessEventText(centity_t *ent, const char *eventText) {
 	int boneName;
 	tiki_t *tiki;
 	qhandle_t h;
-	vec3_t v;
+	vec3_t v,a;
 
 
 	text = eventText;
@@ -293,7 +308,7 @@ again:
 		f = atof(token);
 		CG_PostEvent(ent,text,f*1000);
 	} else if(!strcmp(token,"originspawn")) {
-		CG_ProcessSpawnEvent(ent,ent->lerpOrigin,text);
+		CG_ProcessSpawnEvent(ent,ent->lerpOrigin, ent->lerpAngles, text);
 	} else if(!strcmp(token,"tagspawn")) {
 		tiki = cgs.gameTIKIs[ent->currentState.modelindex];
 		if(!tiki) {
@@ -317,8 +332,8 @@ again:
 			CG_Printf("'tagspawn' event cast on entity with null bones ptr\n");
 			return;
 		}
-		CG_CentBoneIndexLocal2World(i,ent,v,0);
-		CG_ProcessSpawnEvent(ent,v,text);
+		CG_CentBoneIndexLocal2World(i,ent,v,a);
+		CG_ProcessSpawnEvent(ent,v,a,text);
 		
 	} else if(!strcmp(token,"tagdlight")) {
 		float r,g,b,intensity;

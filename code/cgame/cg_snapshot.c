@@ -112,10 +112,10 @@ static void CG_TransitionEntity( centity_t *cent ) {
 		fi0 = cent->currentState.frameInfo;
 		fi1 = cent->nextState.frameInfo;
 		for(i = 0; i < 16; i++,fi0++,fi1++) {
-			if(fi0->weight) {
+			if(fi0->weight && tiki0 && fi0->index < tiki0->numAnims) {
 				a0 = tiki0->anims[fi0->index];
 				f0 = TIKI_FrameNumForTime(tiki0,fi0->index,fi0->time);
-				if(fi1->weight) {
+				if(fi1->weight && tiki1 && fi1->index < tiki1->numAnims) {
 					if(fi0->index != fi1->index || tiki0 != tiki1) {
 						a1 = tiki1->anims[fi1->index];
 						CG_ExecuteFrameCommands(cent,a0,TIKI_FRAME_EXIT);
@@ -133,7 +133,7 @@ static void CG_TransitionEntity( centity_t *cent ) {
 					//CG_ExecuteFramesCommands(cent,anim,fi0->
 					CG_ExecuteFrameCommands(cent,a0,TIKI_FRAME_EXIT);
 				}
-			} else if(fi1->weight) {
+			} else if(fi1->weight && tiki1 && fi1->index < tiki1->numAnims) {
 				// anim is staring
 				a1 = tiki1->anims[fi1->index];
 				f1 = TIKI_FrameNumForTime(tiki1,fi1->index,fi1->time);

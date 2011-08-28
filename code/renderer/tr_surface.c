@@ -1209,7 +1209,37 @@ void RB_SurfaceEntity( surfaceType_t *surfType ) {
 	}
 	return;
 }
+void RB_SurfaceSpriteMOH( surfaceType_t *surfType ) {
+	vec3_t		left, up;
+	float		radius;
 
+	sprite_t *spr = tr.models[backEnd.currentEntity->e.hModel]->sprite;
+
+	// calculate the xyz locations for the four corners
+	radius = spr->scale;
+	//if ( backEnd.currentEntity->e.rotation == 0 ) {
+		VectorScale( backEnd.viewParms.or.axis[1], radius, left );
+		VectorScale( backEnd.viewParms.or.axis[2], radius, up );
+	//} else {
+	//	float	s, c;
+	//	float	ang;
+
+	//	ang = M_PI * backEnd.currentEntity->e.rotation / 180;
+	//	s = sin( ang );
+	//	c = cos( ang );
+
+	//	VectorScale( backEnd.viewParms.or.axis[1], c * radius, left );
+	//	VectorMA( left, -s * radius, backEnd.viewParms.or.axis[2], left );
+
+	//	VectorScale( backEnd.viewParms.or.axis[2], c * radius, up );
+	//	VectorMA( up, s * radius, backEnd.viewParms.or.axis[1], up );
+	//}
+	if ( backEnd.viewParms.isMirror ) {
+		VectorSubtract( vec3_origin, left, left );
+	}
+
+	RB_AddQuadStamp( backEnd.currentEntity->e.origin, left, up, backEnd.currentEntity->e.shaderRGBA );
+}
 void RB_SurfaceBad( surfaceType_t *surfType ) {
 	ri.Printf( PRINT_ALL, "Bad surface tesselated.\n" );
 }
@@ -1425,5 +1455,6 @@ void (*rb_surfaceTable[SF_NUM_SURFACE_TYPES])( void *) = {
 	(void(*)(void*))RB_SurfaceTerrainPatch,	// SF_TERRAIN_PATCH
 	// su44 was here
 	(void(*)(void*))RB_SurfaceSKD,	// SF_SKD
-	(void(*)(void*))RB_SurfaceSkeleton //SF_SKELETON
+	(void(*)(void*))RB_SurfaceSkeleton, //SF_SKELETON
+	(void(*)(void*))RB_SurfaceSpriteMOH, // SF_SPRITE_MOH
 };

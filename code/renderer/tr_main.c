@@ -43,6 +43,7 @@ refimport_t	ri;
 // point at this for their sorting surface
 surfaceType_t	entitySurface = SF_ENTITY;
 surfaceType_t	skeletonSurface = SF_SKELETON;
+surfaceType_t	mohSpriteSurface = SF_SPRITE_MOH;
 /*
 =================
 R_CullLocalBox
@@ -1225,6 +1226,12 @@ void R_AddEntitySurfaces (void) {
 					//	ent->e.renderfx |= RF_DEPTHHACK;
 						R_AddDrawSurf( (void *)&skeletonSurface, tr.defaultShader, 0 /*fogNum*/, qfalse );
 					}
+					break;
+				case MOD_SPRITE:
+					if ( (ent->e.renderfx & RF_THIRD_PERSON) && !tr.viewParms.isPortal) {
+						continue;
+					}
+					R_AddDrawSurf( &mohSpriteSurface, tr.currentModel->sprite->shader, 0, 0 );
 					break;
 				case MOD_BAD:		// null model axis
 					if ( (ent->e.renderfx & RF_THIRD_PERSON) && !tr.viewParms.isPortal) {
