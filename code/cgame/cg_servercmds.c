@@ -920,14 +920,17 @@ sane commands...
 */
 void CG_StufftextCommand( const char *cmd ) {
 	int		i;
+	char	*ptr,*ptr2;
 
+	ptr = (char*)cmd;
+	ptr2 = COM_Parse(&ptr);
 	for ( i = 0 ; i < sizeof( stufftextBlock ) / sizeof( stufftextBlock[0] ) ; i++ ) {
-		if ( !Q_stricmp( cmd, stufftextBlock[i] ) ) {
+		if ( !Q_stricmp( ptr2, stufftextBlock[i] ) ) {
 			return;
 		}
 	}
 	for ( i = 0 ; i < sizeof( stufftextSafe ) / sizeof( stufftextSafe[0] ) ; i++ ) {
-		if ( !Q_stricmp( cmd, stufftextSafe[i].cmd ) ) {
+		if ( !Q_stricmp( ptr2, stufftextSafe[i].cmd ) ) {
 			trap_SendConsoleCommand( cmd );
 			return;
 		}

@@ -82,6 +82,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\code\mohui\ui_main.c" />
+    <ClCompile Include="..\..\..\code\mohui\ui_model.c" />
     <ClCompile Include="..\..\..\code\mohui\ui_quarks.c" />
     <ClCompile Include="..\..\..\code\mohui\ui_syscalls.c" />
     <ClCompile Include="..\..\..\code\mohui\ui_urc.c" />

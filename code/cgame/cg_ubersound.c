@@ -21,7 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 #include "cg_local.h"
 
-#define	MAX_UBERSOUNDS	1024
+#define	MAX_UBERSOUNDS	1200
 ubersound_t		snd_indexes[MAX_UBERSOUNDS];
 int				snd_numIndexes;
 
@@ -59,18 +59,20 @@ static ubersound_t*	US_Find( const char *snd_name ) {
 	return NULL;
 }
 
-sfxHandle_t	CG_GetUbersound( const char *name ) {
+ubersound_t*	CG_GetUbersound( const char *name ) {
 	ubersound_t *snd;
 	snd = US_Find( name );
 
 	if ( !snd ) {
 		CG_Printf( "CG_GetUbersound: sound %s not found.\n", name );
-		return 0;
+		return NULL;
 	}
 	else if ( snd->loaded )
-		return snd->sfxHandle;
-	else
-		return trap_S_RegisterSound( snd->wavfile, qfalse );
+		return snd;
+	else {
+		snd->sfxHandle = trap_S_RegisterSound( snd->wavfile, qfalse );
+		return snd;
+	}
 }
 
 void CG_ParseUSline( char **ptr, ubersound_t *snd ) {
@@ -133,6 +135,7 @@ void CG_LoadUbersound( void ) {
 	char			*ptr;
 	qboolean		end;
 	ubersound_t*	snd;
+	int				i;
 
 	CG_Printf( "=== Loading %s ===\n", UBERSOUND_FILE );
 
@@ -159,14 +162,24 @@ void CG_LoadUbersound( void ) {
 	while (*token) {
 		if ( !Q_strncmp( token, "aliascache", MAX_QPATH ) ) {
 			CG_ParseUSline( &ptr, &snd_indexes[snd_numIndexes] );
-			snd_numIndexes++;
-			snd = US_Find( snd_indexes[snd_numIndexes].name );
-			if ( snd )
+			if ( snd_indexes[snd_numIndexes].name[strnlen(snd_indexes[snd_numIndexes].name,MAX_QPATH)-1] == '1' )
+				snd_indexes[snd_numIndexes].name[strnlen(snd_indexes[snd_numIndexes].name,MAX_QPATH)-1] = 0;
+			i = generateHashValue(snd_indexes[snd_numIndexes].name);
+			snd = hashTable[i];
+			if (snd) {
+				while (snd->hashNext)
+					snd = snd->hashNext;
 				snd->hashNext = &snd_indexes[snd_numIndexes];
+			}
 			else
-				hashTable[generateHashValue(snd_indexes[snd_numIndexes].name)] = &snd_indexes[snd_numIndexes];
+				hashTable[i] = &snd_indexes[snd_numIndexes];
 			if ( snd_indexes[snd_numIndexes].loaded )
 				snd_indexes[snd_numIndexes].sfxHandle = trap_S_RegisterSound( snd_indexes[snd_numIndexes].name, qfalse );
+			snd_numIndexes++;
+			if ( snd_numIndexes >= MAX_UBERSOUNDS ) {
+				snd_numIndexes--;
+				CG_Error( "CG_LoadUbersound: too many aliascaches in file.\n" );
+			}
 		}
 		else if ( !Q_strncmp( token, "end", MAX_QPATH ) ) {
 			end = qtrue;

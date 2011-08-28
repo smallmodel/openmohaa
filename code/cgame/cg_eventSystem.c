@@ -295,44 +295,55 @@ again:
 	// [ String channelName ], [ Float volume ],
 	// [ Float min_distance ], [ Float pitch ],
 	// [ Float randompitch ], [ String randomvolume ] )
-		char *name,*channelName,*randomvolume;
+		char *name;
 		float volume, minDist, pitch, randompitch;
 		soundChannel_t channel;
+		ubersound_t* sound;
 		name = COM_ParseExt( &text, qtrue );
-		channelName = COM_ParseExt( &text, qtrue );
+		sound = CG_GetUbersound(name);
 
-		if ( !Q_strncmp( channelName, "auto", MAX_QPATH ) )
-			channel = CHAN_AUTO;
-		else if ( !Q_strncmp( channelName, "body", MAX_QPATH ) )
-			channel = CHAN_BODY;
-		else if ( !Q_strncmp( channelName, "item", MAX_QPATH ) )
-			channel = CHAN_ITEM;
-		else if ( !Q_strncmp( channelName, "weaponidle", MAX_QPATH ) )
-			channel = CHAN_WEAPONIDLE;
-		else if ( !Q_strncmp( channelName, "voice", MAX_QPATH ) )
-			channel = CHAN_VOICE;
-		else if ( !Q_strncmp( channelName, "local", MAX_QPATH ) )
-			channel = CHAN_LOCAL;
-		else if ( !Q_strncmp( channelName, "weapon", MAX_QPATH ) )
-			channel = CHAN_WEAPON;
-		else if ( !Q_strncmp( channelName, "dialog_secondary", MAX_QPATH ) )
-			channel = CHAN_DIALOG_SECONDARY;
-		else if ( !Q_strncmp( channelName, "dialog", MAX_QPATH ) )
-			channel = CHAN_DIALOG;
-		else if ( !Q_strncmp( channelName, "menu", MAX_QPATH ) )
-			channel = CHAN_MENU;
-		else {
-			CG_Printf( "Event sound unrecognized channel %s for %s\n", channelName, name );
+		if (!sound)
 			return;
-		}
+		token = COM_ParseExt( &text, qtrue );
 
-		volume		= atof( COM_ParseExt( &text, qtrue ) );
+		if ( token[0] ) {
+			if ( !Q_strncmp( token, "auto", MAX_QPATH ) )
+				channel = CHAN_AUTO;
+			else if ( !Q_strncmp( token, "body", MAX_QPATH ) )
+				channel = CHAN_BODY;
+			else if ( !Q_strncmp( token, "item", MAX_QPATH ) )
+				channel = CHAN_ITEM;
+			else if ( !Q_strncmp( token, "weaponidle", MAX_QPATH ) )
+				channel = CHAN_WEAPONIDLE;
+			else if ( !Q_strncmp( token, "voice", MAX_QPATH ) )
+				channel = CHAN_VOICE;
+			else if ( !Q_strncmp( token, "local", MAX_QPATH ) )
+				channel = CHAN_LOCAL;
+			else if ( !Q_strncmp( token, "weapon", MAX_QPATH ) )
+				channel = CHAN_WEAPON;
+			else if ( !Q_strncmp( token, "dialog_secondary", MAX_QPATH ) )
+				channel = CHAN_DIALOG_SECONDARY;
+			else if ( !Q_strncmp( token, "dialog", MAX_QPATH ) )
+				channel = CHAN_DIALOG;
+			else if ( !Q_strncmp( token, "menu", MAX_QPATH ) )
+				channel = CHAN_MENU;
+			else {
+				//CG_Printf( "Event sound unrecognized channel %s for %s\n", token, name );
+				channel = sound->channel;
+			}
+			//token = COM_ParseExt( &text, qtrue );
+		} else channel = sound->channel;
+
+/*		if ( token[0] ) {
+			volume = atof( token );
+			token = COM_ParseExt( &text, qtrue );
+		}
 		minDist		= atof( COM_ParseExt( &text, qtrue ) );
 		pitch		= atof( COM_ParseExt( &text, qtrue ) );
 		randompitch	= atof( COM_ParseExt( &text, qtrue ) );
-		randomvolume = COM_ParseExt( &text, qtrue );
+		randomvolume = COM_ParseExt( &text, qtrue );*/
 
-		trap_S_StartSound( ent->currentState.origin, ent->currentState.number, channel, CG_GetUbersound(name) );
+		trap_S_StartSound( ent->currentState.origin, ent->currentState.number, channel, sound->sfxHandle );
 
 	} else if(!strcmp(token,"stopsound")) {
 		// syntax: stopsound( String channelName )
@@ -342,16 +353,19 @@ again:
 		// [ Float min_distance ], Float pitch )
 		char *name;
 		float volume, minDist, pitch;
+		ubersound_t* snd;
 		name = COM_ParseExt( &text, qtrue );
-		volume	= atof( COM_ParseExt( &text, qtrue ) );
+		snd = CG_GetUbersound(name);
+/*		volume	= atof( COM_ParseExt( &text, qtrue ) );
 		minDist	= atof( COM_ParseExt( &text, qtrue ) );
 		pitch	= atof( COM_ParseExt( &text, qtrue ) );
-
-		trap_S_AddLoopingSound( ent->currentState.number, ent->currentState.origin, vec3_origin, CG_GetUbersound(name) );
+*/
+		if (snd)
+			trap_S_AddLoopingSound( ent->currentState.number, ent->currentState.origin, vec3_origin, snd->sfxHandle );
 	} else if(!strcmp(token,"stoploopsound")) {
 		trap_S_StopLoopingSound( ent->currentState.number );
 	} else if(!strcmp(token,"stopaliaschannel")) {
-		// TODO
+		token = COM_ParseExt( &text, qtrue );
 	} else if(!strcmp(token,"viewkick")) {
 	// viewkick( Float pitchmin, Float pitchmax,
 	// Float yawmin, Float yawmax, Float recenterspeed,

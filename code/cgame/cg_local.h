@@ -1671,5 +1671,5 @@ extern qboolean		initparticles;
 int CG_NewParticleArea ( int num );
 
 // cg_ubersound.c
-void		CG_LoadUbersound( void );
-sfxHandle_t	CG_GetUbersound( const char *name );
+void			CG_LoadUbersound( void );
+ubersound_t*	CG_GetUbersound( const char *name );
