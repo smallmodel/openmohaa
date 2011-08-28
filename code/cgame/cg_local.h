@@ -1142,19 +1142,26 @@ extern	vmCvar_t		vm_offset_vel_up;
 extern	vmCvar_t		vm_offset_upvel;
 extern	vmCvar_t		vm_lean_lower;
 
-#ifdef MISSIONPACK
-extern	vmCvar_t		cg_redTeamName;
-extern	vmCvar_t		cg_blueTeamName;
-extern	vmCvar_t		cg_currentSelectedPlayer;
-extern	vmCvar_t		cg_currentSelectedPlayerName;
-extern	vmCvar_t		cg_singlePlayer;
-extern	vmCvar_t		cg_enableDust;
-extern	vmCvar_t		cg_enableBreath;
-extern	vmCvar_t		cg_singlePlayerActive;
-extern  vmCvar_t		cg_recordSPDemo;
-extern  vmCvar_t		cg_recordSPDemoName;
-extern	vmCvar_t		cg_obeliskRespawnDelay;
-#endif
+// UBERSOUND
+#define UBERSOUND_FILE	"ubersound/ubersound.scr"
+#define UBERSOUND_SIZE	300000
+
+typedef struct ubersound_s {
+	char			name[MAX_QPATH];
+	char			wavfile[MAX_QPATH];
+	float			basevol;
+	float			volmod;
+	float			basepitch;
+	float			pitchmod;
+	float			minDist;
+	float			maxDist;
+	soundChannel_t	channel;
+	qboolean		loaded;	// loaded or streamed
+	char			mapstring[MAX_QPATH];
+
+	sfxHandle_t		sfxHandle;
+	ubersound_t*	hashNext;
+} ubersound_t;
 
 //
 // cg_main.c
@@ -1663,4 +1670,6 @@ void	CG_ParticleExplosion (char *animStr, vec3_t origin, vec3_t vel, int duratio
 extern qboolean		initparticles;
 int CG_NewParticleArea ( int num );
 
-
+// cg_ubersound.c
+void		CG_LoadUbersound( void );
+sfxHandle_t	CG_GetUbersound( const char *name );

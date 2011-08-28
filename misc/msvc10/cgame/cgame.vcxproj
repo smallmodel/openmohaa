@@ -103,6 +103,7 @@
     <ClCompile Include="..\..\..\code\cgame\cg_servercmds.c" />
     <ClCompile Include="..\..\..\code\cgame\cg_snapshot.c" />
     <ClCompile Include="..\..\..\code\cgame\cg_syscalls.c" />
+    <ClCompile Include="..\..\..\code\cgame\cg_ubersound.c" />
     <ClCompile Include="..\..\..\code\cgame\cg_view.c" />
     <ClCompile Include="..\..\..\code\cgame\cg_viewmodelanim.c" />
     <ClCompile Include="..\..\..\code\cgame\cg_weapons.c" />

@@ -1,6 +1,6 @@
 /*
 ===========================================================================
-Copyright (C) 2010-2011 wombat
+Copyright (C) 2010-2011 Michael Rieder
 
 This file is part of OpenMohaa source code.
 
@@ -15,7 +15,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with Quake III Arena source code; if not, write to the Free Software
+along with OpenMohaa source code; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ===========================================================================
 */
