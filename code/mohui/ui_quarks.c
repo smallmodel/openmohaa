@@ -437,6 +437,13 @@ void UI_DrawMenu( uiMenu_t *menu, qboolean foreground ) {
 
 	for (j=0; j<=menu->resPtr; j++ ) {
 		res = &menu->resources[j];
+		// su44: dont show "Back To Game" / "Disconnect" button 
+		// in main menu if we're not connected to a server
+		if(!strcmp(res->name,"backtogame") || !strcmp(res->name,"disconnect")) {
+			if(trap_Cvar_VariableValue("cg_running")==0) {
+				continue;
+			}
+		}
 		if ( foreground == qtrue ) //foreground menu
 			UI_SetColor( res->fgcolor );
 		else UI_SetColor( res->bgcolor );

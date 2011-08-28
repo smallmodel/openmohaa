@@ -404,6 +404,7 @@ void CL_ShutdownCGame( void ) {
 	VM_Call( cgvm, CG_SHUTDOWN );
 	VM_Free( cgvm );
 	cgvm = NULL;
+	Cvar_Set ("cg_running", "0");
 }
 
 static int	FloatAsInt( float f ) {
@@ -786,6 +787,8 @@ void CL_InitCGame( void ) {
 	// use the lastExecutedServerCommand instead of the serverCommandSequence
 	// otherwise server commands sent just before a gamestate are dropped
 	VM_Call( cgvm, CG_INIT, clc.serverMessageSequence, clc.lastExecutedServerCommand, clc.clientNum );
+
+	Cvar_Set ("cg_running", "1");
 
 	// reset any CVAR_CHEAT cvars registered by cgame
 	if ( !clc.demoplaying && !cl_connectedToCheatServer )
