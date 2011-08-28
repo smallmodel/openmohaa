@@ -1474,70 +1474,7 @@ CG_DrawReward
 ===================
 */
 static void CG_DrawReward( void ) { 
-	float	*color;
-	int		i, count;
-	float	x, y;
-	char	buf[32];
 
-	if ( !cg_drawRewards.integer ) {
-		return;
-	}
-
-	color = CG_FadeColor( cg.rewardTime, REWARD_TIME );
-	if ( !color ) {
-		if (cg.rewardStack > 0) {
-			for(i = 0; i < cg.rewardStack; i++) {
-				cg.rewardSound[i] = cg.rewardSound[i+1];
-				cg.rewardShader[i] = cg.rewardShader[i+1];
-				cg.rewardCount[i] = cg.rewardCount[i+1];
-			}
-			cg.rewardTime = cg.time;
-			cg.rewardStack--;
-			color = CG_FadeColor( cg.rewardTime, REWARD_TIME );
-			trap_S_StartLocalSound(cg.rewardSound[0], CHAN_ANNOUNCER);
-		} else {
-			return;
-		}
-	}
-
-	trap_R_SetColor( color );
-
-	/*
-	count = cg.rewardCount[0]/10;				// number of big rewards to draw
-
-	if (count) {
-		y = 4;
-		x = 320 - count * ICON_SIZE;
-		for ( i = 0 ; i < count ; i++ ) {
-			CG_DrawPic( x, y, (ICON_SIZE*2)-4, (ICON_SIZE*2)-4, cg.rewardShader[0] );
-			x += (ICON_SIZE*2);
-		}
-	}
-
-	count = cg.rewardCount[0] - count*10;		// number of small rewards to draw
-	*/
-
-	if ( cg.rewardCount[0] >= 10 ) {
-		y = 56;
-		x = 320 - ICON_SIZE/2;
-		CG_DrawPic( x, y, ICON_SIZE-4, ICON_SIZE-4, cg.rewardShader[0] );
-		Com_sprintf(buf, sizeof(buf), "%d", cg.rewardCount[0]);
-		x = ( SCREEN_WIDTH - SMALLCHAR_WIDTH * CG_DrawStrlen( buf ) ) / 2;
-		CG_DrawStringExt( x, y+ICON_SIZE, buf, color, qfalse, qtrue,
-								SMALLCHAR_WIDTH, SMALLCHAR_HEIGHT, 0 );
-	}
-	else {
-
-		count = cg.rewardCount[0];
-
-		y = 56;
-		x = 320 - count * ICON_SIZE/2;
-		for ( i = 0 ; i < count ; i++ ) {
-			CG_DrawPic( x, y, ICON_SIZE-4, ICON_SIZE-4, cg.rewardShader[0] );
-			x += ICON_SIZE;
-		}
-	}
-	trap_R_SetColor( NULL );
 }
 
 
@@ -2141,15 +2078,9 @@ static void CG_DrawVote(void) {
 	if ( sec < 0 ) {
 		sec = 0;
 	}
-#ifdef MISSIONPACK
-	s = va("VOTE(%i):%s yes:%i no:%i", sec, cgs.voteString, cgs.voteYes, cgs.voteNo);
-	CG_DrawSmallString( 0, 58, s, 1.0F );
-	s = "or press ESC then click Vote";
-	CG_DrawSmallString( 0, 58 + SMALLCHAR_HEIGHT + 2, s, 1.0F );
-#else
+
 	s = va("VOTE(%i):%s yes:%i no:%i", sec, cgs.voteString, cgs.voteYes, cgs.voteNo );
 	CG_DrawSmallString( 0, 58, s, 1.0F );
-#endif
 }
 
 /*
@@ -2479,13 +2410,13 @@ static void CG_DrawWarmup( void ) {
 		cg.warmupCount = sec;
 		switch ( sec ) {
 		case 0:
-			trap_S_StartLocalSound( cgs.media.count1Sound, CHAN_ANNOUNCER );
+//			trap_S_StartLocalSound( cgs.media.count1Sound, CHAN_ANNOUNCER );
 			break;
 		case 1:
-			trap_S_StartLocalSound( cgs.media.count2Sound, CHAN_ANNOUNCER );
+//			trap_S_StartLocalSound( cgs.media.count2Sound, CHAN_ANNOUNCER );
 			break;
 		case 2:
-			trap_S_StartLocalSound( cgs.media.count3Sound, CHAN_ANNOUNCER );
+//			trap_S_StartLocalSound( cgs.media.count3Sound, CHAN_ANNOUNCER );
 			break;
 		default:
 			break;

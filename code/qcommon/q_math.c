@@ -2855,6 +2855,29 @@ void QuatToAxis(const quat_t q, vec3_t axis[3])
 	MatrixToVectorsFLU(tmp, axis[0], axis[1], axis[2]);
 }
 
+// wombat: pretty straightforward
+void QuatToRotAngle( const quat_t q, vec_t *angle ) {
+	*angle = 360.0f / M_PI * atan( VectorLength(q)/q[3] );
+}
+
+void QuatToRotAngleAxis( const quat_t q, vec_t *angle, vec3_t axis ) {
+
+	*angle = atan( VectorLength(q)/q[3] );
+	axis[0] = q[0] / sin(*angle);
+	axis[1] = q[1] / sin(*angle);
+	axis[2] = q[2] / sin(*angle);
+
+	*angle *= 360.0f / M_PI;
+}
+
+void QuatFromRotAngleAxis( quat_t q, vec_t angle, const vec3_t axis ) {
+
+	q[0] = axis[0] * sin( angle*M_PI/360 );
+	q[1] = axis[1] * sin( angle*M_PI/360 );
+	q[2] = axis[2] * sin( angle*M_PI/360 );
+	q[3] = cos( angle*M_PI/360 );
+}
+
 void QuatToAngles(const quat_t q, vec3_t angles)
 {
 	quat_t          q2;

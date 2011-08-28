@@ -102,6 +102,9 @@
     <ClCompile Include="..\..\..\code\cgame\cg_viewmodelanim.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\code\cgame\cg_eventSystem.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\code\cgame\cg_local.h">

@@ -185,7 +185,7 @@ static void CG_ParseWarmup( void ) {
 		} else
 #endif
 		{
-			trap_S_StartLocalSound( cgs.media.countPrepareSound, CHAN_ANNOUNCER );
+//			trap_S_StartLocalSound( cgs.media.countPrepareSound, CHAN_ANNOUNCER );
 		}
 	}
 
@@ -473,7 +473,7 @@ static void CG_MapRestart( void ) {
 
 	// play the "fight" sound if this is a restart without warmup
 	if ( cg.warmup == 0 /* && cgs.gametype == GT_TOURNAMENT */) {
-		trap_S_StartLocalSound( cgs.media.countFightSound, CHAN_ANNOUNCER );
+//		trap_S_StartLocalSound( cgs.media.countFightSound, CHAN_ANNOUNCER );
 		CG_CenterPrint( "FIGHT!", 120, GIANTCHAR_WIDTH*2 );
 	}
 #ifdef MISSIONPACK
@@ -817,32 +817,7 @@ CG_PlayVoiceChat
 =================
 */
 void CG_PlayVoiceChat( bufferedVoiceChat_t *vchat ) {
-#ifdef MISSIONPACK
-	// if we are going into the intermission, don't start any voices
-	if ( cg.intermissionStarted ) {
-		return;
-	}
 
-	if ( !cg_noVoiceChats.integer ) {
-		trap_S_StartLocalSound( vchat->snd, CHAN_VOICE);
-		if (vchat->clientNum != cg.snap->ps.clientNum) {
-			int orderTask = CG_ValidOrder(vchat->cmd);
-			if (orderTask > 0) {
-				cgs.acceptOrderTime = cg.time + 5000;
-				Q_strncpyz(cgs.acceptVoice, vchat->cmd, sizeof(cgs.acceptVoice));
-				cgs.acceptTask = orderTask;
-				cgs.acceptLeader = vchat->clientNum;
-			}
-			// see if this was an order
-			CG_ShowResponseHead();
-		}
-	}
-	if (!vchat->voiceOnly && !cg_noVoiceText.integer) {
-		CG_AddToTeamChat( vchat->message );
-		CG_Printf( "%s\n", vchat->message );
-	}
-	voiceChatBuffer[cg.voiceChatBufferOut].snd = 0;
-#endif
 }
 
 /*
@@ -1085,21 +1060,13 @@ static void CG_ServerCommand( void ) {
 
 	if ( !strcmp( cmd, "print" ) ) {
 		CG_Printf( "%s", CG_Argv(1) );
-#ifdef MISSIONPACK
-		cmd = CG_Argv(1);			// yes, this is obviously a hack, but so is the way we hear about
-									// votes passing or failing
-		if ( !Q_stricmpn( cmd, "vote failed", 11 ) || !Q_stricmpn( cmd, "team vote failed", 16 )) {
-			trap_S_StartLocalSound( cgs.media.voteFailed, CHAN_ANNOUNCER );
-		} else if ( !Q_stricmpn( cmd, "vote passed", 11 ) || !Q_stricmpn( cmd, "team vote passed", 16 ) ) {
-			trap_S_StartLocalSound( cgs.media.votePassed, CHAN_ANNOUNCER );
-		}
-#endif
+
 		return;
 	}
 
 	if ( !strcmp( cmd, "chat" ) ) {
 		if ( !cg_teamChatsOnly.integer ) {
-			trap_S_StartLocalSound( cgs.media.talkSound, CHAN_LOCAL_SOUND );
+//			trap_S_StartLocalSound( cgs.media.talkSound, CHAN_LOCAL_SOUND );
 			Q_strncpyz( text, CG_Argv(1), MAX_SAY_TEXT );
 			CG_RemoveChatEscapeChar( text );
 			CG_Printf( "%s\n", text );
@@ -1108,7 +1075,7 @@ static void CG_ServerCommand( void ) {
 	}
 
 	if ( !strcmp( cmd, "tchat" ) ) {
-		trap_S_StartLocalSound( cgs.media.talkSound, CHAN_LOCAL_SOUND );
+//		trap_S_StartLocalSound( cgs.media.talkSound, CHAN_LOCAL_SOUND );
 		Q_strncpyz( text, CG_Argv(1), MAX_SAY_TEXT );
 		CG_RemoveChatEscapeChar( text );
 		CG_AddToTeamChat( text );

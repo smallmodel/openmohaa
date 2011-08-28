@@ -768,6 +768,12 @@ void            QuatToVectorsFRU(const quat_t quat, vec3_t forward, vec3_t right
 void            QuatToAxis(const quat_t q, vec3_t axis[3]);
 void            QuatToAngles(const quat_t q, vec3_t angles);
 
+// wombat: pretty straightforward
+void			QuatToRotAngle( const quat_t q, vec_t *angle );
+void			QuatToRotAngleAxis( const quat_t q, vec_t *angle, vec3_t axis );
+
+void			QuatFromRotAngleAxis( quat_t q, vec_t angle, const vec3_t axis );
+
 // Quaternion multiplication, analogous to the matrix multiplication routines.
 
 // qa = rotate by qa, then qb

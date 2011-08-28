@@ -77,7 +77,7 @@ void CG_CheckAmmo( void ) {
 
 	// play a sound on transitions
 	if ( cg.lowAmmoWarning != previous ) {
-		trap_S_StartLocalSound( cgs.media.noAmmoSound, CHAN_LOCAL_SOUND );
+//		trap_S_StartLocalSound( cgs.media.noAmmoSound, CHAN_LOCAL_SOUND );
 	}
 }
 
@@ -298,6 +298,7 @@ void CG_CheckLocalSounds( playerState_t *ps, playerState_t *ops ) {
 	int			highScore, health, armor, reward;
 	sfxHandle_t sfx;
 
+	return;
 	// don't play the sounds if the player just changed teams
 	if ( ps->persistant[PERS_TEAM] != ops->persistant[PERS_TEAM] ) {
 		return;
