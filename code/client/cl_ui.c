@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "client.h"
 
 #include "../botlib/botlib.h"
+#include "../qcommon/tiki_local.h"
 
 extern	botlib_export_t	*botlib_export;
 
@@ -1099,6 +1100,23 @@ intptr_t CL_UISystemCalls( intptr_t *args ) {
 	case UI_R_TEXT_PAINTCHAR:
 		re.Text_PaintChar(VMA(1), VMF(2), VMF(3), VMF(4), args[5], args[6]);
 		return 0;
+
+	// su44
+	case UI_TIKI_REGISTERMODEL:
+		return TIKI_RegisterModel(VMA(1));
+	case UI_TIKI_GETBONES:
+		return TIKI_GetBones(VMA(1));
+	case UI_TIKI_SETCHANNELS:
+		TIKI_SetChannels(VMA(1),args[2],VMF(3),VMF(4),VMA(5));
+		return 0;
+	case UI_TIKI_APPENDFRAMEBOUNDSANDRADIUS:
+		TIKI_AppendFrameBoundsAndRadius(VMA(1),args[2],VMF(3),(void*)args[4],(void*)args[5]);
+		return 0;
+	case UI_TIKI_ANIMATE:
+		TIKI_Animate(VMA(1),VMA(2));
+		return 0;
+	case UI_TIKI_GETBONENAMEINDEX:
+		return TIKI_RegisterBoneName(args[1]);
 
 	default:
 		Com_Error( ERR_DROP, "Bad UI system trap: %ld", (long int) args[0] );

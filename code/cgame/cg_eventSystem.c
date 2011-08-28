@@ -453,6 +453,9 @@ again:
 		trap_R_AddLightToScene(v,intensity,r,g,b);
 	} else if(!strcmp(token,"sfx")) {
 		goto again;
+
+	} else if(!strcmp(token,"bodyfall")) {
+
 	} else {
 		CG_Printf("CG_ProcessEventText: unknown event %s\n",token);
 	}

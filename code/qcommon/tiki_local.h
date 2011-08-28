@@ -210,5 +210,17 @@ static ID_INLINE int TIKI_GetSurfaceIndex(tiki_t *tiki, const char *surfName) {
 	return -1;
 }
 
+static ID_INLINE int TIKI_GetAnimIndex(tiki_t *tiki, const char *animAlias) {
+	int i;
+	tikiAnim_t **anim = tiki->anims;
+	for(i = 0; i < tiki->numAnims; i++) {
+		if(!Q_stricmp((*anim)->alias,animAlias)) {
+			return i;
+		}
+		anim++;
+	}
+	return -1;
+}
+
 #endif // TIKI_LOCAL_H
 

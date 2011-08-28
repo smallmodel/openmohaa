@@ -408,11 +408,19 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\code\qcommon\q_math.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\code\qcommon\q_shared.c"
 				>
 			</File>
 			<File
 				RelativePath="..\..\code\mohui\ui_main.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\code\mohui\ui_model.c"
 				>
 			</File>
 			<File

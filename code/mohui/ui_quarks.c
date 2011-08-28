@@ -510,6 +510,9 @@ void UI_DrawMenu( uiMenu_t *menu, qboolean foreground ) {
 				else {
 					UI_DrawHandlePic( res->rect[0], res->rect[1], res->rect[2], res->rect[3], res->shader );
 				}
+				if(res->rendermodel) {
+					UI_RenderModel(res);
+				}
 				break;
 
 			case UI_RES_BUTTON:
@@ -640,7 +643,7 @@ void UI_SetActiveMenu( uiMenuCommand_t menu ) {
 			else trap_Key_SetCatcher( KEYCATCH_UI );
 			break;
 		case UIMENU_INGAME:
-			UI_PushMenu( "main" );
+			UI_PushMenu( "dm_main" );
 			break;
 	}
 }

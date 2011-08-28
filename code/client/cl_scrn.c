@@ -438,6 +438,8 @@ This will be called twice if rendering in stereo mode
 void SCR_DrawScreenField( stereoFrame_t stereoFrame ) {
 	re.BeginFrame( stereoFrame );
 
+	TIKI_ResetBones();
+
 	// wide aspect ratio screens need to have the sides cleared
 	// unless they are displaying game renderings
 	if ( cls.state != CA_ACTIVE && cls.state != CA_CINEMATIC ) {

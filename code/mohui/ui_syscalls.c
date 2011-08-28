@@ -415,3 +415,26 @@ void trap_R_Text_Paint(fontInfo_t *font, float x, float y, float scale, float al
 void trap_R_Text_PaintChar(fontInfo_t *font, float x, float y, float scale, int c, qboolean is640) {
 	syscall(UI_R_TEXT_PAINTCHAR, font, PASSFLOAT(x), PASSFLOAT(y), PASSFLOAT(scale), c, is640);
 }
+
+
+tiki_t* trap_TIKI_RegisterModel( const char *fname ) {
+	return syscall(UI_TIKI_REGISTERMODEL, fname);
+}
+
+bone_t* trap_TIKI_GetBones( int numBones ) {
+	return syscall(UI_TIKI_GETBONES, numBones);
+}
+
+void trap_TIKI_SetChannels( tiki_t *tiki, int animIndex, float animTime, float animWeight, bone_t *bones ) {
+	syscall(UI_TIKI_SETCHANNELS, tiki, animIndex, PASSFLOAT(animTime), PASSFLOAT(animWeight), bones);
+}
+void trap_TIKI_AppendFrameBoundsAndRadius( struct tiki_s *tiki, int animIndex, float animTime, float *outRadius, vec3_t outBounds[2] ) {
+	syscall(UI_TIKI_APPENDFRAMEBOUNDSANDRADIUS, tiki, animIndex, PASSFLOAT(animTime), outRadius, outBounds);
+}
+void trap_TIKI_Animate( tiki_t *tiki, bone_t *bones ) {
+	syscall(UI_TIKI_ANIMATE, tiki, bones);
+}
+
+int	trap_TIKI_GetBoneNameIndex( const char *boneName ) {
+	return syscall(UI_TIKI_GETBONENAMEINDEX, boneName);
+}

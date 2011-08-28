@@ -39,6 +39,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define UI_CHECKBOX_SIZE	16
 
 typedef void (*voidfunc_f)(void);
+typedef struct tiki_s tiki_t;
 
 typedef enum uiBorderstyle_s {
 	UI_BORDER_NONE,
@@ -130,9 +131,9 @@ typedef struct uiResource_s {
 	float				flStepsize;
 
 	qboolean			rendermodel;
-	char				*modeloffset;
-	char				*modelrotateoffset;
-	char				*modelangles;
+	vec3_t				modeloffset;
+	vec3_t				modelrotateoffset;
+	vec3_t				modelangles;
 	float				modelscale;
 	char				*modelanim;
 // storing extra memory for each resource is too memory-expensive.
@@ -275,6 +276,9 @@ void	UI_LoadURC( const char *name, uiMenu_t *menu );
 void	UI_PushMenu( const char *name );
 void	UI_PopMenu( void );
 
+// ui_model.c
+void UI_RenderModel(uiResource_t *res);
+
 //
 // ui_syscalls.c
 //
@@ -347,5 +351,12 @@ int				trap_R_Text_Width(fontInfo_t *font, const char *text, int limit, qboolean
 int				trap_R_Text_Height(fontInfo_t *font, const char *text, int limit, qboolean useColourCodes);
 void			trap_R_Text_Paint(fontInfo_t *font, float x, float y, float scale, float alpha, const char *text, float adjust, int limit, qboolean useColourCodes, qboolean is640);
 void			trap_R_Text_PaintChar(fontInfo_t *font, float x, float y, float scale, int c, qboolean is640);
+
+tiki_t* trap_TIKI_RegisterModel( const char *fname );
+bone_t* trap_TIKI_GetBones( int numBones );
+void trap_TIKI_SetChannels( tiki_t *tiki, int animIndex, float animTime, float animWeight, bone_t *bones );
+void trap_TIKI_AppendFrameBoundsAndRadius( struct tiki_s *tiki, int animIndex, float animTime, float *outRadius, vec3_t outBounds[2] );
+void trap_TIKI_Animate( tiki_t *tiki, bone_t *bones );
+int	trap_TIKI_GetBoneNameIndex( const char *boneName );
 
 #endif

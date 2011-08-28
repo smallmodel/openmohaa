@@ -240,173 +240,6 @@ static void CG_VoiceTellAttacker_f( void ) {
 	trap_SendClientCommand( command );
 }
 
-#ifdef MISSIONPACK
-static void CG_NextTeamMember_f( void ) {
-  CG_SelectNextPlayer();
-}
-
-static void CG_PrevTeamMember_f( void ) {
-  CG_SelectPrevPlayer();
-}
-
-// ASS U ME's enumeration order as far as task specific orders, OFFENSE is zero, CAMP is last
-//
-static void CG_NextOrder_f( void ) {
-	clientInfo_t *ci = cgs.clientinfo + cg.snap->ps.clientNum;
-	if (ci) {
-		if (!ci->teamLeader && sortedTeamPlayers[cg_currentSelectedPlayer.integer] != cg.snap->ps.clientNum) {
-			return;
-		}
-	}
-	if (cgs.currentOrder < TEAMTASK_CAMP) {
-		cgs.currentOrder++;
-
-		if (cgs.currentOrder == TEAMTASK_RETRIEVE) {
-			if (!CG_OtherTeamHasFlag()) {
-				cgs.currentOrder++;
-			}
-		}
-
-		if (cgs.currentOrder == TEAMTASK_ESCORT) {
-			if (!CG_YourTeamHasFlag()) {
-				cgs.currentOrder++;
-			}
-		}
-
-	} else {
-		cgs.currentOrder = TEAMTASK_OFFENSE;
-	}
-	cgs.orderPending = qtrue;
-	cgs.orderTime = cg.time + 3000;
-}
-
-
-static void CG_ConfirmOrder_f (void ) {
-//	trap_SendConsoleCommand(va("cmd vtell %d %s\n", cgs.acceptLeader, VOICECHAT_YES));
-//	trap_SendConsoleCommand("+button5; wait; -button5"); //button5 is leanright in mohaa
-//	if (cg.time < cgs.acceptOrderTime) {
-//		trap_SendClientCommand(va("teamtask %d\n", cgs.acceptTask));
-//		cgs.acceptOrderTime = 0;
-//	}
-}
-
-static void CG_DenyOrder_f (void ) {
-	trap_SendConsoleCommand(va("cmd vtell %d %s\n", cgs.acceptLeader, VOICECHAT_NO));
-	trap_SendConsoleCommand("+button6; wait; -button6");
-	if (cg.time < cgs.acceptOrderTime) {
-		cgs.acceptOrderTime = 0;
-	}
-}
-
-static void CG_TaskOffense_f (void ) {
-	if (cgs.gametype == GT_CTF || cgs.gametype == GT_1FCTF) {
-		trap_SendConsoleCommand(va("cmd vsay_team %s\n", VOICECHAT_ONGETFLAG));
-	} else {
-		trap_SendConsoleCommand(va("cmd vsay_team %s\n", VOICECHAT_ONOFFENSE));
-	}
-	trap_SendClientCommand(va("teamtask %d\n", TEAMTASK_OFFENSE));
-}
-
-static void CG_TaskDefense_f (void ) {
-	trap_SendConsoleCommand(va("cmd vsay_team %s\n", VOICECHAT_ONDEFENSE));
-	trap_SendClientCommand(va("teamtask %d\n", TEAMTASK_DEFENSE));
-}
-
-static void CG_TaskPatrol_f (void ) {
-	trap_SendConsoleCommand(va("cmd vsay_team %s\n", VOICECHAT_ONPATROL));
-	trap_SendClientCommand(va("teamtask %d\n", TEAMTASK_PATROL));
-}
-
-static void CG_TaskCamp_f (void ) {
-	trap_SendConsoleCommand(va("cmd vsay_team %s\n", VOICECHAT_ONCAMPING));
-	trap_SendClientCommand(va("teamtask %d\n", TEAMTASK_CAMP));
-}
-
-static void CG_TaskFollow_f (void ) {
-	trap_SendConsoleCommand(va("cmd vsay_team %s\n", VOICECHAT_ONFOLLOW));
-	trap_SendClientCommand(va("teamtask %d\n", TEAMTASK_FOLLOW));
-}
-
-static void CG_TaskRetrieve_f (void ) {
-	trap_SendConsoleCommand(va("cmd vsay_team %s\n", VOICECHAT_ONRETURNFLAG));
-	trap_SendClientCommand(va("teamtask %d\n", TEAMTASK_RETRIEVE));
-}
-
-static void CG_TaskEscort_f (void ) {
-	trap_SendConsoleCommand(va("cmd vsay_team %s\n", VOICECHAT_ONFOLLOWCARRIER));
-	trap_SendClientCommand(va("teamtask %d\n", TEAMTASK_ESCORT));
-}
-
-static void CG_TaskOwnFlag_f (void ) {
-	trap_SendConsoleCommand(va("cmd vsay_team %s\n", VOICECHAT_IHAVEFLAG));
-}
-
-static void CG_TauntKillInsult_f (void ) {
-	trap_SendConsoleCommand("cmd vsay kill_insult\n");
-}
-
-static void CG_TauntPraise_f (void ) {
-	trap_SendConsoleCommand("cmd vsay praise\n");
-}
-
-static void CG_TauntTaunt_f (void ) {
-	trap_SendConsoleCommand("cmd vtaunt\n");
-}
-
-static void CG_TauntDeathInsult_f (void ) {
-	trap_SendConsoleCommand("cmd vsay death_insult\n");
-}
-
-static void CG_TauntGauntlet_f (void ) {
-	trap_SendConsoleCommand("cmd vsay kill_guantlet\n");
-}
-
-static void CG_TaskSuicide_f (void ) {
-	int		clientNum;
-	char	command[128];
-
-	clientNum = CG_CrosshairPlayer();
-	if ( clientNum == -1 ) {
-		return;
-	}
-
-	Com_sprintf( command, 128, "tell %i suicide", clientNum );
-	trap_SendClientCommand( command );
-}
-
-
-
-/*
-==================
-CG_TeamMenu_f
-==================
-*/
-/*
-static void CG_TeamMenu_f( void ) {
-  if (trap_Key_GetCatcher() & KEYCATCH_CGAME) {
-    CG_EventHandling(CGAME_EVENT_NONE);
-    trap_Key_SetCatcher(0);
-  } else {
-    CG_EventHandling(CGAME_EVENT_TEAMMENU);
-    //trap_Key_SetCatcher(KEYCATCH_CGAME);
-  }
-}
-*/
-
-/*
-==================
-CG_EditHud_f
-==================
-*/
-/*
-static void CG_EditHud_f( void ) {
-  //cls.keyCatchers ^= KEYCATCH_CGAME;
-  //VM_Call (cgvm, CG_EVENT_HANDLING, (cls.keyCatchers & KEYCATCH_CGAME) ? CGAME_EVENT_EDITHUD : CGAME_EVENT_NONE);
-}
-*/
-
-#endif
-
 /*
 ==================
 CG_StartOrbit_f
@@ -444,6 +277,16 @@ static void CG_Camera_f( void ) {
 }
 */
 
+static void CG_LocationPrint_f() {
+	char buffer[512];
+	float x,y;
+	trap_Argv( 1, buffer, sizeof(buffer) );
+	x = atof(buffer);
+	trap_Argv( 1, buffer, sizeof(buffer) );
+	y = atof(buffer);
+	trap_Argv( 1, buffer, sizeof(buffer) );
+	CG_LocationPrint(buffer,x,y,SMALLCHAR_WIDTH);
+}
 
 typedef struct {
 	char	*cmd;
@@ -472,35 +315,10 @@ static consoleCommand_t	commands[] = {
 	{ "vtell_target", CG_VoiceTellTarget_f },
 	{ "vtell_attacker", CG_VoiceTellAttacker_f },
 	{ "tcmd", CG_TargetCommand_f },
-#ifdef MISSIONPACK
-	{ "loadhud", CG_LoadHud_f },
-	{ "nextTeamMember", CG_NextTeamMember_f },
-	{ "prevTeamMember", CG_PrevTeamMember_f },
-	{ "nextOrder", CG_NextOrder_f },
-	{ "confirmOrder", CG_ConfirmOrder_f },
-	{ "denyOrder", CG_DenyOrder_f },
-	{ "taskOffense", CG_TaskOffense_f },
-	{ "taskDefense", CG_TaskDefense_f },
-	{ "taskPatrol", CG_TaskPatrol_f },
-	{ "taskCamp", CG_TaskCamp_f },
-	{ "taskFollow", CG_TaskFollow_f },
-	{ "taskRetrieve", CG_TaskRetrieve_f },
-	{ "taskEscort", CG_TaskEscort_f },
-	{ "taskSuicide", CG_TaskSuicide_f },
-	{ "taskOwnFlag", CG_TaskOwnFlag_f },
-	{ "tauntKillInsult", CG_TauntKillInsult_f },
-	{ "tauntPraise", CG_TauntPraise_f },
-	{ "tauntTaunt", CG_TauntTaunt_f },
-	{ "tauntDeathInsult", CG_TauntDeathInsult_f },
-	{ "tauntGauntlet", CG_TauntGauntlet_f },
-	{ "spWin", CG_spWin_f },
-	{ "spLose", CG_spLose_f },
-	{ "scoresDown", CG_scrollScoresDown_f },
-	{ "scoresUp", CG_scrollScoresUp_f },
-#endif
 	{ "startOrbit", CG_StartOrbit_f },
 	//{ "camera", CG_Camera_f },
-	{ "loaddeferred", CG_LoadDeferredPlayers }	
+	{ "loaddeferred", CG_LoadDeferredPlayers },
+	{ "locationprint", CG_LocationPrint_f },
 };
 
 

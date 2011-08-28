@@ -166,16 +166,13 @@ void UI_ParseMenuResource( const char *token, char **ptr, uiResource_t *res, int
 		res->rendermodel = (qboolean)atoi(PARSE_PTR);
 	}
 	else if ( !Q_strncmp( token, "modeloffset", 128 ) ) {
-		res->modeloffset = UI_Alloc( UI_MAX_NAME );
-		Q_strncpyz( res->modeloffset, PARSE_PTR, UI_MAX_NAME );
+		sscanf(PARSE_PTR,"%f %f %f",&res->modeloffset[0],&res->modeloffset[1],&res->modeloffset[2]);
 	}
 	else if ( !Q_strncmp( token, "modelrotateoffset", 17 ) ) {
-		res->modelrotateoffset = UI_Alloc( UI_MAX_NAME );
-		Q_strncpyz( res->modelrotateoffset, PARSE_PTR, UI_MAX_NAME );
+		sscanf(PARSE_PTR,"%f %f %f",&res->modelrotateoffset[0],&res->modelrotateoffset[1],&res->modelrotateoffset[2]);
 	}
 	else if ( !Q_strncmp( token, "modelangles", 11 ) ) {
-		res->modelangles = UI_Alloc( UI_MAX_NAME );
-		Q_strncpyz( res->modelangles, PARSE_PTR, UI_MAX_NAME );
+		sscanf(PARSE_PTR,"%f %f %f",&res->modelangles[0],&res->modelangles[1],&res->modelangles[2]);
 	}
 	else if ( !Q_strncmp( token, "modelscale", 10 ) ) {
 		res->modelscale = atof(PARSE_PTR);
