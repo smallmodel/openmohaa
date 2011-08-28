@@ -24,7 +24,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // not necessarily every single rendered frame
 
 #include "cg_local.h"
-
+#include "../qcommon/tiki_local.h"
 
 
 /*
@@ -55,7 +55,89 @@ CG_TransitionEntity
 cent->nextState is moved to cent->currentState and events are fired
 ===============
 */
+static int TIKI_FrameNumForTime(tiki_t *tiki, int animIndex, float animTime) {
+	int i;
+	tikiAnim_t *anim;
+	if(tiki->numAnims <= animIndex) {
+		Com_Printf("TIKI_SetChannels: animIndex %i out of range %i\n",animIndex,tiki->numAnims);
+		return;
+	}
+	anim = tiki->anims[animIndex];
+	if(anim->numFrames == 1) {
+		return 0;
+	}
+	i = 0;
+	while(animTime > anim->frameTime) {
+		animTime -= anim->frameTime;
+		i++;
+	}
+	return i;
+}
+static void CG_ExecuteFrameCommands(centity_t *cent, tikiAnim_t *anim, int frameIndex) {
+	int i;
+	tikiCommand_t *cmd;
+	cmd = anim->clientCmds;
+	for(i = 0; i < anim->numClientCmds; i++,cmd++) {
+		if(cmd->frame == frameIndex) {
+			CG_Printf("Frame %i command %s\n",cmd->frame,cmd->text);
+			CG_ProcessEventText(cent,cmd->text);
+		}
+	}
+}
+static void CG_ExecuteFramesCommands(centity_t *cent, tikiAnim_t *anim, int start, int stop) {
+	int i;
+	tikiCommand_t *cmd;
+	cmd = anim->clientCmds;
+	for(i = 0; i < anim->numClientCmds; i++,cmd++) {
+		if(cmd->frame >= start && cmd->frame <= stop) {
+			CG_Printf("Frame %i command %s\n",cmd->frame,cmd->text);
+			CG_ProcessEventText(cent,cmd->text);
+		}
+	}
+}
+
 static void CG_TransitionEntity( centity_t *cent ) {
+	frameInfo_t *fi0, *fi1;
+	tiki_t *tiki;
+	tikiAnim_t *a0, *a1;
+	int f0, f1;
+	int i,j;
+	
+	tiki = cgs.gameTIKIs[cent->nextState.modelindex];
+	if(tiki) {
+		// su44: It should be placed somewhere else soon
+		fi0 = cent->currentState.frameInfo;
+		fi1 = cent->nextState.frameInfo;
+		for(i = 0; i < 16; i++,fi0++,fi1++) {
+			if(fi0->weight) {
+				a0 = tiki->anims[fi0->index];
+				f0 = TIKI_FrameNumForTime(tiki,fi0->index,fi0->time);
+				if(fi1->weight) {
+					if(fi0->index != fi1->index) {
+						a1 = tiki->anims[fi1->index];
+						CG_ExecuteFrameCommands(cent,a0,TIKI_FRAME_EXIT);
+						CG_ExecuteFrameCommands(cent,a1,TIKI_FRAME_ENTRY);
+					} else {
+						f1 = TIKI_FrameNumForTime(tiki,fi1->index,fi1->time);
+						if(f1 > f0) {
+							CG_ExecuteFramesCommands(cent,a0,f0,f1);
+						} else { 
+							CG_ExecuteFramesCommands(cent,a0,f1,f0);
+						}
+					}
+				} else {
+					// anim has stopped
+					//CG_ExecuteFramesCommands(cent,anim,fi0->
+					CG_ExecuteFrameCommands(cent,a0,TIKI_FRAME_EXIT);
+				}
+			} else if(fi1->weight) {
+				// anim is staring
+				a1 = tiki->anims[fi1->index];
+				f1 = TIKI_FrameNumForTime(tiki,fi1->index,fi1->time);
+				CG_ExecuteFrameCommands(cent,a1,TIKI_FRAME_ENTRY);
+			}
+		}
+	}
 	cent->currentState = cent->nextState;
 	cent->currentValid = qtrue;
 

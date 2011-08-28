@@ -1516,6 +1516,14 @@ void CG_CheckChangedPredictableEvents( playerState_t *ps );
 void CG_ModelAnim( centity_t *cent );
 void CG_BoneLocal2World(bone_t *b, vec3_t pos, vec3_t rot, vec3_t outPos, vec3_t outRot);
 
+//
+// cg_eventSystem.c
+//
+void CG_InitEventSystem(); // called once from CG_Init
+void CG_ProcessEventText(centity_t *ent, const char *eventText);
+void CG_PostEvent(centity_t *ent, const char *eventText, int eventDelay);
+void CG_ProcessPendingEvents(); // called every frame
+
 //===============================================
 
 //

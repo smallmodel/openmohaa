@@ -827,6 +827,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="..\..\code\cgame\cg_eventSystem.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\code\cgame\cg_info.c"
 				>
 				<FileConfiguration

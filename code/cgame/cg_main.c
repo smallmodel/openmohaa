@@ -1789,6 +1789,8 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum ) {
 
 	CG_InitMarkPolys();
 
+	CG_InitEventSystem();
+
 	// remove the last loading update
 	cg.infoScreenText[0] = 0;
 

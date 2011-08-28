@@ -344,7 +344,7 @@ item 2 "Binoculars"
 	trap_TIKI_Animate(fps,ent->bones);
 	// TODO: calculate fViewBobPhase and fViewBobAmp
 	CG_CalcViewModelMovement(0,0,cg.predictedPlayerState.velocity,vMovement);
-	CG_Printf("Movement: %f %f %f\n",vMovement[0],vMovement[1],vMovement[2]);
+	//CG_Printf("Movement: %f %f %f\n",vMovement[0],vMovement[1],vMovement[2]);
 
 	// in MoHAA "eyes bone" is used here
 	bone = 0;

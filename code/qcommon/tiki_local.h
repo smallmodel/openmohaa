@@ -32,7 +32,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define TIKI_MAX_INCLUDES			32
 #define MAX_TIKI_SURFACES			32
 
-typedef struct tikiCommand_s {
+#define TIKI_FRAME_ENTRY	-1
+#define TIKI_FRAME_EXIT		-2
+
+typedef struct {
 	int				frame;	// -1 == at entry, -2 == at exit
 	char			*text;
 } tikiCommand_t;
@@ -70,9 +73,9 @@ typedef struct tikiAnim_s {
 	*/
 	tikiFrame_t	*frames;
 	int				numClientCmds;
-	tikiCommand_t	**clientCmds;
+	tikiCommand_t	*clientCmds;
 	int				numServerCmds;
-	tikiCommand_t	**serverCmds;
+	tikiCommand_t	*serverCmds;
 } tikiAnim_t;
 
 typedef struct {
@@ -141,10 +144,17 @@ typedef struct {
 	int m_reference2;
 } tikiBoneAVRot_t;
 
+typedef struct tikiInit_s {
+	int numServerCmds;
+	int numClientCmds;
+	char **clCmds;
+	char **svCmds;
+} tikiInit_t;
+
 typedef struct tiki_s {
 	char			name[MAX_QPATH];
 
-//	char			*init;	// command block executed on entity initialization
+	tikiInit_t		*init;	// tiki's init section
 
 	float			scale;
 

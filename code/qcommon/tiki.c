@@ -1107,6 +1107,10 @@ static tiki_t *TIKI_Load(const char *fname) {
 	int				i, j, level = 0;
 	tikiAnim_t		*anim;
 	tikiAnim_t		*anims[1024];
+	int				numCmds;
+	tikiCommand_t	cmds[512];
+	char			*cmdTxts[512];
+	char			cmdText[2048];
 	tiki_t			*includes[TIKI_MAX_INCLUDES];
 	struct
 	{
@@ -1233,12 +1237,55 @@ again:
 					}
 				break;
 				case SECTION_INIT:
-					/*if (!Q_stricmp(token, "skelmodel")) {
+					out->init = Hunk_Alloc(sizeof(tikiInit_t),h_low);
+					if (!Q_stricmp(token, "server")) {
 						token = COM_ParseExt(&text, qtrue);
-					}
-					else {
+						if(token[0]!='{')
+							Com_Printf("expected { to follow server, found %s\n",token);
+
+						while(1) {
+							token = COM_ParseExt(&text, qtrue);
+							if(token[0] == '}') 
+								break;
+						}
+					} else if (!Q_stricmp(token, "client")) {
+						char **cmd = cmdTxts;
+						numCmds = 0;
+						token = COM_ParseExt(&text, qtrue);
+						if(token[0]!='{')
+							Com_Printf("expected { to follow server, found %s\n",token);
+
+						while(1) {
+							cmdText[0] = 0;
+							while(1) {
+								token = COM_ParseExt(&text, qfalse);
+								if(token[0]==0 || token[0] == '}') {
+									break;
+								}
+								if(cmdText[0]!=0) {
+									strcat(cmdText," ");
+								}
+								strcat(cmdText,token);
+							}
+							if(cmdText[0]) {
+								*cmd = Hunk_Alloc(strlen(cmdText)+1,h_low);
+								strcpy(*cmd,cmdText);
+								//Com_Printf("Event text: %s\n",*cmd);
+								// next command
+								cmd++;
+								numCmds++;
+							}
+							if(token[0] == '}') 
+								break;
+						}
+						if(numCmds) {
+							out->init->numClientCmds = numCmds;
+							out->init->clCmds = Hunk_Alloc(sizeof(char*)*numCmds,h_low);
+							memcpy(out->init->clCmds,cmdTxts,sizeof(char*)*numCmds);
+						}
+					} else {
 						Com_Printf("Unknown token %s in section %s of file %s\n",token,sections[section],fname);
-					}*/
+					}
 				break;
 				case SECTION_ANIMATIONS:
 					strcpy(tmp,token);
@@ -1261,13 +1308,74 @@ again:
 					}
 					token = COM_ParseExt(&text, qtrue);
 					if(token[0] == '{')	{
-						int animLevel = 1;
-						while(animLevel) {
+						while(1) {
 							token = COM_ParseExt(&text, qtrue);
 							if(token[0] == '}')
-								animLevel--;
-							if(token[0] == '{')
-								animLevel++;
+								break;
+							if (!Q_stricmp(token, "server")) {
+								token = COM_ParseExt(&text, qtrue);
+								if(token[0]!='{')
+									Com_Printf("expected { to follow server, found %s\n",token);
+
+								while(1) {
+									token = COM_ParseExt(&text, qtrue);
+									if(token[0] == '}') 
+										break;
+								}
+							} else if (!Q_stricmp(token, "client")) {
+								tikiCommand_t *cmd = cmds;
+								numCmds = 0;
+								token = COM_ParseExt(&text, qtrue);
+								if(token[0]!='{')
+									Com_Printf("expected { to follow server, found %s\n",token);
+
+								while(1) {
+									cmdText[0] = 0;
+									token = COM_ParseExt(&text, qtrue);
+									if(token[0] == '}')
+										break;
+									// parse frame index
+									if(!Q_stricmp(token,"entry")) {
+										cmd->frame = TIKI_FRAME_ENTRY;
+									} else if(!Q_stricmp(token,"exit")) {
+										cmd->frame = TIKI_FRAME_EXIT;
+									} else if(!Q_stricmp(token,"first")) {
+										cmd->frame = 0;
+									} else if(!Q_stricmp(token,"last")) {
+										cmd->frame = anim->numFrames;
+									} else {
+										cmd->frame = atoi(token);
+									}
+									// parse event
+									while(1) {
+										token = COM_ParseExt(&text, qfalse);
+										if(token[0]==0 || token[0] == '}') {
+											break;
+										}
+										if(cmdText[0]!=0) {
+											strcat(cmdText," ");
+										}
+										strcat(cmdText,token);
+									}
+									if(cmdText[0]) {
+										cmd->text = Hunk_Alloc(strlen(cmdText)+1,h_low);
+										strcpy(cmd->text,cmdText);
+										//Com_Printf("Event text: %s\n",cmd->text);
+										// next command
+										cmd++;
+										numCmds++;
+									}
+									if(token[0] == '}') 
+										break;
+								}
+								if(numCmds) {
+									anim->numClientCmds = numCmds;
+									anim->clientCmds = Hunk_Alloc(sizeof(tikiCommand_t)*numCmds,h_low);
+									memcpy(anim->clientCmds,cmds,sizeof(tikiCommand_t)*numCmds);
+								}
+							} else {
+								Com_Printf("Unknown token %s in section %s of file %s\n",token,sections[section],fname);
+							}	
 						}
 					}
 					else {
