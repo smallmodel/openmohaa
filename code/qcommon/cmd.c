@@ -146,7 +146,7 @@ void Cbuf_ExecuteText (int exec_when, const char *text)
 		if (text && strlen(text) > 0) {
 			Cmd_ExecuteString (text);
 		} else {
-			Cbuf_Execute();
+			Cbuf_Execute(0);
 		}
 		break;
 	case EXEC_INSERT:
@@ -165,7 +165,7 @@ void Cbuf_ExecuteText (int exec_when, const char *text)
 Cbuf_Execute
 ============
 */
-void Cbuf_Execute (void)
+void Cbuf_Execute (int msec)
 {
 	int		i;
 	char	*text;
@@ -175,10 +175,14 @@ void Cbuf_Execute (void)
 	while (cmd_text.cursize)
 	{
 		if ( cmd_wait )	{
-			// skip out while text still remains in buffer, leaving it
-			// for next frame
-			cmd_wait--;
-			break;
+			if( cmd_wait == 1 ) {
+				cmd_wait = 0;
+				return;
+			}
+			cmd_wait -= msec;
+			if ( cmd_wait > 0 )
+				return;
+			cmd_wait = 0;
 		}
 
 		// find a \n or ; line break

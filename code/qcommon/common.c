@@ -2547,7 +2547,7 @@ void Com_Init( char *commandLine ) {
 
 	Cbuf_AddText ("exec autoexec.cfg\n");
 
-	Cbuf_Execute ();
+	Cbuf_Execute (0);
 
 	// override anything from the config files with command line args
 	Com_StartupVariable( NULL );
@@ -2839,7 +2839,7 @@ void Com_Frame( void ) {
 		}
 		msec = com_frameTime - lastTime;
 	} while ( msec < minMsec );
-	Cbuf_Execute ();
+	Cbuf_Execute (0);
 
 	if (com_altivec->modified)
 	{
@@ -2888,7 +2888,7 @@ void Com_Frame( void ) {
 		timeBeforeEvents = Sys_Milliseconds ();
 	}
 	Com_EventLoop();
-	Cbuf_Execute ();
+	Cbuf_Execute (msec);
 
 
 	//
