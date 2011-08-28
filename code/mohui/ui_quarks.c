@@ -489,7 +489,7 @@ void UI_DrawMenu( uiMenu_t *menu, qboolean foreground ) {
 						break;
 						case STATBAR_VERTICAL:
 						UI_SetColor( res->bgcolor );
-						if ( res->statbarshader ) {
+						if ( res->statbarshader && ps_stats[res->maxplayerstat]!=0) {
 							frac = res->rect[3] * ps_stats[res->playerstat] / ps_stats[res->maxplayerstat];
 							UI_DrawHandlePic( res->rect[0], res->rect[1]+res->rect[3] - frac, res->rect[2], frac, res->statbarshader );
 						}

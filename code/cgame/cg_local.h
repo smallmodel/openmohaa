@@ -1515,6 +1515,8 @@ void CG_CheckChangedPredictableEvents( playerState_t *ps );
 //
 void CG_ModelAnim( centity_t *cent );
 void CG_BoneLocal2World(bone_t *b, vec3_t pos, vec3_t rot, vec3_t outPos, vec3_t outRot);
+void CG_CentBoneLocal2World(bone_t *b, centity_t *cent, vec3_t outPos, vec3_t outRot);
+void CG_CentBoneIndexLocal2World(int boneIndex, centity_t *cent, vec3_t outPos, vec3_t outRot);
 
 //
 // cg_eventSystem.c

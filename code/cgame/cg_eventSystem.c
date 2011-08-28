@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // cg_eventSystem.c
 
 #include "cg_local.h"
+#include "../qcommon/tiki_local.h"
 
 typedef struct event_s {
 	centity_t *ent;
@@ -47,15 +48,208 @@ void CG_InitEventSystem() {
 		events[i].next = &events[i+1];
 	}
 }
+/*
+Generates a random float component for MoHAA events.
+If random is specified, the component will range from 0 to specified value.
+If crandom is specified, the component will range from -specified to +specified value.
+If range is specified, the component needs two values; it will randomly pick a number in the range
+from the first number to the first number plus the second number.
+This is used by "randvel", "randvelaxis", "offset", "offsetalongaxis", "angles", MoHAA events
+*/
+float CG_ParseEventFloatParm(char **text) {
+	char *token;
+	float value;
+	token = COM_ParseExt( text, qfalse );
+	if(!Q_stricmp(token,"random")) {
+		token = COM_ParseExt( text, qfalse );
+		value = random()*atof(token);
+	} else if(!Q_stricmp(token,"crandom")) {
+		token = COM_ParseExt( text, qfalse );
+		value = crandom()*atof(token);
+	} else if(!Q_stricmp(token,"range")) {
+		float range;
+		token = COM_ParseExt( text, qfalse );
+		value = atof(token);	
+
+		token = COM_ParseExt( text, qfalse );
+		range = atof(token);	
+
+		value += random()*range;
+	} else {
+#if 0
+		CG_Printf("CG_ParseEventFloatParm: unknown first parm, expected 'random', 'crandom' or 'range', found %s\n",token);
+		value = 0;
+#else
+		value = atof(token);
+#endif
+	}
+	return value;
+}
+// this is used by both "tagspawn" and "originspawn" events
+void CG_ProcessSpawnEvent(centity_t *ent, vec3_t spawnOrigin, char *text) {
+	char *token;
+	qhandle_t h;
+	tiki_t *tiki;
+	vec3_t v;
+
+	// skip optional paramter(s) ? see rechamber anim of weapons/kar98.tik
+	do {
+		token = COM_ParseExt( &text, qtrue );
+		if(token[0]==0) {
+			CG_Printf("'***spawn' event without parameters block, check tiki file %s\n",tiki->name);
+			return;			
+		}
+	} while(token[0] != '(');
+	if(token[1] == 0) {
+		token = COM_ParseExt( &text, qtrue );
+	} else {
+		token++;
+	}
+
+	// parse parameters ( ... ) block
+	while(token[0] != ')') {
+		if(token[0]==0) {
+			CG_Printf("'***spawn' missing ')' in tiki %s\n",tiki->name);
+			return;			
+		}
+		Q_strlwr(token);
+		if(!strcmp(token,"spawnrange")) {
+			token = COM_ParseExt( &text, qtrue );
+
+		} else if(!strcmp(token,"spawnrate")) {
+			token = COM_ParseExt( &text, qtrue );
+
+		} else if(!strcmp(token,"count")) {
+			token = COM_ParseExt( &text, qtrue );
+
+		} else if(!strcmp(token,"model")) {
+			// both .tik and .spr models are used here
+			token = COM_ParseExt( &text, qtrue );
+			h = trap_R_RegisterModel(token);
+
+		} else if(!strcmp(token,"color")) {
+			token = COM_ParseExt( &text, qfalse );
+			token = COM_ParseExt( &text, qfalse );
+			token = COM_ParseExt( &text, qfalse );
+
+		} else if(!strcmp(token,"alpha")) {
+			token = COM_ParseExt( &text, qfalse );
+
+		} else if(!strcmp(token,"offset")) {
+			token = COM_ParseExt( &text, qfalse ); // x
+			token = COM_ParseExt( &text, qfalse ); // y
+			token = COM_ParseExt( &text, qfalse ); // z
+
+		} else if(!strcmp(token,"offsetalongaxis")) {
+			v[0] = CG_ParseEventFloatParm(&text); // x
+			v[1] = CG_ParseEventFloatParm(&text); // y
+			v[2] = CG_ParseEventFloatParm(&text); // z
+
+		} else if(!strcmp(token,"randvelaxis")) {
+			v[0] = CG_ParseEventFloatParm(&text); // x
+			v[1] = CG_ParseEventFloatParm(&text); // y
+			v[2] = CG_ParseEventFloatParm(&text); // z
+
+		} else if(!strcmp(token,"scale")) {
+			token = COM_ParseExt( &text, qtrue );
+
+		} else if(!strcmp(token,"scalemin")) {
+			token = COM_ParseExt( &text, qtrue );
+
+		} else if(!strcmp(token,"scalemax")) {
+			token = COM_ParseExt( &text, qtrue );
+
+		} else if(!strcmp(token,"scalerate")) {
+			token = COM_ParseExt( &text, qtrue );
+
+		} else if(!strcmp(token,"velocity")) {
+			token = COM_ParseExt( &text, qtrue ); // forwardVelocity 
+
+		} else if(!strcmp(token,"randvel")) {
+			v[0] = CG_ParseEventFloatParm(&text);
+			v[1] = CG_ParseEventFloatParm(&text);
+			v[2] = CG_ParseEventFloatParm(&text);
+
+		} else if(!strcmp(token,"emitterangles")) {
+			token = COM_ParseExt( &text, qfalse ); // pitchofs
+			token = COM_ParseExt( &text, qfalse ); // yawofs
+			token = COM_ParseExt( &text, qfalse ); // rollofs
+		} else if(!strcmp(token,"avelocity")) {
+			// crandom keyword is used for avelocity in weapons/mp40.tik
+			v[0] = CG_ParseEventFloatParm(&text); // yawVel
+			v[1] = CG_ParseEventFloatParm(&text); // pitchVel
+			v[2] = CG_ParseEventFloatParm(&text); // rollVel
+
+
+		} else if(!strcmp(token,"accel")) {
+			// NOTE: This acceleration is applied using the world axis
+			token = COM_ParseExt( &text, qfalse ); // accelX
+			token = COM_ParseExt( &text, qfalse ); // accelY
+			token = COM_ParseExt( &text, qfalse ); // accelZ
+
+		} else if(!strcmp(token,"physicsrate")) {
+			token = COM_ParseExt( &text, qtrue );
+			if(!Q_stricmp(token,"every")) {
+
+			}
+		} else if(!strcmp(token,"life")) {
+			token = COM_ParseExt( &text, qtrue );
+
+		} else if(!strcmp(token,"fadedelay")) {
+			token = COM_ParseExt( &text, qtrue );
+
+		} else if(!strcmp(token,"collision")) {
+
+		} else if(!strcmp(token,"fade")) {
+
+		} else if(!strcmp(token,"randomroll")) {
+
+		} else if(!strcmp(token,"spritegridlighting")) {
+
+		} else if(!strcmp(token,"volumetric")) {	
+		// set the effect to spawn volumetric sources rather than tempmodels
+
+		} else if(!strcmp(token,"wateronly")) {
+		// makes the temp model remove itself if it leaves water
+
+		} else if(!strcmp(token,"wind")) {
+		// makes the temp model be affected by wind
+
+		} else if(!strcmp(token,"bouncefactor")) {
+			token = COM_ParseExt( &text, qtrue );
+
+		} else if(!strcmp(token,"bouncesoundonce")) {
+			token = COM_ParseExt( &text, qtrue );
+
+
+		} else if(!strcmp(token,"friction")) {
+			token = COM_ParseExt( &text, qtrue );
+
+		} else {
+			CG_Printf("Uknown '***spawn' parameter %s\n",token);
+		}
+		COM_ParseExt( &text, qtrue );
+	}
+
+
+
+}
 
 void CG_ProcessEventText(centity_t *ent, const char *eventText) {
 	char *text;
 	char *token;
 	float f;
+	int i;
+	int boneName;
+	tiki_t *tiki;
+	qhandle_t h;
+	vec3_t v;
 
+
+	text = eventText;
+again:
 	// if(cg_printEvents.integer)
 		CG_Printf("CG_ProcessEventText: event %s\n",eventText);
-	text = eventText;
 
 	// get event name
 	token = COM_ParseExt( &text, qtrue );
@@ -98,8 +292,97 @@ void CG_ProcessEventText(centity_t *ent, const char *eventText) {
 		token = COM_ParseExt( &text, qtrue );
 		f = atof(token);
 		CG_PostEvent(ent,text,f*1000);
-	}
+	} else if(!strcmp(token,"originspawn")) {
+		CG_ProcessSpawnEvent(ent,ent->lerpOrigin,text);
+	} else if(!strcmp(token,"tagspawn")) {
+		tiki = cgs.gameTIKIs[ent->currentState.modelindex];
+		if(!tiki) {
+			CG_Printf("'tagspawn' event cast on entity with null TIKI\n");
+			return;
+		}
+		// parse tagname
+		token = COM_ParseExt( &text, qtrue );
+		// find tag in tiki
+		boneName = trap_TIKI_GetBoneNameIndex(token); 
+		for(i = 0; i < tiki->numBones; i++) {
+			if(tiki->boneNames[i] == boneName) {
+				break;
+			}
+		}
+		if(i == tiki->numBones) {
+			CG_Printf("Cant find bone %s in tiki %s for 'tagspawn' event\n",token,tiki->name);
+			return;
+		}
+		if(ent->bones == 0) {
+			CG_Printf("'tagspawn' event cast on entity with null bones ptr\n");
+			return;
+		}
+		CG_CentBoneIndexLocal2World(i,ent,v,0);
+		CG_ProcessSpawnEvent(ent,v,text);
+		
+	} else if(!strcmp(token,"tagdlight")) {
+		float r,g,b,intensity;
+	// tagdlight( String tagName, Float red, Float green,
+	//			Float blue, Float intensity, Float life, 
+	//			[ String intvel ], [ String type1 ] )
+	/*
+	Spawn a dynamic light from the specified tag
+	The red,green,blue parms are the color of the light
+	The intensity is the radius of the light
+	type is the type of light to create (lensflare,viewlensflare,additive)
+	*/
+		tiki = cgs.gameTIKIs[ent->currentState.modelindex];
+		if(!tiki) {
+			CG_Printf("'tagdlight' event cast on entity with null TIKI\n");
+			return;
+		}
+		// parse tagname
+		token = COM_ParseExt( &text, qtrue );
+		// find tag in tiki
+		boneName = trap_TIKI_GetBoneNameIndex(token); 
+		for(i = 0; i < tiki->numBones; i++) {
+			if(tiki->boneNames[i] == boneName) {
+				break;
+			}
+		}
+		if(i == tiki->numBones) {
+			CG_Printf("Cant find bone %s in tiki %s for 'tagdlight' event\n",token,tiki->name);
+			return;
+		}
+		if(ent->bones == 0) {
+			CG_Printf("'tagdlight' event cast on entity with null bones ptr\n");
+			return;
+		}
+		token = COM_ParseExt( &text, qtrue );
+		r = atof(token);
+		token = COM_ParseExt( &text, qtrue );
+		g = atof(token);
+		token = COM_ParseExt( &text, qtrue );
+		b = atof(token);
+		token = COM_ParseExt( &text, qtrue );
+		intensity = atof(token);
+		// optional parameters
+		token = COM_ParseExt( &text, qtrue );
+		if(token[0]) {
+			// TODO
+			token = COM_ParseExt( &text, qtrue );
+			if(token[0]) {
+				if(!Q_stricmp(token,"addictive")) {
 
+				} else if(!Q_stricmp(token,"lensflare")) {
+
+				} else if(!Q_stricmp(token,"viewlensflare")) {
+
+				}
+			}
+		}
+		CG_CentBoneIndexLocal2World(i,ent,v,0);
+		trap_R_AddLightToScene(v,intensity,r,g,b);
+	} else if(!strcmp(token,"sfx")) {
+		goto again;
+	} else {
+		CG_Printf("CG_ProcessEventText: unknown event %s\n",token);
+	}
 	
 
 	

@@ -806,6 +806,7 @@ Generates and draws a game scene and status information at the given time.
 */
 void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demoPlayback ) {
 	int		inwater;
+	int		i;
 
 	cg.time = serverTime;
 	cg.demoPlayback = demoPlayback;
@@ -920,6 +921,9 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 		CG_Printf( "cg.clientFrame:%i\n", cg.clientFrame );
 	}
 
-
+	// bones pointers are no longer valid
+	for( i = 0; i < MAX_ENTITIES; i++) {
+		cg_entities[i].bones = 0;
+	}
 }
 

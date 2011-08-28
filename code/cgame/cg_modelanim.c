@@ -48,14 +48,22 @@ void CG_BoneLocal2World(bone_t *b, vec3_t pos, vec3_t rot, vec3_t outPos, vec3_t
 
 	QuaternionMultiply(outQuat,b->q,q);
 	QuatNormalize(outQuat);
+	if(outRot) {
 #if 0
-	QuatToAngles(outQuat, outRot);
+		QuatToAngles(outQuat, outRot);
 #else
-	MatrixFromQuat(m,outQuat);
-	MatrixToAngles(m,outRot);
+		MatrixFromQuat(m,outQuat);
+		MatrixToAngles(m,outRot);
 #endif
+	}
 }
-void CG_AttachEntity(refEntity_t *e, centity_t *parent, int boneIndex) {
+void CG_CentBoneLocal2World(bone_t *b, centity_t *cent, vec3_t outPos, vec3_t outRot) {
+	CG_BoneLocal2World(b,cent->lerpOrigin,cent->lerpAngles,outPos,outRot);
+}
+void CG_CentBoneIndexLocal2World(int boneIndex, centity_t *cent, vec3_t outPos, vec3_t outRot) {
+	CG_BoneLocal2World(cent->bones+boneIndex,cent->lerpOrigin,cent->lerpAngles,outPos,outRot);
+}
+void CG_AttachEntity(refEntity_t *e, centity_t *parent, int boneIndex, vec3_t outAngles) {
 	bone_t *b;
 	vec3_t a;
 	if(parent->bones==0)
@@ -63,6 +71,8 @@ void CG_AttachEntity(refEntity_t *e, centity_t *parent, int boneIndex) {
 	b = &parent->bones[boneIndex];
 	CG_BoneLocal2World(b,parent->lerpOrigin,parent->lerpAngles,e->origin,a);
 	AnglesToAxis(a,e->axis);
+	if(outAngles)
+		VectorCopy(a,outAngles);
 }
 void CG_ModelAnim( centity_t *cent ) {
 	refEntity_t ent;
@@ -81,7 +91,9 @@ void CG_ModelAnim( centity_t *cent ) {
 			ent.renderfx |= RF_THIRD_PERSON;
 			attachedToViewmodel = qtrue;
 		} else {
-			CG_AttachEntity(&ent,&cg_entities[s1->parent],s1->tag_num);
+			CG_AttachEntity(&ent,&cg_entities[s1->parent],s1->tag_num,cent->lerpAngles);
+			// save pos/rot for events
+			VectorCopy(ent.origin,cent->lerpOrigin);
 		}
 
 	} else {

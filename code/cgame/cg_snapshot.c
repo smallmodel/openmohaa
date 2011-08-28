@@ -80,7 +80,8 @@ static void CG_ExecuteFrameCommands(centity_t *cent, tikiAnim_t *anim, int frame
 	for(i = 0; i < anim->numClientCmds; i++,cmd++) {
 		if(cmd->frame == frameIndex) {
 			CG_Printf("Frame %i command %s\n",cmd->frame,cmd->text);
-			CG_ProcessEventText(cent,cmd->text);
+			//CG_ProcessEventText(cent,cmd->text);
+			CG_PostEvent(cent,cmd->text,0);
 		}
 	}
 }
@@ -91,34 +92,36 @@ static void CG_ExecuteFramesCommands(centity_t *cent, tikiAnim_t *anim, int star
 	for(i = 0; i < anim->numClientCmds; i++,cmd++) {
 		if(cmd->frame >= start && cmd->frame <= stop) {
 			CG_Printf("Frame %i command %s\n",cmd->frame,cmd->text);
-			CG_ProcessEventText(cent,cmd->text);
+			//CG_ProcessEventText(cent,cmd->text);
+			CG_PostEvent(cent,cmd->text,0);
 		}
 	}
 }
 
 static void CG_TransitionEntity( centity_t *cent ) {
 	frameInfo_t *fi0, *fi1;
-	tiki_t *tiki;
+	tiki_t *tiki0,*tiki1;
 	tikiAnim_t *a0, *a1;
 	int f0, f1;
 	int i,j;
 	
-	tiki = cgs.gameTIKIs[cent->nextState.modelindex];
-	if(tiki) {
+	tiki0 = cgs.gameTIKIs[cent->currentState.modelindex];
+	tiki1 = cgs.gameTIKIs[cent->nextState.modelindex];
+	if(tiki0 || tiki1) {
 		// su44: It should be placed somewhere else soon
 		fi0 = cent->currentState.frameInfo;
 		fi1 = cent->nextState.frameInfo;
 		for(i = 0; i < 16; i++,fi0++,fi1++) {
 			if(fi0->weight) {
-				a0 = tiki->anims[fi0->index];
-				f0 = TIKI_FrameNumForTime(tiki,fi0->index,fi0->time);
+				a0 = tiki0->anims[fi0->index];
+				f0 = TIKI_FrameNumForTime(tiki0,fi0->index,fi0->time);
 				if(fi1->weight) {
-					if(fi0->index != fi1->index) {
-						a1 = tiki->anims[fi1->index];
+					if(fi0->index != fi1->index || tiki0 != tiki1) {
+						a1 = tiki1->anims[fi1->index];
 						CG_ExecuteFrameCommands(cent,a0,TIKI_FRAME_EXIT);
 						CG_ExecuteFrameCommands(cent,a1,TIKI_FRAME_ENTRY);
 					} else {
-						f1 = TIKI_FrameNumForTime(tiki,fi1->index,fi1->time);
+						f1 = TIKI_FrameNumForTime(tiki1,fi1->index,fi1->time);
 						if(f1 > f0) {
 							CG_ExecuteFramesCommands(cent,a0,f0,f1);
 						} else { 
@@ -132,8 +135,8 @@ static void CG_TransitionEntity( centity_t *cent ) {
 				}
 			} else if(fi1->weight) {
 				// anim is staring
-				a1 = tiki->anims[fi1->index];
-				f1 = TIKI_FrameNumForTime(tiki,fi1->index,fi1->time);
+				a1 = tiki1->anims[fi1->index];
+				f1 = TIKI_FrameNumForTime(tiki1,fi1->index,fi1->time);
 				CG_ExecuteFrameCommands(cent,a1,TIKI_FRAME_ENTRY);
 			}
 		}

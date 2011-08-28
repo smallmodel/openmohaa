@@ -124,6 +124,8 @@ void CG_AddViewModelAnimAttachment(refEntity_t *ent, centity_t *cent) {
 		return;
 	CG_BoneLocal2World(cg.viewModelEnt.bones+i,cg.viewModelEnt.origin,cg.refdefViewAngles,ent->origin,outRot);
 #endif
+	VectorCopy(ent->origin,cent->lerpOrigin);
+	VectorCopy(outRot,cent->lerpAngles);
 	AnglesToAxis(outRot,ent->axis);
 
 	trap_R_AddRefEntityToScene(ent);

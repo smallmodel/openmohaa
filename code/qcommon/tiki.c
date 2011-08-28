@@ -1352,6 +1352,27 @@ again:
 										if(token[0]==0 || token[0] == '}') {
 											break;
 										}
+
+#if 1
+										// HACK - MoHAA allows linebreaks in tagspawn commands
+										if(!Q_stricmp(token,"tagspawn")) {
+											if(cmdText[0]!=0) {
+												strcat(cmdText," ");
+											}
+											strcat(cmdText,token);
+											do {
+												token = COM_ParseExt(&text, qtrue);
+												if(token[0]==0) {
+													Com_Printf("Unexpected end of file found in tagspawn command block in tiki file %s\n",fname);
+													break;
+												}
+												if(cmdText[0]!=0) {
+													strcat(cmdText," ");
+												}
+												strcat(cmdText,token);
+											} while(token[0] != ')');
+										}
+#endif
 										if(cmdText[0]!=0) {
 											strcat(cmdText," ");
 										}

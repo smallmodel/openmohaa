@@ -1077,10 +1077,5 @@ void CG_AddPacketEntities( void ) {
 		cent = &cg_entities[ cg.snap->entities[ num ].number ];
 		CG_AddCEntity( cent );
 	}
-
-
-	for( num = 0; num < MAX_ENTITIES; num++) {
-		cg_entities[num].bones = 0;
-	}
 }
 
