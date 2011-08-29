@@ -92,25 +92,7 @@ BotIsFirstInRankings
 ==================
 */
 int BotIsFirstInRankings(bot_state_t *bs) {
-	int i, score;
-	char buf[MAX_INFO_STRING];
-	static int maxclients;
-	playerState_t ps;
 
-	if (!maxclients)
-		maxclients = trap_Cvar_VariableIntegerValue("sv_maxclients");
-
-	score = bs->cur_ps.persistant[PERS_SCORE];
-	for (i = 0; i < maxclients && i < MAX_CLIENTS; i++) {
-		trap_GetConfigstring(CS_PLAYERS+i, buf, sizeof(buf));
-		//if no config string or no name
-		if (!strlen(buf) || !strlen(Info_ValueForKey(buf, "n"))) continue;
-		//skip spectators
-		if (atoi(Info_ValueForKey(buf, "t")) == TEAM_SPECTATOR) continue;
-		//
-		BotAI_GetClientState(i, &ps);
-		if (score < ps.persistant[PERS_SCORE]) return qfalse;
-	}
 	return qtrue;
 }
 
@@ -120,25 +102,7 @@ BotIsLastInRankings
 ==================
 */
 int BotIsLastInRankings(bot_state_t *bs) {
-	int i, score;
-	char buf[MAX_INFO_STRING];
-	static int maxclients;
-	playerState_t ps;
 
-	if (!maxclients)
-		maxclients = trap_Cvar_VariableIntegerValue("sv_maxclients");
-
-	score = bs->cur_ps.persistant[PERS_SCORE];
-	for (i = 0; i < maxclients && i < MAX_CLIENTS; i++) {
-		trap_GetConfigstring(CS_PLAYERS+i, buf, sizeof(buf));
-		//if no config string or no name
-		if (!strlen(buf) || !strlen(Info_ValueForKey(buf, "n"))) continue;
-		//skip spectators
-		if (atoi(Info_ValueForKey(buf, "t")) == TEAM_SPECTATOR) continue;
-		//
-		BotAI_GetClientState(i, &ps);
-		if (score > ps.persistant[PERS_SCORE]) return qfalse;
-	}
 	return qtrue;
 }
 
@@ -148,32 +112,8 @@ BotFirstClientInRankings
 ==================
 */
 char *BotFirstClientInRankings(void) {
-	int i, bestscore, bestclient;
-	char buf[MAX_INFO_STRING];
-	static char name[32];
-	static int maxclients;
-	playerState_t ps;
 
-	if (!maxclients)
-		maxclients = trap_Cvar_VariableIntegerValue("sv_maxclients");
-
-	bestscore = -999999;
-	bestclient = 0;
-	for (i = 0; i < maxclients && i < MAX_CLIENTS; i++) {
-		trap_GetConfigstring(CS_PLAYERS+i, buf, sizeof(buf));
-		//if no config string or no name
-		if (!strlen(buf) || !strlen(Info_ValueForKey(buf, "n"))) continue;
-		//skip spectators
-		if (atoi(Info_ValueForKey(buf, "t")) == TEAM_SPECTATOR) continue;
-		//
-		BotAI_GetClientState(i, &ps);
-		if (ps.persistant[PERS_SCORE] > bestscore) {
-			bestscore = ps.persistant[PERS_SCORE];
-			bestclient = i;
-		}
-	}
-	EasyClientName(bestclient, name, 32);
-	return name;
+	return 0;
 }
 
 /*
@@ -182,32 +122,8 @@ BotLastClientInRankings
 ==================
 */
 char *BotLastClientInRankings(void) {
-	int i, worstscore, bestclient;
-	char buf[MAX_INFO_STRING];
-	static char name[32];
-	static int maxclients;
-	playerState_t ps;
 
-	if (!maxclients)
-		maxclients = trap_Cvar_VariableIntegerValue("sv_maxclients");
-
-	worstscore = 999999;
-	bestclient = 0;
-	for (i = 0; i < maxclients && i < MAX_CLIENTS; i++) {
-		trap_GetConfigstring(CS_PLAYERS+i, buf, sizeof(buf));
-		//if no config string or no name
-		if (!strlen(buf) || !strlen(Info_ValueForKey(buf, "n"))) continue;
-		//skip spectators
-		if (atoi(Info_ValueForKey(buf, "t")) == TEAM_SPECTATOR) continue;
-		//
-		BotAI_GetClientState(i, &ps);
-		if (ps.persistant[PERS_SCORE] < worstscore) {
-			worstscore = ps.persistant[PERS_SCORE];
-			bestclient = i;
-		}
-	}
-	EasyClientName(bestclient, name, 32);
-	return name;
+	return 0;
 }
 
 /*
@@ -421,7 +337,7 @@ int BotChat_EnterGame(bot_state_t *bs) {
 	//don't chat in teamplay
 	if (TeamPlayIsOn()) return qfalse;
 	// don't chat in tournament mode
-	if (gametype == GT_TOURNAMENT) return qfalse;
+//	if (gametype == GT_TOURNAMENT) return qfalse;
 	rnd = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_CHAT_ENTEREXITGAME, 0, 1);
 	if (!bot_fastchat.integer) {
 		if (random() > rnd) return qfalse;
@@ -454,7 +370,7 @@ int BotChat_ExitGame(bot_state_t *bs) {
 	//don't chat in teamplay
 	if (TeamPlayIsOn()) return qfalse;
 	// don't chat in tournament mode
-	if (gametype == GT_TOURNAMENT) return qfalse;
+//	if (gametype == GT_TOURNAMENT) return qfalse;
 	rnd = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_CHAT_ENTEREXITGAME, 0, 1);
 	if (!bot_fastchat.integer) {
 		if (random() > rnd) return qfalse;
@@ -491,7 +407,6 @@ int BotChat_StartLevel(bot_state_t *bs) {
 	    return qfalse;
 	}
 	// don't chat in tournament mode
-	if (gametype == GT_TOURNAMENT) return qfalse;
 	rnd = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_CHAT_STARTENDLEVEL, 0, 1);
 	if (!bot_fastchat.integer) {
 		if (random() > rnd) return qfalse;
@@ -526,7 +441,7 @@ int BotChat_EndLevel(bot_state_t *bs) {
 		return qtrue;
 	}
 	// don't chat in tournament mode
-	if (gametype == GT_TOURNAMENT) return qfalse;
+//	if (gametype == GT_TOURNAMENT) return qfalse;
 	rnd = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_CHAT_STARTENDLEVEL, 0, 1);
 	if (!bot_fastchat.integer) {
 		if (random() > rnd) return qfalse;
@@ -578,7 +493,7 @@ int BotChat_Death(bot_state_t *bs) {
 	if (bs->lastchat_time > FloatTime() - TIME_BETWEENCHATTING) return qfalse;
 	rnd = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_CHAT_DEATH, 0, 1);
 	// don't chat in tournament mode
-	if (gametype == GT_TOURNAMENT) return qfalse;
+//	if (gametype == GT_TOURNAMENT) return qfalse;
 	//if fast chatting is off
 	if (!bot_fastchat.integer) {
 		if (random() > rnd) return qfalse;
@@ -679,7 +594,7 @@ int BotChat_Kill(bot_state_t *bs) {
 	if (bs->lastchat_time > FloatTime() - TIME_BETWEENCHATTING) return qfalse;
 	rnd = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_CHAT_KILL, 0, 1);
 	// don't chat in tournament mode
-	if (gametype == GT_TOURNAMENT) return qfalse;
+//	if (gametype == GT_TOURNAMENT) return qfalse;
 	//if fast chat is off
 	if (!bot_fastchat.integer) {
 		if (random() > rnd) return qfalse;
@@ -747,7 +662,7 @@ int BotChat_EnemySuicide(bot_state_t *bs) {
 	//don't chat in teamplay
 	if (TeamPlayIsOn()) return qfalse;
 	// don't chat in tournament mode
-	if (gametype == GT_TOURNAMENT) return qfalse;
+//	if (gametype == GT_TOURNAMENT) return qfalse;
 	//if fast chat is off
 	if (!bot_fastchat.integer) {
 		if (random() > rnd) return qfalse;
@@ -787,7 +702,7 @@ int BotChat_HitTalking(bot_state_t *bs) {
 	//don't chat in teamplay
 	if (TeamPlayIsOn()) return qfalse;
 	// don't chat in tournament mode
-	if (gametype == GT_TOURNAMENT) return qfalse;
+//	if (gametype == GT_TOURNAMENT) return qfalse;
 	//if fast chat is off
 	if (!bot_fastchat.integer) {
 		if (random() > rnd * 0.5) return qfalse;
@@ -827,7 +742,7 @@ int BotChat_HitNoDeath(bot_state_t *bs) {
 	//don't chat in teamplay
 	if (TeamPlayIsOn()) return qfalse;
 	// don't chat in tournament mode
-	if (gametype == GT_TOURNAMENT) return qfalse;
+//	if (gametype == GT_TOURNAMENT) return qfalse;
 	//if fast chat is off
 	if (!bot_fastchat.integer) {
 		if (random() > rnd * 0.5) return qfalse;
@@ -865,7 +780,7 @@ int BotChat_HitNoKill(bot_state_t *bs) {
 	//don't chat in teamplay
 	if (TeamPlayIsOn()) return qfalse;
 	// don't chat in tournament mode
-	if (gametype == GT_TOURNAMENT) return qfalse;
+//	if (gametype == GT_TOURNAMENT) return qfalse;
 	//if fast chat is off
 	if (!bot_fastchat.integer) {
 		if (random() > rnd * 0.5) return qfalse;
@@ -899,7 +814,7 @@ int BotChat_Random(bot_state_t *bs) {
 	if (BotIsObserver(bs)) return qfalse;
 	if (bs->lastchat_time > FloatTime() - TIME_BETWEENCHATTING) return qfalse;
 	// don't chat in tournament mode
-	if (gametype == GT_TOURNAMENT) return qfalse;
+//	if (gametype == GT_TOURNAMENT) return qfalse;
 	//don't chat when doing something important :)
 	if (bs->ltgtype == LTG_TEAMHELP ||
 		bs->ltgtype == LTG_TEAMACCOMPANY ||

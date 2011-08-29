@@ -450,6 +450,10 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	// initialize all entities for this game
 	memset( g_entities, 0, MAX_GENTITIES * sizeof(g_entities[0]) );
 	level.gentities = g_entities;
+	for ( i=0 ; i<MAX_GENTITIES ; i++ ) {
+		g_entities[i].s.tag_num = -1;
+		g_entities[i].s.parent = ENTITYNUM_NONE;
+	}
 
 	// initialize all clients for this game
 	level.maxclients = g_maxclients.integer;
@@ -473,20 +477,11 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	// reserve some spots for dead player bodies
 	InitBodyQue();
 
-	ClearRegisteredItems();
-
 	// parse the key/value pairs and spawn gentities
 	G_SpawnEntitiesFromString();
 
 	// general initialization
 	G_FindTeams();
-
-	// make sure we have flags for CTF, etc
-	if( g_gametype.integer >= GT_TEAM ) {
-		G_CheckTeamItems();
-	}
-
-	SaveRegisteredItems();
 
 	G_Printf ("-----------------------------------\n");
 
@@ -731,15 +726,15 @@ int QDECL SortRanks( const void *a, const void *b ) {
 		return -1;
 	}
 
-	// then sort by score
-	if ( ca->ps.persistant[PERS_SCORE]
-		> cb->ps.persistant[PERS_SCORE] ) {
-		return -1;
-	}
-	if ( ca->ps.persistant[PERS_SCORE]
-		< cb->ps.persistant[PERS_SCORE] ) {
-		return 1;
-	}
+	//// then sort by score
+	//if ( ca->ps.persistant[PERS_SCORE]
+	//	> cb->ps.persistant[PERS_SCORE] ) {
+	//	return -1;
+	//}
+	//if ( ca->ps.persistant[PERS_SCORE]
+	//	< cb->ps.persistant[PERS_SCORE] ) {
+	//	return 1;
+	//}
 	return 0;
 }
 
@@ -753,111 +748,7 @@ and team change.
 ============
 */
 void CalculateRanks( void ) {
-	int		i;
-	int		rank;
-	int		score;
-	int		newScore;
-	gclient_t	*cl;
 
-	level.follow1 = -1;
-	level.follow2 = -1;
-	level.numConnectedClients = 0;
-	level.numNonSpectatorClients = 0;
-	level.numPlayingClients = 0;
-	level.numVotingClients = 0;		// don't count bots
-	for ( i = 0; i < TEAM_NUM_TEAMS; i++ ) {
-		level.numteamVotingClients[i] = 0;
-	}
-	for ( i = 0 ; i < level.maxclients ; i++ ) {
-		if ( level.clients[i].pers.connected != CON_DISCONNECTED ) {
-			level.sortedClients[level.numConnectedClients] = i;
-			level.numConnectedClients++;
-
-			if ( level.clients[i].sess.sessionTeam != TEAM_SPECTATOR ) {
-				level.numNonSpectatorClients++;
-
-				// decide if this should be auto-followed
-				if ( level.clients[i].pers.connected == CON_CONNECTED ) {
-					level.numPlayingClients++;
-					if ( !(g_entities[i].r.svFlags & SVF_BOT) ) {
-						level.numVotingClients++;
-						if ( level.clients[i].sess.sessionTeam == TEAM_RED )
-							level.numteamVotingClients[0]++;
-						else if ( level.clients[i].sess.sessionTeam == TEAM_BLUE )
-							level.numteamVotingClients[1]++;
-					}
-					if ( level.follow1 == -1 ) {
-						level.follow1 = i;
-					} else if ( level.follow2 == -1 ) {
-						level.follow2 = i;
-					}
-				}
-			}
-		}
-	}
-
-	qsort( level.sortedClients, level.numConnectedClients,
-		sizeof(level.sortedClients[0]), SortRanks );
-
-	// set the rank value for all clients that are connected and not spectators
-	if ( g_gametype.integer >= GT_TEAM ) {
-		// in team games, rank is just the order of the teams, 0=red, 1=blue, 2=tied
-		for ( i = 0;  i < level.numConnectedClients; i++ ) {
-			cl = &level.clients[ level.sortedClients[i] ];
-			if ( level.teamScores[TEAM_RED] == level.teamScores[TEAM_BLUE] ) {
-				cl->ps.persistant[PERS_RANK] = 2;
-			} else if ( level.teamScores[TEAM_RED] > level.teamScores[TEAM_BLUE] ) {
-				cl->ps.persistant[PERS_RANK] = 0;
-			} else {
-				cl->ps.persistant[PERS_RANK] = 1;
-			}
-		}
-	} else {
-		rank = -1;
-		score = 0;
-		for ( i = 0;  i < level.numPlayingClients; i++ ) {
-			cl = &level.clients[ level.sortedClients[i] ];
-			newScore = cl->ps.persistant[PERS_SCORE];
-			if ( i == 0 || newScore != score ) {
-				rank = i;
-				// assume we aren't tied until the next client is checked
-				level.clients[ level.sortedClients[i] ].ps.persistant[PERS_RANK] = rank;
-			} else {
-				// we are tied with the previous client
-				level.clients[ level.sortedClients[i-1] ].ps.persistant[PERS_RANK] = rank | RANK_TIED_FLAG;
-				level.clients[ level.sortedClients[i] ].ps.persistant[PERS_RANK] = rank | RANK_TIED_FLAG;
-			}
-			score = newScore;
-			if ( g_gametype.integer == GT_SINGLE_PLAYER && level.numPlayingClients == 1 ) {
-				level.clients[ level.sortedClients[i] ].ps.persistant[PERS_RANK] = rank | RANK_TIED_FLAG;
-			}
-		}
-	}
-
-	// set the CS_SCORES1/2 configstrings, which will be visible to everyone
-	if ( g_gametype.integer >= GT_TEAM ) {
-		trap_SetConfigstring( CS_SCORES1, va("%i", level.teamScores[TEAM_RED] ) );
-		trap_SetConfigstring( CS_SCORES2, va("%i", level.teamScores[TEAM_BLUE] ) );
-	} else {
-		if ( level.numConnectedClients == 0 ) {
-			trap_SetConfigstring( CS_SCORES1, va("%i", SCORE_NOT_PRESENT) );
-			trap_SetConfigstring( CS_SCORES2, va("%i", SCORE_NOT_PRESENT) );
-		} else if ( level.numConnectedClients == 1 ) {
-			trap_SetConfigstring( CS_SCORES1, va("%i", level.clients[ level.sortedClients[0] ].ps.persistant[PERS_SCORE] ) );
-			trap_SetConfigstring( CS_SCORES2, va("%i", SCORE_NOT_PRESENT) );
-		} else {
-			trap_SetConfigstring( CS_SCORES1, va("%i", level.clients[ level.sortedClients[0] ].ps.persistant[PERS_SCORE] ) );
-			trap_SetConfigstring( CS_SCORES2, va("%i", level.clients[ level.sortedClients[1] ].ps.persistant[PERS_SCORE] ) );
-		}
-	}
-
-	// see if it is time to end the level
-	CheckExitRules();
-
-	// if we are at the intermission, send the new info to everyone
-	if ( level.intermissiontime ) {
-		SendScoreboardMessageToAllClients();
-	}
 }
 
 
@@ -896,28 +787,7 @@ If a new client connects, this will be called after the spawn function.
 ========================
 */
 void MoveClientToIntermission( gentity_t *ent ) {
-	// take out of follow mode if needed
-	if ( ent->client->sess.spectatorState == SPECTATOR_FOLLOW ) {
-		StopFollowing( ent );
-	}
 
-
-	// move to the spot
-	VectorCopy( level.intermission_origin, ent->s.origin );
-	VectorCopy( level.intermission_origin, ent->client->ps.origin );
-	VectorCopy (level.intermission_angle, ent->client->ps.viewangles);
-	ent->client->ps.pm_type = PM_INTERMISSION;
-
-	// clean up powerup info
-	memset( ent->client->ps.powerups, 0, sizeof(ent->client->ps.powerups) );
-
-	ent->client->ps.eFlags = 0;
-	ent->s.eFlags = 0;
-	ent->s.eType = ET_GENERAL;
-	ent->s.modelindex = 0;
-	ent->s.loopSound = 0;
-	ent->s.event = 0;
-	ent->r.contents = 0;
 }
 
 /*
@@ -961,11 +831,6 @@ void BeginIntermission( void ) {
 
 	if ( level.intermissiontime ) {
 		return;		// already active
-	}
-
-	// if in tournement mode, change the wins / losses
-	if ( g_gametype.integer == GT_TOURNAMENT ) {
-		AdjustTournamentScores();
 	}
 
 	level.intermissiontime = level.time;
@@ -1020,19 +885,6 @@ void ExitLevel (void) {
 	//bot interbreeding
 	BotInterbreedEndMatch();
 
-	// if we are running a tournement map, kick the loser to spectator status,
-	// which will automatically grab the next spectator and restart
-	if ( g_gametype.integer == GT_TOURNAMENT  ) {
-		if ( !level.restarted ) {
-			RemoveTournamentLoser();
-			trap_SendConsoleCommand( EXEC_APPEND, "map_restart 0\n" );
-			level.restarted = qtrue;
-			level.changemap = NULL;
-			level.intermissiontime = 0;
-		}
-		return;
-	}
-
 	trap_Cvar_VariableStringBuffer( "nextmap", nextmap, sizeof(nextmap) );
 	trap_Cvar_VariableStringBuffer( "d1", d1, sizeof(d1) );
 
@@ -1049,13 +901,7 @@ void ExitLevel (void) {
 	// reset all the scores so we don't enter the intermission again
 	level.teamScores[TEAM_RED] = 0;
 	level.teamScores[TEAM_BLUE] = 0;
-	for ( i=0 ; i< g_maxclients.integer ; i++ ) {
-		cl = level.clients + i;
-		if ( cl->pers.connected != CON_CONNECTED ) {
-			continue;
-		}
-		cl->ps.persistant[PERS_SCORE] = 0;
-	}
+
 
 	// we need to do this here before chaning to CON_CONNECTING
 	G_WriteSessionData();
@@ -1123,10 +969,6 @@ void LogExit( const char *string ) {
 
 	level.intermissionQueued = level.time;
 
-	// this will keep the clients from playing any voice sounds
-	// that will get cut off when the queued intermission starts
-	trap_SetConfigstring( CS_INTERMISSION, "1" );
-
 	// don't send more than 32 scores (FIXME?)
 	numSorted = level.numConnectedClients;
 	if ( numSorted > 32 ) {
@@ -1150,16 +992,7 @@ void LogExit( const char *string ) {
 			continue;
 		}
 
-		ping = cl->ps.ping < 999 ? cl->ps.ping : 999;
-
-		G_LogPrintf( "score: %i  ping: %i  client: %i %s\n", cl->ps.persistant[PERS_SCORE], ping, level.sortedClients[i],	cl->pers.netname );
-#ifdef MISSIONPACK
-		if (g_singlePlayer.integer && g_gametype.integer == GT_TOURNAMENT) {
-			if (g_entities[cl - level.clients].r.svFlags & SVF_BOT && cl->ps.persistant[PERS_RANK] == 0) {
-				won = qfalse;
-			}
-		}
-#endif
+	
 
 	}
 
@@ -1273,20 +1106,21 @@ ScoreIsTied
 =============
 */
 qboolean ScoreIsTied( void ) {
-	int		a, b;
+	//int		a, b;
 
-	if ( level.numPlayingClients < 2 ) {
-		return qfalse;
-	}
+	//if ( level.numPlayingClients < 2 ) {
+	//	return qfalse;
+	//}
 
-	if ( g_gametype.integer >= GT_TEAM ) {
-		return level.teamScores[TEAM_RED] == level.teamScores[TEAM_BLUE];
-	}
+	//if ( g_gametype.integer >= GT_TEAM ) {
+	//	return level.teamScores[TEAM_RED] == level.teamScores[TEAM_BLUE];
+	//}
 
-	a = level.clients[level.sortedClients[0]].ps.persistant[PERS_SCORE];
-	b = level.clients[level.sortedClients[1]].ps.persistant[PERS_SCORE];
+	//a = level.clients[level.sortedClients[0]].ps.persistant[PERS_SCORE];
+	//b = level.clients[level.sortedClients[1]].ps.persistant[PERS_SCORE];
 
-	return a == b;
+	//return a == b;
+	return 0;
 }
 
 /*
@@ -1299,94 +1133,7 @@ can see the last frag.
 =================
 */
 void CheckExitRules( void ) {
- 	int			i;
-	gclient_t	*cl;
-	// if at the intermission, wait for all non-bots to
-	// signal ready, then go to next level
-	if ( level.intermissiontime ) {
-		CheckIntermissionExit ();
-		return;
-	}
-
-	if ( level.intermissionQueued ) {
-#ifdef MISSIONPACK
-		int time = (g_singlePlayer.integer) ? SP_INTERMISSION_DELAY_TIME : INTERMISSION_DELAY_TIME;
-		if ( level.time - level.intermissionQueued >= time ) {
-			level.intermissionQueued = 0;
-			BeginIntermission();
-		}
-#else
-		if ( level.time - level.intermissionQueued >= INTERMISSION_DELAY_TIME ) {
-			level.intermissionQueued = 0;
-			BeginIntermission();
-		}
-#endif
-		return;
-	}
-
-	// check for sudden death
-	if ( ScoreIsTied() ) {
-		// always wait for sudden death
-		return;
-	}
-
-	if ( g_timelimit.integer && !level.warmupTime ) {
-		if ( level.time - level.startTime >= g_timelimit.integer*60000 ) {
-			trap_SendServerCommand( -1, "print \"Timelimit hit.\n\"");
-			LogExit( "Timelimit hit." );
-			return;
-		}
-	}
-
-	if ( level.numPlayingClients < 2 ) {
-		return;
-	}
-
-	if ( g_gametype.integer < GT_CTF && g_fraglimit.integer ) {
-		if ( level.teamScores[TEAM_RED] >= g_fraglimit.integer ) {
-			trap_SendServerCommand( -1, "print \"Red hit the fraglimit.\n\"" );
-			LogExit( "Fraglimit hit." );
-			return;
-		}
-
-		if ( level.teamScores[TEAM_BLUE] >= g_fraglimit.integer ) {
-			trap_SendServerCommand( -1, "print \"Blue hit the fraglimit.\n\"" );
-			LogExit( "Fraglimit hit." );
-			return;
-		}
-
-		for ( i=0 ; i< g_maxclients.integer ; i++ ) {
-			cl = level.clients + i;
-			if ( cl->pers.connected != CON_CONNECTED ) {
-				continue;
-			}
-			if ( cl->sess.sessionTeam != TEAM_FREE ) {
-				continue;
-			}
-
-			if ( cl->ps.persistant[PERS_SCORE] >= g_fraglimit.integer ) {
-				LogExit( "Fraglimit hit." );
-				trap_SendServerCommand( -1, va("print \"%s" S_COLOR_WHITE " hit the fraglimit.\n\"",
-					cl->pers.netname ) );
-				return;
-			}
-		}
-	}
-
-	if ( g_gametype.integer >= GT_CTF && g_capturelimit.integer ) {
-
-		if ( level.teamScores[TEAM_RED] >= g_capturelimit.integer ) {
-			trap_SendServerCommand( -1, "print \"Red hit the capturelimit.\n\"" );
-			LogExit( "Capturelimit hit." );
-			return;
-		}
-
-		if ( level.teamScores[TEAM_BLUE] >= g_capturelimit.integer ) {
-			trap_SendServerCommand( -1, "print \"Blue hit the capturelimit.\n\"" );
-			LogExit( "Capturelimit hit." );
-			return;
-		}
-	}
+ 
 }
 
 
@@ -1414,57 +1161,7 @@ void CheckTournament( void ) {
 		return;
 	}
 
-	if ( g_gametype.integer == GT_TOURNAMENT ) {
-
-		// pull in a spectator if needed
-		if ( level.numPlayingClients < 2 ) {
-			AddTournamentPlayer();
-		}
-
-		// if we don't have two players, go back to "waiting for players"
-		if ( level.numPlayingClients != 2 ) {
-			if ( level.warmupTime != -1 ) {
-				level.warmupTime = -1;
-				trap_SetConfigstring( CS_WARMUP, va("%i", level.warmupTime) );
-				G_LogPrintf( "Warmup:\n" );
-			}
-			return;
-		}
-
-		if ( level.warmupTime == 0 ) {
-			return;
-		}
-
-		// if the warmup is changed at the console, restart it
-		if ( g_warmup.modificationCount != level.warmupModificationCount ) {
-			level.warmupModificationCount = g_warmup.modificationCount;
-			level.warmupTime = -1;
-		}
-
-		// if all players have arrived, start the countdown
-		if ( level.warmupTime < 0 ) {
-			if ( level.numPlayingClients == 2 ) {
-				// fudge by -1 to account for extra delays
-				if ( g_warmup.integer > 1 ) {
-					level.warmupTime = level.time + ( g_warmup.integer - 1 ) * 1000;
-				} else {
-					level.warmupTime = 0;
-				}
-
-				trap_SetConfigstring( CS_WARMUP, va("%i", level.warmupTime) );
-			}
-			return;
-		}
-
-		// if the warmup time has counted down, restart
-		if ( level.time > level.warmupTime ) {
-			level.warmupTime += 10000;
-			trap_Cvar_Set( "g_restarted", "1" );
-			trap_SendConsoleCommand( EXEC_APPEND, "map_restart 0\n" );
-			level.restarted = qtrue;
-			return;
-		}
-	} else if ( g_gametype.integer != GT_SINGLE_PLAYER && level.warmupTime != 0 ) {
+	if ( g_gametype.integer != GT_SINGLE_PLAYER && level.warmupTime != 0 ) {
 		int		counts[TEAM_NUM_TEAMS];
 		qboolean	notEnough = qfalse;
 
@@ -1524,31 +1221,7 @@ CheckVote
 ==================
 */
 void CheckVote( void ) {
-	if ( level.voteExecuteTime && level.voteExecuteTime < level.time ) {
-		level.voteExecuteTime = 0;
-		trap_SendConsoleCommand( EXEC_APPEND, va("%s\n", level.voteString ) );
-	}
-	if ( !level.voteTime ) {
-		return;
-	}
-	if ( level.time - level.voteTime >= VOTE_TIME ) {
-		trap_SendServerCommand( -1, "print \"Vote failed.\n\"" );
-	} else {
-		// ATVI Q3 1.32 Patch #9, WNF
-		if ( level.voteYes > level.numVotingClients/2 ) {
-			// execute the command, then remove the vote
-			trap_SendServerCommand( -1, "print \"Vote passed.\n\"" );
-			level.voteExecuteTime = level.time + 3000;
-		} else if ( level.voteNo >= level.numVotingClients/2 ) {
-			// same behavior as a timeout
-			trap_SendServerCommand( -1, "print \"Vote failed.\n\"" );
-		} else {
-			// still waiting for a majority
-			return;
-		}
-	}
-	level.voteTime = 0;
-	trap_SetConfigstring( CS_VOTE_TIME, "" );
+
 
 }
 
@@ -1669,7 +1342,6 @@ void CheckTeamVote( int team ) {
 		}
 	}
 	level.teamVoteTime[cs_offset] = 0;
-	trap_SetConfigstring( CS_TEAMVOTE_TIME + cs_offset, "" );
 
 }
 
@@ -1753,33 +1425,6 @@ int start, end;
 			continue;
 		}
 
-		// clear events that are too old
-		if ( level.time - ent->eventTime > EVENT_VALID_MSEC ) {
-			if ( ent->s.event ) {
-				ent->s.event = 0;	// &= EV_EVENT_BITS;
-				if ( ent->client ) {
-					ent->client->ps.externalEvent = 0;
-					// predicted events should never be set to zero
-					//ent->client->ps.events[0] = 0;
-					//ent->client->ps.events[1] = 0;
-				}
-			}
-			if ( ent->freeAfterEvent ) {
-				// tempEntities or dropped items completely go away after their event
-				G_FreeEntity( ent );
-				continue;
-			} else if ( ent->unlinkAfterEvent ) {
-				// items that will respawn will hide themselves after their pickup event
-				ent->unlinkAfterEvent = qfalse;
-				trap_UnlinkEntity( ent );
-			}
-		}
-
-		// temporary entities don't think
-		if ( ent->freeAfterEvent ) {
-			continue;
-		}
-
 		if ( !ent->r.linked && ent->neverFree ) {
 			continue;
 		}
@@ -1790,7 +1435,7 @@ int start, end;
 		}
 
 		if ( ent->s.eType == ET_ITEM || ent->physicsObject ) {
-			G_RunItem( ent );
+			//G_RunItem( ent );
 			continue;
 		}
 

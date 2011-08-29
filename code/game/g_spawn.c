@@ -207,8 +207,8 @@ spawn_t	spawns[] = {
 
 	{"func_plat", SP_func_plat},
 	{"func_button", SP_func_button},
-	{"func_door", SP_func_door},
-	{"func_rotatingdoor", SP_func_rotatingdoor},	// IneQuation
+	//{"func_door", SP_func_door},
+	//{"func_rotatingdoor", SP_func_rotatingdoor},	// IneQuation
 	{"func_static", SP_func_static},
 	{"func_rotating", SP_func_rotating},
 	{"func_bobbing", SP_func_bobbing},
@@ -256,9 +256,6 @@ spawn_t	spawns[] = {
 	{"shooter_grenade", SP_shooter_grenade},
 	{"shooter_plasma", SP_shooter_plasma},
 
-	{"team_CTF_redplayer", SP_team_CTF_redplayer},
-	{"team_CTF_blueplayer", SP_team_CTF_blueplayer},
-
 	// IneQuation
 	{"info_player_axis", SP_team_CTF_redspawn},
 	{"info_player_allied", SP_team_CTF_bluespawn},
@@ -283,20 +280,11 @@ returning qfalse if not found
 */
 qboolean G_CallSpawn( gentity_t *ent ) {
 	spawn_t	*s;
-	gitem_t	*item;
 	tiki_t *tiki;
 
 	if ( !ent->classname ) {
 		G_Printf ("G_CallSpawn: NULL classname\n");
 		return qfalse;
-	}
-
-	// check item spawn functions
-	for ( item=bg_itemlist+1 ; item->classname ; item++ ) {
-		if ( !strcmp(item->classname, ent->classname) ) {
-			G_SpawnItem( ent, item );
-			return qtrue;
-		}
 	}
 
 	// check normal spawn functions
@@ -309,7 +297,8 @@ qboolean G_CallSpawn( gentity_t *ent ) {
 	}
 
 	// try to spawn a tiki model
-	if(ent->model && ent->model[0]&& ent->model[0] != '*') {
+	if(ent->model && ent->model[0] /*&& ent->model[0] != '*'*/) {
+#if 0
 		tiki = trap_TIKI_RegisterModel(ent->model);
 		if(!tiki) {
 			tiki = trap_TIKI_RegisterModel(va("models/%s",ent->model));
@@ -321,10 +310,26 @@ qboolean G_CallSpawn( gentity_t *ent ) {
 			trap_TIKI_AppendFrameBoundsAndRadius(tiki,0,0,&dummy,ent->r.mins);
 			ent->s.frameInfo[0].weight = 1.f;
 			G_SetOrigin( ent, ent->s.origin );
-			VectorCopy( ent->s.angles, ent->s.apos.trBase );
+			VectorCopy( ent->s.angles, ent->s.angles );
 			trap_LinkEntity (ent);
 			return qtrue;
 		}
+#else
+			float dummy;
+			ent->s.modelindex = G_ModelIndex(ent->model);
+			ent->s.eType = ET_MODELANIM;
+			//if(ent->model[0]=='*') {
+			//	trap_SetBrushModel(ent, ent->model);
+			//} else
+			{
+				VectorSet (ent->r.mins, -128, -128, -128);
+				VectorSet (ent->r.maxs, 128, 128, 128);			
+			}
+			ent->s.frameInfo[0].weight = 1.f;
+			G_SetOrigin( ent, ent->s.origin );
+			trap_LinkEntity (ent);
+			return qtrue;
+#endif
 	}
 
 	G_Printf ("%s doesn't have a spawn function\n", ent->classname);
@@ -493,7 +498,6 @@ void G_SpawnGEntityFromSpawnVars( void ) {
 	}
 
 	// move editor origin to pos
-	VectorCopy( ent->s.origin, ent->s.pos.trBase );
 	VectorCopy( ent->s.origin, ent->r.currentOrigin );
 
 	// if we didn't get a classname, don't bother spawning anything

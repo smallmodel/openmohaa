@@ -82,11 +82,7 @@ void TeleportPlayer( gentity_t *player, vec3_t origin, vec3_t angles ) {
 	// use temp events at source and destination to prevent the effect
 	// from getting dropped by a second player event
 	if ( player->client->sess.sessionTeam != TEAM_SPECTATOR ) {
-		tent = G_TempEntity( player->client->ps.origin, EV_PLAYER_TELEPORT_OUT );
-		tent->s.clientNum = player->s.clientNum;
 
-		tent = G_TempEntity( origin, EV_PLAYER_TELEPORT_IN );
-		tent->s.clientNum = player->s.clientNum;
 	}
 
 	// unlink to make sure it can't possibly interfere with G_KillBox
@@ -100,9 +96,6 @@ void TeleportPlayer( gentity_t *player, vec3_t origin, vec3_t angles ) {
 	VectorScale( player->client->ps.velocity, 400, player->client->ps.velocity );
 	player->client->ps.pm_time = 160;		// hold time
 	player->client->ps.pm_flags |= PMF_TIME_KNOCKBACK;
-
-	// toggle the teleport bit so the client knows to not lerp
-	player->client->ps.eFlags ^= EF_TELEPORT_BIT;
 
 	// set angles
 	SetClientViewAngle( player, angles );
@@ -147,7 +140,7 @@ void SP_misc_model( gentity_t *ent ) {
 	trap_LinkEntity (ent);
 
 	G_SetOrigin( ent, ent->s.origin );
-	VectorCopy( ent->s.angles, ent->s.apos.trBase );
+	VectorCopy( ent->s.angles, ent->s.angles );
 #else
 	G_FreeEntity( ent );
 #endif
@@ -156,49 +149,7 @@ void SP_misc_model( gentity_t *ent ) {
 //===========================================================
 
 void locateCamera( gentity_t *ent ) {
-	vec3_t		dir;
-	gentity_t	*target;
-	gentity_t	*owner;
 
-	owner = G_PickTarget( ent->target );
-	if ( !owner ) {
-		G_Printf( "Couldn't find target for misc_partal_surface\n" );
-		G_FreeEntity( ent );
-		return;
-	}
-	ent->r.ownerNum = owner->s.number;
-
-	// frame holds the rotate speed
-	if ( owner->spawnflags & 1 ) {
-		ent->s.frame = 25;
-	} else if ( owner->spawnflags & 2 ) {
-		ent->s.frame = 75;
-	}
-
-	// swing camera ?
-	if ( owner->spawnflags & 4 ) {
-		// set to 0 for no rotation at all
-		ent->s.powerups = 0;
-	}
-	else {
-		ent->s.powerups = 1;
-	}
-
-	// clientNum holds the rotate offset
-	ent->s.clientNum = owner->s.clientNum;
-
-	VectorCopy( owner->s.origin, ent->s.origin2 );
-
-	// see if the portal_camera has a target
-	target = G_PickTarget( owner->target );
-	if ( target ) {
-		VectorSubtract( target->s.origin, owner->s.origin, dir );
-		VectorNormalize( dir );
-	} else {
-		G_SetMovedir( owner->s.angles, dir );
-	}
-
-	ent->s.eventParm = DirToByte( dir );
 }
 
 /*QUAKED misc_portal_surface (0 0 1) (-8 -8 -8) (8 8 8)
@@ -206,19 +157,7 @@ The portal surface nearest this entity will show a view from the targeted misc_p
 This must be within 64 world units of the surface!
 */
 void SP_misc_portal_surface(gentity_t *ent) {
-	VectorClear( ent->r.mins );
-	VectorClear( ent->r.maxs );
-	trap_LinkEntity (ent);
-
-	ent->r.svFlags = SVF_PORTAL;
-	ent->s.eType = ET_PORTAL;
-
-	if ( !ent->target ) {
-		VectorCopy( ent->s.origin, ent->s.origin2 );
-	} else {
-		ent->think = locateCamera;
-		ent->nextthink = level.time + 100;
-	}
+	
 }
 
 /*QUAKED misc_portal_camera (0 0 1) (-8 -8 -8) (8 8 8) slowrotate fastrotate noswing
@@ -226,15 +165,7 @@ The target for a misc_portal_director.  You can set either angles or target anot
 "roll" an angle modifier to orient the camera around the target vector;
 */
 void SP_misc_portal_camera(gentity_t *ent) {
-	float	roll;
 
-	VectorClear( ent->r.mins );
-	VectorClear( ent->r.maxs );
-	trap_LinkEntity (ent);
-
-	G_SpawnFloat( "roll", "0", &roll );
-
-	ent->s.clientNum = roll/360.0 * 256;
 }
 
 /*
@@ -246,43 +177,7 @@ void SP_misc_portal_camera(gentity_t *ent) {
 */
 
 void Use_Shooter( gentity_t *ent, gentity_t *other, gentity_t *activator ) {
-	vec3_t		dir;
-	float		deg;
-	vec3_t		up, right;
-
-	// see if we have a target
-	if ( ent->enemy ) {
-		VectorSubtract( ent->enemy->r.currentOrigin, ent->s.origin, dir );
-		VectorNormalize( dir );
-	} else {
-		VectorCopy( ent->movedir, dir );
-	}
-
-	// randomize a bit
-	PerpendicularVector( up, dir );
-	CrossProduct( up, dir, right );
-
-	deg = crandom() * ent->random;
-	VectorMA( dir, deg, up, dir );
-
-	deg = crandom() * ent->random;
-	VectorMA( dir, deg, right, dir );
-
-	VectorNormalize( dir );
-
-	switch ( ent->s.weapon ) {
-	case WP_GRENADE_LAUNCHER:
-		fire_grenade( ent, ent->s.origin, dir );
-		break;
-	case WP_ROCKET_LAUNCHER:
-		fire_rocket( ent, ent->s.origin, dir );
-		break;
-	case WP_PLASMAGUN:
-		fire_plasma( ent, ent->s.origin, dir );
-		break;
-	}
-
-	G_AddEvent( ent, EV_FIRE_WEAPON, 0 );
+	
 }
 
 
@@ -293,23 +188,7 @@ static void InitShooter_Finish( gentity_t *ent ) {
 }
 
 void InitShooter( gentity_t *ent, int weapon ) {
-	ent->use = Use_Shooter;
-	ent->s.weapon = weapon;
-
-	RegisterItem( BG_FindItemForWeapon( weapon ) );
-
-	G_SetMovedir( ent->s.angles, ent->movedir );
-
-	if ( !ent->random ) {
-		ent->random = 1.0;
-	}
-	ent->random = sin( M_PI * ent->random / 180 );
-	// target might be a moving object, so we can't set movedir for it
-	if ( ent->target ) {
-		ent->think = InitShooter_Finish;
-		ent->nextthink = level.time + 500;
-	}
-	trap_LinkEntity( ent );
+	
 }
 
 /*QUAKED shooter_rocket (1 0 0) (-16 -16 -16) (16 16 16)
@@ -317,7 +196,7 @@ Fires at either the target or the current direction.
 "random" the number of degrees of deviance from the taget. (1.0 default)
 */
 void SP_shooter_rocket( gentity_t *ent ) {
-	InitShooter( ent, WP_ROCKET_LAUNCHER );
+
 }
 
 /*QUAKED shooter_plasma (1 0 0) (-16 -16 -16) (16 16 16)
@@ -325,7 +204,7 @@ Fires at either the target or the current direction.
 "random" is the number of degrees of deviance from the taget. (1.0 default)
 */
 void SP_shooter_plasma( gentity_t *ent ) {
-	InitShooter( ent, WP_PLASMAGUN);
+
 }
 
 /*QUAKED shooter_grenade (1 0 0) (-16 -16 -16) (16 16 16)
@@ -333,7 +212,7 @@ Fires at either the target or the current direction.
 "random" is the number of degrees of deviance from the taget. (1.0 default)
 */
 void SP_shooter_grenade( gentity_t *ent ) {
-	InitShooter( ent, WP_GRENADE_LAUNCHER);
+
 }
 
 
@@ -352,7 +231,7 @@ void DropPortalDestination( gentity_t *player ) {
 	ent = G_Spawn();
 	ent->s.modelindex = G_ModelIndex( "models/powerups/teleporter/tele_exit.md3" );
 
-	VectorCopy( player->s.pos.trBase, snapped );
+	VectorCopy( player->s.origin, snapped );
 	SnapVector( snapped );
 	G_SetOrigin( ent, snapped );
 	VectorCopy( player->r.mins, ent->r.mins );
@@ -366,7 +245,7 @@ void DropPortalDestination( gentity_t *player ) {
 	ent->health = 200;
 	ent->die = PortalDie;
 
-	VectorCopy( player->s.apos.trBase, ent->s.angles );
+	VectorCopy( player->s.angles, ent->s.angles );
 
 	ent->think = G_FreeEntity;
 	ent->nextthink = level.time + 2 * 60 * 1000;
@@ -391,7 +270,7 @@ static void PortalTouch( gentity_t *self, gentity_t *other, trace_t *trace) {
 	if( !other->client ) {
 		return;
 	}
-//	if( other->client->ps.persistant[PERS_TEAM] != self->spawnflags ) {
+//	if( other->client->ps.stats[STAT_TEAM] != self->spawnflags ) {
 //		return;
 //	}
 
@@ -425,7 +304,7 @@ static void PortalTouch( gentity_t *self, gentity_t *other, trace_t *trace) {
 		return;
 	}
 
-	TeleportPlayer( other, destination->s.pos.trBase, destination->s.angles );
+	TeleportPlayer( other, destination->s.origin, destination->s.angles );
 }
 
 
@@ -445,7 +324,7 @@ void DropPortalSource( gentity_t *player ) {
 	ent = G_Spawn();
 	ent->s.modelindex = G_ModelIndex( "models/powerups/teleporter/tele_enter.md3" );
 
-	VectorCopy( player->s.pos.trBase, snapped );
+	VectorCopy( player->s.origin, snapped );
 	SnapVector( snapped );
 	G_SetOrigin( ent, snapped );
 	VectorCopy( player->r.mins, ent->r.mins );
@@ -464,7 +343,7 @@ void DropPortalSource( gentity_t *player ) {
 	ent->count = player->client->portalID;
 	player->client->portalID = 0;
 
-//	ent->spawnflags = player->client->ps.persistant[PERS_TEAM];
+//	ent->spawnflags = player->client->ps.stats[STAT_TEAM];
 
 	ent->nextthink = level.time + 1000;
 	ent->think = PortalEnable;
@@ -473,7 +352,7 @@ void DropPortalSource( gentity_t *player ) {
 	destination = NULL;
 	while( (destination = G_Find(destination, FOFS(classname), "hi_portal destination")) != NULL ) {
 		if( destination->count == ent->count ) {
-			VectorCopy( destination->s.pos.trBase, ent->pos1 );
+			VectorCopy( destination->s.origin, ent->pos1 );
 			break;
 		}
 	}

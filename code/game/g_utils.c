@@ -239,11 +239,11 @@ void G_UseTargets( gentity_t *ent, gentity_t *activator ) {
 		return;
 	}
 
-	if (ent->targetShaderName && ent->targetShaderNewName) {
-		float f = level.time * 0.001;
-		AddRemap(ent->targetShaderName, ent->targetShaderNewName, f);
-		trap_SetConfigstring(CS_SHADERSTATE, BuildShaderStateConfig());
-	}
+	//if (ent->targetShaderName && ent->targetShaderNewName) {
+	//	float f = level.time * 0.001;
+	//	AddRemap(ent->targetShaderName, ent->targetShaderNewName, f);
+	//	trap_SetConfigstring(CS_SHADERSTATE, BuildShaderStateConfig());
+	//}
 
 	if ( !ent->target ) {
 		return;
@@ -559,64 +559,12 @@ void G_KillBox (gentity_t *ent) {
 //==============================================================================
 
 /*
-===============
-G_AddPredictableEvent
-
-Use for non-pmove events that would also be predicted on the
-client side: jumppads and item pickups
-Adds an event+parm and twiddles the event counter
-===============
-*/
-void G_AddPredictableEvent( gentity_t *ent, int event, int eventParm ) {
-	if ( !ent->client ) {
-		return;
-	}
-	BG_AddPredictableEventToPlayerstate( event, eventParm, &ent->client->ps );
-}
-
-
-/*
-===============
-G_AddEvent
-
-Adds an event+parm and twiddles the event counter
-===============
-*/
-void G_AddEvent( gentity_t *ent, int event, int eventParm ) {
-	int		bits;
-
-	if ( !event ) {
-		G_Printf( "G_AddEvent: zero event added for entity %i\n", ent->s.number );
-		return;
-	}
-
-	// clients need to add the event in playerState_t instead of entityState_t
-	if ( ent->client ) {
-		bits = ent->client->ps.externalEvent & EV_EVENT_BITS;
-		bits = ( bits + EV_EVENT_BIT1 ) & EV_EVENT_BITS;
-		ent->client->ps.externalEvent = event | bits;
-		ent->client->ps.externalEventParm = eventParm;
-		ent->client->ps.externalEventTime = level.time;
-	} else {
-		bits = ent->s.event & EV_EVENT_BITS;
-		bits = ( bits + EV_EVENT_BIT1 ) & EV_EVENT_BITS;
-		ent->s.event = event | bits;
-		ent->s.eventParm = eventParm;
-	}
-	ent->eventTime = level.time;
-}
-
-
-/*
 =============
 G_Sound
 =============
 */
 void G_Sound( gentity_t *ent, int channel, int soundIndex ) {
-	gentity_t	*te;
 
-	te = G_TempEntity( ent->r.currentOrigin, EV_GENERAL_SOUND );
-	te->s.eventParm = soundIndex;
 }
 
 
@@ -631,10 +579,8 @@ Sets the pos trajectory for a fixed position
 ================
 */
 void G_SetOrigin( gentity_t *ent, vec3_t origin ) {
-	VectorCopy( origin, ent->s.pos.trBase );
-	ent->s.pos.trType = TR_STATIONARY;
+	VectorCopy( origin, ent->s.origin );
 	ent->s.pos.trTime = 0;
-	ent->s.pos.trDuration = 0;
 	VectorClear( ent->s.pos.trDelta );
 
 	VectorCopy( origin, ent->r.currentOrigin );

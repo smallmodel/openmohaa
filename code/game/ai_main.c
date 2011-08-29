@@ -285,26 +285,8 @@ void BotReportStatus(bot_state_t *bs) {
 	else leader = " ";
 
 	strcpy(flagstatus, "  ");
-	if (gametype == GT_CTF) {
-		if (BotCTFCarryingFlag(bs)) {
-			if (BotTeam(bs) == TEAM_RED) strcpy(flagstatus, S_COLOR_RED"F ");
-			else strcpy(flagstatus, S_COLOR_BLUE"F ");
-		}
-	}
-#ifdef MISSIONPACK
-	else if (gametype == GT_1FCTF) {
-		if (Bot1FCTFCarryingFlag(bs)) {
-			if (BotTeam(bs) == TEAM_RED) strcpy(flagstatus, S_COLOR_RED"F ");
-			else strcpy(flagstatus, S_COLOR_BLUE"F ");
-		}
-	}
-	else if (gametype == GT_HARVESTER) {
-		if (BotHarvesterCarryingCubes(bs)) {
-			if (BotTeam(bs) == TEAM_RED) Com_sprintf(flagstatus, sizeof(flagstatus), S_COLOR_RED"%2d", bs->inventory[INVENTORY_REDCUBE]);
-			else Com_sprintf(flagstatus, sizeof(flagstatus), S_COLOR_BLUE"%2d", bs->inventory[INVENTORY_BLUECUBE]);
-		}
-	}
-#endif
+	
+
 
 	switch(bs->ltgtype) {
 		case LTG_TEAMHELP:
@@ -435,24 +417,7 @@ void BotSetInfoConfigString(bot_state_t *bs) {
 	else leader = " ";
 
 	strcpy(carrying, "  ");
-	if (gametype == GT_CTF) {
-		if (BotCTFCarryingFlag(bs)) {
-			strcpy(carrying, "F ");
-		}
-	}
-#ifdef MISSIONPACK
-	else if (gametype == GT_1FCTF) {
-		if (Bot1FCTFCarryingFlag(bs)) {
-			strcpy(carrying, "F ");
-		}
-	}
-	else if (gametype == GT_HARVESTER) {
-		if (BotHarvesterCarryingCubes(bs)) {
-			if (BotTeam(bs) == TEAM_RED) Com_sprintf(carrying, sizeof(carrying), "%2d", bs->inventory[INVENTORY_REDCUBE]);
-			else Com_sprintf(carrying, sizeof(carrying), "%2d", bs->inventory[INVENTORY_BLUECUBE]);
-		}
-	}
-#endif
+
 
 	switch(bs->ltgtype) {
 		case LTG_TEAMHELP:
@@ -529,11 +494,11 @@ void BotSetInfoConfigString(bot_state_t *bs) {
 			break;
 		}
 	}
-  	cs = va("l\\%s\\c\\%s\\a\\%s",
+ /* 	cs = va("l\\%s\\c\\%s\\a\\%s",
 				leader,
 				carrying,
 				action);
-  	trap_SetConfigstring (CS_BOTINFO + bs->client, cs);
+  	trap_SetConfigstring (CS_BOTINFO + bs->client, cs);*/
 }
 
 /*
@@ -650,32 +615,7 @@ BotInterbreeding
 ==============
 */
 void BotInterbreeding(void) {
-	int i;
 
-	trap_Cvar_Update(&bot_interbreedchar);
-	if (!strlen(bot_interbreedchar.string)) return;
-	//make sure we are in tournament mode
-	if (gametype != GT_TOURNAMENT) {
-		trap_Cvar_Set("g_gametype", va("%d", GT_TOURNAMENT));
-		ExitLevel();
-		return;
-	}
-	//shutdown all the bots
-	for (i = 0; i < MAX_CLIENTS; i++) {
-		if (botstates[i] && botstates[i]->inuse) {
-			BotAIShutdownClient(botstates[i]->client, qfalse);
-		}
-	}
-	//make sure all item weight configs are reloaded and Not shared
-	trap_BotLibVarSet("bot_reloadcharacters", "1");
-	//add a number of bots using the desired bot character
-	for (i = 0; i < bot_interbreedbots.integer; i++) {
-		trap_SendConsoleCommand( EXEC_INSERT, va("addbot %s 4 free %i %s%d\n",
-						bot_interbreedchar.string, i * 50, bot_interbreedchar.string, i) );
-	}
-	//
-	trap_Cvar_Set("bot_interbreedchar", "");
-	bot_interbreed = qtrue;
 }
 
 /*
@@ -1475,12 +1415,13 @@ int BotAIStartFrame(int time) {
 				continue;
 			}
 			// do not update missiles
-			if (ent->s.eType == ET_MISSILE && ent->s.weapon != WP_GRAPPLING_HOOK) {
+			if (ent->s.eType == ET_MISSILE /*&& ent->s.weapon != WP_GRAPPLING_HOOK*/) {
 				trap_BotLibUpdateEntity(i, NULL);
 				continue;
 			}
 			// do not update event only entities
-			if (ent->s.eType > ET_EVENTS) {
+			//if (ent->s.eType > ET_EVENTS)
+			{
 				trap_BotLibUpdateEntity(i, NULL);
 				continue;
 			}
@@ -1498,7 +1439,7 @@ int BotAIStartFrame(int time) {
 			//
 			VectorCopy(ent->r.currentOrigin, state.origin);
 			if (i < MAX_CLIENTS) {
-				VectorCopy(ent->s.apos.trBase, state.angles);
+				VectorCopy(ent->s.angles, state.angles);
 			} else {
 				VectorCopy(ent->r.currentAngles, state.angles);
 			}
@@ -1511,14 +1452,6 @@ int BotAIStartFrame(int time) {
 			else state.solid = SOLID_BBOX;
 			state.groundent = ent->s.groundEntityNum;
 			state.modelindex = ent->s.modelindex;
-			state.modelindex2 = ent->s.modelindex2;
-			state.frame = ent->s.frame;
-			state.event = ent->s.event;
-			state.eventParm = ent->s.eventParm;
-			state.powerups = ent->s.powerups;
-			state.legsAnim = ent->s.legsAnim;
-			state.torsoAnim = ent->s.torsoAnim;
-			state.weapon = ent->s.weapon;
 			//
 			trap_BotLibUpdateEntity(i, &state);
 		}

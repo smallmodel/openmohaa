@@ -31,60 +31,7 @@ DeathmatchScoreboardMessage
 ==================
 */
 void DeathmatchScoreboardMessage( gentity_t *ent ) {
-	char		entry[1024];
-	char		string[1400];
-	int			stringlength;
-	int			i, j;
-	gclient_t	*cl;
-	int			numSorted, scoreFlags, accuracy, perfect;
 
-	// send the latest information on all clients
-	string[0] = 0;
-	stringlength = 0;
-	scoreFlags = 0;
-
-	numSorted = level.numConnectedClients;
-	
-	for (i=0 ; i < numSorted ; i++) {
-		int		ping;
-
-		cl = &level.clients[level.sortedClients[i]];
-
-		if ( cl->pers.connected == CON_CONNECTING ) {
-			ping = -1;
-		} else {
-			ping = cl->ps.ping < 999 ? cl->ps.ping : 999;
-		}
-
-		if( cl->accuracy_shots ) {
-			accuracy = cl->accuracy_hits * 100 / cl->accuracy_shots;
-		}
-		else {
-			accuracy = 0;
-		}
-		perfect = ( cl->ps.persistant[PERS_RANK] == 0 && cl->ps.persistant[PERS_KILLED] == 0 ) ? 1 : 0;
-
-		Com_sprintf (entry, sizeof(entry),
-			" %i %i %i %i %i %i %i %i %i %i %i %i %i %i", level.sortedClients[i],
-			cl->ps.persistant[PERS_SCORE], ping, (level.time - cl->pers.enterTime)/60000,
-			scoreFlags, g_entities[level.sortedClients[i]].s.powerups, accuracy, 
-			cl->ps.persistant[PERS_IMPRESSIVE_COUNT],
-			cl->ps.persistant[PERS_EXCELLENT_COUNT],
-			cl->ps.persistant[PERS_GAUNTLET_FRAG_COUNT], 
-			cl->ps.persistant[PERS_DEFEND_COUNT], 
-			cl->ps.persistant[PERS_ASSIST_COUNT], 
-			perfect,
-			cl->ps.persistant[PERS_CAPTURES]);
-		j = strlen(entry);
-		if (stringlength + j > 1024)
-			break;
-		strcpy (string + stringlength, entry);
-		stringlength += j;
-	}
-
-	trap_SendServerCommand( ent-g_entities, va("scores %i %i %i%s", i, 
-		level.teamScores[TEAM_RED], level.teamScores[TEAM_BLUE],
-		string ) );
 }
 
 
@@ -229,95 +176,7 @@ Give items to a client
 */
 void Cmd_Give_f (gentity_t *ent)
 {
-	char		*name;
-	gitem_t		*it;
-	int			i;
-	qboolean	give_all;
-	gentity_t		*it_ent;
-	trace_t		trace;
 
-	if ( !CheatsOk( ent ) ) {
-		return;
-	}
-
-	name = ConcatArgs( 1 );
-
-	if (Q_stricmp(name, "all") == 0)
-		give_all = qtrue;
-	else
-		give_all = qfalse;
-
-	if (give_all || Q_stricmp( name, "health") == 0)
-	{
-		ent->health = ent->client->ps.stats[STAT_MAX_HEALTH];
-		if (!give_all)
-			return;
-	}
-
-	if (give_all || Q_stricmp(name, "weapons") == 0)
-	{
-		ent->client->ps.stats[STAT_WEAPONS] = (1 << WP_NUM_WEAPONS) - 1 - 
-			( 1 << WP_GRAPPLING_HOOK ) - ( 1 << WP_NONE );
-		if (!give_all)
-			return;
-	}
-
-	if (give_all || Q_stricmp(name, "ammo") == 0)
-	{
-		for ( i = 0 ; i < MAX_WEAPONS ; i++ ) {
-			ent->client->ps.ammo[i] = 999;
-		}
-		if (!give_all)
-			return;
-	}
-
-	if (give_all || Q_stricmp(name, "armor") == 0)
-	{
-//		ent->client->ps.stats[STAT_ARMOR] = 200;
-
-		if (!give_all)
-			return;
-	}
-
-	if (Q_stricmp(name, "excellent") == 0) {
-		ent->client->ps.persistant[PERS_EXCELLENT_COUNT]++;
-		return;
-	}
-	if (Q_stricmp(name, "impressive") == 0) {
-		ent->client->ps.persistant[PERS_IMPRESSIVE_COUNT]++;
-		return;
-	}
-	if (Q_stricmp(name, "gauntletaward") == 0) {
-		ent->client->ps.persistant[PERS_GAUNTLET_FRAG_COUNT]++;
-		return;
-	}
-	if (Q_stricmp(name, "defend") == 0) {
-		ent->client->ps.persistant[PERS_DEFEND_COUNT]++;
-		return;
-	}
-	if (Q_stricmp(name, "assist") == 0) {
-		ent->client->ps.persistant[PERS_ASSIST_COUNT]++;
-		return;
-	}
-
-	// spawn a specific item right on the player
-	if ( !give_all ) {
-		it = BG_FindItem (name);
-		if (!it) {
-			return;
-		}
-
-		it_ent = G_Spawn();
-		VectorCopy( ent->r.currentOrigin, it_ent->s.origin );
-		it_ent->classname = it->classname;
-		G_SpawnItem (it_ent, it);
-		FinishSpawningItem(it_ent );
-		memset( &trace, 0, sizeof( trace ) );
-		Touch_Item (it_ent, ent, &trace);
-		if (it_ent->inuse) {
-			G_FreeEntity( it_ent );
-		}
-	}
 }
 
 
@@ -571,10 +430,7 @@ void SetTeam( gentity_t *ent, char *s ) {
 	}
 
 	// override decision if limiting the players
-	if ( (g_gametype.integer == GT_TOURNAMENT)
-		&& level.numNonSpectatorClients >= 2 ) {
-		team = TEAM_SPECTATOR;
-	} else if ( g_maxGameClients.integer > 0 && 
+	if ( g_maxGameClients.integer > 0 && 
 		level.numNonSpectatorClients >= g_maxGameClients.integer ) {
 		team = TEAM_SPECTATOR;
 	}
@@ -644,12 +500,7 @@ to free floating spectator mode
 =================
 */
 void StopFollowing( gentity_t *ent ) {
-	ent->client->ps.persistant[ PERS_TEAM ] = TEAM_SPECTATOR;	
-	ent->client->sess.sessionTeam = TEAM_SPECTATOR;	
-	ent->client->sess.spectatorState = SPECTATOR_FREE;
-	ent->client->ps.pm_flags &= ~PMF_FOLLOW;
-	ent->r.svFlags &= ~SVF_BOT;
-	ent->client->ps.clientNum = ent - g_entities;
+
 }
 
 /*
@@ -685,11 +536,6 @@ void Cmd_Team_f( gentity_t *ent ) {
 		return;
 	}
 
-	// if they are playing a tournement game, count as a loss
-	if ( (g_gametype.integer == GT_TOURNAMENT )
-		&& ent->client->sess.sessionTeam == TEAM_FREE ) {
-		ent->client->sess.losses++;
-	}
 
 	trap_Argv( 1, s, sizeof( s ) );
 
@@ -731,11 +577,6 @@ void Cmd_Follow_f( gentity_t *ent ) {
 		return;
 	}
 
-	// if they are playing a tournement game, count as a loss
-	if ( (g_gametype.integer == GT_TOURNAMENT )
-		&& ent->client->sess.sessionTeam == TEAM_FREE ) {
-		ent->client->sess.losses++;
-	}
 
 	// first set them to spectator
 	if ( ent->client->sess.sessionTeam != TEAM_SPECTATOR ) {
@@ -755,11 +596,6 @@ void Cmd_FollowCycle_f( gentity_t *ent, int dir ) {
 	int		clientnum;
 	int		original;
 
-	// if they are playing a tournement game, count as a loss
-	if ( (g_gametype.integer == GT_TOURNAMENT )
-		&& ent->client->sess.sessionTeam == TEAM_FREE ) {
-		ent->client->sess.losses++;
-	}
 	// first set them to spectator
 	if ( ent->client->sess.spectatorState == SPECTATOR_NOT ) {
 		SetTeam( ent, "spectator" );
@@ -822,12 +658,7 @@ static void G_SayTo( gentity_t *ent, gentity_t *other, int mode, int color, cons
 	if ( mode == SAY_TEAM  && !OnSameTeam(ent, other) ) {
 		return;
 	}
-	// no chatting to players in tournements
-	if ( (g_gametype.integer == GT_TOURNAMENT )
-		&& other->client->sess.sessionTeam == TEAM_FREE
-		&& ent->client->sess.sessionTeam != TEAM_FREE ) {
-		return;
-	}
+
 
 	trap_SendServerCommand( other-g_entities, va("%s \"%s%c%c%s\"", 
 		mode == SAY_TEAM ? "tchat" : "chat",
@@ -975,10 +806,7 @@ static void G_VoiceTo( gentity_t *ent, gentity_t *other, int mode, const char *i
 	if ( mode == SAY_TEAM && !OnSameTeam(ent, other) ) {
 		return;
 	}
-	// no chatting to players in tournements
-	if ( (g_gametype.integer == GT_TOURNAMENT )) {
-		return;
-	}
+
 
 	if (mode == SAY_TEAM) {
 		color = COLOR_CYAN;
@@ -1309,15 +1137,8 @@ void Cmd_CallVote_f( gentity_t *ent ) {
 	level.voteYes = 1;
 	level.voteNo = 0;
 
-	for ( i = 0 ; i < level.maxclients ; i++ ) {
-		level.clients[i].ps.eFlags &= ~EF_VOTED;
-	}
-	ent->client->ps.eFlags |= EF_VOTED;
 
-	trap_SetConfigstring( CS_VOTE_TIME, va("%i", level.voteTime ) );
-	trap_SetConfigstring( CS_VOTE_STRING, level.voteDisplayString );	
-	trap_SetConfigstring( CS_VOTE_YES, va("%i", level.voteYes ) );
-	trap_SetConfigstring( CS_VOTE_NO, va("%i", level.voteNo ) );	
+;	
 }
 
 /*
@@ -1326,37 +1147,7 @@ Cmd_Vote_f
 ==================
 */
 void Cmd_Vote_f( gentity_t *ent ) {
-	char		msg[64];
-
-	if ( !level.voteTime ) {
-		trap_SendServerCommand( ent-g_entities, "print \"No vote in progress.\n\"" );
-		return;
-	}
-	if ( ent->client->ps.eFlags & EF_VOTED ) {
-		trap_SendServerCommand( ent-g_entities, "print \"Vote already cast.\n\"" );
-		return;
-	}
-	if ( ent->client->sess.sessionTeam == TEAM_SPECTATOR ) {
-		trap_SendServerCommand( ent-g_entities, "print \"Not allowed to vote as spectator.\n\"" );
-		return;
-	}
-
-	trap_SendServerCommand( ent-g_entities, "print \"Vote cast.\n\"" );
-
-	ent->client->ps.eFlags |= EF_VOTED;
-
-	trap_Argv( 1, msg, sizeof( msg ) );
-
-	if ( msg[0] == 'y' || msg[1] == 'Y' || msg[1] == '1' ) {
-		level.voteYes++;
-		trap_SetConfigstring( CS_VOTE_YES, va("%i", level.voteYes ) );
-	} else {
-		level.voteNo++;
-		trap_SetConfigstring( CS_VOTE_NO, va("%i", level.voteNo ) );	
-	}
-
-	// a majority will be determined in CheckVote, which will also account
-	// for players entering or leaving
+	
 }
 
 /*
@@ -1365,125 +1156,7 @@ Cmd_CallTeamVote_f
 ==================
 */
 void Cmd_CallTeamVote_f( gentity_t *ent ) {
-	int		i, team, cs_offset;
-	char	arg1[MAX_STRING_TOKENS];
-	char	arg2[MAX_STRING_TOKENS];
-
-	team = ent->client->sess.sessionTeam;
-	if ( team == TEAM_RED )
-		cs_offset = 0;
-	else if ( team == TEAM_BLUE )
-		cs_offset = 1;
-	else
-		return;
-
-	if ( !g_allowVote.integer ) {
-		trap_SendServerCommand( ent-g_entities, "print \"Voting not allowed here.\n\"" );
-		return;
-	}
-
-	if ( level.teamVoteTime[cs_offset] ) {
-		trap_SendServerCommand( ent-g_entities, "print \"A team vote is already in progress.\n\"" );
-		return;
-	}
-	if ( ent->client->pers.teamVoteCount >= MAX_VOTE_COUNT ) {
-		trap_SendServerCommand( ent-g_entities, "print \"You have called the maximum number of team votes.\n\"" );
-		return;
-	}
-	if ( ent->client->sess.sessionTeam == TEAM_SPECTATOR ) {
-		trap_SendServerCommand( ent-g_entities, "print \"Not allowed to call a vote as spectator.\n\"" );
-		return;
-	}
-
-	// make sure it is a valid command to vote on
-	trap_Argv( 1, arg1, sizeof( arg1 ) );
-	arg2[0] = '\0';
-	for ( i = 2; i < trap_Argc(); i++ ) {
-		if (i > 2)
-			strcat(arg2, " ");
-		trap_Argv( i, &arg2[strlen(arg2)], sizeof( arg2 ) - strlen(arg2) );
-	}
-
-	if( strchr( arg1, ';' ) || strchr( arg2, ';' ) ) {
-		trap_SendServerCommand( ent-g_entities, "print \"Invalid vote string.\n\"" );
-		return;
-	}
-
-	if ( !Q_stricmp( arg1, "leader" ) ) {
-		char netname[MAX_NETNAME], leader[MAX_NETNAME];
-
-		if ( !arg2[0] ) {
-			i = ent->client->ps.clientNum;
-		}
-		else {
-			// numeric values are just slot numbers
-			for (i = 0; i < 3; i++) {
-				if ( !arg2[i] || arg2[i] < '0' || arg2[i] > '9' )
-					break;
-			}
-			if ( i >= 3 || !arg2[i]) {
-				i = atoi( arg2 );
-				if ( i < 0 || i >= level.maxclients ) {
-					trap_SendServerCommand( ent-g_entities, va("print \"Bad client slot: %i\n\"", i) );
-					return;
-				}
-
-				if ( !g_entities[i].inuse ) {
-					trap_SendServerCommand( ent-g_entities, va("print \"Client %i is not active\n\"", i) );
-					return;
-				}
-			}
-			else {
-				Q_strncpyz(leader, arg2, sizeof(leader));
-				Q_CleanStr(leader);
-				for ( i = 0 ; i < level.maxclients ; i++ ) {
-					if ( level.clients[i].pers.connected == CON_DISCONNECTED )
-						continue;
-					if (level.clients[i].sess.sessionTeam != team)
-						continue;
-					Q_strncpyz(netname, level.clients[i].pers.netname, sizeof(netname));
-					Q_CleanStr(netname);
-					if ( !Q_stricmp(netname, leader) ) {
-						break;
-					}
-				}
-				if ( i >= level.maxclients ) {
-					trap_SendServerCommand( ent-g_entities, va("print \"%s is not a valid player on your team.\n\"", arg2) );
-					return;
-				}
-			}
-		}
-		Com_sprintf(arg2, sizeof(arg2), "%d", i);
-	} else {
-		trap_SendServerCommand( ent-g_entities, "print \"Invalid vote string.\n\"" );
-		trap_SendServerCommand( ent-g_entities, "print \"Team vote commands are: leader <player>.\n\"" );
-		return;
-	}
-
-	Com_sprintf( level.teamVoteString[cs_offset], sizeof( level.teamVoteString[cs_offset] ), "%s %s", arg1, arg2 );
-
-	for ( i = 0 ; i < level.maxclients ; i++ ) {
-		if ( level.clients[i].pers.connected == CON_DISCONNECTED )
-			continue;
-		if (level.clients[i].sess.sessionTeam == team)
-			trap_SendServerCommand( i, va("print \"%s called a team vote.\n\"", ent->client->pers.netname ) );
-	}
-
-	// start the voting, the caller autoamtically votes yes
-	level.teamVoteTime[cs_offset] = level.time;
-	level.teamVoteYes[cs_offset] = 1;
-	level.teamVoteNo[cs_offset] = 0;
-
-	for ( i = 0 ; i < level.maxclients ; i++ ) {
-		if (level.clients[i].sess.sessionTeam == team)
-			level.clients[i].ps.eFlags &= ~EF_TEAMVOTED;
-	}
-	ent->client->ps.eFlags |= EF_TEAMVOTED;
-
-	trap_SetConfigstring( CS_TEAMVOTE_TIME + cs_offset, va("%i", level.teamVoteTime[cs_offset] ) );
-	trap_SetConfigstring( CS_TEAMVOTE_STRING + cs_offset, level.teamVoteString[cs_offset] );
-	trap_SetConfigstring( CS_TEAMVOTE_YES + cs_offset, va("%i", level.teamVoteYes[cs_offset] ) );
-	trap_SetConfigstring( CS_TEAMVOTE_NO + cs_offset, va("%i", level.teamVoteNo[cs_offset] ) );
+	
 }
 
 /*
@@ -1492,46 +1165,7 @@ Cmd_TeamVote_f
 ==================
 */
 void Cmd_TeamVote_f( gentity_t *ent ) {
-	int			team, cs_offset;
-	char		msg[64];
 
-	team = ent->client->sess.sessionTeam;
-	if ( team == TEAM_RED )
-		cs_offset = 0;
-	else if ( team == TEAM_BLUE )
-		cs_offset = 1;
-	else
-		return;
-
-	if ( !level.teamVoteTime[cs_offset] ) {
-		trap_SendServerCommand( ent-g_entities, "print \"No team vote in progress.\n\"" );
-		return;
-	}
-	if ( ent->client->ps.eFlags & EF_TEAMVOTED ) {
-		trap_SendServerCommand( ent-g_entities, "print \"Team vote already cast.\n\"" );
-		return;
-	}
-	if ( ent->client->sess.sessionTeam == TEAM_SPECTATOR ) {
-		trap_SendServerCommand( ent-g_entities, "print \"Not allowed to vote as spectator.\n\"" );
-		return;
-	}
-
-	trap_SendServerCommand( ent-g_entities, "print \"Team vote cast.\n\"" );
-
-	ent->client->ps.eFlags |= EF_TEAMVOTED;
-
-	trap_Argv( 1, msg, sizeof( msg ) );
-
-	if ( msg[0] == 'y' || msg[1] == 'Y' || msg[1] == '1' ) {
-		level.teamVoteYes[cs_offset]++;
-		trap_SetConfigstring( CS_TEAMVOTE_YES + cs_offset, va("%i", level.teamVoteYes[cs_offset] ) );
-	} else {
-		level.teamVoteNo[cs_offset]++;
-		trap_SetConfigstring( CS_TEAMVOTE_NO + cs_offset, va("%i", level.teamVoteNo[cs_offset] ) );	
-	}
-
-	// a majority will be determined in TeamCheckVote, which will also account
-	// for players entering or leaving
 }
 
 

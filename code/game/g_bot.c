@@ -428,23 +428,6 @@ void G_CheckMinimumPlayers( void ) {
 			G_RemoveRandomBot( TEAM_BLUE );
 		}
 	}
-	else if (g_gametype.integer == GT_TOURNAMENT ) {
-		if (minplayers >= g_maxclients.integer) {
-			minplayers = g_maxclients.integer-1;
-		}
-		humanplayers = G_CountHumanPlayers( -1 );
-		botplayers = G_CountBotPlayers( -1 );
-		//
-		if (humanplayers + botplayers < minplayers) {
-			G_AddRandomBot( TEAM_FREE );
-		} else if (humanplayers + botplayers > minplayers && botplayers) {
-			// try to remove spectators first
-			if (!G_RemoveRandomBot( TEAM_SPECTATOR )) {
-				// just remove the bot that is playing
-				G_RemoveRandomBot( -1 );
-			}
-		}
-	}
 	else if (g_gametype.integer == GT_FFA) {
 		if (minplayers >= g_maxclients.integer) {
 			minplayers = g_maxclients.integer-1;

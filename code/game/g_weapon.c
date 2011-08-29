@@ -25,6 +25,23 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "g_local.h"
 
+/*
+===============
+CalcMuzzlePoint
+
+set muzzle location relative to pivoting eye
+===============
+*/
+void CalcMuzzlePoint ( gentity_t *ent, vec3_t forward, vec3_t right, vec3_t up, vec3_t muzzlePoint ) {
+	VectorCopy( ent->s.origin, muzzlePoint );
+	muzzlePoint[2] += ent->client->ps.viewheight;
+	VectorMA( muzzlePoint, 14, forward, muzzlePoint );
+	// snap to integer coordinates for more efficient network bandwidth usage
+	SnapVector( muzzlePoint );
+}
+
+#if 0
+
 static	float	s_quadFactor;
 static	vec3_t	forward, right, up;
 /*static*/	vec3_t	g_muzzle;	// IneQuation: made this non-static
@@ -67,53 +84,6 @@ CheckGauntletAttack
 ===============
 */
 qboolean CheckGauntletAttack( gentity_t *ent ) {
-	trace_t		tr;
-	vec3_t		end;
-	gentity_t	*tent;
-	gentity_t	*traceEnt;
-	int			damage;
-
-	// set aiming directions
-	AngleVectors (ent->client->ps.viewangles, forward, right, up);
-
-	CalcMuzzlePoint ( ent, forward, right, up, g_muzzle );
-
-	VectorMA (g_muzzle, 32, forward, end);
-
-	trap_Trace (&tr, g_muzzle, NULL, NULL, end, ent->s.number, MASK_SHOT);
-	if ( tr.surfaceFlags & SURF_NOIMPACT ) {
-		return qfalse;
-	}
-
-	traceEnt = &g_entities[ tr.entityNum ];
-
-	// send blood impact
-	if ( traceEnt->takedamage && traceEnt->client ) {
-		tent = G_TempEntity( tr.endpos, EV_MISSILE_HIT );
-		tent->s.otherEntityNum = traceEnt->s.number;
-		tent->s.eventParm = DirToByte( tr.plane.normal );
-		tent->s.weapon = ent->s.weapon;
-	}
-
-	if ( !traceEnt->takedamage) {
-		return qfalse;
-	}
-
-	if (ent->client->ps.powerups[PW_QUAD] ) {
-		G_AddEvent( ent, EV_POWERUP_QUAD, 0 );
-		s_quadFactor = g_quadfactor.value;
-	} else {
-		s_quadFactor = 1;
-	}
-#ifdef MISSIONPACK
-	if( ent->client->persistantPowerup && ent->client->persistantPowerup->item && ent->client->persistantPowerup->item->giTag == PW_DOUBLER ) {
-		s_quadFactor *= 2;
-	}
-#endif
-
-	damage = 50 * s_quadFactor;
-	G_Damage( traceEnt, ent, ent, forward, tr.endpos,
-		damage, 0, MOD_GAUNTLET );
 
 	return qtrue;
 }
@@ -159,9 +129,6 @@ void SnapVectorTowards( vec3_t v, vec3_t to ) {
 void Bullet_Fire (gentity_t *ent, float spread, int damage ) {
 	trace_t		tr;
 	vec3_t		end;
-#ifdef MISSIONPACK
-	vec3_t		impactpoint, bouncedir;
-#endif
 	float		r;
 	float		u;
 	gentity_t	*tent;
@@ -192,39 +159,22 @@ void Bullet_Fire (gentity_t *ent, float spread, int damage ) {
 
 		// send bullet impact
 		if ( traceEnt->takedamage && traceEnt->client ) {
-			tent = G_TempEntity( tr.endpos, EV_BULLET_HIT_FLESH );
-			tent->s.eventParm = traceEnt->s.number;
+			//tent = G_TempEntity( tr.endpos, EV_BULLET_HIT_FLESH );
+			//tent->s.eventParm = traceEnt->s.number;
 			if( LogAccuracyHit( traceEnt, ent ) ) {
 				ent->client->accuracy_hits++;
 			}
 		} else {
-			tent = G_TempEntity( tr.endpos, EV_BULLET_HIT_WALL );
-			tent->s.eventParm = DirToByte( tr.plane.normal );
+			//tent = G_TempEntity( tr.endpos, EV_BULLET_HIT_WALL );
+			//tent->s.eventParm = DirToByte( tr.plane.normal );
 		}
 		tent->s.otherEntityNum = ent->s.number;
 
 		if ( traceEnt->takedamage) {
-#ifdef MISSIONPACK
-			if ( traceEnt->client && traceEnt->client->invulnerabilityTime > level.time ) {
-				if (G_InvulnerabilityEffect( traceEnt, forward, tr.endpos, impactpoint, bouncedir )) {
-					G_BounceProjectile( g_muzzle, impactpoint, bouncedir, end );
-					VectorCopy( impactpoint, g_muzzle );
-					// the player can hit him/herself with the bounced rail
-					passent = ENTITYNUM_NONE;
-				}
-				else {
-					VectorCopy( tr.endpos, g_muzzle );
-					passent = traceEnt->s.number;
-				}
-				continue;
-			}
-			else {
-#endif
+
 				G_Damage( traceEnt, ent, ent, forward, tr.endpos,
 					damage, 0, MOD_MACHINEGUN);
-#ifdef MISSIONPACK
-			}
-#endif
+
 		}
 		break;
 	}
@@ -360,7 +310,7 @@ void weapon_supershotgun_fire (gentity_t *ent) {
 	tent->s.eventParm = rand() & 255;		// seed for spread pattern
 	tent->s.otherEntityNum = ent->s.number;
 
-	ShotgunPattern( tent->s.pos.trBase, tent->s.origin2, tent->s.eventParm, ent );
+	ShotgunPattern( tent->s.origin, tent->s.origin2, tent->s.eventParm, ent );
 }
 
 
@@ -772,20 +722,7 @@ qboolean LogAccuracyHit( gentity_t *target, gentity_t *attacker ) {
 }
 
 
-/*
-===============
-CalcMuzzlePoint
 
-set muzzle location relative to pivoting eye
-===============
-*/
-void CalcMuzzlePoint ( gentity_t *ent, vec3_t forward, vec3_t right, vec3_t up, vec3_t muzzlePoint ) {
-	VectorCopy( ent->s.pos.trBase, muzzlePoint );
-	muzzlePoint[2] += ent->client->ps.viewheight;
-	VectorMA( muzzlePoint, 14, forward, muzzlePoint );
-	// snap to integer coordinates for more efficient network bandwidth usage
-	SnapVector( muzzlePoint );
-}
 
 /*
 ===============
@@ -795,7 +732,7 @@ set muzzle location relative to pivoting eye
 ===============
 */
 void CalcMuzzlePointOrigin ( gentity_t *ent, vec3_t origin, vec3_t forward, vec3_t right, vec3_t up, vec3_t muzzlePoint ) {
-	VectorCopy( ent->s.pos.trBase, muzzlePoint );
+	VectorCopy( ent->s.origin, muzzlePoint );
 	muzzlePoint[2] += ent->client->ps.viewheight;
 	VectorMA( muzzlePoint, 14, forward, muzzlePoint );
 	// snap to integer coordinates for more efficient network bandwidth usage
@@ -1042,13 +979,13 @@ static void KamikazeDamage( gentity_t *self ) {
 	if (self->count >= KAMI_SHOCKWAVE_STARTTIME) {
 		// shockwave push back
 		t = self->count - KAMI_SHOCKWAVE_STARTTIME;
-		KamikazeShockWave(self->s.pos.trBase, self->activator, 25, 400,	(int) (float) t * KAMI_SHOCKWAVE_MAXRADIUS / (KAMI_SHOCKWAVE_ENDTIME - KAMI_SHOCKWAVE_STARTTIME) );
+		KamikazeShockWave(self->s.origin, self->activator, 25, 400,	(int) (float) t * KAMI_SHOCKWAVE_MAXRADIUS / (KAMI_SHOCKWAVE_ENDTIME - KAMI_SHOCKWAVE_STARTTIME) );
 	}
 	//
 	if (self->count >= KAMI_EXPLODE_STARTTIME) {
 		// do our damage
 		t = self->count - KAMI_EXPLODE_STARTTIME;
-		KamikazeRadiusDamage( self->s.pos.trBase, self->activator, 400,	(int) (float) t * KAMI_BOOMSPHERE_MAXRADIUS / (KAMI_IMPLODE_STARTTIME - KAMI_EXPLODE_STARTTIME) );
+		KamikazeRadiusDamage( self->s.origin, self->activator, 400,	(int) (float) t * KAMI_BOOMSPHERE_MAXRADIUS / (KAMI_IMPLODE_STARTTIME - KAMI_EXPLODE_STARTTIME) );
 	}
 
 	// either cycle or kill self
@@ -1100,10 +1037,10 @@ void G_StartKamikaze( gentity_t *ent ) {
 	explosion->eventTime = level.time;
 
 	if ( ent->client ) {
-		VectorCopy( ent->s.pos.trBase, snapped );
+		VectorCopy( ent->s.origin, snapped );
 	}
 	else {
-		VectorCopy( ent->activator->s.pos.trBase, snapped );
+		VectorCopy( ent->activator->s.origin, snapped );
 	}
 	SnapVector( snapped );		// save network bandwidth
 	G_SetOrigin( explosion, snapped );
@@ -1143,3 +1080,6 @@ void G_StartKamikaze( gentity_t *ent ) {
 	te->s.eventParm = GTS_KAMIKAZE;
 }
 #endif
+
+#endif
+

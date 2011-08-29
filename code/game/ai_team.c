@@ -131,20 +131,6 @@ int BotSortTeamMatesByBaseTravelTime(bot_state_t *bs, int *teammates, int maxtea
 	int traveltimes[MAX_CLIENTS];
 	bot_goal_t *goal = NULL;
 
-	if (gametype == GT_CTF || gametype == GT_1FCTF) {
-		if (BotTeam(bs) == TEAM_RED)
-			goal = &ctf_redflag;
-		else
-			goal = &ctf_blueflag;
-	}
-#ifdef MISSIONPACK
-	else {
-		if (BotTeam(bs) == TEAM_RED)
-			goal = &redobelisk;
-		else
-			goal = &blueobelisk;
-	}
-#endif
 	if (!maxclients)
 		maxclients = trap_Cvar_VariableIntegerValue("sv_maxclients");
 
@@ -1991,33 +1977,7 @@ void BotTeamAI(bot_state_t *bs) {
 			}
 			break;
 		}
-		case GT_CTF:
-		{
-			//if the number of team mates changed or the flag status changed
-			//or someone wants to know what to do
-			if (bs->numteammates != numteammates || bs->flagstatuschanged || bs->forceorders) {
-				bs->teamgiveorders_time = FloatTime();
-				bs->numteammates = numteammates;
-				bs->flagstatuschanged = qfalse;
-				bs->forceorders = qfalse;
-			}
-			//if there were no flag captures the last 3 minutes
-			if (bs->lastflagcapture_time < FloatTime() - 240) {
-				bs->lastflagcapture_time = FloatTime();
-				//randomly change the CTF strategy
-				if (random() < 0.4) {
-					bs->ctfstrategy ^= CTFS_AGRESSIVE;
-					bs->teamgiveorders_time = FloatTime();
-				}
-			}
-			//if it's time to give orders
-			if (bs->teamgiveorders_time && bs->teamgiveorders_time < FloatTime() - 3) {
-				BotCTFOrders(bs);
-				//
-				bs->teamgiveorders_time = 0;
-			}
-			break;
-		}
+	
 #ifdef MISSIONPACK
 		case GT_1FCTF:
 		{

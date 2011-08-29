@@ -28,33 +28,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 Gives the activator all the items pointed to.
 */
 void Use_Target_Give( gentity_t *ent, gentity_t *other, gentity_t *activator ) {
-	gentity_t	*t;
-	trace_t		trace;
-
-	if ( !activator->client ) {
-		return;
-	}
-
-	if ( !ent->target ) {
-		return;
-	}
-
-	memset( &trace, 0, sizeof( trace ) );
-	t = NULL;
-	while ( (t = G_Find (t, FOFS(targetname), ent->target)) != NULL ) {
-		if ( !t->item ) {
-			continue;
-		}
-		Touch_Item( t, activator, &trace );
-
-		// make sure it isn't going to respawn or show any events
-		t->nextthink = 0;
-		trap_UnlinkEntity( t );
-	}
+	
 }
 
 void SP_target_give( gentity_t *ent ) {
-	ent->use = Use_Target_Give;
+	
 }
 
 
@@ -65,19 +43,7 @@ takes away all the activators powerups.
 Used to drop flight powerups into death puts.
 */
 void Use_target_remove_powerups( gentity_t *ent, gentity_t *other, gentity_t *activator ) {
-	if( !activator->client ) {
-		return;
-	}
-
-	if( activator->client->ps.powerups[PW_REDFLAG] ) {
-		Team_ReturnFlag( TEAM_RED );
-	} else if( activator->client->ps.powerups[PW_BLUEFLAG] ) {
-		Team_ReturnFlag( TEAM_BLUE );
-	} else if( activator->client->ps.powerups[PW_NEUTRALFLAG] ) {
-		Team_ReturnFlag( TEAM_FREE );
-	}
-
-	memset( activator->client->ps.powerups, 0, sizeof( activator->client->ps.powerups ) );
+	
 }
 
 void SP_target_remove_powerups( gentity_t *ent ) {
@@ -179,69 +145,11 @@ Multiple identical looping sounds will just increase volume without any speed co
 "random"	wait variance, default is 0
 */
 void Use_Target_Speaker (gentity_t *ent, gentity_t *other, gentity_t *activator) {
-	if (ent->spawnflags & 3) {	// looping sound toggles
-		if (ent->s.loopSound)
-			ent->s.loopSound = 0;	// turn it off
-		else
-			ent->s.loopSound = ent->noise_index;	// start it
-	}else {	// normal sound
-		if ( ent->spawnflags & 8 ) {
-			G_AddEvent( activator, EV_GENERAL_SOUND, ent->noise_index );
-		} else if (ent->spawnflags & 4) {
-			G_AddEvent( ent, EV_GLOBAL_SOUND, ent->noise_index );
-		} else {
-			G_AddEvent( ent, EV_GENERAL_SOUND, ent->noise_index );
-		}
-	}
+
 }
 
 void SP_target_speaker( gentity_t *ent ) {
-	char	buffer[MAX_QPATH];
-	char	*s;
 
-	G_SpawnFloat( "wait", "0", &ent->wait );
-	G_SpawnFloat( "random", "0", &ent->random );
-
-	if ( !G_SpawnString( "noise", "NOSOUND", &s ) ) {
-		G_Error( "target_speaker without a noise key at %s", vtos( ent->s.origin ) );
-	}
-
-	// force all client reletive sounds to be "activator" speakers that
-	// play on the entity that activates it
-	if ( s[0] == '*' ) {
-		ent->spawnflags |= 8;
-	}
-
-	if (!strstr( s, ".wav" )) {
-		Com_sprintf (buffer, sizeof(buffer), "%s.wav", s );
-	} else {
-		Q_strncpyz( buffer, s, sizeof(buffer) );
-	}
-	ent->noise_index = G_SoundIndex(buffer);
-
-	// a repeating speaker can be done completely client side
-	ent->s.eType = ET_SPEAKER;
-	ent->s.eventParm = ent->noise_index;
-	ent->s.frame = ent->wait * 10;
-	ent->s.clientNum = ent->random * 10;
-
-
-	// check for prestarted looping sound
-	if ( ent->spawnflags & 1 ) {
-		ent->s.loopSound = ent->noise_index;
-	}
-
-	ent->use = Use_Target_Speaker;
-
-	if (ent->spawnflags & 4) {
-		ent->r.svFlags |= SVF_BROADCAST;
-	}
-
-	VectorCopy( ent->s.origin, ent->s.pos.trBase );
-
-	// must link the entity so we get areas and clusters so
-	// the server can determine who to send updates to
-	trap_LinkEntity( ent );
 }
 
 
@@ -422,32 +330,7 @@ void SP_target_position( gentity_t *self ){
 
 static void target_location_linkup(gentity_t *ent)
 {
-	int i;
-	int n;
 
-	if (level.locationLinked) 
-		return;
-
-	level.locationLinked = qtrue;
-
-	level.locationHead = NULL;
-
-	trap_SetConfigstring( CS_LOCATIONS, "unknown" );
-
-	for (i = 0, ent = g_entities, n = 1;
-			i < level.num_entities;
-			i++, ent++) {
-		if (ent->classname && !Q_stricmp(ent->classname, "target_location")) {
-			// lets overload some variables!
-			ent->health = n; // use for location marking
-			trap_SetConfigstring( CS_LOCATIONS + n, ent->message );
-			n++;
-			ent->nextTrain = level.locationHead;
-			level.locationHead = ent;
-		}
-	}
-
-	// All linked together now
 }
 
 /*QUAKED target_location (0 0.5 0) (-8 -8 -8) (8 8 8)

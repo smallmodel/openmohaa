@@ -174,8 +174,6 @@ struct gentity_s {
 	// timing variables
 	float		wait;
 	float		random;
-
-	gitem_t		*item;			// for bonus items
 };
 
 
@@ -533,25 +531,9 @@ void Cmd_FollowCycle_f( gentity_t *ent, int dir );
 //
 // g_items.c
 //
-void G_CheckTeamItems( void );
-void G_RunItem( gentity_t *ent );
-void RespawnItem( gentity_t *ent );
 
-void UseHoldableItem( gentity_t *ent );
-void PrecacheItem (gitem_t *it);
-gentity_t *Drop_Item( gentity_t *ent, gitem_t *item, float angle );
-gentity_t *LaunchItem( gitem_t *item, vec3_t origin, vec3_t velocity );
-void SetRespawn (gentity_t *ent, float delay);
-void G_SpawnItem (gentity_t *ent, gitem_t *item);
-void FinishSpawningItem( gentity_t *ent );
-void Think_Weapon (gentity_t *ent);
-int ArmorIndex (gentity_t *ent);
-void	Add_Ammo (gentity_t *ent, int weapon, int count);
-void Touch_Item (gentity_t *ent, gentity_t *other, trace_t *trace);
 
-void ClearRegisteredItems( void );
-void RegisterItem( gitem_t *item );
-void SaveRegisteredItems( void );
+
 
 //
 // g_utils.c
@@ -580,8 +562,6 @@ char	*vtos( const vec3_t v );
 
 float vectoyaw( const vec3_t vec );
 
-void G_AddPredictableEvent( gentity_t *ent, int event, int eventParm );
-void G_AddEvent( gentity_t *ent, int event, int eventParm );
 void G_SetOrigin( gentity_t *ent, vec3_t origin );
 void AddRemap(const char *oldShader, const char *newShader, float timeOffset);
 const char *BuildShaderStateConfig( void );
@@ -652,14 +632,10 @@ void DropPortalDestination( gentity_t *ent );
 // g_weapon.c
 //
 qboolean LogAccuracyHit( gentity_t *target, gentity_t *attacker );
-void CalcMuzzlePoint ( gentity_t *ent, vec3_t forward, vec3_t right, vec3_t up, vec3_t muzzlePoint );
 void SnapVectorTowards( vec3_t v, vec3_t to );
 qboolean CheckGauntletAttack( gentity_t *ent );
 void Weapon_HookFree (gentity_t *ent);
 void Weapon_HookThink (gentity_t *ent);
-// IneQuation
-extern vec3_t	g_muzzle;
-
 
 //
 // g_client.c
