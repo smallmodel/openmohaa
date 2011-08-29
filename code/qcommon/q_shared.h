@@ -1362,6 +1362,8 @@ typedef struct trajectoryMOH_s {
   float trDelta[3];
 } trajectoryMOH_t;
 
+#define NUM_BONE_CONTROLLERS 5
+
 // entityState_t is the information conveyed from the server
 // in an update message about entities that the client will
 // need to render in some way
@@ -1374,82 +1376,58 @@ typedef struct entityState_s {
 	int		eType;			// entityType_t
 	int		eFlags;
 
-	trajectory_t	pos;	// for calculating position
-	trajectory_t	apos;	// for calculating angles
-
-	trajectoryMOH_t posMOH;
+	trajectoryMOH_t pos;
 
 	int		time;
 	int		time2;
 
-	float netorigin[3];
-
+	float	netorigin[3];
 	vec3_t	origin;
 	vec3_t	origin2;
 
-	float netangles[3];
-
+	float	netangles[3];
 	vec3_t	angles;
-	vec3_t	angles2;
-
-	int		otherEntityNum;	// shotgun sources, etc
-	int		otherEntityNum2;
-
-	int		groundEntityNum;	// -1 = in air
 
 	int		constantLight;	// r + (g<<8) + (b<<16) + (intensity<<24)
 	int		loopSound;		// constantly loop this sound
+	float	loopSoundVolume;
+	float	loopSoundMinDist;
+	float	loopSoundMaxDist;
+	float	loopSoundPitch;
+	int		loopSoundFlags;
 
-  float loopSoundVolume;
-  float loopSoundMinDist;
-  float loopSoundMaxDist;
-  float loopSoundPitch;
-  int loopSoundFlags;
-  int parent;
-  int tag_num;
-  qboolean attach_use_angles;
-  float attach_offset[3];
-  int beam_entnum;
+	int		parent;
+	int		tag_num;
+
+	qboolean	attach_use_angles;
+	float		attach_offset[3];
+
+	int		beam_entnum;
 
 	int		modelindex;
-	int		modelindex2;
-
-  int usageIndex;
-  int skinNum;
-  int wasframe;
-  frameInfo_t frameInfo[16];
-  float actionWeight;
-  int bone_tag[5];
-  float bone_angles[5][3];
-  float bone_quat[5][4];
-  byte surfaces[32];
+	int		usageIndex;
+	int		skinNum;
+	int		wasframe;
+	frameInfo_t frameInfo[16];
+	float	actionWeight;
+	int		bone_tag[NUM_BONE_CONTROLLERS];
+	float	bone_angles[NUM_BONE_CONTROLLERS][3];
+	float	bone_quat[NUM_BONE_CONTROLLERS][4]; // not sent over
+	byte	surfaces[32];
 
 	int		clientNum;		// 0 to (MAX_CLIENTS - 1), for players and corpses
 
-
-	int		frame;
+	int		groundEntityNum;	// -1 = in air
 
 	int		solid;			// for client side prediction, trap_linkentity sets this properly
 
-	int		event;			// impulse events -- muzzle flashes, footsteps, etc
-	int		eventParm;
-
-	// for players
-	int		powerups;		// bit flags
-	int		weapon;			// determines weapon and flash model, etc
-	int		legsAnim;		// mask off ANIM_TOGGLEBIT
-	int		torsoAnim;		// mask off ANIM_TOGGLEBIT
-
-	int		generic1;
-
-
-  float scale;
-  float alpha;
-  int renderfx;
-  float shader_data[2];
-  float shader_time;
-  float quat[4];
-  float eyeVector[3];
+	float	scale;
+	float	alpha;
+	int		renderfx;
+	float	shader_data[2];
+	float	shader_time;
+	float	quat[4];
+	float	eyeVector[3];
 } entityState_t;
 
 typedef enum {

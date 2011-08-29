@@ -1212,8 +1212,18 @@ void RB_SurfaceEntity( surfaceType_t *surfType ) {
 void RB_SurfaceSpriteMOH( surfaceType_t *surfType ) {
 	vec3_t		left, up;
 	float		radius;
+	model_t		*mod;
+	sprite_t	*spr;
 
-	sprite_t *spr = tr.models[backEnd.currentEntity->e.hModel]->sprite;
+	mod = tr.models[backEnd.currentEntity->e.hModel];
+
+	// should never happen...
+	if(mod->type != MOD_SPRITE) {
+		ri.Printf( PRINT_ALL, "RB_SurfaceSpriteMOH called for non-sprite model!!!\n" );
+		return;
+	}
+
+	spr = mod->sprite;
 
 	// calculate the xyz locations for the four corners
 	radius = spr->scale;

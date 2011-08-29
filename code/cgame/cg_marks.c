@@ -1405,48 +1405,6 @@ void CG_ParticleBubble (qhandle_t pshader, vec3_t origin, vec3_t origin2, int tu
 void CG_ParticleSmoke (qhandle_t pshader, centity_t *cent)
 {
 
-	// using cent->density = enttime
-	//		 cent->frame = startfade
-	cparticle_t	*p;
-
-	if (!pshader)
-		CG_Printf ("CG_ParticleSmoke == ZERO!\n");
-
-	if (!free_particles)
-		return;
-	p = free_particles;
-	free_particles = p->next;
-	p->next = active_particles;
-	active_particles = p;
-	p->time = cg.time;
-	
-	p->endtime = cg.time + cent->currentState.time;
-	p->startfade = cg.time + cent->currentState.time2;
-	
-	p->color = 0;
-	p->alpha = 1.0;
-	p->alphavel = 0;
-	p->start = cent->currentState.origin[2];
-	p->end = cent->currentState.origin2[2];
-	p->pshader = pshader;
-	p->rotate = qfalse;
-	p->height = 8;
-	p->width = 8;
-	p->endheight = 32;
-	p->endwidth = 32;
-	p->type = P_SMOKE;
-	
-	VectorCopy(cent->currentState.origin, p->org);
-
-	p->vel[0] = p->vel[1] = 0;
-	p->accel[0] = p->accel[1] = p->accel[2] = 0;
-
-	p->vel[2] = 5;
-
-	if (cent->currentState.frame == 1)// reverse gravity	
-		p->vel[2] *= -1;
-
-	p->roll = 8 + (crandom() * 4);
 }
 
 
@@ -1630,27 +1588,7 @@ int CG_NewParticleArea (int num)
 
 void	CG_SnowLink (centity_t *cent, qboolean particleOn)
 {
-	cparticle_t		*p, *next;
-	int id;
-
-	id = cent->currentState.frame;
-
-	for (p=active_particles ; p ; p=next)
-	{
-		next = p->next;
-		
-		if (p->type == P_WEATHER || p->type == P_WEATHER_TURBULENT)
-		{
-			if (p->snum == id)
-			{
-				if (particleOn)
-					p->link = qtrue;
-				else
-					p->link = qfalse;
-			}
-		}
-
-	}
+	
 }
 
 void CG_ParticleImpactSmokePuff (qhandle_t pshader, vec3_t origin)
@@ -1809,96 +1747,13 @@ void CG_Particle_OilParticle (qhandle_t pshader, centity_t *cent)
 
 void CG_Particle_OilSlick (qhandle_t pshader, centity_t *cent)
 {
-	cparticle_t	*p;
-	
-  	if (!pshader)
-		CG_Printf ("CG_Particle_OilSlick == ZERO!\n");
 
-	if (!free_particles)
-		return;
-	p = free_particles;
-	free_particles = p->next;
-	p->next = active_particles;
-	active_particles = p;
-	p->time = cg.time;
-	
-	if (cent->currentState.angles2[2])
-		p->endtime = cg.time + cent->currentState.angles2[2];
-	else
-		p->endtime = cg.time + 60000;
-
-	p->startfade = p->endtime;
-
-	p->alpha = 1.0;
-	p->alphavel = 0;
-	p->roll = 0;
-
-	p->pshader = pshader;
-
-	if (cent->currentState.angles2[0] || cent->currentState.angles2[1])
-	{
-		p->width = cent->currentState.angles2[0];
-		p->height = cent->currentState.angles2[0];
-
-		p->endheight = cent->currentState.angles2[1];
-		p->endwidth = cent->currentState.angles2[1];
-	}
-	else
-	{
-		p->width = 8;
-		p->height = 8;
-
-		p->endheight = 16;
-		p->endwidth = 16;
-	}
-
-	p->type = P_FLAT_SCALEUP;
-
-	p->snum = 1.0;
-
-	VectorCopy(cent->currentState.origin, p->org );
-	
-	p->org[2]+= 0.55 + (crandom() * 0.5);
-
-	p->vel[0] = 0;
-	p->vel[1] = 0;
-	p->vel[2] = 0;
-	VectorClear( p->accel );
-
-	p->rotate = qfalse;
-
-	p->roll = rand()%179;
-	
-	p->alpha = 0.75;
 
 }
 
 void CG_OilSlickRemove (centity_t *cent)
 {
-	cparticle_t		*p, *next;
-	int				id;
 
-	id = 1.0f;
-
-	if (!id)
-		CG_Printf ("CG_OilSlickRevove NULL id\n");
-
-	for (p=active_particles ; p ; p=next)
-	{
-		next = p->next;
-		
-		if (p->type == P_FLAT_SCALEUP)
-		{
-			if (p->snum == id)
-			{
-				p->endtime = cg.time + 100;
-				p->startfade = p->endtime;
-				p->type = P_FLAT_SCALEUP_FADE;
-
-			}
-		}
-
-	}
 }
 
 qboolean ValidBloodPool (vec3_t start)

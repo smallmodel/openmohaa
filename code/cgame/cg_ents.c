@@ -172,12 +172,6 @@ static void CG_General( centity_t *cent ) {
 
 	memset (&ent, 0, sizeof(ent));
 
-	// set frame
-
-	ent.frame = s1->frame;
-	ent.oldframe = ent.frame;
-	ent.backlerp = 0;
-
 	VectorCopy( cent->lerpOrigin, ent.origin);
 	VectorCopy( cent->lerpOrigin, ent.oldorigin);
 
@@ -248,14 +242,6 @@ static void CG_Mover( centity_t *cent ) {
 
 	// add to refresh list
 	trap_R_AddRefEntityToScene(&ent);
-
-	// add the secondary model
-	if ( s1->modelindex2 ) {
-		ent.skinNum = 0;
-		ent.hModel = cgs.gameModels[s1->modelindex2];
-		trap_R_AddRefEntityToScene(&ent);
-	}
-
 }
 
 /*
@@ -273,7 +259,7 @@ void CG_Beam( centity_t *cent ) {
 
 	// create the render entity
 	memset (&ent, 0, sizeof(ent));
-	VectorCopy( s1->pos.trBase, ent.origin );
+	VectorCopy( s1->origin, ent.origin );
 	VectorCopy( s1->origin2, ent.oldorigin );
 	AxisClear( ent.axis );
 	ent.reType = RT_BEAM;
@@ -291,30 +277,30 @@ CG_Portal
 ===============
 */
 static void CG_Portal( centity_t *cent ) {
-	refEntity_t			ent;
-	entityState_t		*s1;
+	//refEntity_t			ent;
+	//entityState_t		*s1;
 
-	s1 = &cent->currentState;
+	//s1 = &cent->currentState;
 
-	// create the render entity
-	memset (&ent, 0, sizeof(ent));
-	VectorCopy( cent->lerpOrigin, ent.origin );
-	VectorCopy( s1->origin2, ent.oldorigin );
-	ByteToDir( s1->eventParm, ent.axis[0] );
-	PerpendicularVector( ent.axis[1], ent.axis[0] );
+	//// create the render entity
+	//memset (&ent, 0, sizeof(ent));
+	//VectorCopy( cent->lerpOrigin, ent.origin );
+	//VectorCopy( s1->origin2, ent.oldorigin );
+	//ByteToDir( s1->eventParm, ent.axis[0] );
+	//PerpendicularVector( ent.axis[1], ent.axis[0] );
 
-	// negating this tends to get the directions like they want
-	// we really should have a camera roll value
-	VectorSubtract( vec3_origin, ent.axis[1], ent.axis[1] );
+	//// negating this tends to get the directions like they want
+	//// we really should have a camera roll value
+	//VectorSubtract( vec3_origin, ent.axis[1], ent.axis[1] );
 
-	CrossProduct( ent.axis[0], ent.axis[1], ent.axis[2] );
-	ent.reType = RT_PORTALSURFACE;
-	ent.oldframe = s1->powerups;
-	ent.frame = s1->frame;		// rotation speed
-	ent.skinNum = s1->clientNum/256.0 * 360;	// roll offset
+	//CrossProduct( ent.axis[0], ent.axis[1], ent.axis[2] );
+	//ent.reType = RT_PORTALSURFACE;
+	//ent.oldframe = s1->powerups;
+	//ent.frame = s1->frame;		// rotation speed
+	//ent.skinNum = s1->clientNum/256.0 * 360;	// roll offset
 
-	// add to refresh list
-	trap_R_AddRefEntityToScene(&ent);
+	//// add to refresh list
+	//trap_R_AddRefEntityToScene(&ent);
 }
 
 
@@ -326,33 +312,33 @@ Also called by client movement prediction code
 =========================
 */
 void CG_AdjustPositionForMover( const vec3_t in, int moverNum, int fromTime, int toTime, vec3_t out ) {
-	centity_t	*cent;
-	vec3_t	oldOrigin, origin, deltaOrigin;
-	vec3_t	oldAngles, angles, deltaAngles;
+	//centity_t	*cent;
+	//vec3_t	oldOrigin, origin, deltaOrigin;
+	//vec3_t	oldAngles, angles, deltaAngles;
 
-	if ( moverNum <= 0 || moverNum >= ENTITYNUM_MAX_NORMAL ) {
-		VectorCopy( in, out );
-		return;
-	}
+	//if ( moverNum <= 0 || moverNum >= ENTITYNUM_MAX_NORMAL ) {
+	//	VectorCopy( in, out );
+	//	return;
+	//}
 
-	cent = &cg_entities[ moverNum ];
-	if ( cent->currentState.eType != ET_MOVER ) {
-		VectorCopy( in, out );
-		return;
-	}
+	//cent = &cg_entities[ moverNum ];
+	//if ( cent->currentState.eType != ET_MOVER ) {
+	//	VectorCopy( in, out );
+	//	return;
+	//}
 
-	BG_EvaluateTrajectory( &cent->currentState.pos, fromTime, oldOrigin );
-	BG_EvaluateTrajectory( &cent->currentState.apos, fromTime, oldAngles );
+	//BG_EvaluateTrajectory( &cent->currentState.pos, fromTime, oldOrigin );
+	//BG_EvaluateTrajectory( &cent->currentState.apos, fromTime, oldAngles );
 
-	BG_EvaluateTrajectory( &cent->currentState.pos, toTime, origin );
-	BG_EvaluateTrajectory( &cent->currentState.apos, toTime, angles );
+	//BG_EvaluateTrajectory( &cent->currentState.pos, toTime, origin );
+	//BG_EvaluateTrajectory( &cent->currentState.apos, toTime, angles );
 
-	VectorSubtract( origin, oldOrigin, deltaOrigin );
-	VectorSubtract( angles, oldAngles, deltaAngles );
+	//VectorSubtract( origin, oldOrigin, deltaOrigin );
+	//VectorSubtract( angles, oldAngles, deltaAngles );
 
-	VectorAdd( in, deltaOrigin, out );
+	//VectorAdd( in, deltaOrigin, out );
 
-	// FIXME: origin change when on a rotating object
+	//// FIXME: origin change when on a rotating object
 }
 
 
@@ -440,10 +426,10 @@ static void CG_CalcEntityLerpPositions( centity_t *cent ) {
 #endif
 	// adjust for riding a mover if it wasn't rolled into the predicted
 	// player state
-	if ( cent != &cg.predictedPlayerEntity ) {
-		CG_AdjustPositionForMover( cent->lerpOrigin, cent->currentState.groundEntityNum, 
-		cg.snap->serverTime, cg.time, cent->lerpOrigin );
-	}
+	//if ( cent != &cg.predictedPlayerEntity ) {
+	//	CG_AdjustPositionForMover( cent->lerpOrigin, cent->currentState.groundEntityNum, 
+	//	cg.snap->serverTime, cg.time, cent->lerpOrigin );
+	//}
 }
 
 /*

@@ -680,7 +680,7 @@ void CL_NextDemo( void ) {
 	Cvar_Set ("nextdemo","");
 	Cbuf_AddText (v);
 	Cbuf_AddText ("\n");
-	Cbuf_Execute();
+	Cbuf_Execute(0);
 }
 
 
@@ -2830,7 +2830,7 @@ void CL_Init( void ) {
 
 	SCR_Init ();
 
-	Cbuf_Execute ();
+	Cbuf_Execute (0);
 
 	Cvar_Set( "cl_running", "1" );
 

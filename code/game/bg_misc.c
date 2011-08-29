@@ -303,21 +303,6 @@ void BG_EvaluateTrajectoryDelta( const trajectory_t *tr, int atTime, vec3_t resu
 	}
 }
 
-
-/*
-===============
-BG_AddPredictableEventToPlayerstate
-
-Handles the sequence numbers
-===============
-*/
-
-void	trap_Cvar_VariableStringBuffer( const char *var_name, char *buffer, int bufsize );
-
-void BG_AddPredictableEventToPlayerstate( int newEvent, int eventParm, playerState_t *ps ) {
-
-}
-
 /*
 ========================
 BG_TouchJumpPad
@@ -347,18 +332,16 @@ void BG_PlayerStateToEntityState( playerState_t *ps, entityState_t *s, qboolean 
 
 	s->number = ps->clientNum;
 
-	s->pos.trType = TR_INTERPOLATE;
-	VectorCopy( ps->origin, s->pos.trBase );
+	VectorCopy( ps->origin, s->origin );
 	if ( snap ) {
-		SnapVector( s->pos.trBase );
+		SnapVector( s->origin );
 	}
 	// set the trDelta for flag direction
 	VectorCopy( ps->velocity, s->pos.trDelta );
 
-	s->apos.trType = TR_INTERPOLATE;
-	VectorCopy( ps->viewangles, s->apos.trBase );
+	VectorCopy( ps->viewangles, s->angles );
 	if ( snap ) {
-		SnapVector( s->apos.trBase );
+		SnapVector( s->angles );
 	}
 
 	//s->angles2[YAW] = ps->movementDir;
@@ -397,22 +380,18 @@ void BG_PlayerStateToEntityStateExtraPolate( playerState_t *ps, entityState_t *s
 
 	s->number = ps->clientNum;
 
-	s->pos.trType = TR_LINEAR_STOP;
-	VectorCopy( ps->origin, s->pos.trBase );
+	VectorCopy( ps->origin, s->origin );
 	if ( snap ) {
-		SnapVector( s->pos.trBase );
+		SnapVector( s->origin );
 	}
 	// set the trDelta for flag direction and linear prediction
 	VectorCopy( ps->velocity, s->pos.trDelta );
 	// set the time for linear prediction
 	s->pos.trTime = time;
-	// set maximum extra polation time
-	s->pos.trDuration = 50; // 1000 / sv_fps (default = 20)
 
-	s->apos.trType = TR_INTERPOLATE;
-	VectorCopy( ps->viewangles, s->apos.trBase );
+	VectorCopy( ps->viewangles, s->angles );
 	if ( snap ) {
-		SnapVector( s->apos.trBase );
+		SnapVector( s->angles );
 	}
 	s->clientNum = ps->clientNum;		// ET_PLAYER looks here instead of at number
 										// so corpses can also reference the proper config

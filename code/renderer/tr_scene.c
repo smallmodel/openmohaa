@@ -322,7 +322,7 @@ void RE_RenderScene( const refdef_t *fd ) {
 	tr.refdef.rdflags = fd->rdflags;
 
 	// su44
-	if(r_drawstaticmodels->integer) {
+	if(r_drawstaticmodels->integer && tr.world && ! (tr.refdef.rdflags & RDF_NOWORLDMODEL)) {
 		R_AddStaticModelEntities();
 	}
 

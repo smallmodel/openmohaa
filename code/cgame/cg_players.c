@@ -1086,145 +1086,6 @@ void CG_LoadDeferredPlayers( void ) {
 /*
 =============================================================================
 
-PLAYER ANIMATION
-
-=============================================================================
-*/
-
-
-/*
-===============
-CG_SetLerpFrameAnimation
-
-may include ANIM_TOGGLEBIT
-===============
-*/
-static void CG_SetLerpFrameAnimation( clientInfo_t *ci, lerpFrame_t *lf, int newAnimation ) {
-	animation_t	*anim;
-
-	lf->animationNumber = newAnimation;
-	newAnimation &= ~ANIM_TOGGLEBIT;
-
-	if ( newAnimation < 0 || newAnimation >= MAX_TOTALANIMATIONS ) {
-		CG_Error( "Bad animation number: %i", newAnimation );
-	}
-
-	anim = &ci->animations[ newAnimation ];
-
-	lf->animation = anim;
-	lf->animationTime = lf->frameTime + anim->initialLerp;
-
-	if ( cg_debugAnim.integer ) {
-		CG_Printf( "Anim: %i\n", newAnimation );
-	}
-}
-
-/*
-===============
-CG_RunLerpFrame
-
-Sets cg.snap, cg.oldFrame, and cg.backlerp
-cg.time should be between oldFrameTime and frameTime after exit
-===============
-*/
-static void CG_RunLerpFrame( clientInfo_t *ci, lerpFrame_t *lf, int newAnimation, float speedScale ) {
-	int			f, numFrames;
-	animation_t	*anim;
-
-	// debugging tool to get no animations
-	if ( cg_animSpeed.integer == 0 ) {
-		lf->oldFrame = lf->frame = lf->backlerp = 0;
-		return;
-	}
-
-	// see if the animation sequence is switching
-	if ( newAnimation != lf->animationNumber || !lf->animation ) {
-		CG_SetLerpFrameAnimation( ci, lf, newAnimation );
-	}
-
-	// if we have passed the current frame, move it to
-	// oldFrame and calculate a new frame
-	if ( cg.time >= lf->frameTime ) {
-		lf->oldFrame = lf->frame;
-		lf->oldFrameTime = lf->frameTime;
-
-		// get the next frame based on the animation
-		anim = lf->animation;
-		if ( !anim->frameLerp ) {
-			return;		// shouldn't happen
-		}
-		if ( cg.time < lf->animationTime ) {
-			lf->frameTime = lf->animationTime;		// initial lerp
-		} else {
-			lf->frameTime = lf->oldFrameTime + anim->frameLerp;
-		}
-		f = ( lf->frameTime - lf->animationTime ) / anim->frameLerp;
-		f *= speedScale;		// adjust for haste, etc
-
-		numFrames = anim->numFrames;
-		if (anim->flipflop) {
-			numFrames *= 2;
-		}
-		if ( f >= numFrames ) {
-			f -= numFrames;
-			if ( anim->loopFrames ) {
-				f %= anim->loopFrames;
-				f += anim->numFrames - anim->loopFrames;
-			} else {
-				f = numFrames - 1;
-				// the animation is stuck at the end, so it
-				// can immediately transition to another sequence
-				lf->frameTime = cg.time;
-			}
-		}
-		if ( anim->reversed ) {
-			lf->frame = anim->firstFrame + anim->numFrames - 1 - f;
-		}
-		else if (anim->flipflop && f>=anim->numFrames) {
-			lf->frame = anim->firstFrame + anim->numFrames - 1 - (f%anim->numFrames);
-		}
-		else {
-			lf->frame = anim->firstFrame + f;
-		}
-		if ( cg.time > lf->frameTime ) {
-			lf->frameTime = cg.time;
-			if ( cg_debugAnim.integer ) {
-				CG_Printf( "Clamp lf->frameTime\n");
-			}
-		}
-	}
-
-	if ( lf->frameTime > cg.time + 200 ) {
-		lf->frameTime = cg.time;
-	}
-
-	if ( lf->oldFrameTime > cg.time ) {
-		lf->oldFrameTime = cg.time;
-	}
-	// calculate current lerp value
-	if ( lf->frameTime == lf->oldFrameTime ) {
-		lf->backlerp = 0;
-	} else {
-		lf->backlerp = 1.0 - (float)( cg.time - lf->oldFrameTime ) / ( lf->frameTime - lf->oldFrameTime );
-	}
-}
-
-
-/*
-===============
-CG_ClearLerpFrame
-===============
-*/
-static void CG_ClearLerpFrame( clientInfo_t *ci, lerpFrame_t *lf, int animationNumber ) {
-	lf->frameTime = lf->oldFrameTime = cg.time;
-	CG_SetLerpFrameAnimation( ci, lf, animationNumber );
-	lf->oldFrame = lf->frame = lf->animation->firstFrame;
-}
-
-
-/*
-=============================================================================
-
 PLAYER ANGLES
 
 =============================================================================
@@ -1505,7 +1366,7 @@ static qboolean CG_PlayerShadow( centity_t *cent, float *shadowPlane ) {
 	// add the mark as a temporary, so it goes directly to the renderer
 	// without taking a spot in the cg_marks array
 	CG_ImpactMark( cgs.media.shadowMarkShader, trace.endpos, trace.plane.normal,
-		cent->pe.legs.yawAngle, alpha,alpha,alpha,1, qfalse, 24, qtrue );
+		/*cent->pe.legs.yawAngle*/ 0 , alpha,alpha,alpha,1, qfalse, 24, qtrue );
 
 	return qtrue;
 }
@@ -1668,29 +1529,13 @@ void CG_ResetPlayerEntity( centity_t *cent ) {
 	cent->errorTime = -99999;		// guarantee no error decay added
 	cent->extrapolated = qfalse;
 
-	CG_ClearLerpFrame( &cgs.clientinfo[ cent->currentState.clientNum ], &cent->pe.legs, cent->currentState.legsAnim );
-	CG_ClearLerpFrame( &cgs.clientinfo[ cent->currentState.clientNum ], &cent->pe.torso, cent->currentState.torsoAnim );
+	//BG_EvaluateTrajectory( &cent->currentState.pos, cg.time, cent->lerpOrigin );
+	//BG_EvaluateTrajectory( &cent->currentState.apos, cg.time, cent->lerpAngles );
 
-	BG_EvaluateTrajectory( &cent->currentState.pos, cg.time, cent->lerpOrigin );
-	BG_EvaluateTrajectory( &cent->currentState.apos, cg.time, cent->lerpAngles );
+	VectorCopy( cent->currentState.origin, cent->lerpOrigin );
+	VectorCopy( cent->currentState.angles, cent->lerpAngles );
 
 	VectorCopy( cent->lerpOrigin, cent->rawOrigin );
 	VectorCopy( cent->lerpAngles, cent->rawAngles );
-
-	memset( &cent->pe.legs, 0, sizeof( cent->pe.legs ) );
-	cent->pe.legs.yawAngle = cent->rawAngles[YAW];
-	cent->pe.legs.yawing = qfalse;
-	cent->pe.legs.pitchAngle = 0;
-	cent->pe.legs.pitching = qfalse;
-
-	memset( &cent->pe.torso, 0, sizeof( cent->pe.legs ) );
-	cent->pe.torso.yawAngle = cent->rawAngles[YAW];
-	cent->pe.torso.yawing = qfalse;
-	cent->pe.torso.pitchAngle = cent->rawAngles[PITCH];
-	cent->pe.torso.pitching = qfalse;
-
-	if ( cg_debugPosition.integer ) {
-		CG_Printf("%i ResetPlayerEntity yaw=%i\n", cent->currentState.number, cent->pe.torso.yawAngle );
-	}
 }
 
