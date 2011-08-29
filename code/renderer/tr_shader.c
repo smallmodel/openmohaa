@@ -2189,6 +2189,7 @@ static void FixRenderCommandList( int newShader ) {
 				curCmd = (const void *)(sc_cmd + 1);
 				break;
 				}
+			case RC_ROTATED_PIC:
 			case RC_STRETCH_PIC:
 				{
 				const stretchPicCommand_t *sp_cmd = (const stretchPicCommand_t *)curCmd;

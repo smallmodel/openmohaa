@@ -86,9 +86,6 @@ static void CG_Viewpos_f (void) {
 
 static void CG_ScoresDown_f( void ) {
 
-#ifdef MISSIONPACK
-		CG_BuildSpectatorString();
-#endif
 	if ( cg.scoresRequestTime + 2000 < cg.time ) {
 		// the scores are more than two seconds out of data,
 		// so request new ones
@@ -106,6 +103,7 @@ static void CG_ScoresDown_f( void ) {
 		// is within two seconds
 		cg.showScores = qtrue;
 	}
+	trap_Cvar_Set( "ui_showscores", "1" );
 }
 
 static void CG_ScoresUp_f( void ) {
@@ -113,6 +111,7 @@ static void CG_ScoresUp_f( void ) {
 		cg.showScores = qfalse;
 		cg.scoreFadeTime = cg.time;
 	}
+	trap_Cvar_Set( "ui_showscores", "0" );
 }
 
 #ifdef MISSIONPACK
@@ -301,8 +300,8 @@ static consoleCommand_t	commands[] = {
 	{ "nextskin", CG_TestModelNextSkin_f },
 	{ "prevskin", CG_TestModelPrevSkin_f },
 	{ "viewpos", CG_Viewpos_f },
-//	{ "+scores", CG_ScoresDown_f },
-//	{ "-scores", CG_ScoresUp_f },
+	{ "+scores", CG_ScoresDown_f },
+	{ "-scores", CG_ScoresUp_f },
 	{ "+zoom", CG_ZoomDown_f },
 	{ "-zoom", CG_ZoomUp_f },
 	{ "sizeup", CG_SizeUp_f },

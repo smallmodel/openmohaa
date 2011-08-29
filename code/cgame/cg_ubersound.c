@@ -123,13 +123,13 @@ void CG_ParseUSline( char **ptr, ubersound_t *snd ) {
 	}
 	// maplist
 	if ( !Q_strncmp( COM_Parse(ptr), "maps", MAX_QPATH ) ) 
-		Q_strncpyz( snd->mapstring, COM_Parse(ptr), MAX_QPATH );
+		Q_strncpyz( snd->mapstring, COM_Parse(ptr), MAPSTRING_LENGTH );
 }
 
 qboolean US_CheckMapstring( const char *mapstring ) {
 	char *ptr, *token;
 
-	ptr = mapstring;
+	ptr = (char*)mapstring;
 	token = COM_Parse(&ptr);
 	while (*token) {
 		if ( strstr( cgs.mapname, token ) )
@@ -211,4 +211,43 @@ void CG_LoadUbersound( void ) {
 
 	trap_FS_FCloseFile( f );
 	CG_Printf( "=== Finished %s ===\n", UBERSOUND_FILE );
+}
+
+char buffer[MUSIC_SIZE];
+const char* CG_LoadMusic( const char *musicfile ) {
+
+	fileHandle_t	f;
+	int				len;
+
+	char			*token;
+	char			*ptr;
+	int				i;
+	char			path[MAX_QPATH];
+	char			name[MAX_QPATH];
+
+	CG_Printf( "=== Loading %s ===\n", musicfile );
+
+	len = trap_FS_FOpenFile( musicfile, &f, FS_READ);
+	if (!f) {
+		CG_Printf( "couldn't load %s. file not found.\n", musicfile );
+		return;
+	}
+	if ( len >= MUSIC_SIZE ) {
+		Com_Printf( ".scr file too large, %i KB. Max size is %i KB\n", len/1024, MUSIC_SIZE/1024 );
+		return;
+	}
+
+	trap_FS_Read( buffer, len, f );
+	buffer[len] = 0;
+	ptr = buffer;
+	token = COM_Parse( &ptr );
+	while (*token) {
+		if ( !Q_strncmp(token,"path",MAX_QPATH) )
+			Q_strncpyz( path, COM_Parse(&ptr), MAX_QPATH );
+		else if ( !Q_strncmp(token,"normal",MAX_QPATH) )
+			Q_strncpyz( name, COM_Parse(&ptr), MAX_QPATH );
+		token = COM_Parse( &ptr );
+	}
+	Q_snprintf( buffer, MAX_QPATH, "%s/%s", path, name );
+	return buffer;
 }

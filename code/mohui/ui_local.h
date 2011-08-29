@@ -253,7 +253,7 @@ qboolean UI_OutOfMemory( void );
 //
 extern uiStatic_t uis;
 
-void UI_DrawHUD( int *stats );
+void UI_DrawHUD( playerState_t *ps );
 void UI_Init( void );
 void UI_Shutdown( void );
 void UI_KeyEvent( int key, int down );
@@ -267,6 +267,7 @@ void UI_DrawConnectScreen( qboolean overlay );
 void UI_SetColor( const float *rgba );
 void UI_UpdateScreen( void );
 void UI_DrawHandlePic( float x, float y, float w, float h, qhandle_t hShader );
+void UI_RotatedPic( float x, float y, float w, float h, qhandle_t hShader, float angle );
 void UI_CmdExecute( const char *text );
 void UI_DrawBox( int x, int y, int w, int h, qboolean ctrCoord );
 
@@ -313,6 +314,7 @@ void			trap_R_AddLightToScene( const vec3_t org, float intensity, float r, float
 void			trap_R_RenderScene( const refdef_t *fd );
 void			trap_R_SetColor( const float *rgba );
 void			trap_R_DrawStretchPic( float x, float y, float w, float h, float s1, float t1, float s2, float t2, qhandle_t hShader );
+void			trap_R_RotatedPic( float x, float y, float w, float h, float s1, float t1, float s2, float t2, qhandle_t hShader, float angle );
 void			trap_UpdateScreen( void );
 int				trap_CM_LerpTag( orientation_t *tag, clipHandle_t mod, int startFrame, int endFrame, float frac, const char *tagName );
 void			trap_S_StartLocalSound( sfxHandle_t sfx, int channelNum );

@@ -25,7 +25,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "ui_local.h"
 
 uiStatic_t		uis;
-int				*ps_stats;
+playerState_t	*playerState;
 
 vec4_t menu_text_color	    = {1.0f, 1.0f, 1.0f, 1.0f};
 vec4_t menu_dim_color       = {0.0f, 0.0f, 0.0f, 0.75f};
@@ -98,6 +98,9 @@ typedef struct {
 } cvarTable_t;
 
 vmCvar_t	ui_mohui;
+vmCvar_t	ui_wombat;
+vmCvar_t	ui_showscores;
+
 vmCvar_t	ui_playmusic;
 vmCvar_t	ui_voodoo;
 vmCvar_t	ui_signshader;
@@ -124,6 +127,8 @@ vmCvar_t	cg_scoreboardpic;
 
 static cvarTable_t		cvarTable[] = {
 	{ &ui_mohui, "ui_mohui", "1", CVAR_ROM },
+	{ &ui_wombat, "ui_wombat", "0", CVAR_ARCHIVE },
+	{ &ui_showscores, "ui_showscores", "0", CVAR_TEMP },
 	{ &ui_playmusic, "ui_playmusic", "0", CVAR_INIT },
 	{ &ui_voodoo, "ui_voodoo", "0", CVAR_ARCHIVE },
 	{ &ui_signshader, "ui_signshader", "", CVAR_TEMP },
@@ -492,12 +497,12 @@ void UI_DrawMenu( uiMenu_t *menu, qboolean foreground ) {
 					switch ( res->statbar ) {
 						case STATBAR_COMPASS:
 						UI_SetColor( res->fgcolor );
-						UI_DrawHandlePic( res->rect[0], res->rect[1], res->rect[2], res->rect[3], res->statbarshader );
+						UI_RotatedPic( res->rect[0], res->rect[1], res->rect[2], res->rect[3], res->statbarshader, playerState->viewangles[YAW]/360 );
 						break;
 						case STATBAR_VERTICAL:
 						UI_SetColor( res->bgcolor );
-						if ( res->statbarshader && ps_stats[res->maxplayerstat]!=0) {
-							frac = res->rect[3] * ps_stats[res->playerstat] / ps_stats[res->maxplayerstat];
+						if ( res->statbarshader && playerState->stats[res->maxplayerstat]!=0) {
+							frac = res->rect[3] * playerState->stats[res->playerstat] / playerState->stats[res->maxplayerstat];
 							UI_DrawHandlePic( res->rect[0], res->rect[1]+res->rect[3] - frac, res->rect[2], frac, res->statbarshader );
 						}
 						break;
@@ -505,10 +510,13 @@ void UI_DrawMenu( uiMenu_t *menu, qboolean foreground ) {
 				}
 				else if ( res->statvar == qtrue ) {
 					if ( !res->itemstat )
-						trap_R_Text_Paint( res->font,res->rect[0],res->rect[1],1,0,va("%i",ps_stats[res->playerstat]),1,0,qtrue,qtrue);
+						trap_R_Text_Paint( res->font,res->rect[0],res->rect[1],1,0,va("%i",playerState->stats[res->playerstat]),1,0,qtrue,qtrue);
 				}
 				else {
-					UI_DrawHandlePic( res->rect[0], res->rect[1], res->rect[2], res->rect[3], res->shader );
+					if ( res->shader )
+						UI_DrawHandlePic( res->rect[0], res->rect[1], res->rect[2], res->rect[3], res->shader );
+					else
+						UI_DrawHandlePic( res->rect[0], res->rect[1], res->rect[2], res->rect[3], uis.blackShader );
 				}
 				if(res->rendermodel) {
 					UI_RenderModel(res);
@@ -551,15 +559,25 @@ void UI_DrawMenu( uiMenu_t *menu, qboolean foreground ) {
 
 /*
 =================
+UI_ScoreBoardList
+=================
+*/
+void UI_ScoreBoardList( void ) {
+	UI_DrawBox( 32, 56, 384, 392, qfalse );
+	Com_Printf( "team %i, kills %i, deaths %i\n", playerState->stats[STAT_TEAM], playerState->stats[STAT_KILLS], playerState->stats[STAT_DEATHS]);
+}
+
+/*
+=================
 UI_DrawHUD
 =================
 */
-void UI_DrawHUD( int *stats ) {
+void UI_DrawHUD( playerState_t *ps ) {
 	int i;
 //for (i=0;i<STAT_LAST_STAT;i++){
 //	Com_Printf( "%i val: %i\n", i, stats[i] );
 //}
-	ps_stats = stats;
+	playerState = ps;
 
 	UI_DrawMenu( &uis.hudMenus[HUD_AMMO], qtrue );
 	UI_DrawMenu( &uis.hudMenus[HUD_COMPASS], qfalse );
@@ -572,8 +590,10 @@ void UI_DrawHUD( int *stats ) {
 //	UI_DrawMenu( &uis.hudMenus[HUD_WEAPONS], qtrue );
 
 	UI_DrawMenu( &uis.crosshair, qtrue );
-	if ( uis.showscores == qtrue )
+	if ( ui_showscores.integer == 1 ) {
 		UI_DrawMenu( &uis.scoreboard, qtrue );
+		UI_ScoreBoardList();
+	}
 }
 /*
 =================
@@ -698,14 +718,14 @@ qboolean UI_ConsoleCommand( int realTime ) {
 		UI_PushMenu( "dm_primaryselect" );
 		return qtrue;
 	}
-	else if ( Q_stricmp (cmd, "+scores") == 0 ) {
+/*	else if ( Q_stricmp (cmd, "+scores") == 0 ) {
 		uis.showscores = qtrue;
 		return qtrue;
 	}
 	else if ( Q_stricmp (cmd, "-scores") == 0 ) {
 		uis.showscores = qfalse;
 		return qtrue;
-	}
+	}*/
 
 	return qfalse;
 }
@@ -814,6 +834,36 @@ void UI_DrawHandlePic( float x, float y, float w, float h, qhandle_t hShader ) {
 	
 	UI_AdjustFrom640( &x, &y, &w, &h );
 	trap_R_DrawStretchPic( x, y, w, h, s0, t0, s1, t1, hShader );
+}
+
+void UI_RotatedPic( float x, float y, float w, float h, qhandle_t hShader, float angle ) {
+	float	s0;
+	float	s1;
+	float	t0;
+	float	t1;
+
+	if( w < 0 ) {	// flip about vertical
+		w  = -w;
+		s0 = 1;
+		s1 = 0;
+	}
+	else {
+		s0 = 0;
+		s1 = 1;
+	}
+
+	if( h < 0 ) {	// flip about horizontal
+		h  = -h;
+		t0 = 1;
+		t1 = 0;
+	}
+	else {
+		t0 = 0;
+		t1 = 1;
+	}
+	
+	UI_AdjustFrom640( &x, &y, &w, &h );
+	trap_R_RotatedPic( x, y, w, h, s0, t0, s1, t1, hShader, angle );
 }
 
 void UI_SetColor( const float *rgba ) {

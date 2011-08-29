@@ -1122,6 +1122,8 @@ extern	vmCvar_t		vm_lean_lower;
 // UBERSOUND
 #define UBERSOUND_FILE	"ubersound/ubersound.scr"
 #define UBERSOUND_SIZE	300000
+#define MUSIC_SIZE		10000
+#define MAPSTRING_LENGTH 512
 
 typedef struct ubersound_s {
 	char				name[MAX_QPATH];
@@ -1134,7 +1136,7 @@ typedef struct ubersound_s {
 	float				maxDist;
 	soundChannel_t		channel;
 	qboolean			loaded;	// loaded or streamed
-	char				mapstring[MAX_QPATH];
+	char				mapstring[MAPSTRING_LENGTH];
 
 	sfxHandle_t			sfxHandle;
 	qboolean			hasLoaded;
@@ -1649,3 +1651,4 @@ int CG_NewParticleArea ( int num );
 // cg_ubersound.c
 void			CG_LoadUbersound( void );
 ubersound_t*	CG_GetUbersound( const char *name );
+const char*		CG_LoadMusic( const char *musicfile );
