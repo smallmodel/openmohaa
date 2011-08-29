@@ -1137,6 +1137,7 @@ typedef struct ubersound_s {
 	char				mapstring[MAX_QPATH];
 
 	sfxHandle_t			sfxHandle;
+	qboolean			hasLoaded;
 	struct ubersound_s*	hashNext;
 } ubersound_t;
 

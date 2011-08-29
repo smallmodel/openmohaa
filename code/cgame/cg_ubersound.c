@@ -67,15 +67,10 @@ ubersound_t*	CG_GetUbersound( const char *name ) {
 		CG_Printf( "CG_GetUbersound: sound %s not found.\n", name );
 		return NULL;
 	}
-	else if ( snd->sfxHandle == -1 )
-		return NULL; // this sound already failed to load
-	else if( snd->sfxHandle == -2) {
-		snd->sfxHandle = trap_S_RegisterSound( snd->wavfile, qfalse );
-		if(snd->sfxHandle == -1)
-			return NULL; // failed
+	else if ( snd->hasLoaded == qtrue )
 		return snd;
-	} else {
-		return snd; // already loaded
+	else {
+		snd->sfxHandle = trap_S_RegisterSound( snd->wavfile, qfalse );
 	}
 }
 
@@ -92,42 +87,57 @@ void CG_ParseUSline( char **ptr, ubersound_t *snd ) {
 		snd->pitchmod	= atof(COM_Parse(ptr));
 		snd->minDist	= atof(COM_Parse(ptr));
 		snd->maxDist	= atof(COM_Parse(ptr));
+
+		// channel
+		chan = COM_Parse(ptr);
+		if ( !Q_strncmp( chan, "auto", MAX_QPATH ) )
+			snd->channel = CHAN_AUTO;
+		else if ( !Q_strncmp( chan, "body", MAX_QPATH ) )
+			snd->channel = CHAN_BODY;
+		else if ( !Q_strncmp( chan, "item", MAX_QPATH ) )
+			snd->channel = CHAN_ITEM;
+		else if ( !Q_strncmp( chan, "weaponidle", MAX_QPATH ) )
+			snd->channel = CHAN_WEAPONIDLE;
+		else if ( !Q_strncmp( chan, "voice", MAX_QPATH ) )
+			snd->channel = CHAN_VOICE;
+		else if ( !Q_strncmp( chan, "local", MAX_QPATH ) )
+			snd->channel = CHAN_LOCAL;
+		else if ( !Q_strncmp( chan, "weapon", MAX_QPATH ) )
+			snd->channel = CHAN_WEAPON;
+		else if ( !Q_strncmp( chan, "dialog_secondary", MAX_QPATH ) )
+			snd->channel = CHAN_DIALOG_SECONDARY;
+		else if ( !Q_strncmp( chan, "dialog", MAX_QPATH ) )
+			snd->channel = CHAN_DIALOG;
+		else if ( !Q_strncmp( chan, "menu", MAX_QPATH ) )
+			snd->channel = CHAN_MENU;
+		else
+			CG_Printf( "Ubersound unrecognized channel %s for %s\n", chan, snd->name );
+		// loaded /Streamed
+		chan = COM_Parse(ptr);
+		if ( !Q_strncmp( chan, "loaded", MAX_QPATH ) )
+			snd->loaded = qtrue;
+		else if ( !Q_strncmp( chan, "streamed", MAX_QPATH ) )
+			snd->loaded = qfalse;
+		else
+			CG_Printf( "Ubersound unrecognized loaded state %s for %s\n", chan, snd->name );
 	}
-	// channel
-	chan = COM_Parse(ptr);
-	if ( !Q_strncmp( chan, "auto", MAX_QPATH ) )
-		snd->channel = CHAN_AUTO;
-	else if ( !Q_strncmp( chan, "body", MAX_QPATH ) )
-		snd->channel = CHAN_BODY;
-	else if ( !Q_strncmp( chan, "item", MAX_QPATH ) )
-		snd->channel = CHAN_ITEM;
-	else if ( !Q_strncmp( chan, "weaponidle", MAX_QPATH ) )
-		snd->channel = CHAN_WEAPONIDLE;
-	else if ( !Q_strncmp( chan, "voice", MAX_QPATH ) )
-		snd->channel = CHAN_VOICE;
-	else if ( !Q_strncmp( chan, "local", MAX_QPATH ) )
-		snd->channel = CHAN_LOCAL;
-	else if ( !Q_strncmp( chan, "weapon", MAX_QPATH ) )
-		snd->channel = CHAN_WEAPON;
-	else if ( !Q_strncmp( chan, "dialog_secondary", MAX_QPATH ) )
-		snd->channel = CHAN_DIALOG_SECONDARY;
-	else if ( !Q_strncmp( chan, "dialog", MAX_QPATH ) )
-		snd->channel = CHAN_DIALOG;
-	else if ( !Q_strncmp( chan, "menu", MAX_QPATH ) )
-		snd->channel = CHAN_MENU;
-	else
-		CG_Printf( "Ubersound unrecognized channel %s for %s\n", chan, snd->name );
-	// loaded /Streamed
-	chan = COM_Parse(ptr);
-	if ( !Q_strncmp( chan, "loaded", MAX_QPATH ) )
-		snd->loaded = qtrue;
-	else if ( !Q_strncmp( chan, "streamed", MAX_QPATH ) )
-		snd->loaded = qfalse;
-	else
-		CG_Printf( "Ubersound unrecognized loaded state %s for %s\n", chan, snd->name );
 	// maplist
 	if ( !Q_strncmp( COM_Parse(ptr), "maps", MAX_QPATH ) ) 
 		Q_strncpyz( snd->mapstring, COM_Parse(ptr), MAX_QPATH );
+}
+
+qboolean US_CheckMapstring( const char *mapstring ) {
+	char *ptr, *token;
+
+	ptr = mapstring;
+	token = COM_Parse(&ptr);
+	while (*token) {
+		if ( strstr( cgs.mapname, token ) )
+			return qtrue;
+		token = COM_Parse(&ptr);
+	}
+
+	return qfalse;
 }
 
 void CG_LoadUbersound( void ) {
@@ -164,24 +174,30 @@ void CG_LoadUbersound( void ) {
 	token = COM_Parse( &ptr );
 
 	while (*token) {
-		if ( !Q_strncmp( token, "aliascache", MAX_QPATH ) ) {
+		if ( !Q_strncmp(token,"aliascache",MAX_QPATH) || !Q_strncmp(token,"alias",MAX_QPATH) ) {
 			CG_ParseUSline( &ptr, &snd_indexes[snd_numIndexes] );
-			if ( snd_indexes[snd_numIndexes].name[strnlen(snd_indexes[snd_numIndexes].name,MAX_QPATH)-1] == '1' )
-				snd_indexes[snd_numIndexes].name[strnlen(snd_indexes[snd_numIndexes].name,MAX_QPATH)-1] = 0;
-			i = generateHashValue(snd_indexes[snd_numIndexes].name);
-			snd = hashTable[i];
-			if (snd) {
-				while (snd->hashNext)
-					snd = snd->hashNext;
-				snd->hashNext = &snd_indexes[snd_numIndexes];
-			}
-			else
-				hashTable[i] = &snd_indexes[snd_numIndexes];
-			snd_indexes[snd_numIndexes].sfxHandle = -2;
-			snd_numIndexes++;
-			if ( snd_numIndexes >= MAX_UBERSOUNDS ) {
-				snd_numIndexes--;
-				CG_Error( "CG_LoadUbersound: too many aliascaches in file.\n" );
+
+			if ( US_CheckMapstring( snd_indexes[snd_numIndexes].mapstring ) == qtrue ) {
+				if ( snd_indexes[snd_numIndexes].name[strnlen(snd_indexes[snd_numIndexes].name,MAX_QPATH)-1] == '1' )
+					snd_indexes[snd_numIndexes].name[strnlen(snd_indexes[snd_numIndexes].name,MAX_QPATH)-1] = 0;
+				i = generateHashValue(snd_indexes[snd_numIndexes].name);
+				snd = hashTable[i];
+				if (snd) {
+					while (snd->hashNext)
+						snd = snd->hashNext;
+					snd->hashNext = &snd_indexes[snd_numIndexes];
+				}
+				else
+					hashTable[i] = &snd_indexes[snd_numIndexes];
+				if ( snd_indexes[snd_numIndexes].loaded == qtrue ) {
+					 snd_indexes[snd_numIndexes].sfxHandle = trap_S_RegisterSound( snd_indexes[snd_numIndexes].wavfile, qfalse );
+					 snd_indexes[snd_numIndexes].hasLoaded = qtrue;
+				}
+				snd_numIndexes++;
+				if ( snd_numIndexes >= MAX_UBERSOUNDS ) {
+					snd_numIndexes--;
+					CG_Error( "CG_LoadUbersound: too many aliascaches in file.\n" );
+				}
 			}
 		}
 		else if ( !Q_strncmp( token, "end", MAX_QPATH ) ) {
