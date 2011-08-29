@@ -1408,16 +1408,19 @@ Q3CGOBJ_ = \
   $(B)/main/cgame/cg_effects.o \
   $(B)/main/cgame/cg_ents.o \
   $(B)/main/cgame/cg_event.o \
+  $(B)/main/cgame/cg_eventSystem.o \
   $(B)/main/cgame/cg_info.o \
   $(B)/main/cgame/cg_localents.o \
   $(B)/main/cgame/cg_marks.o \
   $(B)/main/cgame/cg_modelanim.o \
+  $(B)/main/cgame/cg_parsemsg.o \
   $(B)/main/cgame/cg_players.o \
   $(B)/main/cgame/cg_playerstate.o \
   $(B)/main/cgame/cg_predict.o \
   $(B)/main/cgame/cg_scoreboard.o \
   $(B)/main/cgame/cg_servercmds.o \
   $(B)/main/cgame/cg_snapshot.o \
+  $(B)/main/cgame/cg_ubersound.o \
   $(B)/main/cgame/cg_view.o \
   $(B)/main/cgame/cg_viewmodelanim.o \
   $(B)/main/cgame/cg_weapons.o \
