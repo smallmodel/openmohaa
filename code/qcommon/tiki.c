@@ -1283,7 +1283,7 @@ again:
 							out->init->clCmds = Hunk_Alloc(sizeof(char*)*numCmds,h_low);
 							memcpy(out->init->clCmds,cmdTxts,sizeof(char*)*numCmds);
 						}
-					} else {
+					} else if(token[0]) {
 						Com_Printf("Unknown token %s in section %s of file %s\n",token,sections[section],fname);
 					}
 				break;
@@ -1335,14 +1335,14 @@ again:
 									if(token[0] == '}')
 										break;
 									// parse frame index
-									if(!Q_stricmp(token,"entry")) {
+									if(!Q_stricmp(token,"entry") || !Q_stricmp(token,"enter")) {
 										cmd->frame = TIKI_FRAME_ENTRY;
 									} else if(!Q_stricmp(token,"exit")) {
 										cmd->frame = TIKI_FRAME_EXIT;
 									} else if(!Q_stricmp(token,"first")) {
 										cmd->frame = 0;
 									} else if(!Q_stricmp(token,"last")) {
-										cmd->frame = anim->numFrames;
+										cmd->frame = anim->numFrames-1;
 									} else {
 										cmd->frame = atoi(token);
 									}
@@ -1421,6 +1421,9 @@ again:
 				out->surfs = out->includes[i]->surfs;
 				out->numSurfaces = out->includes[i]->numSurfaces;
 				out->surfShaders = out->includes[i]->surfShaders;
+				out->boneNames =  out->includes[i]->boneNames;
+				out->bones =  out->includes[i]->bones;
+				out->numBones =  out->includes[i]->numBones;
 			}
 #endif
 		}
