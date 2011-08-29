@@ -23,6 +23,24 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "cg_local.h"
 
+typedef struct hdelement_s {
+	qhandle_t hShader;
+	char shaderName[64];
+	int iX;
+	int iY;
+	int iWidth;
+	int iHeight;
+	float vColor[4];
+	int iHorizontalAlign;
+	int iVerticalAlign;
+	qboolean bVirtualScreen;
+	char string[2048];
+	char fontName[64];
+	fontInfo_t pFont;
+} hdelement_t;
+
+hdelement_t hdelements[64];
+
 // wall impacts
 static vec3_t wall_impact_pos[64];
 static vec3_t wall_impact_norm[64];
@@ -65,35 +83,27 @@ static void CG_SpawnEffectModel(char *model, vec3_t origin) {
 }
 
 static void CG_HudDrawShader (int iInfo) {
-	// TODO
+	hdelement_t *hdi = hdelements + iInfo;
+	if(hdi->shaderName[0]) {
+		hdi->hShader = trap_R_RegisterShaderNoMip(hdi->shaderName);
+	} else {
+		hdi->hShader = 0;
+	}
 }
 
 static void CG_HudDrawFont (int iInfo) {
-	// TODO
+	hdelement_t *hdi = hdelements + iInfo;
+	if(hdi->fontName[0]) {
+		trap_R_RegisterFont(hdi->fontName,0,&hdi->pFont);
+	} else {
+		memset(&hdi->pFont,0,sizeof(hdi->pFont));
+	}
 }
 
 static void CG_PlaySound(char *sound_name, float *origin, int channel,
 	float volume, float min_distance, float pitch, int argstype) {
 	// TODO
 }
-
-typedef struct hdelement_s {
-	qhandle_t hShader;
-	char shaderName[64];
-	int iX;
-	int iY;
-	int iWidth;
-	int iHeight;
-	float vColor[4];
-	int iHorizontalAlign;
-	int iVerticalAlign;
-	qboolean bVirtualScreen;
-	char string[2048];
-	char fontName[64];
-	fontInfo_t pFont;
-} hdelement_t;
-
-hdelement_t hdelements[64];
 
 /*
 =====================
