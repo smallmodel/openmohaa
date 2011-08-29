@@ -71,6 +71,9 @@ intptr_t vmMain( int command, int arg0, int arg1, int arg2, int arg3, int arg4, 
 	case CG_LOCATIONPRINT:
 		CG_LocationPrint( (const char*)arg0, arg1, arg2, 10 );
 		return 0;
+	case CG_PARSEMSG:
+		CG_ParseCGMessage();
+		return 0;
 	default:
 		CG_Error( "vmMain: unknown command %i", command );
 		break;

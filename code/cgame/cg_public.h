@@ -186,8 +186,14 @@ typedef enum {
 	CG_STARTCAMERA,
 	CG_GETCAMERAINFO,
 */
+	CG_MSG_READBITS,
+	CG_MSG_READBYTE,
+	CG_MSG_READSHORT,
+	CG_MSG_READCOORD,
+	CG_MSG_READDIR,
+	CG_MSG_READSTRING,
 
-	CG_MEMSET, // = 100,
+	CG_MEMSET,
 	CG_MEMCPY,
 	CG_STRNCPY,
 	CG_SIN,
@@ -252,8 +258,10 @@ typedef enum {
 
 	CG_CENTERPRINT,
 //	void CG_CenterPrint( const char *str, int y, int charWidth )
-	CG_LOCATIONPRINT
+	CG_LOCATIONPRINT,
 //	void CG_LocationPrint( const char *str, int x, int y, int charWidth )
+
+	CG_PARSEMSG
 } cgameExport_t;
 
 //----------------------------------------------

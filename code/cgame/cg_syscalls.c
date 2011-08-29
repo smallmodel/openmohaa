@@ -485,3 +485,27 @@ int	trap_TIKI_GetBoneNameIndex( const char *boneName ) {
 void trap_SetEyeInfo( vec3_t origin, vec3_t angles ) {
 	syscall(CG_SETEYEINFO, origin, angles);
 }
+
+int trap_MSG_ReadBits( int bits ) {
+	return syscall(CG_MSG_READBITS, bits);
+}
+
+int trap_MSG_ReadByte() {
+	return syscall( CG_MSG_READBYTE );
+}
+
+int trap_MSG_ReadShort() {
+	return syscall( CG_MSG_READSHORT );
+}
+
+float trap_MSG_ReadCoord() {
+	return syscall( CG_MSG_READCOORD );
+}
+
+void trap_MSG_ReadDir( vec3_t dir ) {
+	syscall( CG_MSG_READDIR, dir );
+}
+
+char *trap_MSG_ReadString() {
+	return syscall( CG_MSG_READSTRING );
+}

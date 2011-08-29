@@ -1611,7 +1611,12 @@ void		trap_TIKI_AppendFrameBoundsAndRadius( struct tiki_s *tiki, int animIndex, 
 void		trap_TIKI_Animate( struct tiki_s *tiki, bone_t *bones );
 int			trap_TIKI_GetBoneNameIndex( const char *boneName );
 void		trap_SetEyeInfo( vec3_t origin, vec3_t angles );
-
+int			trap_MSG_ReadBits( int bits );
+int			trap_MSG_ReadByte() ;
+int			trap_MSG_ReadShort();
+float		trap_MSG_ReadCoord();
+void		trap_MSG_ReadDir( vec3_t dir );
+char		*trap_MSG_ReadString();
 
 typedef enum {
   SYSTEM_PRINT,
@@ -1652,3 +1657,7 @@ int CG_NewParticleArea ( int num );
 void			CG_LoadUbersound( void );
 ubersound_t*	CG_GetUbersound( const char *name );
 const char*		CG_LoadMusic( const char *musicfile );
+
+// cg_parsemsg.c
+void CG_ParseCGMessage();
+

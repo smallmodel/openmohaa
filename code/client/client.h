@@ -457,6 +457,7 @@ void CL_SetEyeInfo(vec3_t origin, vec3_t angles); //su44
 //
 extern int cl_connectedToPureServer;
 extern int cl_connectedToCheatServer;
+extern msg_t *cl_currentMSG;
 
 void CL_SystemInfoChanged( void );
 void CL_ParseServerMessage( msg_t *msg );

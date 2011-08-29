@@ -1047,6 +1047,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="..\..\code\cgame\cg_parsemsg.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\code\cgame\cg_players.c"
 				>
 				<FileConfiguration

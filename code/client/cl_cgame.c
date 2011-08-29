@@ -656,6 +656,25 @@ intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 		CL_SetEyeInfo(VMA(1),VMA(2));
 		return 0;
 
+	case CG_MSG_READBITS:
+		return MSG_ReadBits(cl_currentMSG,args[1]);
+
+	case CG_MSG_READBYTE:
+		return MSG_ReadByte(cl_currentMSG);
+
+	case CG_MSG_READSHORT:
+		return MSG_ReadShort(cl_currentMSG);
+
+	case CG_MSG_READCOORD:
+		return MSG_ReadCoord(cl_currentMSG);
+
+	case CG_MSG_READDIR:
+		MSG_ReadDir( cl_currentMSG, VMA(1) );
+		return 0;
+
+	case CG_MSG_READSTRING:
+		return MSG_ReadString(cl_currentMSG);
+
 	case CG_MEMSET:
 		Com_Memset( VMA(1), args[2], args[3] );
 		return 0;
