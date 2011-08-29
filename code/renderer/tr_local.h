@@ -33,6 +33,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #define GL_INDEX_TYPE		GL_UNSIGNED_INT
 typedef unsigned int glIndex_t;
+typedef byte color4ub_t[4];
+typedef byte color3ub_t[3];
 
 // fast float to int conversion
 #if id386 && !defined(__GNUC__)
@@ -742,6 +744,9 @@ typedef struct {
 	// for culling
 	float			radius;
 	vec3_t			bounds[2];
+	// vertex colors
+	int				firstVert;
+	int				numVerts;
 } mstaticModel_t;
 
 typedef struct {
@@ -807,6 +812,10 @@ typedef struct {
 	// su44: static models
 	mstaticModel_t *staticModels;
 	int			numStaticModels;
+
+	// vertex colors (rgb) for static models
+	color3ub_t		*smColors;
+	int				numSMColors;
 } world_t;
 
 //======================================================================
@@ -1369,7 +1378,6 @@ TESSELATOR/SHADER DECLARATIONS
 
 ====================================================================
 */
-typedef byte color4ub_t[4];
 
 typedef struct stageVars
 {
@@ -1404,6 +1412,8 @@ typedef struct shaderCommands_s
 	int			numPasses;
 	void		(*currentStageIteratorFunc)( void );
 	shaderStage_t	**xstages;
+
+	qboolean skipVertexColorsAlpha;
 } shaderCommands_t;
 
 extern	shaderCommands_t	tess;

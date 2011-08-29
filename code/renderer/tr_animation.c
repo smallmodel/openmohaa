@@ -922,5 +922,41 @@ void RB_SurfaceSKD( skdSurface_t *sf ) {
 #endif
 		vert = (skdVertex_t*)(((byte*)vert)+sizeof(*vert)+sizeof(skdWeight_t)*vert->numWeights+sizeof(skdMorph_t)*vert->numMorphs);
 	}
+#if 0
+	if(backEnd.currentEntity->e.staticModelIndex) {
+		mstaticModel_t *sm;
+		color4ub_t *out;
+		color3ub_t *in;
+		int cdofs;
+		skdSurface_t *sf2; 
+
+		sm = &tr.world->staticModels[backEnd.currentEntity->e.staticModelIndex-1];
+
+		tess.skipVertexColorsAlpha = qtrue;
+
+		cdofs = 0;
+		sf2 = tiki->surfs;
+		while(sf2 != sf) {
+			cdofs += sf2->numVerts;
+			sf2 = (skdSurface_t*)(((byte*)sf2)+sf2->ofsEnd);
+		}
+
+		in = &tr.world->smColors[sm->firstVert+cdofs];
+		out = tess.vertexColors + baseVertex;
+		for(i = 0; i < sf->numVerts; i++,in++,out++) {
+#if 1
+			(*out)[0] = (*in)[0];
+			(*out)[1] = (*in)[1];
+			(*out)[2] = (*in)[2];
+//			(*out)[3] = 255;
+#else
+			(*out)[0] = 255;
+			(*out)[1] = 0;
+			(*out)[2] = 0;
+			(*out)[3] = 127;
+#endif
+		}
+	}
+#endif
 	tess.numVertexes+= sf->numVerts;
 }

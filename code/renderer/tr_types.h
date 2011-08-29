@@ -109,6 +109,8 @@ typedef struct {
 	bone_t		*bones;
 	int			surfaceBits;
 	vec3_t		bounds[2];
+
+	int			staticModelIndex;
 } refEntity_t;
 
 

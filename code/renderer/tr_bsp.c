@@ -1854,6 +1854,10 @@ void R_LoadTerrain(lump_t *ter) {
 		memset(&out[i].surf, 0, sizeof(out[i].surf));
 		out[i].surf.surfaceType = SF_TERRAIN_PATCH;
 		out[i].surf.patch = out + i;
+		for(x = 0; x < 63; x++) {
+			ri.Printf(PRINT_DEVELOPER, "%i - %i, %i\n",in[i].vertFlags[0][x],in[i].vertFlags[1][x]);
+	
+		}
 	}
 	ri.Printf(PRINT_DEVELOPER, "R_LoadTerrain: %d terrain patches loaded\n", numPatches);
 
@@ -1898,6 +1902,8 @@ void R_LoadStaticModels(lump_t *l) {
 		VectorCopy(in[i].origin,s_worldData.staticModels[i].origin);
 		VectorCopy(in[i].angles,s_worldData.staticModels[i].angles);
 		s_worldData.staticModels[i].scale = in[i].scale;
+		s_worldData.staticModels[i].firstVert = in[i].firstVertexData;
+		s_worldData.staticModels[i].numVerts = in[i].numVertexData;
 		// "models" path is sometimes missing..
 		if(Q_stricmpn(in[i].model,"models/",7)) {
 			strcpy(tmp,"models/");
@@ -1931,6 +1937,23 @@ void R_LoadStaticModels(lump_t *l) {
 		}
 	}
 	ri.Printf(PRINT_DEVELOPER, "R_LoadStaticModels: %d static models loaded\n", s_worldData.numStaticModels);
+}
+
+/*
+================
+R_LoadSMVertexColors
+================
+*/
+void R_LoadSMVertexColors(lump_t *l) {
+	int	*in;
+
+	in = (void *)(fileBase + l->fileofs);
+	if (l->filelen % sizeof(color3ub_t))
+		ri.Error (ERR_DROP, "LoadMap: funny static model lump size in %s (%d %% %d)", s_worldData.name, l->filelen, sizeof(color3ub_t));
+
+	s_worldData.numSMColors = l->filelen / sizeof(color3ub_t);
+	s_worldData.smColors = ri.Hunk_Alloc(l->filelen, h_low);
+	memcpy(s_worldData.smColors,in,l->filelen);
 }
 
 /*
@@ -2013,6 +2036,7 @@ void RE_LoadWorldMap( const char *name ) {
 	R_LoadTerrain(&header->lumps[LUMP_TERRAIN]);
 	// su44
 	R_LoadStaticModels(&header->lumps[LUMP_STATICMODELDEF]);
+	R_LoadSMVertexColors(&header->lumps[LUMP_STATICMODELDATA]);
 
 	s_worldData.dataSize = (byte *)ri.Hunk_Alloc(0, h_low) - startMarker;
 

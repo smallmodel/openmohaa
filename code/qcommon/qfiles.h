@@ -830,7 +830,8 @@ typedef struct dterPatch_s {
 	short			baseZ;
 	unsigned short	shader;
 	short			lightmap;
-	int				dummy2[65];	// thanks to heiko_ for pointing out a x86-64 bug here
+	short			dummy[4];
+	short			vertFlags[2][63];
 	byte			heightmap[9][9];
 } dterPatch_t;
 

@@ -1063,7 +1063,11 @@ static void RB_IterateStagesGeneric( shaderCommands_t *input )
 		if ( !setArraysOnce )
 		{
 			qglEnableClientState( GL_COLOR_ARRAY );
-			qglColorPointer( 4, GL_UNSIGNED_BYTE, 0, input->svars.colors );
+			if(tess.skipVertexColorsAlpha) {
+				qglColorPointer( 3, GL_UNSIGNED_BYTE, 4, tess.svars.colors );
+			} else {
+				qglColorPointer( 4, GL_UNSIGNED_BYTE, 0, tess.svars.colors );
+			}
 		}
 
 		//
@@ -1156,7 +1160,11 @@ void RB_StageIteratorGeneric( void )
 		setArraysOnce = qtrue;
 
 		qglEnableClientState( GL_COLOR_ARRAY);
-		qglColorPointer( 4, GL_UNSIGNED_BYTE, 0, tess.svars.colors );
+		if(tess.skipVertexColorsAlpha) {
+			qglColorPointer( 3, GL_UNSIGNED_BYTE, 4, tess.svars.colors );
+		} else {
+			qglColorPointer( 4, GL_UNSIGNED_BYTE, 0, tess.svars.colors );
+		}
 
 		qglEnableClientState( GL_TEXTURE_COORD_ARRAY);
 		qglTexCoordPointer( 2, GL_FLOAT, 0, tess.svars.texcoords[0] );
@@ -1259,7 +1267,11 @@ void RB_StageIteratorVertexLitTexture( void )
 	qglEnableClientState( GL_COLOR_ARRAY);
 	qglEnableClientState( GL_TEXTURE_COORD_ARRAY);
 
-	qglColorPointer( 4, GL_UNSIGNED_BYTE, 0, tess.svars.colors );
+	if(tess.skipVertexColorsAlpha) {
+		qglColorPointer( 3, GL_UNSIGNED_BYTE, 4, tess.svars.colors );
+	} else {
+		qglColorPointer( 4, GL_UNSIGNED_BYTE, 0, tess.svars.colors );
+	}
 	qglTexCoordPointer( 2, GL_FLOAT, 16, tess.texCoords[0][0] );
 	qglVertexPointer (3, GL_FLOAT, 16, input->xyz);
 
@@ -1459,7 +1471,7 @@ void RB_EndSurface( void ) {
 	}
 	// clear shader so we can tell we don't have any unclosed surfaces
 	tess.numIndexes = 0;
-
+	tess.skipVertexColorsAlpha = qfalse;
 	GLimp_LogComment( "----------\n" );
 }
 

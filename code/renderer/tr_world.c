@@ -759,6 +759,7 @@ void R_AddStaticModelEntities(void) {
 	for(i = 0; i < tr.world->numStaticModels; i++) {
 		if(tr.models[tr.world->staticModels[i].model]->tiki==0)
 			continue;
+		ent.staticModelIndex = i+1;
 		ent.hModel = tr.world->staticModels[i].model;
 		VectorCopy(tr.world->staticModels[i].origin,ent.origin);
 		AnglesToAxis(tr.world->staticModels[i].angles,ent.axis);
