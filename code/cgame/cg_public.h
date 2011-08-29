@@ -242,6 +242,8 @@ typedef enum {
 	// Generates and draws a game scene and status information at the given time.
 	// If demoPlayback is set, local movement prediction will not be enabled
 
+	CG_DRAW_2D,
+
 	CG_CROSSHAIR_PLAYER,
 //	int (*CG_CrosshairPlayer)( void );
 

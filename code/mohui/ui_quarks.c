@@ -559,16 +559,6 @@ void UI_DrawMenu( uiMenu_t *menu, qboolean foreground ) {
 
 /*
 =================
-UI_ScoreBoardList
-=================
-*/
-void UI_ScoreBoardList( void ) {
-	UI_DrawBox( 32, 56, 384, 392, qfalse );
-	Com_Printf( "team %i, kills %i, deaths %i\n", playerState->stats[STAT_TEAM], playerState->stats[STAT_KILLS], playerState->stats[STAT_DEATHS]);
-}
-
-/*
-=================
 UI_DrawHUD
 =================
 */
@@ -592,7 +582,6 @@ void UI_DrawHUD( playerState_t *ps ) {
 	UI_DrawMenu( &uis.crosshair, qtrue );
 	if ( ui_showscores.integer == 1 ) {
 		UI_DrawMenu( &uis.scoreboard, qtrue );
-		UI_ScoreBoardList();
 	}
 }
 /*

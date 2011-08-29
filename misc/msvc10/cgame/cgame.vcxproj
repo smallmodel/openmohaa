@@ -96,6 +96,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="..\..\..\code\cgame\cg_parsemsg.c" />
     <ClCompile Include="..\..\..\code\cgame\cg_players.c" />
     <ClCompile Include="..\..\..\code\cgame\cg_playerstate.c" />
     <ClCompile Include="..\..\..\code\cgame\cg_predict.c" />

@@ -862,6 +862,16 @@ void CL_CGameRendering( stereoFrame_t stereo ) {
 	VM_Debug( 0 );
 }
 
+/*
+=====================
+CL_CGame2D
+=====================
+*/
+void CL_CGame2D( stereoFrame_t stereo ) {
+	VM_Call( cgvm, CG_DRAW_2D, cl.serverTime, stereo, clc.demoplaying );
+	VM_Debug( 0 );
+}
+
 
 /*
 =================

@@ -1037,7 +1037,8 @@ static void CG_ServerCommand( void ) {
 	}
 
 	if ( !strcmp( cmd, "scores" ) ) {
-		CG_ParseScores();
+		//CG_ParseScores();
+		trap_Args(cg.aScore,sizeof(cg.aScore));
 		return;
 	}
 
