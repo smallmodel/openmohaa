@@ -443,13 +443,14 @@ static void SV_AddEntitiesVisibleFromPoint( vec3_t origin, clientSnapshot_t *fra
 
 		// if its a portal entity, add everything visible from its camera position
 		if ( ent->r.svFlags & SVF_PORTAL ) {
-			if ( ent->s.generic1 ) {
-				vec3_t dir;
-				VectorSubtract(ent->s.origin, origin, dir);
-				if ( VectorLengthSquared(dir) > (float) ent->s.generic1 * ent->s.generic1 ) {
-					continue;
-				}
-			}
+			// entityState_t::generic1 is not present in MoHAA
+			//if ( ent->s.generic1 ) {
+			//	vec3_t dir;
+			//	VectorSubtract(ent->s.origin, origin, dir);
+			//	if ( VectorLengthSquared(dir) > (float) ent->s.generic1 * ent->s.generic1 ) {
+			//		continue;
+			//	}
+			//}
 			SV_AddEntitiesVisibleFromPoint( ent->s.origin2, frame, eNums, qtrue );
 		}
 
