@@ -836,8 +836,8 @@ typedef struct {
 	sfxHandle_t	wstbactvSound;
 
 	// font to use in cgame texts
-	fontInfo_t		font;
-
+	fontInfo_t		facfont;
+	fontInfo_t		verdana;
 } cgMedia_t;
 
 

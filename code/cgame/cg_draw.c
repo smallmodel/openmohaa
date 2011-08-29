@@ -1740,6 +1740,20 @@ static void CG_DrawWarmup( void ) {
 }
 
 //==================================================================================
+
+char* extractValues( char **start ) {
+	char *end, *ret;
+
+	ret = *start;
+	end = strstr( *start, " " );
+	if (end) {
+		*end = 0;
+		*start = end+1;
+	}
+
+	return ret;
+}
+
 /*
 =================
 CG_DrawScores
@@ -1750,36 +1764,64 @@ Draw the normal in-game scoreboard
 void CG_DrawScores( void ) {
 	int i, numScores;
 	char *ptr;
+	char buffer[MAX_STRING_CHARS];
+	fontInfo_t *font;
 
+	Q_strncpyz( buffer, cg.aScore, sizeof(buffer) );
 	CG_DrawStdBox( 32, 56, 384, 392, qfalse );
 
-	ptr = cg.aScore;
-	numScores = atoi( COM_Parse(&ptr) );
+	ptr = buffer;
+	numScores = atoi( extractValues( &ptr ) );
 
-	for ( i=0; i<numScores; i++ ) {
-		int clientNum;
-		team_t team;
+	if ( cgs.gametype == GT_FFA || cgs.gametype == GT_SINGLE_PLAYER ) {
+		for ( i=0; i<numScores; i++ ) {
+			int clientNum;
 
-		clientNum = atoi( COM_Parse(&ptr) );
-		team = (team_t)atoi( COM_Parse(&ptr) );
-		switch ( team ) {
-			case TEAM_AXIS:
-				trap_R_SetColor( color_red );
-				CG_DrawBox( 33,56+i*20,384,20,qfalse);
-				trap_R_SetColor( NULL );
-				break;
-			case TEAM_ALLIES:
-				trap_R_SetColor( color_green );
-				CG_DrawBox( 33,56+i*20,384,20,qfalse);
-				trap_R_SetColor( NULL );
-				break;
-			default: break;
+			font = &cgs.media.facfont;
+			clientNum = atoi( extractValues( &ptr ) );
+			trap_R_Text_Paint( font, 32, 56+i*20,1,1,Info_ValueForKey(CG_ConfigString(CS_PLAYERS+clientNum),"name"),1,32,qtrue,qtrue); // name
+			trap_R_Text_Paint( font, 160, 56+i*20,1,1,extractValues( &ptr ),1,32,qtrue,qtrue);
+			trap_R_Text_Paint( font, 224, 56+i*20,1,1,extractValues( &ptr ),1,32,qtrue,qtrue);
+			trap_R_Text_Paint( font, 288, 56+i*20,1,1,extractValues( &ptr ),1,32,qtrue,qtrue);
+			trap_R_Text_Paint( font, 352, 56+i*20,1,1,extractValues( &ptr ),1,32,qtrue,qtrue);
 		}
-		trap_R_Text_Paint( &cgs.media.font, 33, 56+i*20,1,1,Info_ValueForKey(CG_ConfigString(CS_PLAYERS+clientNum),"name"),1,32,qtrue,qtrue); // name
-		COM_Parse(&ptr);
-		COM_Parse(&ptr);
-		COM_Parse(&ptr);
-		COM_Parse(&ptr);
+	} else {
+		for ( i=0; i<numScores; i++ ) {
+			int clientNum;
+			team_t team;
+
+			clientNum = atoi( extractValues( &ptr ) );
+			team = (team_t)atoi( extractValues( &ptr ) );
+			switch ( team ) {
+				case TEAM_AXIS:
+					trap_R_SetColor( color_transred );
+					CG_DrawBox( 33,56+i*20,384,20,qfalse);
+					trap_R_SetColor( NULL );
+					break;
+				case TEAM_ALLIES:
+					trap_R_SetColor( color_transgreen );
+					CG_DrawBox( 33,56+i*20,384,20,qfalse);
+					trap_R_SetColor( NULL );
+					break;
+				default: break;
+			}
+			if ( clientNum == -1 ) {
+				font = &cgs.media.facfont;
+				if ( team == TEAM_ALLIES )
+					trap_R_Text_Paint( font, 32, 56+i*20,1,1,"Allies",1,32,qtrue,qtrue);
+				else if ( team == TEAM_AXIS )
+					trap_R_Text_Paint( font, 32, 56+i*20,1,1,"Axis",1,32,qtrue,qtrue);
+				else if ( team == TEAM_SPECTATOR )
+					trap_R_Text_Paint( font, 32, 56+i*20,1,1,"Spectators",1,32,qtrue,qtrue);
+			} else {
+				font = &cgs.media.verdana;
+				trap_R_Text_Paint( font, 32, 56+i*20,1,1,Info_ValueForKey(CG_ConfigString(CS_PLAYERS+clientNum),"name"),1,32,qtrue,qtrue); // name
+			}
+			trap_R_Text_Paint( font, 160, 56+i*20,1,1,extractValues( &ptr ),1,32,qtrue,qtrue);
+			trap_R_Text_Paint( font, 224, 56+i*20,1,1,extractValues( &ptr ),1,32,qtrue,qtrue);
+			trap_R_Text_Paint( font, 288, 56+i*20,1,1,extractValues( &ptr ),1,32,qtrue,qtrue);
+			trap_R_Text_Paint( font, 352, 56+i*20,1,1,extractValues( &ptr ),1,32,qtrue,qtrue);
+		}
 	}
 }
 /*

@@ -730,7 +730,8 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum ) {
 	cgs.processedSnapshotNum = serverMessageNum;
 	cgs.serverCommandSequence = serverCommandSequence;
 
-	trap_R_RegisterFont( "facfont-20", 0, &cgs.media.font );
+	trap_R_RegisterFont( "facfont-20", 0, &cgs.media.facfont );
+	trap_R_RegisterFont( "verdana-14", 0, &cgs.media.verdana );
 
 	// load a few needed things before we do any screen updates
 	cgs.media.charsetShader		= trap_R_RegisterShader( "gfx/2d/bigchars" );
@@ -787,11 +788,6 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum ) {
 
 	CG_RegisterClients();		// if low on memory, some clients will be deferred
 
-#ifdef MISSIONPACK
-	CG_AssetCache();
-	CG_LoadHudMenu();      // load new hud stuff
-#endif
-
 	cg.loading = qfalse;	// future players will be deferred
 
 	CG_InitLocalEntities();
@@ -809,10 +805,6 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum ) {
 	CG_StartMusic();
 
 	CG_LoadingString( "" );
-
-#ifdef MISSIONPACK
-	CG_InitTeamChat();
-#endif
 
 	//CG_ShaderStateChanged();
 

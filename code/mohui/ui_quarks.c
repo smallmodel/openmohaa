@@ -150,7 +150,7 @@ static cvarTable_t		cvarTable[] = {
 	{ &cg_effectdetail, "cg_effectdetail", "1.0", CVAR_ARCHIVE },
 	{ &r_subdivisions, "r_subdivisions", "3", CVAR_ARCHIVE },
 	{ &cg_shadows, "cg_shadows", "2", CVAR_ARCHIVE },
-	{ &cg_scoreboardpic, "cg_scoreboardpic", "mohdm1", CVAR_ARCHIVE }
+	{ &cg_scoreboardpic, "cg_scoreboardpic", "mohdm1", CVAR_TEMP }
 };
 
 static int cvarTableSize = sizeof(cvarTable) / sizeof(cvarTable[0]);
@@ -580,6 +580,8 @@ void UI_DrawHUD( playerState_t *ps ) {
 //	UI_DrawMenu( &uis.hudMenus[HUD_WEAPONS], qtrue );
 
 	UI_DrawMenu( &uis.crosshair, qtrue );
+
+	trap_Cvar_Update( &ui_showscores );
 	if ( ui_showscores.integer == 1 ) {
 		UI_DrawMenu( &uis.scoreboard, qtrue );
 	}

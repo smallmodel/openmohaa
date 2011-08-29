@@ -768,7 +768,7 @@ void UI_DrawProportionalString( int x, int y, const char* str, int style, vec4_t
 
 #if 1
 	//we use the MOHAA font, not the Q3 text drawing
-	trap_R_Text_Paint( &cgs.media.font, x, y, 1, 1, str, 0, 1024, 1, 1 );
+	trap_R_Text_Paint( &cgs.media.facfont, x, y, 1, 1, str, 0, 1024, 1, 1 );
 
 #else
 	vec4_t	drawcolor;
