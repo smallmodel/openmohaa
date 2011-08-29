@@ -67,11 +67,15 @@ ubersound_t*	CG_GetUbersound( const char *name ) {
 		CG_Printf( "CG_GetUbersound: sound %s not found.\n", name );
 		return NULL;
 	}
-	else if ( snd->loaded )
-		return snd;
-	else {
+	else if ( snd->sfxHandle == -1 )
+		return NULL; // this sound already failed to load
+	else if( snd->sfxHandle == -2) {
 		snd->sfxHandle = trap_S_RegisterSound( snd->wavfile, qfalse );
+		if(snd->sfxHandle == -1)
+			return NULL; // failed
 		return snd;
+	} else {
+		return snd; // already loaded
 	}
 }
 
@@ -173,8 +177,7 @@ void CG_LoadUbersound( void ) {
 			}
 			else
 				hashTable[i] = &snd_indexes[snd_numIndexes];
-			if ( snd_indexes[snd_numIndexes].loaded )
-				snd_indexes[snd_numIndexes].sfxHandle = trap_S_RegisterSound( snd_indexes[snd_numIndexes].name, qfalse );
+			snd_indexes[snd_numIndexes].sfxHandle = -2;
 			snd_numIndexes++;
 			if ( snd_numIndexes >= MAX_UBERSOUNDS ) {
 				snd_numIndexes--;

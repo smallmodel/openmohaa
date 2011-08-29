@@ -342,9 +342,11 @@ again:
 		pitch		= atof( COM_ParseExt( &text, qtrue ) );
 		randompitch	= atof( COM_ParseExt( &text, qtrue ) );
 		randomvolume = COM_ParseExt( &text, qtrue );*/
-
-		trap_S_StartSound( ent->currentState.origin, ent->currentState.number, channel, sound->sfxHandle );
-
+#if 0
+		trap_S_StartSound( ent->currentState.origin, -1, channel, sound->sfxHandle );
+#else
+		trap_S_StartSound( 0, ent->currentState.number, channel, sound->sfxHandle );
+#endif
 	} else if(!strcmp(token,"stopsound")) {
 		// syntax: stopsound( String channelName )
 		// TODO

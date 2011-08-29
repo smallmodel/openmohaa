@@ -125,7 +125,7 @@ static void CG_EntityEffects( centity_t *cent ) {
 
 	// update sound origins
 	CG_SetEntitySoundPosition( cent );
-
+/*
 	// add loop sound
 	if ( cent->currentState.loopSound ) {
 		if (cent->currentState.eType != ET_SPEAKER) {
@@ -150,7 +150,7 @@ static void CG_EntityEffects( centity_t *cent ) {
 		i = ( ( cl >> 24 ) & 255 ) * 4;
 		trap_R_AddLightToScene( cent->lerpOrigin, i, r, g, b );
 	}
-
+*/
 }
 
 
@@ -461,9 +461,6 @@ static void CG_AddCEntity( centity_t *cent ) {
 	// calculate the current origin
 	CG_CalcEntityLerpPositions( cent );
 
-	// add automatic effects
-//	CG_EntityEffects( cent );
-
 	switch ( cent->currentState.eType ) {
 	case 0: break; // 0 spams console with bad entity type
 	default:
@@ -533,6 +530,9 @@ static void CG_AddCEntity( centity_t *cent ) {
 		break;
 #endif
 	}
+
+	// add automatic effects
+	CG_EntityEffects( cent );
 }
 
 /*
