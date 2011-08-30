@@ -1279,5 +1279,9 @@ refexport_t *GetRefAPI ( int apiVersion, refimport_t *rimp ) {
 	re.Text_Paint = RE_Text_Paint;
 	re.Text_PaintChar = RE_Text_PaintChar;
 
+	// su44
+	re.GetShaderHeight = RE_GetShaderHeight;
+	re.GetShaderWidth = RE_GetShaderWidth;
+
 	return &re;
 }

@@ -1554,6 +1554,8 @@ int			trap_MSG_ReadShort();
 float		trap_MSG_ReadCoord();
 void		trap_MSG_ReadDir( vec3_t dir );
 char		*trap_MSG_ReadString();
+int			trap_R_GetShaderWidth(qhandle_t shader); // su44: I need these
+int			trap_R_GetShaderHeight(qhandle_t shader); // for cg_beam.c
 
 typedef enum {
   SYSTEM_PRINT,

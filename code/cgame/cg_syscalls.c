@@ -509,3 +509,9 @@ void trap_MSG_ReadDir( vec3_t dir ) {
 char *trap_MSG_ReadString() {
 	return syscall( CG_MSG_READSTRING );
 }
+int trap_R_GetShaderWidth(qhandle_t shader) {
+	return syscall( CG_R_GETSHADERWIDTH, shader );
+}
+int trap_R_GetShaderHeight(qhandle_t shader) {
+	return syscall( CG_R_GETSHADERHEIGHT, shader );
+}

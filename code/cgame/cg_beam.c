@@ -607,12 +607,6 @@ void CG_MultiBeam(centity_t *cent) {
 		VectorCopy(currpt2,prevpt2);
 	}      
 }
-int trap_R_GetShaderWidth(int handle) {
-	return 128; // TODO
-}
-int trap_R_GetShaderHeight(int handle) {
-	return 128; // TODO
-}
 float trap_R_Noise() {
 	return 1.f; // TODO
 }

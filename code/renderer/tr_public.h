@@ -107,6 +107,9 @@ typedef struct {
 	// Paints a string. The alpha value will be ignored unless useColourCodes is qtrue.
 	void	(*Text_Paint)(fontInfo_t *font, float x, float y, float scale, float alpha, const char *text, float adjust, int limit, qboolean useColourCodes, qboolean is640);
 	void	(*Text_PaintChar)(fontInfo_t *font, float x, float y, float scale, int c, qboolean is640);
+	// su44
+	int		(*GetShaderWidth)(qhandle_t shader);
+	int		(*GetShaderHeight)(qhandle_t shader);
 } refexport_t;
 
 //

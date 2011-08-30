@@ -3330,3 +3330,11 @@ void R_InitShaders( void ) {
 
 	CreateExternalShaders();
 }
+
+int RE_GetShaderWidth(qhandle_t shader) {
+	return tr.shaders[shader]->stages[0]->bundle[0].image[0]->width;
+}
+
+int RE_GetShaderHeight(qhandle_t shader) {
+	return tr.shaders[shader]->stages[0]->bundle[0].image[0]->height;
+}

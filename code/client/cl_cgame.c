@@ -675,6 +675,11 @@ intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 	case CG_MSG_READSTRING:
 		return MSG_ReadString(cl_currentMSG);
 
+	case CG_R_GETSHADERWIDTH:
+		return re.GetShaderWidth(VMA(1));
+	case CG_R_GETSHADERHEIGHT:
+		return re.GetShaderHeight(VMA(1));
+
 	case CG_MEMSET:
 		Com_Memset( VMA(1), args[2], args[3] );
 		return 0;
