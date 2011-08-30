@@ -67,7 +67,7 @@ static int bullet_tracer_bullets_count;
 static vec3_t wall_impact_pos[MAX_IMPACTS];
 static vec3_t wall_impact_norm[MAX_IMPACTS];
 static int wall_impact_large[MAX_IMPACTS];
-static int wall_impact_type[MAX_IMPACTS];
+static int wall_impact_type[MAX_IMPACTS]; // 0,2,3,4,5
 static int wall_impact_count;
 // flesh impacts
 static vec3_t flesh_impact_pos[MAX_IMPACTS];
@@ -78,6 +78,39 @@ static int flesh_impact_count;
 
 static int current_entity_number;
 
+void CG_MakeBulletHole(float *i_vPos, float *i_vNorm, int iLarge,
+	trace_t *pPreTrace, qboolean bMakeSound) {
+	char *s;
+
+
+	s = "bhole_";
+
+	///////CG_ImpactMark(0,i_vPos,i_vNorm,0,1,1,1,1,qfalse,8,qfalse);
+}
+
+void CG_AddBulletImpacts() {
+	int i;
+	char *s;
+	int type;
+
+	for(i = 0; i < wall_impact_count; i++) {
+		CG_MakeBulletHole(wall_impact_pos[i],wall_impact_norm[i],
+			wall_impact_large[i],0,qtrue);
+
+		type = wall_impact_type[i];
+		if(type) {
+			if ( wall_impact_type[i] < 2 || wall_impact_type[i] > 3 )
+				s = "snd_bh_metal";
+			else
+				s = "snd_bh_wood";
+			//CG_PlaySound(s,wall_impact_pos[i],-1, 
+		}
+	}
+	for(i = 0; i < flesh_impact_count; i++) {
+
+	}
+}
+
 static void CG_MakeBubbleTrail(float *i_vStart, float *i_vEnd, int iLarge) {
 	// TODO
 }
@@ -85,7 +118,17 @@ static void CG_MakeBubbleTrail(float *i_vStart, float *i_vEnd, int iLarge) {
 static void CG_MakeBulletTracerInternal(float *i_vBarrel, float *i_vStart,
 	float (*i_vEnd)[3], int i_iNumBullets, qboolean iLarge,
 	int iTracerVisible, qboolean bIgnoreEntities) {
-	// TODO
+	trace_t tr;
+	int i;
+
+
+	////for(i = 0; i < i_iNumBullets; i++) {
+	////	CG_Trace(&tr,i_vStart,i_vEnd[i],vec3_origin,vec3_origin,-1,MASK_SHOT);
+	////	if(tr.fraction != 1.f) {
+	////		CG_MakeBulletHole(tr.endpos,tr.plane.normal,iLarge,&tr,qfalse);
+	////	}
+	////}
+
 }
 
 static void CG_MakeBulletTracer(float *i_vBarrel, float *i_vStart,
@@ -192,7 +235,14 @@ static void CG_HudDrawFont (int iInfo) {
 
 static void CG_PlaySound(char *sound_name, float *origin, int channel,
 	float volume, float min_distance, float pitch, int argstype) {
-	// TODO
+	ubersound_t* sound;
+
+	sound = CG_GetUbersound(sound_name);
+
+
+	trap_S_StartSound( origin, -1, channel, sound->sfxHandle );
+
+
 }
 
 /*
@@ -479,7 +529,7 @@ void CG_ParseCGMessage() {
 				// TODO - play sound (?)
 				//CG_PlaySound(s, 0, 5, 2.0, -1.0, vecStart, 1);
 				break;
-			case 37:
+			case 37: // taunt message?
 				vecStart[0] = trap_MSG_ReadCoord();
 				vecStart[1] = trap_MSG_ReadCoord();
 				vecStart[2] = trap_MSG_ReadCoord();
@@ -492,8 +542,8 @@ void CG_ParseCGMessage() {
 					current_entity_number = i;
 
 				}
-				CG_Printf("Case 37: iTemp %i, i %i, s %s\n",iTemp,i,s);
-				//CG_PlaySound(s,vecStart,5,-1.0,-1.0,-1.0,
+				//CG_Printf("Case 37: iTemp %i, i %i, s %s\n",iTemp,i,s);
+				CG_PlaySound(s,vecStart,5,-1.0,-1.0,-1.0,0);
 				break;
 		}
 	} while ( trap_MSG_ReadBits(1) );
