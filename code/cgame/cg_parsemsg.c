@@ -39,19 +39,41 @@ typedef struct hdelement_s {
 	fontInfo_t pFont;
 } hdelement_t;
 
-hdelement_t hdelements[64];
+#define MAX_HDELEMENTS 64
+
+hdelement_t hdelements[MAX_HDELEMENTS];
+
+typedef struct {
+	float i_vBarrel[3];
+	float i_vStart[3];
+	float (*i_vEnd)[3];
+	int i_iNumBullets;
+	qboolean iLarge;
+	int iTracerVisible;
+	qboolean bIgnoreEntities;
+} bullet_tracer_t;
+
+#define MAX_IMPACTS 64
+#define MAX_BULLER_TRACERS 32
+#define MAX_BULLET_TRACE_BULLETS 1024
+
+// bullet tracers
+static bullet_tracer_t bullet_tracers[MAX_BULLER_TRACERS];
+static int bullet_tracers_count;
+static float bullet_tracer_bullets[MAX_BULLET_TRACE_BULLETS][3];
+static int bullet_tracer_bullets_count;
 
 // wall impacts
-static vec3_t wall_impact_pos[64];
-static vec3_t wall_impact_norm[64];
-static int wall_impact_large[64];
-static int wall_impact_type[64];
+static vec3_t wall_impact_pos[MAX_IMPACTS];
+static vec3_t wall_impact_norm[MAX_IMPACTS];
+static int wall_impact_large[MAX_IMPACTS];
+static int wall_impact_type[MAX_IMPACTS];
 static int wall_impact_count;
 // flesh impacts
-static vec3_t flesh_impact_pos[64];
-static vec3_t flesh_impact_norm[64];
-static int flesh_impact_large[64];
-static int flesh_impact_type[64];
+static vec3_t flesh_impact_pos[MAX_IMPACTS];
+static vec3_t flesh_impact_norm[MAX_IMPACTS];
+static int flesh_impact_large[MAX_IMPACTS];
+static int flesh_impact_type[MAX_IMPACTS];
 static int flesh_impact_count;
 
 static int current_entity_number;
@@ -60,14 +82,82 @@ static void CG_MakeBubbleTrail(float *i_vStart, float *i_vEnd, int iLarge) {
 	// TODO
 }
 
-static void CG_MakeBulletTracer(float *i_vBarrel, float *i_vStart,
+static void CG_MakeBulletTracerInternal(float *i_vBarrel, float *i_vStart,
 	float (*i_vEnd)[3], int i_iNumBullets, qboolean iLarge,
 	int iTracerVisible, qboolean bIgnoreEntities) {
 	// TODO
 }
 
-static void CG_MeleeImpact(float *vStart, float *vEnd) {
+static void CG_MakeBulletTracer(float *i_vBarrel, float *i_vStart,
+	float (*i_vEnd)[3], int i_iNumBullets, qboolean iLarge,
+	int iTracerVisible, qboolean bIgnoreEntities) {
+	bullet_tracer_t *bt;
+	int i;
+	if(bullet_tracers_count < MAX_BULLER_TRACERS) {
+		if(i_iNumBullets + bullet_tracer_bullets_count < MAX_BULLET_TRACE_BULLETS) {
+			bt = bullet_tracers + bullet_tracers_count;
+			VectorCopy(i_vBarrel,bt->i_vBarrel);
+			VectorCopy(i_vStart,bt->i_vStart);
+			bt->i_vEnd = &bullet_tracer_bullets[bullet_tracer_bullets_count];
+			bt->i_iNumBullets = i_iNumBullets;
+			bt->iLarge = iLarge;
+			bt->iTracerVisible = iTracerVisible;
+			bt->bIgnoreEntities = bIgnoreEntities;
+			for(i = 0; i < i_iNumBullets; i++) {
+				VectorCopy(i_vEnd[i],bullet_tracer_bullets[bullet_tracer_bullets_count]);
+				bullet_tracer_bullets_count++;
+			}
+		} else {
+			CG_Printf("CG_MakeBulletTracerInternal: MAX_BULLET_TRACE_BULLETS exceeded\n");
+		}
+	} else {
+		CG_Printf("CG_MakeBulletTracer: MAX_BULLER_TRACERS exceeded\n");
+	}
+}
+
+// su44: this should be called after CG_AddPacketEntities and before CG_DrawActive
+void CG_AddBulletTracers() {
+	int i;
+	bullet_tracer_t *bt;
+
+	bt = bullet_tracers;
+	for(i = 0; i < bullet_tracers_count; i++,bt++) {
+		CG_MakeBulletTracerInternal(bt->i_vBarrel,bt->i_vStart,bt->i_vEnd,bt->i_iNumBullets,
+			bt->iLarge,bt->iTracerVisible,bt->bIgnoreEntities);
+	}
+	bullet_tracers_count = 0;
+	bullet_tracer_bullets_count = 0;
+}
+// MoHAA footstep sounds (from ubersound.scr) :
+// snd_step_paper, snd_step_glass, snd_step_wood, snd_step_metal, 
+// snd_step_grill, snd_step_stone, snd_step_dirt, snd_step_grass,
+// snd_step_mud, snd_step_puddle, snd_step_gravel, snd_step_sand,
+// snd_step_foliage, snd_step_snow, snd_step_carpet
+// BODY MOVEMENT
+// snd_step_equipment - (equipment; for walking)
+// snd_step_wade - (wade; for when wading through deeper water)
+
+static void CG_FootstepMain(trace_t *trace, int iRunning, int iEquipment) {
+	char *soundNameBase = "snd_step_";
+	vec3_t v;
+	if(CG_PointContents(trace->endpos,-1) & 0x38 ) {
+		v[0] = trace->endpos[0];
+		v[1] = trace->endpos[1];
+		v[2] = trace->endpos[2] + 16.0;
+		if(CG_PointContents(trace->endpos,-1) & 0x38 ) {
+			// TODO
+		}
+	}
 	// TODO
+}
+static void CG_MeleeImpact(float *vStart, float *vEnd) {
+	trace_t trace;
+	float vMins[3] = { -4.0, -4.0, 0 };
+	float vMaxs[3] = { 4.0, 4.0, 2.0 };
+	CG_Trace(&trace,vStart,vMins,vMaxs,vEnd,1023,MASK_SHOT);
+	if(trace.fraction != 1.f) {
+		CG_FootstepMain(&trace,1,0);
+	}
 }
 
 static void CG_MakeExplosionEffect(float *vPos, int iType) {
@@ -192,7 +282,7 @@ void CG_ParseCGMessage() {
 				iLarge = trap_MSG_ReadBits( 1 );
 				switch (msgtype) {
 					case 6:
-						if(wall_impact_count < 64) {
+						if(wall_impact_count < MAX_IMPACTS) {
 							VectorCopy(vecStart,wall_impact_pos[wall_impact_count]);
 							VectorCopy(vecEnd,wall_impact_norm[wall_impact_count]);
 							wall_impact_large[wall_impact_count] = iLarge;
@@ -201,7 +291,7 @@ void CG_ParseCGMessage() {
 						}
 						break;
 					case 7:
-						if(flesh_impact_count < 64) {
+						if(flesh_impact_count < MAX_IMPACTS) {
 							// inverse hit normal, I dont know why,
 							// but that's done by MoHAA
 							VectorInverse(vecEnd);
@@ -212,7 +302,7 @@ void CG_ParseCGMessage() {
 						}
 						break;
 					case 8:
-						if(flesh_impact_count < 64) {
+						if(flesh_impact_count < MAX_IMPACTS) {
 							// same here?
 							VectorInverse(vecEnd);
 							VectorCopy(vecStart,flesh_impact_pos[flesh_impact_count]);
@@ -222,7 +312,7 @@ void CG_ParseCGMessage() {
 						}
 						break;
 					case 9:
-						if(wall_impact_count < 64) {
+						if(wall_impact_count < MAX_IMPACTS) {
 							VectorCopy(vecStart,wall_impact_pos[wall_impact_count]);
 							VectorCopy(vecEnd,wall_impact_norm[wall_impact_count]);
 							wall_impact_large[wall_impact_count] = iLarge;
@@ -235,7 +325,7 @@ void CG_ParseCGMessage() {
 						}
 						break;
 					case 10:
-						if(wall_impact_count < 64) {
+						if(wall_impact_count < MAX_IMPACTS) {
 							VectorCopy(vecStart,wall_impact_pos[wall_impact_count]);
 							VectorCopy(vecEnd,wall_impact_norm[wall_impact_count]);
 							wall_impact_large[wall_impact_count] = iLarge;
@@ -358,25 +448,25 @@ void CG_ParseCGMessage() {
 				hde = hdelements + i;
 				hde->bVirtualScreen = trap_MSG_ReadBits( 1 );
 				break;
-			case 31: // RGB color
+			case 31: // huddraw_color
 				i = trap_MSG_ReadByte();
 				hde = hdelements + i;
 				hde->vColor[0] = trap_MSG_ReadByte()*0.003921568859368563;
 				hde->vColor[1] = trap_MSG_ReadByte()*0.003921568859368563;
 				hde->vColor[2] = trap_MSG_ReadByte()*0.003921568859368563;
 				break;
-			case 32: // alpha
+			case 32: // huddraw_alpha
 				i = trap_MSG_ReadByte();
 				hde = hdelements + i;
 				hde->vColor[3] = trap_MSG_ReadByte()*0.003921568859368563;
 				break;
-			case 33:
+			case 33: // huddraw_string
 				i = trap_MSG_ReadByte();
 				hde = hdelements + i;
 				hde->hShader = 0;
 				Q_strncpyz( hde->string, trap_MSG_ReadString(), sizeof(hde->string) );
 				break;
-			case 34:
+			case 34: // huddraw_font
 				i = trap_MSG_ReadByte();
 				hde = hdelements + i;
 				Q_strncpyz( hde->fontName, trap_MSG_ReadString(), sizeof(hde->fontName) );
@@ -402,7 +492,7 @@ void CG_ParseCGMessage() {
 					current_entity_number = i;
 
 				}
-				
+				CG_Printf("Case 37: iTemp %i, i %i, s %s\n",iTemp,i,s);
 				//CG_PlaySound(s,vecStart,5,-1.0,-1.0,-1.0,
 				break;
 		}
