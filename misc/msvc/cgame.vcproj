@@ -575,6 +575,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="..\..\code\cgame\cg_beam.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\code\cgame\cg_consolecmds.c"
 				>
 				<FileConfiguration

@@ -177,6 +177,8 @@ typedef struct centity_s {
 	vec3_t			lerpAngles;
 
 	bone_t			*bones; // su44: for tiki models
+
+	vec3_t			color;
 } centity_t;
 
 
@@ -1595,4 +1597,17 @@ const char*		CG_LoadMusic( const char *musicfile );
 
 // cg_parsemsg.c
 void CG_ParseCGMessage();
+void CG_AddBulletTracers();
+void CG_AddBulletImpacts();
+
+// cg_beams.c
+void CG_InitBeams();
+void CG_AddBeams();
+void CG_CreateBeam(vec3_t start, vec3_t dir, int owner, qhandle_t hModel, float alpha, 
+   float scale, int flags, float length, int life, qboolean create, vec3_t endpointvec,
+   int min_offset, int max_offset, int overlap, int numSubdivisions, int delay,
+   const char *beamshadername, byte modulate[4], int numspherebeams, float sphereradius,
+   int toggledelay, float endalpha, int renderfx, const char *name);
+void CG_Rope(centity_t *cent); // afaik that's not used in MoHAA, but who cares?
+void CG_MultiBeam(centity_t *cent);
 

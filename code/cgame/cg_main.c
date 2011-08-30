@@ -796,6 +796,8 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum ) {
 
 	CG_InitEventSystem();
 
+	CG_InitBeams();
+
 	// remove the last loading update
 	cg.infoScreenText[0] = 0;
 

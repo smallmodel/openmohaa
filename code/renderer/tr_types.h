@@ -111,6 +111,7 @@ typedef struct {
 	vec3_t		bounds[2];
 
 	int			staticModelIndex;
+	float		scale;
 } refEntity_t;
 
 

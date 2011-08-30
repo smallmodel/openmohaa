@@ -247,11 +247,11 @@ static void CG_Mover( centity_t *cent ) {
 /*
 ===============
 CG_Beam
-
-Also called as an event
 ===============
 */
+#define DECODE_BEAM_PARM( x ) ( ((double)x)*0.0625 )
 void CG_Beam( centity_t *cent ) {
+#if 0
 	refEntity_t			ent;
 	entityState_t		*s1;
 
@@ -268,6 +268,51 @@ void CG_Beam( centity_t *cent ) {
 
 	// add to refresh list
 	trap_R_AddRefEntityToScene(&ent);
+#else
+	entityState_t  *s1;
+	vec3_t         vz={0,0,0},origin={0,0,0};
+	byte           modulate[4];
+	int            i;
+
+	s1 = &cent->currentState;
+
+	for ( i=0;i<4;i++ )
+		modulate[i] = cent->color[i] * 255;
+
+	if ( s1->beam_entnum != ENTITYNUM_NONE ) {
+		centity_t *parent;
+		parent = &cg_entities[s1->beam_entnum];
+		VectorAdd( s1->origin, parent->lerpOrigin, origin );
+	} else {
+		VectorCopy( s1->origin, origin );
+	}
+
+	CG_CreateBeam( origin,           // start
+                  vz,               // dir ( auto calculated by using origin2-origin )
+                  s1->number,       // owner number
+                  cgs.gameModels[s1->modelindex], //hModel
+                  s1->alpha,        // alpha
+                  s1->scale,        // scale
+                  s1->skinNum,      // flags
+                  0,                // length ( auto calculated )
+                  DECODE_BEAM_PARM( s1->surfaces[0] ) * 1000, // life
+                  qfalse,           // don't always create the beam, just update it
+                  s1->origin2,      // endpoint
+                  s1->bone_angles[0][0], // min offset
+                  s1->bone_angles[0][1], // max offset
+                  DECODE_BEAM_PARM( s1->surfaces[3] ), // overlap
+                  s1->surfaces[4],   // subdivisions
+                  DECODE_BEAM_PARM( s1->surfaces[5] ) * 1000, // delay
+                  CG_ConfigString( CS_IMAGES + s1->tag_num ), // index for shader configstring
+                  modulate,          // modulate color
+                  s1->surfaces[6],   // num sphere beams
+                  DECODE_BEAM_PARM( s1->surfaces[7] ),   // sphere radius
+                  DECODE_BEAM_PARM( s1->surfaces[8] ),   // toggle delay
+                  DECODE_BEAM_PARM( s1->surfaces[9] ),   // end alpha
+                  s1->renderfx,
+                  ""
+                  ); 
+#endif
 }
 
 
@@ -454,54 +499,6 @@ static void CG_AddCEntity( centity_t *cent ) {
 		//CG_Error( "Bad entity type: %i\n", cent->currentState.eType );
 		CG_Printf( "Bad entity type: %i\n", cent->currentState.eType ); 
 		break;
-#if 0
-	case ET_MODELANIM_SKEL:
-	case ET_MODELANIM:
-	case ET_VEHICLE:
-	case ET_MULTIBEAM:
-	case ET_EVENT_ONLY:
-	case ET_RAIN:
-	case ET_LEAF:
-	case ET_DECAL:
-	case ET_EMITTER:
-	case ET_ROPE:
-	case ET_EVENTS:
-	case ET_EXEC_COMMANDS:
-//	case ET_INVISIBLE:
-	case ET_PUSH_TRIGGER:
-	case ET_TELEPORT_TRIGGER:
-		break;
-	case ET_GENERAL:
-		CG_General( cent );
-		break;
-	case ET_PLAYER:
-		CG_Player( cent );
-		break;
-	case ET_ITEM:
-		CG_Item( cent );
-		break;
-	case ET_MISSILE:
-		CG_Missile( cent );
-		break;
-	case ET_MOVER:
-		CG_Mover( cent );
-		break;
-	case ET_BEAM:
-		CG_Beam( cent );
-		break;
-	case ET_PORTAL:
-		CG_Portal( cent );
-		break;
-	case ET_SPEAKER:
-		CG_Speaker( cent );
-		break;
-/*	case ET_GRAPPLE:
-		CG_Grapple( cent );
-		break;
-	case ET_TEAM:
-		CG_TeamBase( cent );
-		break;*/
-#else
 	case ET_GENERAL:
 		CG_ModelAnim( cent );
 		//CG_General( cent );
@@ -513,8 +510,18 @@ static void CG_AddCEntity( centity_t *cent ) {
 		CG_ModelAnim( cent );
 		break;
 	case ET_RAIN:
+		//CG_Rain( cent ); // TODO!
 		break;
-#endif
+	// su44: beams are used on some servers with custom scripts
+	case ET_BEAM:
+		CG_Beam( cent );
+		break;
+	case ET_ROPE:
+		CG_Rope( cent );
+		break;
+	case ET_MULTIBEAM:
+		CG_MultiBeam( cent );
+		break;
 	}
 
 	// add automatic effects
