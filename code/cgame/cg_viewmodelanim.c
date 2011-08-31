@@ -285,9 +285,14 @@ item 2 "Binoculars"
 		*/
 	}
 #endif
-	tiki = cgs.gameTIKIs[cg.predictedPlayerEntity.currentState.modelindex]; // doesnt work... currentState.modelindex == 0
+	//tiki = cgs.gameTIKIs[cg.predictedPlayerEntity.currentState.modelindex]; // doesnt work... currentState.modelindex == 0
+	tiki = cgs.gameTIKIs[cg_entities[cg.clientNum].currentState.modelindex];
 	if(!tiki) {
-		tiki = trap_TIKI_RegisterModel("models/player/american_army.tik");
+		if(cg.snap->ps.stats[STAT_TEAM]==TEAM_AXIS) {
+			tiki = trap_TIKI_RegisterModel("models/player/german_wehrmacht_soldier.tik");
+		} else {
+			tiki = trap_TIKI_RegisterModel("models/player/american_army.tik");
+		}
 		if(!tiki)
 			return;
 	}
