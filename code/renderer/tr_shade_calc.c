@@ -1017,6 +1017,23 @@ void RB_CalcRotateTexCoords( float degsPerSecond, float *st )
 	RB_CalcTransformTexCoords( &tmi, st );
 }
 
+/*
+** RB_CalcParallaxTexCoords
+*/
+void	RB_CalcParallaxTexCoords( const float *rate, float *st ) {
+	int i;
+	float offsetT;
+	float offsetS;
+
+	offsetS = tr.refdef.vieworg[0] * rate[0];
+	offsetT = tr.refdef.vieworg[1] * rate[1];
+ 
+	for ( i = 0; i < tess.numVertexes; i++, st += 2 )
+	{
+		st[0] += offsetS;
+		st[0] += offsetT;
+	}
+}
 
 
 

@@ -502,7 +502,7 @@ Com_Printf( "gameSTATE\n" );
 			es = &cl.entityBaselines[ newnum ];
 			MSG_ReadDeltaEntity( msg, &nullstate, es, newnum );
 		} else {
-			Com_Error( ERR_DROP, "CL_ParseGamestate: bad command byte" );
+			Com_Error( ERR_DROP, "CL_ParseGamestate: bad command byte %i", cmd );
 		}
 	}
 

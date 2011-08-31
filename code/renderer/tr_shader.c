@@ -590,6 +590,15 @@ static void ParseTexMod( char *_text, shaderStage_t *stage )
 		token = COM_ParseExt(text, qfalse);
 		token = COM_ParseExt(text, qfalse);
 	}
+	else if (!Q_stricmp( token, "parallax" ))
+	{
+		token = COM_ParseExt( text, qfalse );
+		tmi->scroll[0] = atof(token);
+		token = COM_ParseExt( text, qfalse );
+		tmi->scroll[1] = atof(token);
+
+		tmi->type = TMOD_PARALLAX;
+	}
 	else
 	{
 		ri.Printf( PRINT_WARNING, "WARNING: unknown tcMod '%s' in shader '%s'\n", token, shader.name );

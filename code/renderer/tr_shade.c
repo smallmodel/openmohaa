@@ -1033,6 +1033,11 @@ static void ComputeTexCoords( shaderStage_t *pStage ) {
 										( float * ) tess.svars.texcoords[b] );
 				break;
 
+			case TMOD_PARALLAX:
+				RB_CalcParallaxTexCoords( pStage->bundle[b].texMods[tm].scale,
+										( float * ) tess.svars.texcoords[b] );
+				break;
+
 			default:
 				ri.Error( ERR_DROP, "ERROR: unknown texmod '%d' in shader '%s'\n", pStage->bundle[b].texMods[tm].type, tess.shader->name );
 				break;

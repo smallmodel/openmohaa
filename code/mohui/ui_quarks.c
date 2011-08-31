@@ -746,7 +746,10 @@ void UI_DrawConnectScreen( qboolean overlay ) {
 
 	info[0] = '\0';
 	if( trap_GetConfigString( CS_SERVERINFO, info, sizeof(info) ) ) {
-		loadname = va( "loading_%s", Info_ValueForKey( info, "mapname" ) + 3 );
+		s = va( "loading_%s", Info_ValueForKey( info, "mapname" ) );
+		loadname = strchr(s,'/');
+		if(!loadname)
+			loadname = s;
 	} else loadname = "loading_default";
 
 	switch ( cstate.connState ) {

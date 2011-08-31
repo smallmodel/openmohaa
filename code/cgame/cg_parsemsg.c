@@ -39,7 +39,7 @@ typedef struct hdelement_s {
 	fontInfo_t pFont;
 } hdelement_t;
 
-#define MAX_HDELEMENTS 64
+#define MAX_HDELEMENTS 256
 
 hdelement_t hdelements[MAX_HDELEMENTS];
 
@@ -260,6 +260,18 @@ void CG_HudDrawElements() {
 
 					trap_R_SetColor(hdi->vColor);
 
+					//
+					if(hdi->bVirtualScreen) {
+						if(x > 640) 
+							x -= 640;
+						if(x < 0)
+							x += 640;
+						if(y > 480) 
+							y -= 480;
+						if(y < 0)
+							y += 480;
+					}
+
 					if ( hdi->string[0] ) {
 						if ( hdi->pFont.glyphs[0].glyph ) {
 							trap_R_Text_Paint(&hdi->pFont, x, y, 1, 1, hdi->string,0,-1, qfalse, hdi->bVirtualScreen);
@@ -302,8 +314,8 @@ static void CG_PlaySound(char *sound_name, float *origin, int channel,
 
 	sound = CG_GetUbersound(sound_name);
 
-
-	trap_S_StartSound( origin, -1, channel, sound->sfxHandle );
+	if(sound)
+		trap_S_StartSound( origin, -1, channel, sound->sfxHandle );
 
 
 }
@@ -605,6 +617,7 @@ void CG_ParseCGMessage() {
 					current_entity_number = i;
 
 				}
+				// su44: I think that string is smth different than a mere sound alias...
 				//CG_Printf("Case 37: iTemp %i, i %i, s %s\n",iTemp,i,s);
 				CG_PlaySound(s,vecStart,5,-1.0,-1.0,-1.0,0);
 				break;
