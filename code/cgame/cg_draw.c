@@ -1874,11 +1874,6 @@ void CG_Draw2D( int serverTime, stereoFrame_t stereoView, qboolean demoPlayback 
 		return;
 	}
 
-	if ( cg.snap->ps.pm_type == PM_INTERMISSION ) {
-		CG_DrawIntermission();
-		return;
-	}
-
 	// su44: draw player's team icon (axis or allies)
 	CG_DrawPlayerTeam();
 	// su44: draw custom hud elements set by cg messages
@@ -1898,9 +1893,9 @@ void CG_Draw2D( int serverTime, stereoFrame_t stereoView, qboolean demoPlayback 
 	//CG_DrawLowerLeft();
 
 
-	if ( !CG_DrawFollow() ) {
+/*	if ( !CG_DrawFollow() ) {
 		CG_DrawWarmup();
-	}
+	}*/
 
 	// don't draw center string if scoreboard is up
 	if ( !cg.scoreBoardShowing) {

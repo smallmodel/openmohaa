@@ -995,7 +995,12 @@ static void CG_ServerCommand( void ) {
 	}
 
 	if ( !strcmp( cmd, "print" ) ) {
-		CG_Printf( "%s", CG_Argv(1) );
+		// wombat: the first byte looks to be always 0x03.
+		const char *ptr;
+		char	unkown;
+		ptr = CG_Argv(1);
+		unkown = *ptr;
+		CG_Printf( "%s", ptr+1 );
 
 		return;
 	}

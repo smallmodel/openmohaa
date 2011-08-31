@@ -80,6 +80,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\code\cgame\cg_beam.c" />
     <ClCompile Include="..\..\..\code\cgame\cg_consolecmds.c" />
     <ClCompile Include="..\..\..\code\cgame\cg_draw.c" />
     <ClCompile Include="..\..\..\code\cgame\cg_drawtools.c" />

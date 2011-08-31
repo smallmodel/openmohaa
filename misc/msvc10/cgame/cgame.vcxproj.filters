@@ -111,6 +111,9 @@
     <ClCompile Include="..\..\..\code\cgame\cg_parsemsg.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\code\cgame\cg_beam.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\code\cgame\cg_local.h">

@@ -1402,6 +1402,7 @@ Q3CGOBJ_ = \
   $(B)/main/game/bg_pmove.o \
   $(B)/main/game/bg_slidemove.o \
   $(B)/main/game/bg_lib.o \
+  $(B)/main/cgame/cg_beam.o \
   $(B)/main/cgame/cg_consolecmds.o \
   $(B)/main/cgame/cg_draw.o \
   $(B)/main/cgame/cg_drawtools.o \

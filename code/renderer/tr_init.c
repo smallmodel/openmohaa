@@ -1074,9 +1074,9 @@ void R_Init( void ) {
 	// Q3 glconfig_t is 11332 bytes. ours differs because MAX_STRING_CHARS and BIG_INFO_STRING are different.
 	// despite this check i hope it is unimportant how large this struct is :-/
 	// wombat: nope, we got the old one back...
-	if(sizeof(glconfig_t) != 11332)
+	if(sizeof(glconfig_t) != 14404)
 	{
-		ri.Error( ERR_FATAL, "Mod ABI incompatible: sizeof(glconfig_t) == %zd != 11332", sizeof(glconfig_t));
+		ri.Error( ERR_FATAL, "Mod ABI incompatible: sizeof(glconfig_t) == %i != 11332", sizeof(glconfig_t));
 	}
 
 //	Swap_Init();

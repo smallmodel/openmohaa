@@ -373,6 +373,8 @@ qboolean UI_ParseMenuToken( const char *token, char **ptr, uiMenu_t *menu ) {
 			res->type = UI_RES_PULLDOWN;
 		else if ( !Q_strncmp( var, "Slider", 6 ) )
 			res->type = UI_RES_SLIDER;
+		else if ( !Q_strncmp( var, "FAKKServerList", 6 ) )
+			res->type = UI_RES_SERVERLIST;
 		else Com_Printf( "UI_ParseMenuToken: unknown menu resource type %s\n", var );
 
 		var = PARSE_PTR ;
