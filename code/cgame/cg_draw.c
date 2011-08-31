@@ -1826,6 +1826,35 @@ void CG_DrawScores( void ) {
 }
 /*
 =================
+CG_DrawPlayerTeam
+
+Draws team icon of local player
+=================
+*/
+void CG_DrawPlayerTeam() {
+	//if ( cg_hud.integer )
+	{
+		if ( cg.snap ) {
+			if ( cgs.gametype > GT_FFA ) {
+				qhandle_t handle = 0;
+
+				if ( cg.snap->ps.stats[STAT_TEAM] == TEAM_ALLIES ) {
+					handle = trap_R_RegisterShader("textures/hud/allies");
+				} else {
+					if ( cg.snap->ps.stats[STAT_TEAM] == TEAM_AXIS )
+						handle = trap_R_RegisterShader("textures/hud/axis");
+				}
+				if ( handle ) {
+					trap_R_SetColor(0);
+					trap_R_DrawStretchPic(96.f, (cgs.glconfig.vidHeight - 46), 24.f, 24.f, 0.f, 0.f, 1.f, 1.f, handle);
+				}
+			}
+		}
+	}
+}
+
+/*
+=================
 CG_Draw2D
 
 Draws CG related 2D stuff on top of HUD
@@ -1850,6 +1879,8 @@ void CG_Draw2D( int serverTime, stereoFrame_t stereoView, qboolean demoPlayback 
 		return;
 	}
 
+	// su44: draw player's team icon (axis or allies)
+	CG_DrawPlayerTeam();
 	// su44: draw custom hud elements set by cg messages
 	CG_HudDrawElements();
 
