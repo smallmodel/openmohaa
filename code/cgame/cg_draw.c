@@ -1850,7 +1850,8 @@ void CG_Draw2D( int serverTime, stereoFrame_t stereoView, qboolean demoPlayback 
 		return;
 	}
 
-
+	// su44: draw custom hud elements set by cg messages
+	CG_HudDrawElements();
 
 //	CG_DrawVote();
 //	CG_DrawTeamVote();

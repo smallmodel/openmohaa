@@ -215,6 +215,69 @@ static void CG_SpawnEffectModel(char *model, vec3_t origin) {
 	// TODO
 }
 
+void CG_HudDrawElements() {
+	int i;
+	hdelement_t *hdi;
+
+	//if ( cg_huddraw_force.integer || cg_hud.integer )
+	{
+		hdi = hdelements;
+		for ( i = 0; i < MAX_HDELEMENTS; i++, hdi++ ) {
+			if ( hdi->hShader || hdi->string[0] ) {
+				if ( hdi->vColor[3] != 0.f ) {
+					float x = hdi->iX;
+					float y = hdi->iY;
+					float w = hdi->iWidth;
+					float h = hdi->iHeight;
+
+					if ( hdi->iHorizontalAlign == 1 ) {
+						if ( hdi->bVirtualScreen )
+							x = 320.f - w * 0.5f + x;
+						else
+							x = cgs.glconfig.vidWidth * 0.5f - w * 0.5f + x;
+					} else {
+						if ( hdi->iHorizontalAlign == 2 ) {
+							if ( hdi->bVirtualScreen )
+								x = x + 640.f;
+							else
+								x = cgs.glconfig.vidWidth + x;
+						}
+					}
+
+					if ( hdi->iVerticalAlign == 1 ) {
+						if ( hdi->bVirtualScreen )
+							y = 240.f - h * 0.5f + y;
+						else
+							y = cgs.glconfig.vidHeight * 0.5f - h * 0.5f + y;
+					} else {
+						if ( hdi->iVerticalAlign == 2 ) {
+							if ( hdi->bVirtualScreen )
+								y = y + 480.f;
+							else
+								y = cgs.glconfig.vidHeight + y;
+						}
+					}
+
+					trap_R_SetColor(hdi->vColor);
+
+					if ( hdi->string[0] ) {
+						if ( hdi->pFont.glyphs[0].glyph ) {
+							trap_R_Text_Paint(&hdi->pFont, x, y, 1, 1, hdi->string,0,-1, qfalse, hdi->bVirtualScreen);
+						} else {
+							trap_R_Text_Paint(&cgs.media.verdana, x, y, 1, 1, hdi->string,0,-1, qfalse, hdi->bVirtualScreen);
+						}
+					} else {
+						if ( hdi->bVirtualScreen )
+							CG_AdjustFrom640(&x, &y, &w, &h);
+
+						trap_R_DrawStretchPic(x, y, w, h, 0.f, 0.f, 1.f, 1.f, hdi->hShader);
+					}
+				}
+			}
+		}
+	}
+}
+
 static void CG_HudDrawShader (int iInfo) {
 	hdelement_t *hdi = hdelements + iInfo;
 	if(hdi->shaderName[0]) {

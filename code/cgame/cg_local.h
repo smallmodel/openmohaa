@@ -1601,6 +1601,7 @@ const char*		CG_LoadMusic( const char *musicfile );
 void CG_ParseCGMessage();
 void CG_AddBulletTracers();
 void CG_AddBulletImpacts();
+void CG_HudDrawElements();
 
 // cg_beams.c
 void CG_InitBeams();
