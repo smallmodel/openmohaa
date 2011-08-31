@@ -349,8 +349,34 @@ item 2 "Binoculars"
 
 	trap_TIKI_SetChannels(fps,i,cg.viewModelAnimTime,1,ent->bones);
 	trap_TIKI_Animate(fps,ent->bones);
-	// TODO: calculate fViewBobPhase and fViewBobAmp
-	CG_CalcViewModelMovement(0,0,cg.predictedPlayerState.velocity,vMovement);
+
+	if ( cg.predictedPlayerState.groundEntityNum != ENTITYNUM_NONE ) {
+		float vel = VectorLength(cg.predictedPlayerState.velocity);
+		cg.fCurrentViewBobPhase = (((float)cg.frametime) * 0.001) * 3.141592653589793
+		* (vel * 0.001500000013038516 + 0.8999999761581421) + cg.fCurrentViewBobPhase;
+		if ( cg.fCurrentViewBobAmp != 0.0 )
+			vel = vel * 0.5;
+		cg.fCurrentViewBobAmp = vel;
+
+		if ( cg.predictedPlayerState.fLeanAngle != 0.f )
+			cg.fCurrentViewBobAmp = cg.fCurrentViewBobAmp * 0.75;
+		cg.fCurrentViewBobAmp = (1.0 - fabs(cg.refdefViewAngles[0]) * 0.01111111138015985 * 0.5)
+			* 0.5
+			* cg.fCurrentViewBobAmp;
+	} else {
+		if ( cg.fCurrentViewBobAmp > 0.0 ) {
+			float f;
+			f = ((float)cg.frametime) * 0.001 * cg.fCurrentViewBobAmp;
+			cg.fCurrentViewBobAmp -= (f + f);
+
+
+
+		}
+	}
+	if ( cg.fCurrentViewBobAmp > 0.0 ) {
+	
+	}
+	CG_CalcViewModelMovement(cg.fCurrentViewBobPhase,cg.fCurrentViewBobAmp,cg.predictedPlayerState.velocity,vMovement);
 	//CG_Printf("Movement: %f %f %f\n",vMovement[0],vMovement[1],vMovement[2]);
 
 	// in MoHAA "eyes bone" is used here

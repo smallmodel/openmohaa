@@ -562,6 +562,8 @@ typedef struct {
 	//vec3_t		viewModelEntRot;
 	vec3_t g_vCurrentVMPosOffset; // cgi.anim->g_vCurrentVMPosOffset
 
+	float fCurrentViewBobAmp;
+	float fCurrentViewBobPhase;
 
 	//qboolean cameraMode;		// if rendering from a loaded camera
 
