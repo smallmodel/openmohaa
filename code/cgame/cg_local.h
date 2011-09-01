@@ -1062,7 +1062,8 @@ extern	vmCvar_t		vm_lean_lower;
 // UBERSOUND
 #define UBERSOUND_FILE	"ubersound/ubersound.scr"
 // su44: vanilla AA uberdialog.scr is 870195
-#define UBERSOUND_SIZE	900000 // 300000
+// wombat: it is larger in German version
+#define UBERSOUND_SIZE	1048576 // 300000
 #define MUSIC_SIZE		10000
 #define MAPSTRING_LENGTH 512
 

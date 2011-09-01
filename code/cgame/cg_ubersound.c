@@ -24,6 +24,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define	MAX_UBERSOUNDS	4096
 ubersound_t		snd_indexes[MAX_UBERSOUNDS];
 int				snd_numIndexes;
+char			buffer[UBERSOUND_SIZE];
 
 #define FILE_HASH_SIZE		256
 static	ubersound_t*		hashTable[FILE_HASH_SIZE];
@@ -152,7 +153,6 @@ void CG_LoadUberSoundFile( const char *fname ) {
 	fileHandle_t	f;
 	int				len;
 
-	char			buffer[UBERSOUND_SIZE];
 	char			*token;
 	char			*ptr;
 	qboolean		end;
@@ -227,7 +227,6 @@ void CG_LoadUbersound( void ) {
 	CG_LoadUberSoundFile("ubersound/uberdialog.scr");
 }
 
-char buffer[MUSIC_SIZE];
 const char* CG_LoadMusic( const char *musicfile ) {
 
 	fileHandle_t	f;

@@ -25,21 +25,23 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "cg_local.h"
 
-vec4_t menu_text_color	    = {1.0f, 1.0f, 1.0f, 1.0f};
-vec4_t menu_dim_color       = {0.0f, 0.0f, 0.0f, 0.75f};
-vec4_t color_black	    = {0.00f, 0.00f, 0.00f, 1.00f};
-vec4_t color_white	    = {1.00f, 1.00f, 1.00f, 1.00f};
-vec4_t color_yellow	    = {1.00f, 1.00f, 0.00f, 1.00f};
-vec4_t color_blue	    = {0.00f, 0.00f, 1.00f, 1.00f};
-vec4_t color_lightOrange    = {1.00f, 0.68f, 0.00f, 1.00f };
-vec4_t color_orange	    = {1.00f, 0.43f, 0.00f, 1.00f};
-vec4_t color_red	    = {1.00f, 0.00f, 0.00f, 1.00f};
-vec4_t color_transred	= {1.00f, 0.00f, 0.00f, 0.60f};
-vec4_t color_dim	    = {0.00f, 0.00f, 0.00f, 0.25f};
-vec4_t color_gray	    = {0.00f, 0.00f, 0.00f, 0.6f};
-vec4_t color_green	    = {0.10f, 0.70f, 0.10f, 1.00f};
-vec4_t color_transgreen	= {0.10f, 0.70f, 0.10f, 0.60f};
-vec4_t color_dkgreen	= {0.40f, 0.40f, 0.40f, 1.00f};
+vec4_t menu_text_color		= {1.0f, 1.0f, 1.0f, 1.0f};
+vec4_t menu_dim_color		= {0.0f, 0.0f, 0.0f, 0.75f};
+vec4_t color_black			= {0.00f, 0.00f, 0.00f, 1.00f};
+vec4_t color_white			= {1.00f, 1.00f, 1.00f, 1.00f};
+vec4_t color_yellow			= {1.00f, 1.00f, 0.00f, 1.00f};
+vec4_t color_blue			= {0.00f, 0.00f, 1.00f, 1.00f};
+vec4_t color_lightOrange	= {1.00f, 0.68f, 0.00f, 1.00f };
+vec4_t color_orange			= {1.00f, 0.43f, 0.00f, 1.00f};
+vec4_t color_red			= {1.00f, 0.00f, 0.00f, 1.00f};
+vec4_t color_transred		= {1.00f, 0.00f, 0.00f, 0.60f};
+vec4_t color_transreddk		= {1.00f, 0.00f, 0.30f, 0.60f};
+vec4_t color_dim			= {0.00f, 0.00f, 0.00f, 0.25f};
+vec4_t color_gray			= {0.00f, 0.00f, 0.00f, 0.6f};
+vec4_t color_green			= {0.10f, 0.70f, 0.10f, 1.00f};
+vec4_t color_transgreen		= {0.10f, 0.70f, 0.10f, 0.60f};
+vec4_t color_transgreendk	= {0.10f, 0.70f, 0.30f, 0.60f};
+vec4_t color_dkgreen		= {0.40f, 0.40f, 0.40f, 1.00f};
 
 int drawTeamOverlayModificationCount = -1;
 
@@ -1766,6 +1768,14 @@ void CG_DrawScores( void ) {
 	char *ptr;
 	char buffer[MAX_STRING_CHARS];
 	fontInfo_t *font;
+	int facfontheight, verdanaheight;
+
+	if ( cg.scoresRequestTime + 1000 < cg.time ) {
+		// the scores are more than two seconds out of data,
+		// so request new ones
+		cg.scoresRequestTime = cg.time;
+		trap_SendClientCommand( "score" );
+	}
 
 	Q_strncpyz( buffer, cg.aScore, sizeof(buffer) );
 	CG_DrawStdBox( 32, 56, 384, 392, qfalse );
@@ -1773,34 +1783,47 @@ void CG_DrawScores( void ) {
 	ptr = buffer;
 	numScores = atoi( extractValues( &ptr ) );
 
+	facfontheight = 20;
+	verdanaheight = 14;
+
 	if ( cgs.gametype == GT_FFA || cgs.gametype == GT_SINGLE_PLAYER ) {
+		font = &cgs.media.verdana;
 		for ( i=0; i<numScores; i++ ) {
 			int clientNum;
 
-			font = &cgs.media.facfont;
+			if ( 56+i*verdanaheight >= 448 )
+				break;
 			clientNum = atoi( extractValues( &ptr ) );
-			trap_R_Text_Paint( font, 32, 56+i*20,1,1,Info_ValueForKey(CG_ConfigString(CS_PLAYERS+clientNum),"name"),1,32,qtrue,qtrue); // name
-			trap_R_Text_Paint( font, 160, 56+i*20,1,1,extractValues( &ptr ),1,32,qtrue,qtrue);
-			trap_R_Text_Paint( font, 224, 56+i*20,1,1,extractValues( &ptr ),1,32,qtrue,qtrue);
-			trap_R_Text_Paint( font, 288, 56+i*20,1,1,extractValues( &ptr ),1,32,qtrue,qtrue);
-			trap_R_Text_Paint( font, 352, 56+i*20,1,1,extractValues( &ptr ),1,32,qtrue,qtrue);
+			trap_R_Text_Paint( font, 32, 56+i*verdanaheight,1,1,Info_ValueForKey(CG_ConfigString(CS_PLAYERS+clientNum),"name"),1,32,qtrue,qtrue); // name
+			trap_R_Text_Paint( font, 160, 56+i*verdanaheight,1,1,extractValues( &ptr ),1,32,qtrue,qtrue);
+			trap_R_Text_Paint( font, 224, 56+i*verdanaheight,1,1,extractValues( &ptr ),1,32,qtrue,qtrue);
+			trap_R_Text_Paint( font, 288, 56+i*verdanaheight,1,1,extractValues( &ptr ),1,32,qtrue,qtrue);
+			trap_R_Text_Paint( font, 352, 56+i*verdanaheight,1,1,extractValues( &ptr ),1,32,qtrue,qtrue);
 		}
 	} else {
 		for ( i=0; i<numScores; i++ ) {
 			int clientNum;
 			team_t team;
 
+			if ( 56+i*verdanaheight >= 448 )
+				break;
 			clientNum = atoi( extractValues( &ptr ) );
 			team = (team_t)atoi( extractValues( &ptr ) );
 			switch ( team ) {
 				case TEAM_AXIS:
-					trap_R_SetColor( color_transred );
-					CG_DrawBox( 33,56+i*20,384,20,qfalse);
+					if ( clientNum == -1 )
+						trap_R_SetColor( color_transreddk );
+					else
+						trap_R_SetColor( color_transred );
+					CG_DrawBox( 33,56+i*verdanaheight,384,verdanaheight,qfalse);
 					trap_R_SetColor( NULL );
 					break;
 				case TEAM_ALLIES:
-					trap_R_SetColor( color_transgreen );
-					CG_DrawBox( 33,56+i*20,384,20,qfalse);
+					if ( clientNum == -1 )
+						trap_R_SetColor( color_transgreendk );
+					else
+						trap_R_SetColor( color_transgreen );
+					CG_DrawBox( 33,56+i*verdanaheight,384,verdanaheight,qfalse);
 					trap_R_SetColor( NULL );
 					break;
 				default: break;
@@ -1808,19 +1831,19 @@ void CG_DrawScores( void ) {
 			if ( clientNum == -1 ) {
 				font = &cgs.media.facfont;
 				if ( team == TEAM_ALLIES )
-					trap_R_Text_Paint( font, 32, 56+i*20,1,1,"Allies",1,32,qtrue,qtrue);
+					trap_R_Text_Paint( font, 32, 56+i*verdanaheight,1,1,"Allies",1,32,qtrue,qtrue);
 				else if ( team == TEAM_AXIS )
-					trap_R_Text_Paint( font, 32, 56+i*20,1,1,"Axis",1,32,qtrue,qtrue);
+					trap_R_Text_Paint( font, 32, 56+i*verdanaheight,1,1,"Axis",1,32,qtrue,qtrue);
 				else if ( team == TEAM_SPECTATOR )
-					trap_R_Text_Paint( font, 32, 56+i*20,1,1,"Spectators",1,32,qtrue,qtrue);
+					trap_R_Text_Paint( font, 32, 56+i*verdanaheight,1,1,"Spectators",1,32,qtrue,qtrue);
 			} else {
 				font = &cgs.media.verdana;
-				trap_R_Text_Paint( font, 32, 56+i*20,1,1,Info_ValueForKey(CG_ConfigString(CS_PLAYERS+clientNum),"name"),1,32,qtrue,qtrue); // name
+				trap_R_Text_Paint( font, 32, 56+i*verdanaheight,1,1,Info_ValueForKey(CG_ConfigString(CS_PLAYERS+clientNum),"name"),1,32,qtrue,qtrue); // name
 			}
-			trap_R_Text_Paint( font, 160, 56+i*20,1,1,extractValues( &ptr ),1,32,qtrue,qtrue);
-			trap_R_Text_Paint( font, 224, 56+i*20,1,1,extractValues( &ptr ),1,32,qtrue,qtrue);
-			trap_R_Text_Paint( font, 288, 56+i*20,1,1,extractValues( &ptr ),1,32,qtrue,qtrue);
-			trap_R_Text_Paint( font, 352, 56+i*20,1,1,extractValues( &ptr ),1,32,qtrue,qtrue);
+			trap_R_Text_Paint( font, 160, 56+i*verdanaheight,1,1,extractValues( &ptr ),1,32,qtrue,qtrue);
+			trap_R_Text_Paint( font, 224, 56+i*verdanaheight,1,1,extractValues( &ptr ),1,32,qtrue,qtrue);
+			trap_R_Text_Paint( font, 288, 56+i*verdanaheight,1,1,extractValues( &ptr ),1,32,qtrue,qtrue);
+			trap_R_Text_Paint( font, 352, 56+i*verdanaheight,1,1,extractValues( &ptr ),1,32,qtrue,qtrue);
 		}
 	}
 }

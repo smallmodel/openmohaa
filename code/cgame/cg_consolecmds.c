@@ -86,7 +86,7 @@ static void CG_Viewpos_f (void) {
 
 static void CG_ScoresDown_f( void ) {
 
-	if ( cg.scoresRequestTime + 2000 < cg.time ) {
+	if ( cg.scoresRequestTime + 1000 < cg.time ) {
 		// the scores are more than two seconds out of data,
 		// so request new ones
 		cg.scoresRequestTime = cg.time;
