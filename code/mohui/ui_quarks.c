@@ -758,6 +758,7 @@ void UI_DrawConnectScreen( qboolean overlay ) {
 		loadname = Info_ValueForKey(info,"mapname");
 	} else loadname = "loading_default";
 	if ( Q_strncmp(oldload,loadname,sizeof(oldload)) ) {
+		memset( &uis.loading, 0, sizeof(uis.loading) );
 		UI_LoadURC( loadname, &uis.loading );
 		Q_strncpyz( oldload, loadname, sizeof(oldload) );
 	}
