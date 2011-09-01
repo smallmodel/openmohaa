@@ -21,7 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 #include "cg_local.h"
 
-#define	MAX_UBERSOUNDS	1200
+#define	MAX_UBERSOUNDS	2400
 ubersound_t		snd_indexes[MAX_UBERSOUNDS];
 int				snd_numIndexes;
 
@@ -121,6 +121,9 @@ void CG_ParseUSline( char **ptr, ubersound_t *snd ) {
 		else
 			CG_Printf( "Ubersound unrecognized loaded state %s for %s\n", chan, snd->name );
 	}
+	// subtitle - su44: we need this for ubersound/uberdialog.scr loading
+	if ( !Q_strncmp( COM_Parse(ptr), "subtitle", MAX_QPATH ) ) 
+		Q_strncpyz( snd->subtitle, COM_Parse(ptr), sizeof(snd->subtitle) );
 	// maplist
 	if ( !Q_strncmp( COM_Parse(ptr), "maps", MAX_QPATH ) ) 
 		Q_strncpyz( snd->mapstring, COM_Parse(ptr), MAPSTRING_LENGTH );
@@ -140,7 +143,7 @@ qboolean US_CheckMapstring( const char *mapstring ) {
 	return qfalse;
 }
 
-void CG_LoadUbersound( void ) {
+void CG_LoadUberSoundFile( const char *fname ) {
 	fileHandle_t	f;
 	int				len;
 
@@ -151,15 +154,11 @@ void CG_LoadUbersound( void ) {
 	ubersound_t*	snd;
 	int				i;
 
-	CG_Printf( "=== Loading %s ===\n", UBERSOUND_FILE );
+	CG_Printf( "=== Loading %s ===\n", fname );
 
-	Com_Memset(snd_indexes, 0, sizeof(snd_indexes));
-	Com_Memset(hashTable, 0, sizeof(hashTable));
-	snd_numIndexes = 0;
-
-	len = trap_FS_FOpenFile( UBERSOUND_FILE, &f, FS_READ);
+	len = trap_FS_FOpenFile( fname, &f, FS_READ);
 	if (!f) {
-		CG_Printf( "couldn't load %s. file not found.\n", UBERSOUND_FILE );
+		CG_Printf( "couldn't load %s. file not found.\n", fname );
 		return;
 	}
 	if ( len >= UBERSOUND_SIZE ) {
@@ -210,7 +209,17 @@ void CG_LoadUbersound( void ) {
 		Com_Printf( "CG_LoadUbersound hit end of file without end statement\n" );
 
 	trap_FS_FCloseFile( f );
-	CG_Printf( "=== Finished %s ===\n", UBERSOUND_FILE );
+	CG_Printf( "=== Finished %s ===\n", fname );
+}
+
+void CG_LoadUbersound( void ) {
+	Com_Memset(snd_indexes, 0, sizeof(snd_indexes));
+	Com_Memset(hashTable, 0, sizeof(hashTable));
+	snd_numIndexes = 0;
+
+	CG_LoadUberSoundFile(UBERSOUND_FILE);
+	// su44: used by MoHAA voicechats
+	CG_LoadUberSoundFile("ubersound/uberdialog.scr");
 }
 
 char buffer[MUSIC_SIZE];

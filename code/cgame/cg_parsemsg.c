@@ -260,7 +260,7 @@ void CG_HudDrawElements() {
 
 					trap_R_SetColor(hdi->vColor);
 
-					//
+					// su44: that's wrong
 					if(hdi->bVirtualScreen) {
 						if(x > 640) 
 							x -= 640;
@@ -315,7 +315,7 @@ static void CG_PlaySound(char *sound_name, float *origin, int channel,
 	sound = CG_GetUbersound(sound_name);
 
 	if(sound)
-		trap_S_StartSound( origin, -1, channel, sound->sfxHandle );
+		trap_S_StartSound( origin, -1, sound->channel, sound->sfxHandle );
 
 
 }
@@ -604,21 +604,23 @@ void CG_ParseCGMessage() {
 				// TODO - play sound (?)
 				//CG_PlaySound(s, 0, 5, 2.0, -1.0, vecStart, 1);
 				break;
-			case 37: // taunt message?
+			case 37: // voicechat message (squad command, taunt, etc...)
 				vecStart[0] = trap_MSG_ReadCoord();
 				vecStart[1] = trap_MSG_ReadCoord();
 				vecStart[2] = trap_MSG_ReadCoord();
 
 				iTemp = trap_MSG_ReadBits( 1 );
+				// read client index
 				i = trap_MSG_ReadBits( 6 );
+				// read voicechat sound alias
 				s = trap_MSG_ReadString();
 
 				if(iTemp) {
 					current_entity_number = i;
 
 				}
-				// su44: I think that string is smth different than a mere sound alias...
 				//CG_Printf("Case 37: iTemp %i, i %i, s %s\n",iTemp,i,s);
+				// play an aliased sound from uberdialog.scr
 				CG_PlaySound(s,vecStart,5,-1.0,-1.0,-1.0,0);
 				break;
 		}

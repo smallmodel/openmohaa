@@ -1061,7 +1061,8 @@ extern	vmCvar_t		vm_lean_lower;
 
 // UBERSOUND
 #define UBERSOUND_FILE	"ubersound/ubersound.scr"
-#define UBERSOUND_SIZE	300000
+// su44: vanilla AA uberdialog.scr is 870195
+#define UBERSOUND_SIZE	900000 // 300000
 #define MUSIC_SIZE		10000
 #define MAPSTRING_LENGTH 512
 
@@ -1077,6 +1078,7 @@ typedef struct ubersound_s {
 	soundChannel_t		channel;
 	qboolean			loaded;	// loaded or streamed
 	char				mapstring[MAPSTRING_LENGTH];
+	char				subtitle[512]; // su44: for uberdialog.scr loading
 
 	sfxHandle_t			sfxHandle;
 	qboolean			hasLoaded;
