@@ -835,7 +835,8 @@ typedef enum {
 	TAG_BOTLIB,
 	TAG_RENDERER,
 	TAG_SMALL,
-	TAG_STATIC
+	TAG_STATIC,
+	TAG_TIKI, // su44: memory allocated by qcommon/tiki.c code
 } memtag_t;
 
 /*

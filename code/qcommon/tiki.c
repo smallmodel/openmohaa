@@ -600,13 +600,13 @@ void TIKI_MergeSKD(tiki_t *out, char *fname) {
 		bone = (skdBone_t *)( (byte *)bone + bone->ofsEnd );
 	}
 	if(numAddBones) {
-		newBoneNames = Z_Malloc((numAddBones + out->numBones)*4);
+		newBoneNames = Z_TagMalloc((numAddBones + out->numBones)*4,TAG_TIKI);
 		memcpy(newBoneNames,out->boneNames,out->numBones*4);
 		memcpy(&newBoneNames[out->numBones],addBonesIndexes,numAddBones*4);
 		Z_Free(out->boneNames);
 		out->boneNames = newBoneNames;
 
-		newBoneList = Z_Malloc((out->numBones + numAddBones)*4);
+		newBoneList = Z_TagMalloc((out->numBones + numAddBones)*4,TAG_TIKI);
 		memcpy(newBoneList,out->bones,out->numBones*4);
 		Z_Free(out->bones);
 		out->bones = (void**)newBoneList;
@@ -738,7 +738,7 @@ void TIKI_MergeSKD(tiki_t *out, char *fname) {
 		surf = (skdSurface_t *)( (byte *)surf + surf->ofsEnd );
 	}
 	
-	outSurfs = Z_Malloc(outSurfacesSize+(header->ofsBoxes-header->ofsSurfaces));
+	outSurfs = Z_TagMalloc(outSurfacesSize+(header->ofsBoxes-header->ofsSurfaces),TAG_TIKI);
 	memcpy(outSurfs,out->surfs,outSurfacesSize);
 	out->numSurfaces+=header->numSurfaces;
 	if(out->numSurfaces >= MAX_TIKI_SURFACES) {
@@ -814,7 +814,7 @@ void TIKI_AppendSKD(tiki_t *out, char *fname) {
 	//Com_Printf("ofs bones %i , surfaces %i, boxes %i, end %i, lods %i, morpgh %i",header->ofsBones, header->ofsSurfaces, header->ofsBoxes,header->ofsEnd,header->ofsLODs, header->ofsMorphTargets);
 
 	//names array
-	out->boneNames = Z_Malloc(header->numBones*4);//Hunk_Alloc((header->numBones*4),h_high);
+	out->boneNames = Z_TagMalloc(header->numBones*4,TAG_TIKI);//Hunk_Alloc((header->numBones*4),h_high);
 	bone = (skdBone_t *) ( (byte *)header + header->ofsBones );
 	for ( i = 0 ; i < header->numBones ; i++) {
 		out->boneNames[i] = TIKI_RegisterBoneName(bone->name);
@@ -823,7 +823,7 @@ void TIKI_AppendSKD(tiki_t *out, char *fname) {
 	}
 
 	out->numBones = header->numBones;
-	out->bones = Z_Malloc(header->numBones*sizeof(int));//Hunk_Alloc(header->numBones*sizeof(int),h_high);
+	out->bones = Z_TagMalloc(header->numBones*sizeof(int),TAG_TIKI);//Hunk_Alloc(header->numBones*sizeof(int),h_high);
 	bone = (skdBone_t *) ( (byte *)header + header->ofsBones );
 	for ( i = 0 ; i < header->numBones ; i++) {
 		switch(bone->jointType)	{
@@ -938,7 +938,7 @@ void TIKI_AppendSKD(tiki_t *out, char *fname) {
 	}
 
 	out->numSurfaces = header->numSurfaces;
-	out->surfs = Z_Malloc( header->ofsBoxes-header->ofsSurfaces);
+	out->surfs = Z_TagMalloc( header->ofsBoxes-header->ofsSurfaces,TAG_TIKI);
 	memcpy(out->surfs,( ((byte *)header) + header->ofsSurfaces ),header->ofsBoxes-header->ofsSurfaces);
 	surf = out->surfs;
 	for ( i = 0 ; i < header->numSurfaces ; i++) {
@@ -1488,6 +1488,7 @@ void TIKI_ClearUp() {
 	memset(globalBoneNames,0,sizeof(globalBoneNames));
 	freeBoneName = globalBoneNames;
 	memset(boneHashTable,0,sizeof(boneHashTable));
+	Z_FreeTags( TAG_TIKI );
 }
 tiki_t	*TIKI_RegisterModel(const char *fname) {
 	tiki_t	*tiki;
