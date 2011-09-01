@@ -613,6 +613,11 @@ static void CG_RegisterGraphics( void ) {
 			CG_RegisterItemName(i, itemName);
 		}
 	}
+	for( i = CS_RAIN_DENSITY; i != (CS_RAIN_NUMSHADERS+1); i++) {
+		const char		*str;
+		str = CG_ConfigString( i );
+		CG_RainCSUpdated(i,str);
+	}
 
 	CG_ClearParticles ();
 /*
@@ -797,6 +802,8 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum ) {
 	CG_InitEventSystem();
 
 	CG_InitBeams();
+
+	CG_InitRainEffect();
 
 	// remove the last loading update
 	cg.infoScreenText[0] = 0;

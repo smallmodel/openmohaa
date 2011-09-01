@@ -361,6 +361,19 @@ typedef struct {
 	sfxHandle_t		sounds[MAX_CUSTOM_SOUNDS];
 } clientInfo_t;
 
+// su44: MoHAA rain/snow effect
+typedef struct {
+	float density;
+	float speed;
+	int speed_vary;
+	int slant;
+	float length;
+	float min_dist;
+	float width;
+	char shader[16][2048];
+	int numshaders;
+} crain_t;
+
 #define MAX_REWARDSTACK		10
 #define MAX_SOUNDBUFFER		20
 
@@ -564,6 +577,8 @@ typedef struct {
 
 	float fCurrentViewBobAmp;
 	float fCurrentViewBobPhase;
+
+	crain_t rain;
 
 	//qboolean cameraMode;		// if rendering from a loaded camera
 
@@ -1621,3 +1636,7 @@ void CG_CreateBeam(vec3_t start, vec3_t dir, int owner, qhandle_t hModel, float 
 void CG_Rope(centity_t *cent); // afaik that's not used in MoHAA, but who cares?
 void CG_MultiBeam(centity_t *cent);
 
+// cg_rain.c
+void CG_InitRainEffect();
+void CG_RainCSUpdated(int num, char *str);
+void CG_Rain(centity_t *cent);

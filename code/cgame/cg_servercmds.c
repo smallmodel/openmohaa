@@ -232,6 +232,8 @@ static void CG_ConfigStringModified( void ) {
 		CG_ParseServerinfo();
 	} else if ( num == CS_WARMUP ) {
 		CG_ParseWarmup();
+	} else if( num >= CS_RAIN_DENSITY && num <= CS_RAIN_NUMSHADERS) {
+		CG_RainCSUpdated(num,str);
 	//} else if ( num == CS_SCORES1 ) {
 	//	cgs.scores1 = atoi( str );
 	//} else if ( num == CS_SCORES2 ) {

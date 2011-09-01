@@ -1181,6 +1181,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="..\..\code\cgame\cg_rain.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\code\cgame\cg_scoreboard.c"
 				>
 				<FileConfiguration
@@ -1305,6 +1309,10 @@
 						BrowseInformation="1"
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\code\cgame\cg_specialfx.c"
+				>
 			</File>
 			<File
 				RelativePath="..\..\code\cgame\cg_syscalls.c"

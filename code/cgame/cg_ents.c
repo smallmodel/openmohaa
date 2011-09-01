@@ -509,8 +509,8 @@ static void CG_AddCEntity( centity_t *cent ) {
 	case ET_PLAYER:
 		CG_ModelAnim( cent );
 		break;
-	case ET_RAIN:
-		//CG_Rain( cent ); // TODO!
+	case ET_RAIN: // su44: ET_RAIN is used on dm/mohdm5 for snow effect
+		CG_Rain( cent );
 		break;
 	// su44: beams are used on some servers with custom scripts
 	case ET_BEAM:
