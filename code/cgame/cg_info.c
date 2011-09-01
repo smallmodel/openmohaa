@@ -69,7 +69,7 @@ void CG_LoadingString( const char *s ) {
 	char buffer[16];
 
 	Q_strncpyz( cg.infoScreenText, s, sizeof( cg.infoScreenText ) );
-	Q_snprintf( buffer, sizeof(buffer), "%f", (float)cgs.loadingStage/5 );
+	Q_snprintf( buffer, sizeof(buffer), "%f", (float)cgs.loadingStage/6 );
 	trap_Cvar_Set( "loadingbar", buffer );
 
 	cgs.loadingStage++;

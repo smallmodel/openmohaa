@@ -215,7 +215,7 @@ void UI_RegisterMedia( void ) {
 	// STANDARD MENUS
 	UI_LoadURC( "main", &uis.main );
 	UI_LoadURC( "connecting", &uis.connecting );
-	UI_LoadURC( "loading_default", &uis.loading );
+	//UI_LoadURC( "loading_default", &uis.loading ); //preloading not necessary
 	uis.main.standard			= qtrue;
 	uis.connecting.standard		= qtrue;
 	uis.loading.standard		= qtrue;
@@ -453,6 +453,8 @@ void UI_DrawMenu( uiMenu_t *menu, qboolean foreground ) {
 				continue;
 			}
 		}
+		if( !strcmp(res->name,"continuebutton")|| !strcmp(res->name,"loadingflasher"))
+			continue;
 		if ( foreground == qtrue ) //foreground menu
 			UI_SetColor( res->fgcolor );
 		else UI_SetColor( res->bgcolor );
@@ -745,6 +747,7 @@ void UI_DrawConnectScreen( qboolean overlay ) {
 	char					info[MAX_INFO_VALUE];
 	char					*s;
 	char					*loadname;
+	static char			oldload[MAX_QPATH];
 
 	
 	trap_GetClientState( &cstate );
@@ -754,6 +757,10 @@ void UI_DrawConnectScreen( qboolean overlay ) {
 	if( trap_GetConfigString( CS_SERVERINFO, info, sizeof(info) ) ) {
 		loadname = Info_ValueForKey(info,"mapname");
 	} else loadname = "loading_default";
+	if ( Q_strncmp(oldload,loadname,sizeof(oldload)) ) {
+		UI_LoadURC( loadname, &uis.loading );
+		Q_strncpyz( oldload, loadname, sizeof(oldload) );
+	}
 
 	switch ( cstate.connState ) {
 		case CA_CONNECTING:
@@ -777,7 +784,6 @@ void UI_DrawConnectScreen( qboolean overlay ) {
 			s = "Awaiting gamestate...";
 			break;
 		case CA_LOADING:
-			UI_LoadURC( loadname, &uis.loading );
 			UI_DrawMenu( &uis.loading, qtrue );
 			return;
 		case CA_PRIMED:
