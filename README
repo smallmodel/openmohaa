@@ -6,7 +6,8 @@
 Building
 =======================
 *NIX:
-make sure you have compiler and libopenal-dev and libsdl-dev installed
+make sure you have compiler installed
+Required extra libaries: libopenal-dev libsdl-dev libmad-dev
 Run 'make'
 
 WIN:
@@ -15,11 +16,13 @@ MSVC solution files are in misc/msvc/ (VC9) and misc/msvc10 (VC10)
 If you don't have MSVC, install mingw, start it and change to openmohaa
 directory, run 'make'
 
+You will need include files and libraries for OpenAL, SDL and libmad.
+
 MOSX:
 Run './make-macosx-ub.sh'
+You will need openal, sdl and libmad.
 
 The built binaries reside in the 'build' directory.
-*** shell script is outdated ***
 
 
 
@@ -32,15 +35,14 @@ Running
 In order to run the game, you need the original MOHAA media files,
 which are stored in pak*.pk3 files.
 
-Copy all pak*.pk3 from your MOHAA/main directory into openmohaa's
-'main' directory (found in the 'build' directory).
+Copy all pak*.pk3 files and sound/ directory from your MOHAA/main directory
+into openmohaa's 'main' directory (found in the 'build' directory).
 
 Now you need the SDL library. Windows users can download the ready-to-use
 DLL file at http://www.libsdl.org/, Linux users need to find the right packages
-like libsdl and libopenal etc
+like libsdl and libopenal libmad
 
-Now run openmohaa with start parameters:
-+set bot_enable 0
+Now run openmohaa.
 
 Note that with non-US keyboard settings, you may have problems toggling
 the in-game console. The right key should type '`' or '~'
@@ -49,12 +51,9 @@ the in-game console. The right key should type '`' or '~'
 
 Developing
 =======================
-There is plenty of work to do. Basically, our goal is to get openmohaa
-compatible to MOHAA. If you want to help out, just follow the above
-instructions to get your development system set up.
-If you experience problems getting started try get in touch with me (wombat)
-
-After all, you are always welcome in our irc channel and forums!
+You are always welcome in our irc channel and forums.
+If you find bugs, or things not yet implemented, please tell us or 
+if you can write a fix and submit it to us.
 
 
 URL

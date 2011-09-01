@@ -31,10 +31,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 
 #define UI_MAX_URCSIZE		131072
-#define UI_MAX_MENUS			16
+#define UI_MAX_MENUS		16
 #define UI_MAX_NAME			128
 #define UI_MAX_RESOURCES	64
-#define UI_MAX_SELECT			32
+#define UI_MAX_SELECT		32
+#define UI_MAX_FILES		256
 
 #define UI_CHECKBOX_SIZE	16
 
@@ -154,7 +155,7 @@ typedef struct uiResource_s {
 	qhandle_t			statbarshader;
 	qhandle_t			statbartileshader;
 	qhandle_t			statbarshaderflash;
-	int					statbarRange[2];
+	float				statbarRange[2];
 	int					statbarendangles[2];
 	float				rotatorsize[2];
 	int					invmodelhand;
@@ -176,6 +177,7 @@ typedef struct uiMenu_s {
 	int				vidmode;
 	float			fadein;
 	char			include[UI_MAX_NAME];
+	char			postinclude[UI_MAX_NAME];
 	qboolean		virtualres;
 
 	uiResource_t	resources[UI_MAX_RESOURCES];
@@ -196,6 +198,13 @@ typedef enum {
 	HUD_WEAPONS,
 	HUD_MAX
 } uiHudMenus_t; 
+
+typedef struct uiMenulist_s {
+	char *name;
+	char *file;
+
+	struct uiMenulist_s *next;
+} uiMenulist_t;
 
 // ui_quarks.c
 typedef struct {
@@ -242,6 +251,10 @@ typedef struct {
 	uiMenu_t			crosshair;
 	uiMenu_t			scoreboard;
 	qboolean			showscores;
+
+	// menu list
+	uiMenulist_t		menuList[UI_MAX_FILES];
+	int					MLP;	// menu list pointer
 } uiStatic_t;
 
 
@@ -270,16 +283,17 @@ void UI_UpdateScreen( void );
 void UI_DrawHandlePic( float x, float y, float w, float h, qhandle_t hShader );
 void UI_RotatedPic( float x, float y, float w, float h, qhandle_t hShader, float angle );
 void UI_CmdExecute( const char *text );
-void UI_DrawBox( int x, int y, int w, int h, qboolean ctrCoord );
+void UI_DrawBox( int x, int y, int w, int h, qboolean ctrCoord, int refx, int refy );
 
 // ui_urc.c
-void	UI_LoadINC( const char *name, uiMenu_t *menu );
+void	UI_LoadINC( const char *name, uiMenu_t *menu, qboolean post );
 void	UI_LoadURC( const char *name, uiMenu_t *menu );
 void	UI_PushMenu( const char *name );
 void	UI_PopMenu( void );
+void	UI_FindMenus( void );
 
 // ui_model.c
-void UI_RenderModel(uiResource_t *res);
+void	UI_RenderModel(uiResource_t *res);
 
 //
 // ui_syscalls.c

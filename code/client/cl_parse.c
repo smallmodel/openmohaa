@@ -459,7 +459,7 @@ void CL_ParseGamestate( msg_t *msg ) {
 	Con_Close();
 
 	clc.connectPacketCount = 0;
-Com_Printf( "gameSTATE\n" );
+
 	// wipe local client state
 	CL_ClearState();
 

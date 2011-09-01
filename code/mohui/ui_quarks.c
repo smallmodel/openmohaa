@@ -123,6 +123,7 @@ vmCvar_t	cg_effectdetail;
 vmCvar_t	r_subdivisions;
 vmCvar_t	cg_shadows;
 vmCvar_t	cg_scoreboardpic;
+vmCvar_t	loadingbar;
 
 
 static cvarTable_t		cvarTable[] = {
@@ -150,7 +151,8 @@ static cvarTable_t		cvarTable[] = {
 	{ &cg_effectdetail, "cg_effectdetail", "1.0", CVAR_ARCHIVE },
 	{ &r_subdivisions, "r_subdivisions", "3", CVAR_ARCHIVE },
 	{ &cg_shadows, "cg_shadows", "2", CVAR_ARCHIVE },
-	{ &cg_scoreboardpic, "cg_scoreboardpic", "mohdm1", CVAR_TEMP }
+	{ &cg_scoreboardpic, "cg_scoreboardpic", "mohdm1", CVAR_TEMP },
+	{ &loadingbar, "loadingbar", "0.5", CVAR_TEMP }
 };
 
 static int cvarTableSize = sizeof(cvarTable) / sizeof(cvarTable[0]);
@@ -263,10 +265,12 @@ void UI_Init( void ) {
 	}
 
 	// initialize the menu system
+	UI_FindMenus();
 	UI_RegisterMedia();
 
 	uis.MSP	= -1;
-	uis.CP		= -1;
+	uis.CP	= -1;
+	uis.MLP	= 0;
 }
 
 /*
@@ -444,7 +448,7 @@ void UI_DrawMenu( uiMenu_t *menu, qboolean foreground ) {
 		res = &menu->resources[j];
 		// su44: dont show "Back To Game" / "Disconnect" button 
 		// in main menu if we're not connected to a server
-		if(!strcmp(res->name,"backtogame") || !strcmp(res->name,"disconnect")) {
+		if(!strcmp(res->name,"backtogame") || !strcmp(res->name,"disconnect") ) {
 			if(trap_Cvar_VariableValue("cg_running")==0) {
 				continue;
 			}
@@ -472,7 +476,7 @@ void UI_DrawMenu( uiMenu_t *menu, qboolean foreground ) {
 							trap_R_Text_Paint( res->font,res->rect[0],res->rect[1],1,0,res->linkcvar.string,1,0,qtrue,qtrue);
 					} else if ( res->statvar==qfalse ) {
 						if (res->borderstyle != UI_BORDER_NONE )
-							UI_DrawBox( res->rect[0],res->rect[1], res->rect[2],res->rect[3],qfalse );
+							UI_DrawBox( res->rect[0],res->rect[1], res->rect[2],res->rect[3],qfalse, menu->size[0], menu->size[1] );
 						switch ( res->textalign ) {
 							case UI_ALIGN_LEFT:
 							trap_R_Text_Paint( res->font,res->rect[0],res->rect[1],1,0,res->title,1,0,qtrue,qtrue);
@@ -496,16 +500,23 @@ void UI_DrawMenu( uiMenu_t *menu, qboolean foreground ) {
 				else if ( res->statbar != STATBAR_NONE ) {
 					switch ( res->statbar ) {
 						case STATBAR_COMPASS:
-						UI_SetColor( res->fgcolor );
-						UI_RotatedPic( res->rect[0], res->rect[1], res->rect[2], res->rect[3], res->statbarshader, playerState->viewangles[YAW]/360 );
-						break;
+							UI_SetColor( res->fgcolor );
+							UI_RotatedPic( res->rect[0], res->rect[1], res->rect[2], res->rect[3], res->statbarshader, playerState->viewangles[YAW]/360 );
+							break;
+						case STATBAR_HORIZONTAL:
+							UI_SetColor( res->fgcolor );
+							trap_Cvar_Update(&res->linkcvar);
+							if ( res->statbartileshader && (res->statbarRange[1]-res->statbarRange[0])!=0) {
+								UI_DrawHandlePic( res->rect[0], res->rect[1], res->rect[2]*(res->linkcvar.value-res->statbarRange[0])/(res->statbarRange[1]-res->statbarRange[0]), res->rect[3], res->statbartileshader );
+							}
+							break;
 						case STATBAR_VERTICAL:
-						UI_SetColor( res->bgcolor );
-						if ( res->statbarshader && playerState->stats[res->maxplayerstat]!=0) {
-							frac = res->rect[3] * playerState->stats[res->playerstat] / playerState->stats[res->maxplayerstat];
-							UI_DrawHandlePic( res->rect[0], res->rect[1]+res->rect[3] - frac, res->rect[2], frac, res->statbarshader );
-						}
-						break;
+							UI_SetColor( res->bgcolor );
+							if ( res->statbarshader && playerState->stats[res->maxplayerstat]!=0) {
+								frac = res->rect[3] * playerState->stats[res->playerstat] / playerState->stats[res->maxplayerstat];
+								UI_DrawHandlePic( res->rect[0], res->rect[1]+res->rect[3] - frac, res->rect[2], frac, res->statbarshader );
+							}
+							break;
 					}
 				}
 				else if ( res->statvar == qtrue ) {
@@ -545,7 +556,7 @@ void UI_DrawMenu( uiMenu_t *menu, qboolean foreground ) {
 			case UI_RES_PULLDOWN:
 				if (res->pressed == qtrue) {
 					UI_DrawHandlePic( res->rect[0], res->rect[1], res->rect[2], res->rect[3], res->selmenushader );
-					UI_DrawBox( res->rect[0]+res->rect[2], res->rect[1], 128, 16 * res->selentries +3, qfalse );
+					UI_DrawBox( res->rect[0]+res->rect[2], res->rect[1], 128, 16 * res->selentries +3, qfalse, menu->size[0], menu->size[1] );
 					for (k=0;k<res->selentries;k++)
 						trap_R_Text_Paint( res->font, res->rect[0]+res->rect[2]+3,3+res->rect[1]+(k*16),1,1,res->linkstring1[k],0,0,qtrue,qtrue );
 				}
@@ -735,28 +746,22 @@ void UI_DrawConnectScreen( qboolean overlay ) {
 	char					*s;
 	char					*loadname;
 
-	UI_DrawMenu( &uis.connecting, qtrue );
-
 	
 	trap_GetClientState( &cstate );
 
-	if ( cstate.connState < CA_CONNECTED ) {
-		trap_R_Text_Paint( &uis.menuFont, 320,240,1,1,cstate.messageString,0,0,qtrue,qtrue );
-	}
 
 	info[0] = '\0';
 	if( trap_GetConfigString( CS_SERVERINFO, info, sizeof(info) ) ) {
-		s = va( "loading_%s", Info_ValueForKey( info, "mapname" ) );
-		loadname = strchr(s,'/');
-		if(!loadname)
-			loadname = s;
+		loadname = Info_ValueForKey(info,"mapname");
 	} else loadname = "loading_default";
 
 	switch ( cstate.connState ) {
 		case CA_CONNECTING:
+			UI_DrawMenu( &uis.connecting, qtrue );
 			s = va("Awaiting challenge...%i", cstate.connectPacketCount);
 			break;
 		case CA_CHALLENGING:
+			UI_DrawMenu( &uis.connecting, qtrue );
 			s = va("Awaiting connection...%i", cstate.connectPacketCount);
 			break;
 		case CA_CONNECTED: //{
@@ -768,6 +773,7 @@ void UI_DrawConnectScreen( qboolean overlay ) {
 //					return;
 //				}
 //			}
+			UI_DrawMenu( &uis.connecting, qtrue );
 			s = "Awaiting gamestate...";
 			break;
 		case CA_LOADING:
@@ -778,6 +784,9 @@ void UI_DrawConnectScreen( qboolean overlay ) {
 			return;
 		default:
 			return;
+	}
+	if ( cstate.connState < CA_CONNECTED ) {
+		trap_R_Text_Paint( &uis.menuFont, 320,240,1,1,cstate.messageString,0,0,qtrue,qtrue );
 	}
 	trap_R_Text_Paint( &uis.menuFont, 250,270,1,1,s,0,0,qtrue,qtrue );
 	// draw cursor
@@ -877,7 +886,7 @@ ctrCoord == qfalse: box with upper left corner at x,y
 =================
 */
 #define LINE_THICKNESS	1
-void	UI_DrawBox( int x, int y, int w, int h, qboolean ctrCoord ) {
+void	UI_DrawBox( int x, int y, int w, int h, qboolean ctrCoord, int refx, int refy ) {
 
 	if ( ctrCoord ) {
 		x -= w/2;

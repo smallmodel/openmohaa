@@ -931,6 +931,8 @@ typedef struct {
 	// media
 	cgMedia_t		media;
 
+	int loadingStage;
+
 } cgs_t;
 
 //==============================================================================

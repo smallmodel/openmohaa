@@ -24,6 +24,25 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #define PARSE_PTR	COM_Parse(ptr)
 
+#define FILE_HASH_SIZE		64
+static	uiMenulist_t*		hashTable[FILE_HASH_SIZE];
+
+static long generateHashValue( const char *fname ) {
+	int		i;
+	long	hash;
+	char	letter;
+
+	hash = 0;
+	i = 0;
+	while (fname[i] != '\0') {
+		letter = tolower(fname[i]);
+		hash+=(long)(letter)*(i+119);
+		i++;
+	}
+	hash &= (FILE_HASH_SIZE-1);
+	return hash;
+}
+
 void UI_ParseMenuResource( const char *token, char **ptr, uiResource_t *res, int *offset ) {
 	char	*var;
 	int		i;
@@ -205,6 +224,11 @@ void UI_ParseMenuResource( const char *token, char **ptr, uiResource_t *res, int
 		var = PARSE_PTR;
 		if ( !Q_strncmp(var,"compass",7) )
 			res->statbar = STATBAR_COMPASS;
+		else if ( !Q_strncmp(var,"horizontal",10) ) {
+			res->statbar = STATBAR_HORIZONTAL;
+			res->statbarRange[0] = atof(PARSE_PTR);
+			res->statbarRange[1] = atof(PARSE_PTR);
+		}
 		else if ( !Q_strncmp(var,"vertical",8) )
 			res->statbar = STATBAR_VERTICAL;
 		else if ( !Q_strncmp(var,"vertical_stagger_even",21) )
@@ -213,18 +237,18 @@ void UI_ParseMenuResource( const char *token, char **ptr, uiResource_t *res, int
 			res->statbar = STATBAR_VERTICAL_STAGGER_ODD;
 		else if ( !Q_strncmp(var,"headingspinner",14) ) {
 			res->statbar = STATBAR_HEADING_SPINNER;
-			res->statbarRange[0] = atoi(PARSE_PTR);
-			res->statbarRange[1] = atoi(PARSE_PTR);
+			res->statbarRange[0] = atof(PARSE_PTR);
+			res->statbarRange[1] = atof(PARSE_PTR);
 		}
 		else if ( !Q_strncmp(var,"rotator",7) ) {
 			res->statbar = STATBAR_ROTATOR;
-			res->statbarRange[0] = atoi(PARSE_PTR);
-			res->statbarRange[1] = atoi(PARSE_PTR);
+			res->statbarRange[0] = atof(PARSE_PTR);
+			res->statbarRange[1] = atof(PARSE_PTR);
 		}
 		else if ( !Q_strncmp(var,"spinner",7) ) {
 			res->statbar = STATBAR_SPINNER;
-			res->statbarRange[0] = atoi(PARSE_PTR);
-			res->statbarRange[1] = atoi(PARSE_PTR);
+			res->statbarRange[0] = atof(PARSE_PTR);
+			res->statbarRange[1] = atof(PARSE_PTR);
 		}
 		else Com_Printf( "UI_ParseMenuResource: unknown statbar %s\n", var );
 	}
@@ -279,7 +303,11 @@ qboolean UI_ParseMenuToken( const char *token, char **ptr, uiMenu_t *menu ) {
 	}
 	else if ( !Q_strncmp( token, "include", 7 ) ) {
 		Q_strncpyz( menu->include, PARSE_PTR, UI_MAX_NAME );
-		UI_LoadINC( menu->include, menu );
+		UI_LoadINC( menu->include, menu, qfalse );
+		return qfalse;
+	}
+	else if ( !Q_strncmp( token, "postinclude", 11 ) ) {
+		Q_strncpyz( menu->postinclude, PARSE_PTR, UI_MAX_NAME );
 		return qfalse;
 	}
 	else if ( !Q_strncmp( token, "align", 5 ) ) {
@@ -406,7 +434,7 @@ qboolean UI_ParseMenuToken( const char *token, char **ptr, uiMenu_t *menu ) {
 	}
 }
 
-void	UI_LoadINC( const char *name, uiMenu_t *menu ) {
+void	UI_LoadINC( const char *name, uiMenu_t *menu, qboolean post ) {
 	fileHandle_t	f;
 	int				len;
 	char			filename[MAX_QPATH];
@@ -417,15 +445,16 @@ void	UI_LoadINC( const char *name, uiMenu_t *menu ) {
 	char			*var;
 
 	Q_strncpyz( filename, name, sizeof( filename ) );
-	COM_DefaultExtension( filename, sizeof( filename ), ".inc" );
+	if ( post == qfalse )
+		COM_DefaultExtension( filename, sizeof( filename ), ".inc" );
 
 	len = trap_FS_FOpenFile( filename, &f, FS_READ);
 	if (!f) {
-		Com_Printf( "couldn't load INC file %s\n", name );
+		Com_Printf( "couldn't load include file %s\n", name );
 		return;
 	}
 	if ( len > UI_MAX_URCSIZE ) {
-		Com_Printf( "INC file too large, %i KB. Max size is %i KB\n", len/1024, UI_MAX_URCSIZE/1024 );
+		Com_Printf( "Include file too large, %i KB. Max size is %i KB\n", len/1024, UI_MAX_URCSIZE/1024 );
 		return;
 	}
 
@@ -434,6 +463,13 @@ void	UI_LoadINC( const char *name, uiMenu_t *menu ) {
 
 	ptr = buffer;
 	token = COM_Parse( &ptr );
+
+	if ( post == qtrue ) {
+		if (!Q_strncmp(token, "menu",4)) {
+			COM_Parse( &ptr );
+			token = COM_Parse(&ptr);
+		}
+	}
 
 	while (*token) {
 		if ( !Q_strncmp( token, "resource", 8 ) ) {
@@ -492,11 +528,28 @@ void	UI_LoadURC( const char *name, uiMenu_t *menu ) {
 	char			*ptr;
 	qboolean		end;
 
-	Q_strncpyz( filename, "ui/", sizeof(filename) );
-	Q_strncpyz( filename + 3, name, sizeof( filename )-3 );
-	COM_DefaultExtension( filename, sizeof( filename ), ".urc" );
+	uiMenulist_t*	menulist;
+	long			hash;
+	qboolean		found;
 
-	len = trap_FS_FOpenFile( filename, &f, FS_READ);
+	Q_strncpyz( filename, "ui/", MAX_QPATH );
+	hash = generateHashValue(name);
+	found = qfalse;
+	for (menulist=hashTable[hash] ; menulist ; menulist=menulist->next) {
+		if (!Q_stricmp(name, menulist->name)) {
+			found = qtrue;
+			break;
+		}
+	}
+
+	if ( found == qtrue )
+		Q_strncpyz( filename + 3, menulist->file, MAX_QPATH-3 );
+	else {
+		Q_strncpyz( filename + 3, name, MAX_QPATH-3 );
+	}
+	COM_DefaultExtension( filename, MAX_QPATH, ".urc" );
+
+	len = trap_FS_FOpenFile( filename, &f, FS_READ );
 	if (!f) {
 		Com_Printf( "couldn't load URC menu %s. file not found.\n", name );
 		return;
@@ -521,10 +574,13 @@ void	UI_LoadURC( const char *name, uiMenu_t *menu ) {
 		Com_Printf( "UI_LoadURC hit end of file without end statement\n" );
 
 	trap_FS_FCloseFile( f );
+	if ( menu->postinclude[0] )
+		UI_LoadINC( menu->postinclude, menu, qtrue );
 }
 
 void	UI_PushMenu( const char *name ) {
-	uiMenu_t	*menu;
+	uiMenu_t		*menu;
+	uiMenulist_t	*menulist;
 
 	uis.MSP++;
 	if ( uis.MSP >= UI_MAX_MENUS ) {
@@ -547,13 +603,7 @@ void	UI_PushMenu( const char *name ) {
 		menu = &uis.cache[uis.CP];
 		Com_Memset( menu, 0, sizeof(uiMenu_t) );
 
-		// remap mpoptions menus where menu name and file name disagree
-		if ( !Q_strncmp( name, "mpoptions", 9 ) )
-			UI_LoadURC( "multiplayeroptions", menu );
-		else if ( !Q_strncmp( name, "video_options", 9 ) )
-			UI_LoadURC( "video options", menu );
-		else
-			UI_LoadURC( name, menu );
+		UI_LoadURC( name, menu );
 
 		menu->standard = qfalse;
 		uis.stack[uis.MSP] = menu;
@@ -574,5 +624,64 @@ void	UI_PopMenu( void ) {
 	if ( uis.MSP == -1 ) {
 		trap_Key_SetCatcher( trap_Key_GetCatcher() & ~KEYCATCH_UI );
 		trap_Key_ClearStates();
+	}
+}
+
+#define MENULIST_BUFSIZE 2*MAX_STRING_CHARS
+void UI_FindMenus( void ) {
+	char	*filelist, *namelist;
+	char	*ptr, *ptr2;
+	int		i, numFiles, fnameLen, nameptr;
+	char	filebuf[MAX_QPATH];
+
+	filelist = (char*)UI_Alloc( MENULIST_BUFSIZE );
+	namelist = (char*)UI_Alloc( MENULIST_BUFSIZE );
+
+	numFiles = trap_FS_GetFileList( "ui", ".urc", filelist, MENULIST_BUFSIZE );
+
+	ptr = filelist;
+	nameptr = 0;
+	for (i = 0; i < numFiles; i++, ptr += fnameLen+1) {
+		uiMenulist_t *ml;
+		fileHandle_t f;
+		Q_strncpyz( filebuf, "ui/", sizeof(filebuf) );
+		Q_strncpyz( filebuf + 3, ptr, sizeof( filebuf )-3 );
+		trap_FS_FOpenFile( filebuf, &f, FS_READ );
+		trap_FS_Read( filebuf, sizeof(filebuf), f );
+		trap_FS_FCloseFile( f );
+		ptr2 = filebuf;
+
+		if ( !Q_strncmp( COM_Parse(&ptr2), "menu", MAX_QPATH ) ){
+			Q_strncpyz( namelist+nameptr, COM_Parse(&ptr2), MENULIST_BUFSIZE-nameptr );
+		}
+		else {
+			Com_Printf( "Menu name not recognized in %s\n", ptr );
+			continue;
+		}
+		ml = hashTable[generateHashValue(namelist+nameptr)];
+		if ( ml ) {
+			while (ml->next)
+				ml = ml->next;
+			ml->next = &uis.menuList[uis.MLP];
+			ml = ml->next;
+		}
+		else{
+			ml = &uis.menuList[uis.MLP];
+			hashTable[generateHashValue(namelist+nameptr)] = ml;
+		}
+		ml->file = ptr;
+		ml->name = namelist+nameptr;
+
+		fnameLen = strlen(ptr);
+		nameptr += strlen(namelist+nameptr)+1;
+		if ( nameptr >= MENULIST_BUFSIZE ) {
+			Com_Printf( "Too many menus in place. Namebuffer overrun!\n" );
+			return;
+		}
+		uis.MLP++;
+		if ( uis.MLP >= UI_MAX_FILES ) {
+			Com_Printf( "Too many menus in place.\n" );
+			return;
+		}
 	}
 }

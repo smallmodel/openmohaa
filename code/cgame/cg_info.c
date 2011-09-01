@@ -66,8 +66,13 @@ CG_LoadingString
 ======================
 */
 void CG_LoadingString( const char *s ) {
-	Q_strncpyz( cg.infoScreenText, s, sizeof( cg.infoScreenText ) );
+	char buffer[16];
 
+	Q_strncpyz( cg.infoScreenText, s, sizeof( cg.infoScreenText ) );
+	Q_snprintf( buffer, sizeof(buffer), "%f", (float)cgs.loadingStage/5 );
+	trap_Cvar_Set( "loadingbar", buffer );
+
+	cgs.loadingStage++;
 	trap_UpdateScreen();
 }
 
@@ -77,44 +82,7 @@ CG_LoadingClient
 ===================
 */
 void CG_LoadingClient( int clientNum ) {
-	const char		*info;
-	char			*skin;
-	char			personality[MAX_QPATH];
-	char			model[MAX_QPATH];
-	char			iconName[MAX_QPATH];
 
-	info = CG_ConfigString( CS_PLAYERS + clientNum );
-
-	if ( loadingPlayerIconCount < MAX_LOADING_PLAYER_ICONS ) {
-		Q_strncpyz( model, Info_ValueForKey( info, "model" ), sizeof( model ) );
-		skin = Q_strrchr( model, '/' );
-		if ( skin ) {
-			*skin++ = '\0';
-		} else {
-			skin = "default";
-		}
-
-		Com_sprintf( iconName, MAX_QPATH, "models/players/%s/icon_%s.tga", model, skin );
-		
-		loadingPlayerIcons[loadingPlayerIconCount] = trap_R_RegisterShaderNoMip( iconName );
-		if ( !loadingPlayerIcons[loadingPlayerIconCount] ) {
-			Com_sprintf( iconName, MAX_QPATH, "models/players/characters/%s/icon_%s.tga", model, skin );
-			loadingPlayerIcons[loadingPlayerIconCount] = trap_R_RegisterShaderNoMip( iconName );
-		}
-		if ( !loadingPlayerIcons[loadingPlayerIconCount] ) {
-			Com_sprintf( iconName, MAX_QPATH, "models/players/%s/icon_%s.tga", DEFAULT_MODEL, "default" );
-			loadingPlayerIcons[loadingPlayerIconCount] = trap_R_RegisterShaderNoMip( iconName );
-		}
-		if ( loadingPlayerIcons[loadingPlayerIconCount] ) {
-			loadingPlayerIconCount++;
-		}
-	}
-
-	Q_strncpyz( personality, Info_ValueForKey( info, "n" ), sizeof(personality) );
-	Q_CleanStr( personality );
-
-
-	CG_LoadingString( personality );
 }
 
 
@@ -126,149 +94,7 @@ Draw all the status / pacifier stuff during level loading
 ====================
 */
 void CG_DrawInformation( void ) {
-	const char	*s;
-	const char	*info;
-	const char	*sysInfo;
-	int			y;
-	int			value;
-	qhandle_t	levelshot;
-	qhandle_t	detail;
-	char		buf[1024];
 
-
-	info = CG_ConfigString( CS_SERVERINFO );
-	sysInfo = CG_ConfigString( CS_SYSTEMINFO );
-
-	s = Info_ValueForKey( info, "mapname" );
-
-	// wombat here: level shots are 
-	if ( cgs.gametype == GT_OBJECTIVE ) {
-		if ( !Q_strncmp( s, "obj/obj_team1", 32 ) )
-			levelshot = trap_R_RegisterShaderNoMip( "textures/mohmenu/objloading/objdm1.tga" );
-		else if ( !Q_strncmp( s, "obj/obj_team2", 32 ) )
-			levelshot = trap_R_RegisterShaderNoMip( "textures/mohmenu/objloading/objdm2.tga" );
-		else if ( !Q_strncmp( s, "obj/obj_team3", 32 ) )
-			levelshot = trap_R_RegisterShaderNoMip( "textures/mohmenu/objloading/objdm4.tga" );
-		else if ( !Q_strncmp( s, "obj/obj_team4", 32 ) )
-			levelshot = trap_R_RegisterShaderNoMip( "textures/mohmenu/objloading/objdm5.tga" );
-		else
-			levelshot = trap_R_RegisterShaderNoMip( va( "textures/mohmenu/objloading/%s.tga", s+4 ) );
-	} else {
-		levelshot = trap_R_RegisterShaderNoMip( va( "textures/mohmenu/dmloading/%s.tga", s+3 ) );
-	}
-	//levelshot = trap_R_RegisterShaderNoMip( va( "levelshots/%s.tga", s ) );
-	if ( !levelshot ) {
-		levelshot = trap_R_RegisterShaderNoMip( "textures/openmohaa.tga" );
-	}
-	if ( !levelshot ) Com_Printf( "nonononono\n" );
-	trap_R_SetColor( NULL );
-	CG_DrawPic( 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, levelshot );
-
-	// blend a detail texture over it
-//	detail = trap_R_RegisterShader( "levelShotDetail" );
-//	trap_R_DrawStretchPic( 0, 0, cgs.glconfig.vidWidth, cgs.glconfig.vidHeight, 0, 0, 2.5, 2, detail );
-
-	// draw the icons of things as they are loaded
-//	CG_DrawLoadingIcons();
-
-	// the first 150 rows are reserved for the client connection
-	// screen to write into
-	if ( cg.infoScreenText[0] ) {
-		UI_DrawProportionalString( 320, 128-32, va("Loading... %s", cg.infoScreenText),
-			UI_CENTER|UI_SMALLFONT|UI_DROPSHADOW, colorWhite );
-	} else {
-		UI_DrawProportionalString( 320, 128-32, "Awaiting snapshot...",
-			UI_CENTER|UI_SMALLFONT|UI_DROPSHADOW, colorWhite );
-	}
-
-	// draw info string information
-
-	y = 180-32;
-
-	// don't print server lines if playing a local game
-	trap_Cvar_VariableStringBuffer( "sv_running", buf, sizeof( buf ) );
-	if ( !atoi( buf ) ) {
-		// server hostname
-		Q_strncpyz(buf, Info_ValueForKey( info, "sv_hostname" ), 1024);
-		Q_CleanStr(buf);
-		UI_DrawProportionalString( 320, y, buf,
-			UI_CENTER|UI_SMALLFONT|UI_DROPSHADOW, colorWhite );
-		y += PROP_HEIGHT;
-
-		// pure server
-		s = Info_ValueForKey( sysInfo, "sv_pure" );
-		if ( s[0] == '1' ) {
-			UI_DrawProportionalString( 320, y, "Pure Server",
-				UI_CENTER|UI_SMALLFONT|UI_DROPSHADOW, colorWhite );
-			y += PROP_HEIGHT;
-		}
-
-		// server-specific message of the day
-		s = CG_ConfigString( CS_MOTD );
-		if ( s[0] ) {
-			UI_DrawProportionalString( 320, y, s,
-				UI_CENTER|UI_SMALLFONT|UI_DROPSHADOW, colorWhite );
-			y += PROP_HEIGHT;
-		}
-
-		// some extra space after hostname and motd
-		y += 10;
-	}
-
-	// map-specific message (long map name)
-	s = CG_ConfigString( CS_MESSAGE );
-	if ( s[0] ) {
-		UI_DrawProportionalString( 320, y, s,
-			UI_CENTER|UI_SMALLFONT|UI_DROPSHADOW, colorWhite );
-		y += PROP_HEIGHT;
-	}
-
-	// cheats warning
-	s = Info_ValueForKey( sysInfo, "sv_cheats" );
-	if ( s[0] == '1' ) {
-		UI_DrawProportionalString( 320, y, "CHEATS ARE ENABLED",
-			UI_CENTER|UI_SMALLFONT|UI_DROPSHADOW, colorWhite );
-		y += PROP_HEIGHT;
-	}
-
-	// game type
-	switch ( cgs.gametype ) {
-	case GT_FFA:
-		s = "Free For All";
-		break;
-	case GT_SINGLE_PLAYER:
-		s = "Single Player";
-		break;
-	case GT_TEAM:
-		s = "Team Match";
-		break;
-	case GT_TEAM_ROUNDS:
-		s = "Roundbased Team Match";
-		break;
-	case GT_OBJECTIVE:
-		s = "Objective Match";
-		break;
-	default:
-		s = "Unknown Gametype";
-		break;
-	}
-	UI_DrawProportionalString( 320, y, s,
-		UI_CENTER|UI_SMALLFONT|UI_DROPSHADOW, colorWhite );
-	y += PROP_HEIGHT;
-		
-	value = atoi( Info_ValueForKey( info, "timelimit" ) );
-	if ( value ) {
-		UI_DrawProportionalString( 320, y, va( "timelimit %i", value ),
-			UI_CENTER|UI_SMALLFONT|UI_DROPSHADOW, colorWhite );
-		y += PROP_HEIGHT;
-	}
-
-		value = atoi( Info_ValueForKey( info, "fraglimit" ) );
-		if ( value ) {
-			UI_DrawProportionalString( 320, y, va( "fraglimit %i", value ),
-				UI_CENTER|UI_SMALLFONT|UI_DROPSHADOW, colorWhite );
-			y += PROP_HEIGHT;
-		}
 
 }
 
