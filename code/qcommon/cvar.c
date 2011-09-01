@@ -923,7 +923,16 @@ void	Cvar_Update( vmCvar_t *vmCvar ) {
 	  Com_Error( ERR_DROP, "Cvar_Update: src %s length %zd exceeds MAX_CVAR_VALUE_STRING",
 		     cv->string, 
 		     strlen(cv->string));
-	Q_strncpyz( vmCvar->string, cv->string,  MAX_CVAR_VALUE_STRING ); 
+	if ( cv->latchedString ) {
+		if ( strlen(cv->latchedString)+1 > MAX_CVAR_VALUE_STRING ) 
+			Com_Error( ERR_DROP, "Cvar_Update: latched src %s length %zd exceeds MAX_CVAR_VALUE_STRING",
+					cv->latchedString, 
+					strlen(cv->latchedString));
+		Q_strncpyz( vmCvar->latchedString, cv->latchedString, MAX_CVAR_VALUE_STRING );
+	}
+	else
+		Q_strncpyz( vmCvar->latchedString, cv->string, MAX_CVAR_VALUE_STRING );
+	Q_strncpyz( vmCvar->string, cv->string,  MAX_CVAR_VALUE_STRING );
 
 	vmCvar->value = cv->value;
 	vmCvar->integer = cv->integer;

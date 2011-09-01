@@ -1005,6 +1005,7 @@ typedef struct {
 	float		value;
 	int			integer;
 	char		string[MAX_CVAR_VALUE_STRING];
+	char		latchedString[MAX_CVAR_VALUE_STRING];
 } vmCvar_t;
 
 /*

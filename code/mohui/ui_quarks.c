@@ -470,7 +470,7 @@ void UI_DrawMenu( uiMenu_t *menu, qboolean foreground ) {
 						trap_Cvar_Update( &res->linkcvar );
 						if ( res->selentries > 0 ) {
 							for (k=0;k < res->selentries;k++) {
-								if (!Q_strncmp( res->linkstring1[k], res->linkcvar.string, UI_MAX_NAME ))
+								if (!Q_strncmp( res->linkstring1[k], res->linkcvar.latchedString, UI_MAX_NAME ))
 									trap_R_Text_Paint( res->font,res->rect[0],res->rect[1],1,0,res->linkstring2[k],1,0,qtrue,qtrue);
 							}
 						}
@@ -722,14 +722,14 @@ qboolean UI_ConsoleCommand( int realTime ) {
 		UI_PushMenu( "dm_primaryselect" );
 		return qtrue;
 	}
-/*	else if ( Q_stricmp (cmd, "+scores") == 0 ) {
-		uis.showscores = qtrue;
+	else if ( Q_stricmp (cmd, "ui_checkrestart") == 0 ) {
+		trap_Cmd_ExecuteText( EXEC_APPEND, "vid_restart" );
 		return qtrue;
 	}
-	else if ( Q_stricmp (cmd, "-scores") == 0 ) {
-		uis.showscores = qfalse;
+	else if ( Q_stricmp (cmd, "ui_resetcvars") == 0 ) {
+		// STUB
 		return qtrue;
-	}*/
+	}
 
 	return qfalse;
 }
