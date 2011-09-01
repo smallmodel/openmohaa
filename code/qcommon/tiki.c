@@ -1146,11 +1146,19 @@ static tiki_t *TIKI_Load(const char *fname) {
 	while (*token) {
 		token = COM_ParseExt(&text, qtrue);
 again:
-		if(*token==0)
+		if(*token==0) {
 			token = COM_ParseExt(&text, qtrue);
+			if(*token==0) {
+				break; // end of file
+			}
+		}
 		if (!Q_stricmp(token, "path") || !Q_stricmp(token, "$path")) {
 			token = COM_ParseExt(&text, qtrue);
 			strcpy(path,token);
+		}
+		else if(!Q_stricmp(token, "$define")) {
+			token = COM_ParseExt(&text, qtrue);
+			// TODO
 		}
 		else if(token[0]=='}') {
 			level--;
@@ -1232,6 +1240,10 @@ again:
 						token = COM_ParseExt(&text, qtrue);
 						out->scale = atof(token);
 					}
+					else if (!Q_stricmp(token, "lod_scale")) {
+						token = COM_ParseExt(&text, qtrue);
+						out->lod_scale = atof(token);
+					}
 					else {
 						Com_Printf("Unknown token %s in section %s of file %s\n",token,sections[section],fname);
 					}
@@ -1243,7 +1255,7 @@ again:
 						if(token[0]!='{')
 							Com_Printf("expected { to follow server, found %s\n",token);
 
-						while(1) {
+						while(token[0]) {
 							token = COM_ParseExt(&text, qtrue);
 							if(token[0] == '}') 
 								break;

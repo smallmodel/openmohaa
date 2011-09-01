@@ -157,6 +157,7 @@ typedef struct tiki_s {
 	tikiInit_t		*init;	// tiki's init section
 
 	float			scale;
+	float			lod_scale;
 
 	int				numSurfaces;
 	skdSurface_t	*surfs;
