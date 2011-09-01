@@ -1068,7 +1068,7 @@ extern	vmCvar_t		vm_lean_lower;
 
 typedef struct ubersound_s {
 	char				name[MAX_QPATH];
-	char				wavfile[MAX_QPATH];
+	char				wavfile[128];
 	float				basevol;
 	float				volmod;
 	float				basepitch;

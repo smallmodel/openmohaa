@@ -21,7 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 #include "cg_local.h"
 
-#define	MAX_UBERSOUNDS	2400
+#define	MAX_UBERSOUNDS	4096
 ubersound_t		snd_indexes[MAX_UBERSOUNDS];
 int				snd_numIndexes;
 
@@ -72,13 +72,15 @@ ubersound_t*	CG_GetUbersound( const char *name ) {
 	else {
 		snd->sfxHandle = trap_S_RegisterSound( snd->wavfile, qfalse );
 	}
+	return snd;
 }
 
 void CG_ParseUSline( char **ptr, ubersound_t *snd ) {
 	char *chan;
+	char *token;
 	// name
-	Q_strncpyz( snd->name, COM_Parse(ptr), MAX_QPATH );
-	Q_strncpyz( snd->wavfile, COM_Parse(ptr), MAX_QPATH );
+	Q_strncpyz( snd->name, COM_Parse(ptr), sizeof(snd->name) );
+	Q_strncpyz( snd->wavfile, COM_Parse(ptr), sizeof(snd->wavfile) );
 	// soundparms
 	if ( !Q_strncmp( COM_Parse(ptr), "soundparms", MAX_QPATH ) ) {
 		snd->basevol	= atof(COM_Parse(ptr));
@@ -121,11 +123,14 @@ void CG_ParseUSline( char **ptr, ubersound_t *snd ) {
 		else
 			CG_Printf( "Ubersound unrecognized loaded state %s for %s\n", chan, snd->name );
 	}
+	token = COM_Parse(ptr);
 	// subtitle - su44: we need this for ubersound/uberdialog.scr loading
-	if ( !Q_strncmp( COM_Parse(ptr), "subtitle", MAX_QPATH ) ) 
+	if ( !Q_stricmp( token, "subtitle" ) ) {
 		Q_strncpyz( snd->subtitle, COM_Parse(ptr), sizeof(snd->subtitle) );
+		token = COM_Parse(ptr);
+	}
 	// maplist
-	if ( !Q_strncmp( COM_Parse(ptr), "maps", MAX_QPATH ) ) 
+	if ( !Q_stricmp( token, "maps" ) ) 
 		Q_strncpyz( snd->mapstring, COM_Parse(ptr), MAPSTRING_LENGTH );
 }
 
@@ -177,8 +182,8 @@ void CG_LoadUberSoundFile( const char *fname ) {
 			CG_ParseUSline( &ptr, &snd_indexes[snd_numIndexes] );
 
 			if ( US_CheckMapstring( snd_indexes[snd_numIndexes].mapstring ) == qtrue ) {
-				if ( snd_indexes[snd_numIndexes].name[strnlen(snd_indexes[snd_numIndexes].name,MAX_QPATH)-1] == '1' )
-					snd_indexes[snd_numIndexes].name[strnlen(snd_indexes[snd_numIndexes].name,MAX_QPATH)-1] = 0;
+				if ( snd_indexes[snd_numIndexes].name[strlen(snd_indexes[snd_numIndexes].name)-1] == '1' )
+					snd_indexes[snd_numIndexes].name[strlen(snd_indexes[snd_numIndexes].name)-1] = 0;
 				i = generateHashValue(snd_indexes[snd_numIndexes].name);
 				snd = hashTable[i];
 				if (snd) {
@@ -198,15 +203,15 @@ void CG_LoadUberSoundFile( const char *fname ) {
 					CG_Error( "CG_LoadUbersound: too many aliascaches in file.\n" );
 				}
 			}
-		}
-		else if ( !Q_strncmp( token, "end", MAX_QPATH ) ) {
-			end = qtrue;
-			break;
-		}
+		} //su44: "end" token is missing in MoHAA's uberdialog.scr
+		//else if ( !Q_strncmp( token, "end", MAX_QPATH ) ) {
+		//	end = qtrue;
+		//	break;
+		//}
 		token = COM_Parse( &ptr );
 	}
-	if ( end == qfalse )
-		Com_Printf( "CG_LoadUbersound hit end of file without end statement\n" );
+	//if ( end == qfalse ) 
+	//	Com_Printf( "CG_LoadUbersound hit end of file without end statement\n" );
 
 	trap_FS_FCloseFile( f );
 	CG_Printf( "=== Finished %s ===\n", fname );
@@ -239,11 +244,11 @@ const char* CG_LoadMusic( const char *musicfile ) {
 	len = trap_FS_FOpenFile( musicfile, &f, FS_READ);
 	if (!f) {
 		CG_Printf( "couldn't load %s. file not found.\n", musicfile );
-		return;
+		return 0;
 	}
 	if ( len >= MUSIC_SIZE ) {
 		Com_Printf( ".scr file too large, %i KB. Max size is %i KB\n", len/1024, MUSIC_SIZE/1024 );
-		return;
+		return 0;
 	}
 
 	trap_FS_Read( buffer, len, f );
