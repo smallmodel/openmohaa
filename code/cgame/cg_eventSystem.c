@@ -98,7 +98,7 @@ void CG_ProcessSpawnEvent(centity_t *ent, vec3_t spawnOrigin, vec3_t spawnAngles
 	do {
 		token = COM_ParseExt( &text, qtrue );
 		if(token[0]==0) {
-			CG_Printf("'***spawn' event without parameters block, check tiki file %s\n",tiki->name);
+			CG_Printf("'***spawn' event without parameters block\n");
 			return;			
 		}
 	} while(token[0] != '(');
@@ -272,6 +272,7 @@ void CG_ProcessSpawnEvent(centity_t *ent, vec3_t spawnOrigin, vec3_t spawnAngles
 }
 
 void CG_ProcessEventText(centity_t *ent, const char *eventText) {
+	char str[128];
 	char *text;
 	char *token;
 	float f;
@@ -471,6 +472,63 @@ again:
 		goto again;
 
 	} else if(!strcmp(token,"bodyfall")) {
+
+	} else if(!strcmp(token,"footstep")) {
+		int iRunning;
+		int iEquipment;
+	//footstep( String tag, String sRunning, [ Integer iEquipment ] )
+	// plays a footstep sound that is appropriate to the surface
+	// we are currently stepping on.
+	// sRunning should be set to run, walk, or ladder
+		tiki = cgs.gameTIKIs[ent->currentState.modelindex];
+		if(!tiki) {
+			CG_Printf("'footstep' event cast on entity with null TIKI\n");
+			return;
+		}
+		// parse tagname
+		token = COM_ParseExt( &text, qfalse );
+		strcpy(str,token);
+		/*
+		// find tag in tiki
+		boneName = trap_TIKI_GetBoneNameIndex(token); 
+		for(i = 0; i < tiki->numBones; i++) {
+			if(tiki->boneNames[i] == boneName) {
+				break;
+			}
+		}
+		if(i == tiki->numBones) {
+			CG_Printf("Cant find bone %s in tiki %s for 'footstep' event\n",token,tiki->name);
+			return;
+		}
+		if(ent->bones == 0) {
+			CG_Printf("'footstep' event cast on entity with null bones ptr\n");
+			return;
+		}	
+		*/
+		// sRunning
+		token = COM_ParseExt( &text, qfalse );
+		if(!Q_stricmp(token,"run")) {
+			//iRunning = ??;
+		} else if(!Q_stricmp(token,"walk")) {
+			//iRunning = ??;
+		} else if(!Q_stricmp(token,"ladder")) {
+			//iRunning = ??;
+		} else {
+			//iRunning = ??;
+			CG_Printf("'footstep' event: unknown sRunning type %s\n",token);
+		}
+		// Integer iEquipment
+		token = COM_ParseExt( &text, qfalse );
+		iEquipment = 0;
+		if(token[0]) {
+			iEquipment = atoi(token[0]);
+		}
+
+		CG_Footstep(str,ent,/*0,*/iRunning,iEquipment);
+
+	} else if(!strcmp(token,"emitteroff")) {
+
+	} else if(!strcmp(token,"emitteron")) {
 
 	} else {
 		CG_Printf("CG_ProcessEventText: unknown event %s\n",token);

@@ -1640,3 +1640,9 @@ void CG_MultiBeam(centity_t *cent);
 void CG_InitRainEffect();
 void CG_RainCSUpdated(int num, char *str);
 void CG_Rain(centity_t *cent);
+
+// cg_specialfx.c
+void CG_MeleeImpact(float *vStart, float *vEnd);
+void CG_Footstep(char *szTagName, centity_t *ent, /*refEntity_t *pREnt,*/
+	int iRunning, int iEquipment);
+

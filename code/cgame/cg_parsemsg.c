@@ -171,37 +171,6 @@ void CG_AddBulletTracers() {
 	bullet_tracers_count = 0;
 	bullet_tracer_bullets_count = 0;
 }
-// MoHAA footstep sounds (from ubersound.scr) :
-// snd_step_paper, snd_step_glass, snd_step_wood, snd_step_metal, 
-// snd_step_grill, snd_step_stone, snd_step_dirt, snd_step_grass,
-// snd_step_mud, snd_step_puddle, snd_step_gravel, snd_step_sand,
-// snd_step_foliage, snd_step_snow, snd_step_carpet
-// BODY MOVEMENT
-// snd_step_equipment - (equipment; for walking)
-// snd_step_wade - (wade; for when wading through deeper water)
-
-static void CG_FootstepMain(trace_t *trace, int iRunning, int iEquipment) {
-	char *soundNameBase = "snd_step_";
-	vec3_t v;
-	if(CG_PointContents(trace->endpos,-1) & 0x38 ) {
-		v[0] = trace->endpos[0];
-		v[1] = trace->endpos[1];
-		v[2] = trace->endpos[2] + 16.0;
-		if(CG_PointContents(trace->endpos,-1) & 0x38 ) {
-			// TODO
-		}
-	}
-	// TODO
-}
-static void CG_MeleeImpact(float *vStart, float *vEnd) {
-	trace_t trace;
-	float vMins[3] = { -4.0, -4.0, 0 };
-	float vMaxs[3] = { 4.0, 4.0, 2.0 };
-	CG_Trace(&trace,vStart,vMins,vMaxs,vEnd,1023,MASK_SHOT);
-	if(trace.fraction != 1.f) {
-		CG_FootstepMain(&trace,1,0);
-	}
-}
 
 static void CG_MakeExplosionEffect(float *vPos, int iType) {
 	// TODO
