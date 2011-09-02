@@ -163,6 +163,13 @@ cvar_t	*ter_constlod;		// overrides all the above, for testing purposes; valid r
 // su44
 cvar_t	*r_showSkeleton;
 cvar_t	*r_drawstaticmodels;
+
+// wombat
+cvar_t *r_static_shadermultiplier0;
+cvar_t *r_static_shadermultiplier1;
+cvar_t *r_static_shadermultiplier2;
+cvar_t *r_static_shadermultiplier3;
+
 static void AssertCvarRange( cvar_t *cv, float minVal, float maxVal, qboolean shouldBeIntegral )
 {
 	if ( shouldBeIntegral )
@@ -1041,6 +1048,11 @@ void R_Register( void )
 
 	r_showSkeleton = ri.Cvar_Get("r_showSkeleton", "0", CVAR_ARCHIVE | CVAR_CHEAT);	// su44
 	r_drawstaticmodels = ri.Cvar_Get("r_drawstaticmodels", "1", CVAR_ARCHIVE | CVAR_CHEAT);	// su44
+
+	r_static_shadermultiplier0 = ri.Cvar_Get( "r_static_shadermultiplier0", "1", CVAR_TEMP );
+	r_static_shadermultiplier1 = ri.Cvar_Get( "r_static_shadermultiplier1", "1", CVAR_TEMP );
+	r_static_shadermultiplier2 = ri.Cvar_Get( "r_static_shadermultiplier2", "1", CVAR_TEMP );
+	r_static_shadermultiplier3 = ri.Cvar_Get( "r_static_shadermultiplier3", "1", CVAR_TEMP );
 
 	// make sure all the commands added here are also
 	// removed in R_Shutdown

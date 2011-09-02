@@ -156,7 +156,6 @@ typedef enum {
 
 } genFunc_t;
 
-
 typedef enum {
 	DEFORM_NONE,
 	DEFORM_WAVE,
@@ -166,6 +165,9 @@ typedef enum {
 	DEFORM_PROJECTION_SHADOW,
 	DEFORM_AUTOSPRITE,
 	DEFORM_AUTOSPRITE2,
+	DEFORM_LIGHTGLOW,
+	DEFORM_FLAP_S,
+	DEFORM_FLAP_T,
 	DEFORM_TEXT0,
 	DEFORM_TEXT1,
 	DEFORM_TEXT2,
@@ -257,6 +259,10 @@ typedef struct {
 	float		bulgeSpeed;
 } deformStage_t;
 
+typedef enum {
+	USE_S_COORDS,
+	USE_T_COORDS
+} texDirection_t;
 
 typedef struct {
 	texMod_t		type;
@@ -1205,6 +1211,11 @@ extern	cvar_t	*ter_constlod;		// overrides the above, for testing; valid range: 
 // su44
 extern	cvar_t	*r_showSkeleton;
 extern	cvar_t	*r_drawstaticmodels;
+// wombat
+extern cvar_t *r_static_shadermultiplier0;
+extern cvar_t *r_static_shadermultiplier1;
+extern cvar_t *r_static_shadermultiplier2;
+extern cvar_t *r_static_shadermultiplier3;
 
 //====================================================================
 

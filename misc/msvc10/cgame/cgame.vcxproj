@@ -101,9 +101,11 @@
     <ClCompile Include="..\..\..\code\cgame\cg_players.c" />
     <ClCompile Include="..\..\..\code\cgame\cg_playerstate.c" />
     <ClCompile Include="..\..\..\code\cgame\cg_predict.c" />
+    <ClCompile Include="..\..\..\code\cgame\cg_rain.c" />
     <ClCompile Include="..\..\..\code\cgame\cg_scoreboard.c" />
     <ClCompile Include="..\..\..\code\cgame\cg_servercmds.c" />
     <ClCompile Include="..\..\..\code\cgame\cg_snapshot.c" />
+    <ClCompile Include="..\..\..\code\cgame\cg_specialfx.c" />
     <ClCompile Include="..\..\..\code\cgame\cg_syscalls.c" />
     <ClCompile Include="..\..\..\code\cgame\cg_ubersound.c" />
     <ClCompile Include="..\..\..\code\cgame\cg_view.c" />

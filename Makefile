@@ -1418,9 +1418,11 @@ Q3CGOBJ_ = \
   $(B)/main/cgame/cg_players.o \
   $(B)/main/cgame/cg_playerstate.o \
   $(B)/main/cgame/cg_predict.o \
+  $(B)/main/cgame/cg_rain.o \
   $(B)/main/cgame/cg_scoreboard.o \
   $(B)/main/cgame/cg_servercmds.o \
   $(B)/main/cgame/cg_snapshot.o \
+  $(B)/main/cgame/cg_specialfx.o \
   $(B)/main/cgame/cg_ubersound.o \
   $(B)/main/cgame/cg_view.o \
   $(B)/main/cgame/cg_viewmodelanim.o \

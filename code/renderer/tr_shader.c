@@ -1261,6 +1261,7 @@ deformVertexes projectionShadow
 deformVertexes autoSprite
 deformVertexes autoSprite2
 deformVertexes text[0-7]
+deformVertexes flap <s|t> <div> <function> <base> <amplitude> <phase> <frequency> <optional min> <optional max>
 ===============
 */
 static void ParseDeform( char **text ) {
@@ -1402,7 +1403,8 @@ static void ParseDeform( char **text ) {
 
 	// IneQuation: flap seems to be a more elaborate version of wave, but I'm not perfectly sure of that
 	if (!Q_stricmp(token, "flap")) {
-		ri.Printf(PRINT_ALL, "FIXME: ParseDeform: stub deformVertexes flap!!!\n");
+		// wombat: from trees.shader:
+		// deformVertexes flap <s|t> <div> <function> <base> <amplitude> <phase> <frequency> <optional min> <optional max>
 
 		token = COM_ParseExt(text, qfalse);
 		if (token[0] == 0) {
@@ -1410,11 +1412,9 @@ static void ParseDeform( char **text ) {
 			return;
 		}
 		if (token[0] == 's') {
-			// TODO
-			//ds->flapType = FLAP_S;
+			ds->deformation = DEFORM_FLAP_S;
 		} else if (token[0] == 't') {
-			// TODO
-			//ds->flapType = FLAP_T;
+			ds->deformation = DEFORM_FLAP_T;
 		} else {
 			ri.Printf(PRINT_WARNING, "WARNING: unknown flap parm '%s' in shader '%s'\n", token, shader.name);
 			return;
@@ -1425,33 +1425,32 @@ static void ParseDeform( char **text ) {
 			ri.Printf(PRINT_WARNING, "WARNING: missing deformVertexes parm in shader '%s'\n", shader.name);
 			return;
 		}
-		// TODO
-		// what the hell is this? tesselation/subdivision size?
-		//ds->flapSize = atof(token);
+		if (atof(token) == 0.0f) {
+			ri.Printf(PRINT_WARNING, "WARNING: illegal div value of 0 in deformVertexes command for shader '%s'\n", shader.name);
+			return;
+		}
+
+		ds->deformationSpread = 1 / atof(token);
 
 		// what follows is apparently a waveform
 		ParseWaveForm(text, &ds->deformationWave);
 
-		// and WTF are these 2?
-		token = COM_ParseExt(text, qfalse);
-		if (token[0] == 0) {
-			ri.Printf(PRINT_WARNING, "WARNING: missing deformVertexes parm in shader '%s'\n", shader.name);
-			return;
-		}
-		// TODO
-		//ds->flapMin = atof(token);
+		shader.needsNormal = qtrue;
 
 		token = COM_ParseExt(text, qfalse);
 		if (token[0] == 0) {
-			ri.Printf(PRINT_WARNING, "WARNING: missing deformVertexes parm in shader '%s'\n", shader.name);
+			ds->bulgeWidth = 0.0;
+			ds->bulgeHeight = 1.0;
+		}
+		ds->bulgeWidth = atof( token );
+
+		token = COM_ParseExt(text, qfalse);
+		if (token[0] == 0) {
+			ri.Printf(PRINT_WARNING, "WARNING: missing deformVertexes parm  'max' in shader '%s'\n", shader.name);
+			ds->bulgeHeight = 1.0;
 			return;
 		}
-		// TODO
-		//ds->flapMin = atof(token);
-
-		// this is temporary until we figure out the meaning of what flap actually does
-		ds->deformation = DEFORM_WAVE;
-		//ds->deformation = DEFORM_FLAP;
+		ds->bulgeHeight = atof( token );
 		return;
 	}
 

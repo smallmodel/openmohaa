@@ -76,7 +76,7 @@ void UI_ParseMenuResource( const char *token, char **ptr, uiResource_t *res, int
 		else res->borderstyle = UI_BORDER_NONE;
 	}
 	else if ( !Q_strncmp( token, "shader", 6 ) ) {
-		res->shader = trap_R_RegisterShader( PARSE_PTR );
+		res->shader = trap_R_RegisterShaderNoMip( PARSE_PTR );
 	}
 	else if ( !Q_strncmp( token, "enabledcvar", 11 ) ) {
 		res->enablewithcvar = qtrue;
@@ -89,7 +89,7 @@ void UI_ParseMenuResource( const char *token, char **ptr, uiResource_t *res, int
 	}
 	else if ( !Q_strncmp( token, "hovershader", 11 ) ) {
 		res->hoverDraw = qtrue;
-		res->hoverShader = trap_R_RegisterShader( PARSE_PTR );
+		res->hoverShader = trap_R_RegisterShaderNoMip( PARSE_PTR );
 	}
 	else if ( !Q_strncmp( token, "clicksound", 10 ) ) {
 		res->clicksound = UI_Alloc( UI_MAX_NAME );
@@ -126,18 +126,18 @@ void UI_ParseMenuResource( const char *token, char **ptr, uiResource_t *res, int
 			res->textalign = UI_ALIGN_RIGHT;
 	}
 	else if ( !Q_strncmp( token, "checked_shader", 14 ) ) {
-		res->checked_shader = trap_R_RegisterShader( PARSE_PTR );
+		res->checked_shader = trap_R_RegisterShaderNoMip( PARSE_PTR );
 	}
 	else if ( !Q_strncmp( token, "unchecked_shader", 16 ) ) {
-		res->unchecked_shader = trap_R_RegisterShader( PARSE_PTR );
+		res->unchecked_shader = trap_R_RegisterShaderNoMip( PARSE_PTR );
 	}
 	else if ( !Q_strncmp( token, "menushader", 10 ) ) {
 		PARSE_PTR;
-		res->menushader = trap_R_RegisterShader( PARSE_PTR );
+		res->menushader = trap_R_RegisterShaderNoMip( PARSE_PTR );
 	}
 	else if ( !Q_strncmp( token, "selmenushader", 13 ) ) {
 		PARSE_PTR;
-		res->selmenushader = trap_R_RegisterShader( PARSE_PTR );
+		res->selmenushader = trap_R_RegisterShaderNoMip( PARSE_PTR );
 	}
 	else if ( !Q_strncmp( token, "linkstring", 10 ) ) {
 		if ( res->selentries >= UI_MAX_SELECT ) {
@@ -204,13 +204,13 @@ void UI_ParseMenuResource( const char *token, char **ptr, uiResource_t *res, int
 		res->fadein = atof( PARSE_PTR );
 	}
 	else if ( !Q_strncmp( token, "statbar_shader_flash", 20 ) ) {
-		res->statbarshaderflash = trap_R_RegisterShader( PARSE_PTR );
+		res->statbarshaderflash = trap_R_RegisterShaderNoMip( PARSE_PTR );
 	}
 	else if ( !Q_strncmp( token, "statbar_shader", 14 ) ) {
-		res->statbarshader = trap_R_RegisterShader( PARSE_PTR );
+		res->statbarshader = trap_R_RegisterShaderNoMip( PARSE_PTR );
 	}
 	else if ( !Q_strncmp( token, "statbar_tileshader", 14 ) ) {
-		res->statbartileshader = trap_R_RegisterShader( PARSE_PTR );
+		res->statbartileshader = trap_R_RegisterShaderNoMip( PARSE_PTR );
 	}
 	else if ( !Q_strncmp( token, "statbar_endangles", 17 ) ) {
 		res->statbarendangles[0] = atoi( PARSE_PTR );

@@ -114,6 +114,93 @@ DEFORMATIONS
 
 /*
 ========================
+RB_CalcFlapVertexes
+
+========================
+*/
+void RB_CalcFlapVertexes( deformStage_t *ds, texDirection_t coordsToUse ) {
+    float vertexScale;
+    float *st;
+    float max;
+    float min;
+    float frequency;
+    float phase;
+    float amplitude;
+    float base;
+    float *table;
+    float *normal;
+    float *xyz;
+    float scale;
+    vec3_t offset;
+    int i;
+
+	xyz = ( float * ) tess.xyz;
+	normal = ( float * ) tess.normal;
+	st = (float*) tess.texCoords;
+
+	min = ds->bulgeWidth;
+	max = ds->bulgeHeight;
+
+	if ( ds->deformationWave.base == 1234567.0 ) {
+		// huh??
+	}
+	else base = ds->deformationWave.base;
+
+	if ( ds->deformationWave.amplitude == 1234567.0 ) {
+		// huh??
+	} else amplitude = ds->deformationWave.amplitude;
+
+	if ( ds->deformationWave.phase == 1234567.0 ) {
+		// huh??
+	} else phase = ds->deformationWave.phase;
+
+	if ( ds->deformationWave.frequency == 1234567.0 ) {
+		// huh??
+	} else frequency = ds->deformationWave.frequency;
+
+	if ( backEnd.currentEntity->e.reType == RT_MODEL ) {
+		base *= r_static_shadermultiplier0->value;
+		amplitude *= r_static_shadermultiplier1->value;
+		phase *= r_static_shadermultiplier2->value;
+		frequency *= r_static_shadermultiplier3->value;
+	}
+
+	if ( ds->deformationWave.frequency == 0 )
+	{
+		scale = EvalWaveForm( &ds->deformationWave );
+
+		for ( i = 0; i < tess.numVertexes; i++, xyz += 4, normal += 4, st += 4 )
+		{
+			vertexScale = (max-min)*st[coordsToUse] + min;
+			VectorScale( normal, scale*vertexScale, offset );
+			
+			xyz[0] += offset[0];
+			xyz[1] += offset[1];
+			xyz[2] += offset[2];
+		}
+	}
+	else
+	{
+		table = TableForFunc( ds->deformationWave.func );
+
+		for ( i = 0; i < tess.numVertexes; i++, xyz += 4, normal += 4, st += 4 )
+		{
+			float off = ( xyz[0] + xyz[1] + xyz[2] ) * ds->deformationSpread;
+
+			scale = WAVEVALUE( table, base, amplitude, phase + off, frequency );
+
+			vertexScale = (max-min)*st[coordsToUse] + min;
+
+			VectorScale( normal, scale*vertexScale, offset );
+			
+			xyz[0] += offset[0];
+			xyz[1] += offset[1];
+			xyz[2] += offset[2];
+		}
+	}
+}
+/*
+========================
 RB_CalcDeformVertexes
 
 ========================
@@ -568,6 +655,12 @@ void RB_DeformTessGeometry( void ) {
 			break;
 		case DEFORM_AUTOSPRITE2:
 			Autosprite2Deform();
+			break;
+		case DEFORM_FLAP_S:
+			RB_CalcFlapVertexes( ds, USE_S_COORDS );
+			break;
+		case DEFORM_FLAP_T:
+			RB_CalcFlapVertexes( ds, USE_T_COORDS );
 			break;
 		case DEFORM_TEXT0:
 		case DEFORM_TEXT1:
