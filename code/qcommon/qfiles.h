@@ -845,4 +845,15 @@ typedef struct dstaticModel_s {
 	short numVertexData;
 } dstaticModel_t;
 
+typedef struct {
+	float origin[3];
+	float color[3];
+	float intensity;
+	int leaf;
+	qboolean needs_trace;
+	qboolean spot_light;
+	float spot_dir[3];
+	float spot_radiusbydistance;
+} dspherel_t;
+
 #endif

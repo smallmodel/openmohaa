@@ -740,6 +740,9 @@ typedef struct mnode_s {
 
 	int			firstStaticModel;
 	int			numStaticModels;
+
+	struct spherel_s **lights;
+	int			numlights;
 } mnode_t;
 
 typedef struct {
@@ -772,6 +775,18 @@ typedef struct {
 	int				numVerts;
 	int				viewCount;
 } mstaticModel_t;
+
+typedef struct spherel_s {
+	float origin[3];
+	float color[3];
+	float intensity;
+	struct mnode_s *leaf;
+	int needs_trace;
+	int spot_light;
+	float spot_radiusbydistance;
+	float spot_dir[3];
+	int reference_count;
+} spherel_t;
 
 typedef struct {
 	float width;
@@ -843,6 +858,10 @@ typedef struct {
 
 	short			*staticModelIndexes;
 	int				numStaticModelIndexes;
+
+	// MoHAA sphere lights
+	spherel_t		*lights;
+	int				numLights;
 } world_t;
 
 //======================================================================

@@ -1966,7 +1966,6 @@ R_LoadStaticModelIndexes
 */
 void R_LoadStaticModelIndexes(lump_t *l) {
 	int	*in;
-	int i;
 
 	in = (void *)(fileBase + l->fileofs);
 	if (l->filelen % sizeof(short))
@@ -1975,6 +1974,108 @@ void R_LoadStaticModelIndexes(lump_t *l) {
 	s_worldData.numStaticModelIndexes = l->filelen / sizeof(short);
 	s_worldData.staticModelIndexes = ri.Hunk_Alloc(l->filelen, h_low);
 	memcpy(s_worldData.staticModelIndexes,in,l->filelen);
+}
+
+/*
+================
+R_LoadSphereLights
+================
+*/
+void R_LoadSphereLights(lump_t *l) {
+	spherel_t *out;
+	dspherel_t *in;
+	int i;
+	
+	in = (void *)(fileBase + l->fileofs);
+	if (l->filelen % sizeof(dspherel_t))
+		ri.Error (ERR_DROP, "LoadMap: funny sphere lights lump size in %s (%d %% %d)", s_worldData.name, l->filelen, sizeof(dspherel_t));
+
+	s_worldData.numLights = l->filelen / sizeof(dspherel_t);
+#if 0
+	// vanilla AA cant load more than 1532 sphere lights
+	if(s_worldData.numLights >= 1532) {
+		ri.Error (ERR_DROP, "LoadMap: too many sphere lights");
+	}
+#endif
+	out = s_worldData.lights = ri.Hunk_Alloc(s_worldData.numLights*sizeof(spherel_t), h_low);
+	for(i = 0; i < s_worldData.numLights; i++,out++,in++) {
+		VectorCopy(in->origin,out->origin);
+		VectorCopy(in->color,out->color);
+		out->intensity = in->intensity;
+		out->needs_trace = in->needs_trace;
+		out->spot_light = in->spot_light;
+		VectorCopy(in->spot_dir,out->spot_dir);
+		out->spot_radiusbydistance = in->spot_radiusbydistance;
+		out->leaf = s_worldData.nodes + in->leaf;
+		out->reference_count = 0;
+	}
+	ri.Printf(PRINT_DEVELOPER, "R_LoadSphereLights: %d sphere lights loaded\n", s_worldData.numLights);
+}
+
+/*
+================
+R_LoadSphereLightVis
+================
+*/
+void R_LoadSphereLightVis(lump_t *l) {
+	int *entries;
+	int i;
+	mnode_t* node;
+	int j;
+	int h;
+	int numentries;
+
+	if ( l->filelen % 4 ) {
+		ri.Error (ERR_DROP, "LoadMap: funny lump size in spherelight vis data for %s\n",
+			s_worldData.name);
+	} else {
+		entries = (void *)(fileBase + l->fileofs);
+		numentries = l->filelen / sizeof(int);
+
+#if 1
+		for(i = 0; i < numentries; i++) {
+			if(entries[i] >= s_worldData.numLights || entries[i] < -2) {
+				ri.Error(ERR_DROP,"R_LoadSphereLightVis: light index %i out of range %i\n",
+					entries[i],s_worldData.numLights);
+			}
+		}
+#endif
+		if ( numentries ) {
+			if ( numentries != s_worldData.numnodes - s_worldData.numDecisionNodes ) {
+#ifdef Q3_BIG_ENDIAN 
+				for ( i = 0; i < numentries; ++i )
+					entries[i] = LittleLong(entries[i]);
+#endif
+				for ( node = &s_worldData.nodes[s_worldData.numDecisionNodes]; numentries; node ++ ) {
+					j = 0;
+					if ( entries[0] != -1 ) {
+						do
+							++j;
+						while ( entries[j] != -1 );
+					}
+					if ( j ) {
+						//Com_Printf("j %i\n",j);
+						node->lights = ri.Hunk_Alloc(j*sizeof(spherel_t*),h_low);
+						node->numlights = j;
+						h = 0;
+						if ( entries[0] == -2 ) {
+							node->lights[0] = 0; // su44: isnt it tr.sSunLight?
+							h = 1;
+						}
+						while ( entries[h] != -1 ) {
+							node->lights[h] = &s_worldData.lights[entries[h]];
+							h++;
+						}
+						entries += h + 1;
+						numentries = numentries - 1 - h;
+					} else {
+						numentries --;
+						entries ++;
+					}
+				}
+			}
+		}
+	}
 }
 
 /*
@@ -2059,6 +2160,8 @@ void RE_LoadWorldMap( const char *name ) {
 	R_LoadStaticModels(&header->lumps[LUMP_STATICMODELDEF]);
 	R_LoadSMVertexColors(&header->lumps[LUMP_STATICMODELDATA]);
 	R_LoadStaticModelIndexes(&header->lumps[LUMP_STATICMODELINDEXES]);
+	R_LoadSphereLights(&header->lumps[LUMP_SPHERELIGHTS]);
+	R_LoadSphereLightVis(&header->lumps[LUMP_SPHERELIGHTVIS]);
 
 	s_worldData.dataSize = (byte *)ri.Hunk_Alloc(0, h_low) - startMarker;
 
