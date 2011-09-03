@@ -453,7 +453,7 @@ static void R_RecursiveWorldNode( mnode_t *node, int planeBits, int dlightBits )
 
 	{
 		// leaf node, so add mark surfaces
-		int			c;
+		int			c,i;
 		msurface_t	*surf, **mark;
 
 		tr.pc.c_leafs++;
@@ -488,6 +488,14 @@ static void R_RecursiveWorldNode( mnode_t *node, int planeBits, int dlightBits )
 			surf = *mark;
 			R_AddWorldSurface( surf, dlightBits );
 			mark++;
+		}
+
+		// su44: add the individual static models
+		i = node->firstStaticModel;
+		c = node->numStaticModels;
+		while (c--) {
+			// simply mark static model as visible
+			tr.world->staticModels[tr.world->staticModelIndexes[i+c]].viewCount = tr.viewCount;
 		}
 	}
 
@@ -665,6 +673,9 @@ void R_AddWorldSurfaces (void) {
 		tr.refdef.num_dlights = 32 ;
 	}
 	R_RecursiveWorldNode( tr.world->nodes, 15, ( 1 << tr.refdef.num_dlights ) - 1 );
+
+	if(r_drawstaticmodels->integer)
+		R_AddStaticModelEntities();
 }
 
 /*
@@ -752,12 +763,15 @@ R_AddStaticModelEntities
 =============
 su44 was here
 */
+extern int r_numentities;
 void R_AddStaticModelEntities(void) {
 	int i;
 	refEntity_t ent;
 	memset(&ent,0,sizeof(ent));
 	for(i = 0; i < tr.world->numStaticModels; i++) {
 		if(tr.models[tr.world->staticModels[i].model]->tiki==0)
+			continue;
+		if(tr.world->staticModels[i].viewCount != tr.viewCount)
 			continue;
 		ent.staticModelIndex = i+1;
 		ent.hModel = tr.world->staticModels[i].model;
@@ -781,4 +795,5 @@ void R_AddStaticModelEntities(void) {
 
 		RE_AddRefEntityToScene(&ent);
 	}
+	tr.refdef.num_entities = r_numentities; // a little hack
 }

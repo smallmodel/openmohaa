@@ -1424,6 +1424,9 @@ static	void R_LoadNodesAndLeafs (lump_t *nodeLump, lump_t *leafLump) {
 		out->firstmarksurface = s_worldData.marksurfaces +
 			LittleLong(inLeaf->firstLeafSurface);
 		out->nummarksurfaces = LittleLong(inLeaf->numLeafSurfaces);
+
+		out->firstStaticModel = LittleLong(inLeaf->firstStaticModel);
+		out->numStaticModels = LittleLong(inLeaf->numStaticModels);
 	}
 
 	// chain decendants
@@ -1957,6 +1960,24 @@ void R_LoadSMVertexColors(lump_t *l) {
 }
 
 /*
+================
+R_LoadStaticModelIndexes
+================
+*/
+void R_LoadStaticModelIndexes(lump_t *l) {
+	int	*in;
+	int i;
+
+	in = (void *)(fileBase + l->fileofs);
+	if (l->filelen % sizeof(short))
+		ri.Error (ERR_DROP, "LoadMap: funny static model indexes lump size in %s (%d %% %d)", s_worldData.name, l->filelen, sizeof(int));
+
+	s_worldData.numStaticModelIndexes = l->filelen / sizeof(short);
+	s_worldData.staticModelIndexes = ri.Hunk_Alloc(l->filelen, h_low);
+	memcpy(s_worldData.staticModelIndexes,in,l->filelen);
+}
+
+/*
 =================
 RE_LoadWorldMap
 
@@ -2037,6 +2058,7 @@ void RE_LoadWorldMap( const char *name ) {
 	// su44
 	R_LoadStaticModels(&header->lumps[LUMP_STATICMODELDEF]);
 	R_LoadSMVertexColors(&header->lumps[LUMP_STATICMODELDATA]);
+	R_LoadStaticModelIndexes(&header->lumps[LUMP_STATICMODELINDEXES]);
 
 	s_worldData.dataSize = (byte *)ri.Hunk_Alloc(0, h_low) - startMarker;
 

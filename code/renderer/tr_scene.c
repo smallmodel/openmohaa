@@ -322,9 +322,9 @@ void RE_RenderScene( const refdef_t *fd ) {
 	tr.refdef.rdflags = fd->rdflags;
 
 	// su44
-	if(r_drawstaticmodels->integer && tr.world && ! (tr.refdef.rdflags & RDF_NOWORLDMODEL)) {
-		R_AddStaticModelEntities();
-	}
+	//if(r_drawstaticmodels->integer && tr.world && ! (tr.refdef.rdflags & RDF_NOWORLDMODEL)) {
+	//	R_AddStaticModelEntities();
+	//}
 
 	// copy the areamask data over and note if it has changed, which
 	// will force a reset of the visible leafs even if the view hasn't moved

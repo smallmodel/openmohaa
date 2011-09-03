@@ -737,6 +737,9 @@ typedef struct mnode_s {
 
 	msurface_t	**firstmarksurface;
 	int			nummarksurfaces;
+
+	int			firstStaticModel;
+	int			numStaticModels;
 } mnode_t;
 
 typedef struct {
@@ -767,6 +770,7 @@ typedef struct {
 	// vertex colors
 	int				firstVert;
 	int				numVerts;
+	int				viewCount;
 } mstaticModel_t;
 
 typedef struct {
@@ -836,6 +840,9 @@ typedef struct {
 	// vertex colors (rgb) for static models
 	color3ub_t		*smColors;
 	int				numSMColors;
+
+	short			*staticModelIndexes;
+	int				numStaticModelIndexes;
 } world_t;
 
 //======================================================================
