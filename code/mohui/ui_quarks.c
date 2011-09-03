@@ -125,6 +125,9 @@ vmCvar_t	cg_shadows;
 vmCvar_t	cg_scoreboardpic;
 vmCvar_t	loadingbar;
 
+vmCvar_t	ui_disp_playermodel;
+vmCvar_t	ui_disp_playergermanmodel;
+
 
 static cvarTable_t		cvarTable[] = {
 	{ &ui_mohui, "ui_mohui", "1", CVAR_ROM },
@@ -152,7 +155,9 @@ static cvarTable_t		cvarTable[] = {
 	{ &r_subdivisions, "r_subdivisions", "3", CVAR_ARCHIVE },
 	{ &cg_shadows, "cg_shadows", "2", CVAR_ARCHIVE },
 	{ &cg_scoreboardpic, "cg_scoreboardpic", "mohdm1", CVAR_TEMP },
-	{ &loadingbar, "loadingbar", "0.5", CVAR_TEMP }
+	{ &loadingbar, "loadingbar", "0.5", CVAR_TEMP },
+	{ &ui_disp_playermodel, "ui_disp_playermodel", "models/player/american_army.tik", CVAR_TEMP },
+	{ &ui_disp_playergermanmodel, "ui_disp_playergermanmodel", "models/player/german_wehrmacht_soldier.tik", CVAR_TEMP }
 };
 
 static int cvarTableSize = sizeof(cvarTable) / sizeof(cvarTable[0]);
@@ -462,11 +467,14 @@ void UI_DrawMenu( uiMenu_t *menu, qboolean foreground ) {
 		switch ( res->type ) {
 
 			case UI_RES_LABEL:
-				if (res->enablewithcvar)
+				if ( res->enablewithcvar == qtrue )
 					if (!res->enabledcvar.integer)
 						break;
-				if ( res->title ) {
-					if ( res->linkcvarname ) {
+				if ( res->rendermodel == qtrue ) {
+					UI_RenderModel(res);
+				}
+				else if ( res->title ) {
+					if ( res->linkcvarname && res->rendermodel == qfalse ) {
 						trap_Cvar_Update( &res->linkcvar );
 						if ( res->selentries > 0 ) {
 							for (k=0;k < res->selentries;k++) {
@@ -530,9 +538,6 @@ void UI_DrawMenu( uiMenu_t *menu, qboolean foreground ) {
 						UI_DrawHandlePic( res->rect[0], res->rect[1], res->rect[2], res->rect[3], res->shader );
 					else
 						UI_DrawHandlePic( res->rect[0], res->rect[1], res->rect[2], res->rect[3], uis.blackShader );
-				}
-				if(res->rendermodel) {
-					UI_RenderModel(res);
 				}
 				break;
 

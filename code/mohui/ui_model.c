@@ -33,8 +33,7 @@ void UI_RenderModel(uiResource_t *res) {
 	int animIndex;
 	vec3_t origin;
 
-//	tiki = trap_TIKI_RegisterModel(res->linkcvar.string);
-	tiki = trap_TIKI_RegisterModel("models/player/american_army.tik");
+	tiki = trap_TIKI_RegisterModel(res->linkcvar.string);
 	animIndex = TIKI_GetAnimIndex(tiki,res->modelanim);
 	if(animIndex==-1) {
 		animIndex = TIKI_GetAnimIndex(tiki,va("%s0",res->modelanim));

@@ -764,10 +764,10 @@ static void ComputeColors( shaderStage_t *pStage )
 		case CGEN_GLOBAL_COLOR:
 		break;
 		case CGEN_LIGHTING_SPHERICAL:
-			RB_CalcColorFromConstant( (unsigned char *)tess.svars.colors, pStage->constantColor );
+//			RB_CalcColorFromConstant( (unsigned char *)tess.svars.colors, pStage->constantColor );
 		break;
 		case CGEN_NOISE:
-			RB_CalcColorFromConstant( backEnd.color2D, pStage->constantColor );
+			RB_CalcColorFromConstant( (unsigned char *)tess.svars.colors, backEnd.color2D );
 		break;
 		case CGEN_IDENTITY:
 			Com_Memset( tess.svars.colors, 0xff, tess.numVertexes * 4 );

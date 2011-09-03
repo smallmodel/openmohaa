@@ -171,6 +171,7 @@ cvar_t *r_static_shadermultiplier2;
 cvar_t *r_static_shadermultiplier3;
 
 cvar_t *r_drawspherelights;
+cvar_t *r_wombat;
 
 static void AssertCvarRange( cvar_t *cv, float minVal, float maxVal, qboolean shouldBeIntegral )
 {
@@ -1057,6 +1058,7 @@ void R_Register( void )
 	r_static_shadermultiplier3 = ri.Cvar_Get( "r_static_shadermultiplier3", "1", CVAR_TEMP );
 
 	r_drawspherelights = ri.Cvar_Get( "r_drawspherelights", "1", CVAR_TEMP );
+	r_wombat = ri.Cvar_Get( "r_wombat", "1", CVAR_TEMP );
 
 	// make sure all the commands added here are also
 	// removed in R_Shutdown

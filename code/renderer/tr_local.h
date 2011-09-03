@@ -1237,6 +1237,7 @@ extern cvar_t *r_static_shadermultiplier1;
 extern cvar_t *r_static_shadermultiplier2;
 extern cvar_t *r_static_shadermultiplier3;
 extern cvar_t *r_drawspherelights;
+extern cvar_t *r_wombat;
 
 //====================================================================
 
