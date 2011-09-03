@@ -521,7 +521,7 @@ again:
 		token = COM_ParseExt( &text, qfalse );
 		iEquipment = 0;
 		if(token[0]) {
-			iEquipment = atoi(token[0]);
+			iEquipment = atoi(token);
 		}
 
 		CG_Footstep(str,ent,/*0,*/iRunning,iEquipment);
