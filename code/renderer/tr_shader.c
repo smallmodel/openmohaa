@@ -861,7 +861,7 @@ static qboolean ParseStage( shaderStage_t *stage, char **text )
 				stage->constantColor[1] = atof( COM_ParseExt( text, qfalse ) );
 				stage->constantColor[2] = atof( COM_ParseExt( text, qfalse ) );
 
-				stage->rgbGen = CGEN_CONST;
+				stage->rgbGen = CGEN_CONSTANT;
 			}
 			else if ( !Q_stricmp( token, "const" ) )
 			{
@@ -872,7 +872,7 @@ static qboolean ParseStage( shaderStage_t *stage, char **text )
 				stage->constantColor[1] = 255 * color[1];
 				stage->constantColor[2] = 255 * color[2];
 
-				stage->rgbGen = CGEN_CONST;
+				stage->rgbGen = CGEN_CONSTANT;
 			}
 			else if ( !Q_stricmp( token, "identity" ) )
 			{
@@ -921,7 +921,7 @@ static qboolean ParseStage( shaderStage_t *stage, char **text )
 			// su44: MoHAA-specific shader keyword, not supported yet
 			else if ( !Q_stricmp( token, "lightingSpherical" ) )
 			{
-				//stage->rgbGen = CGEN_ONE_MINUS_VERTEX;
+				stage->rgbGen = CGEN_LIGHTING_SPHERICAL;
 			}
 			else if ( !Q_stricmp( token, "global" ) )
 			{
@@ -930,6 +930,10 @@ static qboolean ParseStage( shaderStage_t *stage, char **text )
 			else if ( !Q_stricmp( token, "static" ) )
 			{
 				//stage->rgbGen = CGEN_STATIC;
+			}
+			else if ( !Q_stricmp( token, "lightingGrid" ) )
+			{
+				stage->rgbGen = CGEN_LIGHTING_GRID;
 			}
 			else
 			{
@@ -1199,6 +1203,18 @@ static qboolean ParseStage( shaderStage_t *stage, char **text )
 		{
 			continue;
 		}
+		else if (!Q_stricmp(token, "animMap"))
+		{
+			// wombat: TODO
+			if (!Q_stricmp(token, "animMapOnce")) {
+				shader.flags |= 3;
+			}
+			else if (!Q_stricmp(token, "animMapPhase")) {
+				shader.flags |= 3;
+				stage->bundle[0].flags |= 1;
+			}
+			continue;
+		}
 		else
 		{
 			ri.Printf( PRINT_WARNING, "WARNING: unknown parameter '%s' in shader '%s'\n", token, shader.name );
@@ -1262,6 +1278,7 @@ deformVertexes autoSprite
 deformVertexes autoSprite2
 deformVertexes text[0-7]
 deformVertexes flap <s|t> <div> <function> <base> <amplitude> <phase> <frequency> <optional min> <optional max>
+deformVertexes lightglow
 ===============
 */
 static void ParseDeform( char **text ) {
@@ -1401,10 +1418,10 @@ static void ParseDeform( char **text ) {
 		return;
 	}
 
-	// IneQuation: flap seems to be a more elaborate version of wave, but I'm not perfectly sure of that
 	if (!Q_stricmp(token, "flap")) {
 		// wombat: from trees.shader:
 		// deformVertexes flap <s|t> <div> <function> <base> <amplitude> <phase> <frequency> <optional min> <optional max>
+		// similar to wave
 
 		token = COM_ParseExt(text, qfalse);
 		if (token[0] == 0) {
@@ -1453,12 +1470,9 @@ static void ParseDeform( char **text ) {
 		ds->bulgeHeight = atof( token );
 		return;
 	}
-
-	// su44 - see shader "corona_orange"
 	if (!Q_stricmp(token, "lightglow")) {
-		ri.Printf(PRINT_ALL, "FIXME: ParseDeform: stub lightglow!!!\n");
-
-
+		ds->deformation = DEFORM_LIGHTGLOW;
+		return;
 	}
 
 	ri.Printf( PRINT_WARNING, "WARNING: unknown deformVertexes subtype '%s' found in shader '%s'\n", token, shader.name );
@@ -1906,6 +1920,9 @@ static qboolean ParseShader( char **text )
 		}
 		else if (!Q_stricmp(token, "force32bit")) {
 			shader.force32bit = qtrue;
+		}
+		else if (!Q_stricmp(token, "noMerge")) {
+			shader.flags |= 1;
 		}
 		else
 		{

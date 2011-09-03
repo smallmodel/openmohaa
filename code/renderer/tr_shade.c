@@ -760,6 +760,15 @@ static void ComputeColors( shaderStage_t *pStage )
 	//
 	switch ( pStage->rgbGen )
 	{
+		case CGEN_LIGHTING_GRID:
+		case CGEN_GLOBAL_COLOR:
+		break;
+		case CGEN_LIGHTING_SPHERICAL:
+			RB_CalcColorFromConstant( (unsigned char *)tess.svars.colors, pStage->constantColor );
+		break;
+		case CGEN_NOISE:
+			RB_CalcColorFromConstant( backEnd.color2D, pStage->constantColor );
+		break;
 		case CGEN_IDENTITY:
 			Com_Memset( tess.svars.colors, 0xff, tess.numVertexes * 4 );
 			break;
@@ -773,7 +782,7 @@ static void ComputeColors( shaderStage_t *pStage )
 		case CGEN_EXACT_VERTEX:
 			Com_Memcpy( tess.svars.colors, tess.vertexColors, tess.numVertexes * sizeof( tess.vertexColors[0] ) );
 			break;
-		case CGEN_CONST:
+		case CGEN_CONSTANT:
 			for ( i = 0; i < tess.numVertexes; i++ ) {
 				*(int *)tess.svars.colors[i] = *(int *)pStage->constantColor;
 			}
@@ -854,7 +863,7 @@ static void ComputeColors( shaderStage_t *pStage )
 		}
 		break;
 	case AGEN_CONST:
-		if ( pStage->rgbGen != CGEN_CONST ) {
+		if ( pStage->rgbGen != CGEN_CONSTANT ) {
 			for ( i = 0; i < tess.numVertexes; i++ ) {
 				tess.svars.colors[i][3] = pStage->constantColor[3];
 			}

@@ -906,6 +906,7 @@ void RB_SurfaceSKD( skdSurface_t *sf ) {
 		tess.xyz[baseVertex + i][0] = tess.xyz[baseVertex + i][1] = tess.xyz[baseVertex + i][2] = 0;
 		for(j = 0; j < vert->numWeights; j++) {
 			quat_t qua, que,res;
+			vec3_t newnormal;
 			qua[0] = weight->offset[0];
 			qua[1] = weight->offset[1];
 			qua[2] = weight->offset[2];
@@ -917,6 +918,9 @@ void RB_SurfaceSKD( skdSurface_t *sf ) {
 			tess.xyz[baseVertex + i][0] += (backEnd.currentEntity->e.bones[weight->boneIndex].p[0] + res[0])*weight->boneWeight;
 			tess.xyz[baseVertex + i][1] += (backEnd.currentEntity->e.bones[weight->boneIndex].p[1] + res[1])*weight->boneWeight;
 			tess.xyz[baseVertex + i][2] += (backEnd.currentEntity->e.bones[weight->boneIndex].p[2] + res[2])*weight->boneWeight;
+			// wombat: how do we use the boneWeight here?
+			QuatTransformVector( backEnd.currentEntity->e.bones[weight->boneIndex].q, tess.normal[baseVertex+i], newnormal);
+			VectorCopy(newnormal, tess.normal[baseVertex+i] );
 			weight++;
 		}
 #endif

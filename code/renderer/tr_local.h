@@ -193,17 +193,27 @@ typedef enum {
 
 typedef enum {
 	CGEN_BAD,
-	CGEN_IDENTITY_LIGHTING,	// tr.identityLight
 	CGEN_IDENTITY,			// always (1,1,1,1)
+	CGEN_IDENTITY_LIGHTING,	// tr.identityLight
 	CGEN_ENTITY,			// grabbed from entity's modulate field
 	CGEN_ONE_MINUS_ENTITY,	// grabbed from 1 - entity.modulate
 	CGEN_EXACT_VERTEX,		// tess.vertexColors
 	CGEN_VERTEX,			// tess.vertexColors * tr.identityLight
 	CGEN_ONE_MINUS_VERTEX,
 	CGEN_WAVEFORM,			// programmatically generated
+	CGEN_MULTIPLY_BY_WAVEFORM,
+	CGEN_LIGHTING_GRID,
+	CGEN_LIGHTING_SPHERICAL,
+	CGEN_CONSTANT,			// fixed color
+	CGEN_NOISE,
+	CGEN_GLOBAL_COLOR,
+	CGEN_STATIC,
+	CGEN_SCOORD,
+	CGEN_TCOORD,
+	CGEN_DOT,
+	CGEN_ONE_MINUS_DOT,
 	CGEN_LIGHTING_DIFFUSE,
-	CGEN_FOG,				// standard fog
-	CGEN_CONST				// fixed color
+	CGEN_FOG				// standard fog
 } colorGen_t;
 
 typedef enum {
@@ -306,6 +316,7 @@ typedef struct {
 	qboolean		isLightmap;
 	qboolean		vertexLightmap;
 	qboolean		isVideoMap;
+	int flags;
 } textureBundle_t;
 
 #define NUM_TEXTURE_BUNDLES 2
@@ -397,6 +408,8 @@ typedef struct shader_s {
 	skyParms_t	sky;
 	spriteParms_t sprite; // su44: for MoHAA sprites
 	fogParms_t	fogParms;
+
+	int flags;
 
 	// wombat: TODO: mohaa shader needs 32bit
 	qboolean	force32bit;
@@ -1216,6 +1229,7 @@ extern cvar_t *r_static_shadermultiplier0;
 extern cvar_t *r_static_shadermultiplier1;
 extern cvar_t *r_static_shadermultiplier2;
 extern cvar_t *r_static_shadermultiplier3;
+extern cvar_t *r_drawspherelights;
 
 //====================================================================
 
@@ -1634,6 +1648,7 @@ void	RB_CalcColorFromEntity( unsigned char *dstColors );
 void	RB_CalcColorFromOneMinusEntity( unsigned char *dstColors );
 void	RB_CalcSpecularAlpha( unsigned char *alphas );
 void	RB_CalcDiffuseColor( unsigned char *colors );
+void	RB_CalcColorFromConstant( unsigned char *dstColors, unsigned char *constantColor );
 
 /*
 =============================================================

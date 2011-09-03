@@ -192,7 +192,7 @@ void RB_CalcFlapVertexes( deformStage_t *ds, texDirection_t coordsToUse ) {
 			vertexScale = (max-min)*st[coordsToUse] + min;
 
 			VectorScale( normal, scale*vertexScale, offset );
-			
+
 			xyz[0] += offset[0];
 			xyz[1] += offset[1];
 			xyz[2] += offset[2];
@@ -430,6 +430,94 @@ static void GlobalVectorToLocal( const vec3_t in, vec3_t out ) {
 
 /*
 =====================
+LightGlowDeform
+
+=====================
+*/
+static void LightGlowDeform( void ) {
+    vec3_t upDir;
+    vec3_t leftDir;
+    vec3_t up;
+    vec3_t left;
+    vec3_t forward;
+    float ofs;
+    float dist;
+    float radius;
+    vec3_t delta;
+    vec3_t mid;
+    float *xyz;
+    int oldVerts;
+    int i;
+
+	if ( tess.numVertexes & 3 )
+		ri.Printf( PRINT_WARNING, "LightGlowDeform shader %s had odd vertex count", tess.shader->name );
+	if ( tess.numIndexes != ( tess.numVertexes >> 2 ) * 6 )
+		ri.Printf( PRINT_WARNING, "Autosprite shader %s had odd index count", tess.shader->name );
+
+	oldVerts = tess.numVertexes;
+	tess.numVertexes = 0;
+	tess.numIndexes = 0;
+
+	if ( backEnd.currentEntity != &tr.worldEntity ) {
+		GlobalVectorToLocal( backEnd.viewParms.or.axis[1], leftDir );
+		GlobalVectorToLocal( backEnd.viewParms.or.axis[2], upDir );
+	} else {
+		VectorCopy( backEnd.viewParms.or.axis[1], leftDir );
+		VectorCopy( backEnd.viewParms.or.axis[2], upDir );
+	}
+
+	for ( i = 0 ; i < oldVerts ; i+=4 ) {
+		// find the midpoint
+		xyz = tess.xyz[i];
+
+		mid[0] = 0.25f * (xyz[0] + xyz[4] + xyz[8] + xyz[12]);
+		mid[1] = 0.25f * (xyz[1] + xyz[5] + xyz[9] + xyz[13]);
+		mid[2] = 0.25f * (xyz[2] + xyz[6] + xyz[10] + xyz[14]);
+
+		VectorSubtract( xyz, mid, delta );
+		radius = VectorLength( delta ) * 0.707106781f;		// / sqrt(2)
+
+		VectorAdd( backEnd.or.origin, mid, delta );
+		VectorSubtract( backEnd.viewParms.or.origin, delta, forward );
+
+		dist = VectorNormalize( forward ) - 4.0;
+		VectorScale( forward, radius, forward );
+
+		VectorScale( leftDir, radius, left );
+		VectorScale( upDir, radius, up );
+
+		if ( backEnd.viewParms.isMirror ) {
+			VectorSubtract( vec3_origin, forward, forward );
+			VectorSubtract( vec3_origin, left, left );
+		}
+
+		  // compensate for scale in the axes if necessary
+  		if ( backEnd.currentEntity->e.reType == RT_MODEL ) {
+		  float axisLength;
+			  axisLength = VectorLength( backEnd.currentEntity->e.axis[0] );
+  			if ( !axisLength ) {
+	  			axisLength = 0;
+  			} else {
+	  			axisLength = 1.0f / axisLength;
+  			}
+		  VectorScale(forward, axisLength, forward);
+		  VectorScale(left, axisLength, left);
+		  VectorScale(up, axisLength, up);
+		}
+
+		ofs = VectorLength( forward );
+		if ( ofs > dist ) {
+			VectorNormalizeFast(forward);
+			VectorScale( forward, dist, forward );
+		}
+		VectorAdd( mid, forward, mid );
+
+		RB_AddQuadStamp( mid, left, up, tess.vertexColors[i] );
+	}
+}
+
+/*
+=====================
 AutospriteDeform
 
 Assuming all the triangles for this shader are independant
@@ -473,7 +561,7 @@ static void AutospriteDeform( void ) {
 		mid[2] = 0.25f * (xyz[2] + xyz[6] + xyz[10] + xyz[14]);
 
 		VectorSubtract( xyz, mid, delta );
-		radius = VectorLength( delta ) * 0.707f;		// / sqrt(2)
+		radius = VectorLength( delta ) * 0.707106781f;		// / sqrt(2)
 
 		VectorScale( leftDir, radius, left );
 		VectorScale( upDir, radius, up );
@@ -662,6 +750,9 @@ void RB_DeformTessGeometry( void ) {
 		case DEFORM_FLAP_T:
 			RB_CalcFlapVertexes( ds, USE_T_COORDS );
 			break;
+		case DEFORM_LIGHTGLOW:
+			LightGlowDeform();
+			break;
 		case DEFORM_TEXT0:
 		case DEFORM_TEXT1:
 		case DEFORM_TEXT2:
@@ -684,6 +775,20 @@ COLORS
 ====================================================================
 */
 
+/*
+** RB_CalcColorFromConstant
+*/
+void RB_CalcColorFromConstant( unsigned char *dstColors, unsigned char *constantColor )
+{
+	int	i;
+	int *pColors = ( int * ) dstColors;
+    int *pSrc = (int*)constantColor;
+
+	for ( i = 0; i < tess.numVertexes; i++, pColors++ )
+	{
+		*pColors = *pSrc;
+	}
+}
 
 /*
 ** RB_CalcColorFromEntity
