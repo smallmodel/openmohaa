@@ -54,6 +54,7 @@ typedef struct tikiAnim_s {
 	char			fname[128]; // mohaa animation paths are sometimes longer than 64
 	unsigned int	flags;
 	float			crossblend;
+	float			weight;
 	//skcHeader_t		*motion;
 	int numFrames;
 	float frameTime;

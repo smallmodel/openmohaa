@@ -26,5 +26,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define TAF_DELTADRIVEN				0x1
 #define TAF_AUTOSTEPS_RUN			0x2
 #define TAF_AUTOSTEPS_WALK			0x4
-
+#define TAF_RANDOM					0x8
+#define TAF_DONTREPEAT				0x10
+#define TAF_DEFAULTANGLES			0x20
 

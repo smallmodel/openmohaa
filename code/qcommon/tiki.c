@@ -1315,12 +1315,41 @@ again:
 						strcpy(anim->alias,tmp);
 						anims[out->numAnims] = anim;
 						out->numAnims++;
+						anim->flags = 0;
+						while(1) {
+							token = COM_ParseExt(&text, qfalse);
+							if(!*token)
+								break;
+							if(!Q_stricmp(token,"autosteps_run")) {
+								anim->flags |= TAF_AUTOSTEPS_RUN;
+							} else if(!Q_stricmp(token,"autosteps_walk")) {
+								anim->flags |= TAF_AUTOSTEPS_WALK;
+							} else if(!Q_stricmp(token,"random")) {
+								anim->flags |= TAF_RANDOM;
+							} else if(!Q_stricmp(token,"dontrepeate")) {
+								anim->flags |= TAF_DONTREPEAT;
+							} else if(!Q_stricmp(token,"deltadriven")) {
+								anim->flags |= TAF_DELTADRIVEN;
+							} else if(!Q_stricmp(token,"default_angles")) {
+								anim->flags |= TAF_DEFAULTANGLES;
+							} else if(!Q_stricmp(token,"weight")) {
+								token = COM_ParseExt(&text, qfalse);
+								anim->weight = atof(token);
+							} else if(!Q_stricmp(token,"crossblend")) {
+								token = COM_ParseExt(&text, qfalse);
+								anim->crossblend = atof(token);
+							} else {
+								Com_Printf("Unknown animation flag %s in file %s\n",token,fname);
+							}
+						}
+					} else {
+						while(1) {
+							token = COM_ParseExt(&text, qfalse);
+							if(!*token)
+								break;
+						}
 					}
-					while(1) {
-						token = COM_ParseExt(&text, qfalse);
-						if(!*token)
-							break;
-					}
+
 					token = COM_ParseExt(&text, qtrue);
 					if(token[0] == '{')	{
 						while(1) {
