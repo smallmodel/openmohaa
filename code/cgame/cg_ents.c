@@ -566,11 +566,20 @@ void CG_AddPacketEntities( void ) {
 	AnglesToAxis( cg.autoAngles, cg.autoAxis );
 	AnglesToAxis( cg.autoAnglesFast, cg.autoAxisFast );
 
+#if 0 // su44: that's not done here in MoHAA (?)
 	// generate and add the entity from the playerstate
 	ps = &cg.predictedPlayerState;
 	BG_PlayerStateToEntityState( ps, &cg.predictedPlayerEntity.currentState, qfalse );
 	CG_AddCEntity( &cg.predictedPlayerEntity );
-
+#else
+	ps = &cg.predictedPlayerState;
+	BG_PlayerStateToEntityState( ps, &cg.predictedPlayerEntity.currentState, qfalse );
+	if(cg_entities[ ps->clientNum ].currentValid==qtrue) {
+		cg_entities[ ps->clientNum ].currentState.groundEntityNum = ps->groundEntityNum;
+	} else {
+		//CG_AddCEntity( &cg.predictedPlayerEntity );
+	}
+#endif
 	// lerp the non-predicted value for lightning gun origins
 	CG_CalcEntityLerpPositions( &cg_entities[ cg.snap->ps.clientNum ] );
 

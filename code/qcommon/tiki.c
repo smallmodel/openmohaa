@@ -1244,6 +1244,9 @@ again:
 						token = COM_ParseExt(&text, qtrue);
 						out->lod_scale = atof(token);
 					}
+					else if (!Q_stricmp(token, "ischaracter")) {
+
+					}
 					else {
 						Com_Printf("Unknown token %s in section %s of file %s\n",token,sections[section],fname);
 					}

@@ -63,6 +63,17 @@ void CG_CentBoneLocal2World(bone_t *b, centity_t *cent, vec3_t outPos, vec3_t ou
 void CG_CentBoneIndexLocal2World(int boneIndex, centity_t *cent, vec3_t outPos, vec3_t outRot) {
 	CG_BoneLocal2World(cent->bones+boneIndex,cent->lerpOrigin,cent->lerpAngles,outPos,outRot);
 }
+int CG_TIKI_BoneIndexForName(tiki_t *tiki, char *name) {
+	int nameIndex;
+	int i;
+	nameIndex = trap_TIKI_GetBoneNameIndex(name);
+	for(i = 0; i < tiki->numBones; i++) {
+		if(tiki->boneNames[i] == nameIndex) {
+			return i;
+		}
+	}
+	return -1;
+}
 void CG_AttachEntity(refEntity_t *e, centity_t *parent, int boneIndex, vec3_t outAngles) {
 	bone_t *b;
 	vec3_t a;
@@ -73,6 +84,12 @@ void CG_AttachEntity(refEntity_t *e, centity_t *parent, int boneIndex, vec3_t ou
 	AnglesToAxis(a,e->axis);
 	if(outAngles)
 		VectorCopy(a,outAngles);
+}
+qboolean CG_TIKI_BoneOnGround(centity_t *cent, tiki_t *tiki, int boneIndex) {
+	//CG_Printf("Z: %f\n",cent->bones[boneIndex].p[2]);
+	if(cent->bones[boneIndex].p[2] < 6)
+		return qfalse;
+	return qtrue;
 }
 void CG_ModelAnim( centity_t *cent ) {
 	refEntity_t ent;
@@ -189,6 +206,39 @@ void CG_ModelAnim( centity_t *cent ) {
 		}
 		 CG_ViewModelAnim(); // maybe I should put it somewhere else..
 	}
+	if(cent->currentState.groundEntityNum == ENTITYNUM_NONE) {
+		cent->bFootOnGround_Right = 0;
+		cent->bFootOnGround_Left = 0;
+	} else if(tiki) {
+		int tagNum;
+
+		tagNum = CG_TIKI_BoneIndexForName(tiki,"Bip01 L Foot");
+		if(tagNum != -1) {
+			if(CG_TIKI_BoneOnGround(cent,tiki,tagNum)) {
+				if(!cent->bFootOnGround_Left) {
+					CG_Footstep("Bip01 L Foot",cent,0,0);
+				}
+				cent->bFootOnGround_Left = 1;
+			} else {
+				cent->bFootOnGround_Left = 0;
+			}
+		}
+
+		tagNum = CG_TIKI_BoneIndexForName(tiki,"Bip01 R Foot");
+		if(tagNum != -1) {
+			if(CG_TIKI_BoneOnGround(cent,tiki,tagNum)) {
+				if(!cent->bFootOnGround_Right) {
+					CG_Footstep("Bip01 R Foot",cent,0,0);
+				}
+				cent->bFootOnGround_Right = 1;
+			} else {
+				cent->bFootOnGround_Right = 0;
+			}
+		}
+	}
+	
+
+
 	trap_R_AddRefEntityToScene(&ent);
 	if(attachedToViewmodel) {
 		CG_AddViewModelAnimAttachment(&ent,cent);

@@ -179,6 +179,9 @@ typedef struct centity_s {
 	bone_t			*bones; // su44: for tiki models
 
 	vec3_t			color;
+
+	int				bFootOnGround_Right;
+	int				bFootOnGround_Left;
 } centity_t;
 
 
@@ -579,6 +582,9 @@ typedef struct {
 	float fCurrentViewBobPhase;
 
 	crain_t rain;
+
+	int iWeaponCommand;
+	int iWeaponCommandSend;
 
 	//qboolean cameraMode;		// if rendering from a loaded camera
 

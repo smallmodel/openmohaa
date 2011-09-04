@@ -638,49 +638,12 @@ WEAPON SELECTION
 
 /*
 ===============
-CG_WeaponSelectable
-===============
-*/
-static qboolean CG_WeaponSelectable( int i ) {
-
-		return qfalse;
-
-}
-
-/*
-===============
 CG_NextWeapon_f
 ===============
 */
 void CG_NextWeapon_f( void ) {
-	int		i;
-	int		original;
-
-	if ( !cg.snap ) {
-		return;
-	}
-	if ( cg.snap->ps.pm_flags & PMF_FOLLOW ) {
-		return;
-	}
-
-	//cg.weaponSelectTime = cg.time;
-	//original = cg.weaponSelect;
-
-	//for ( i = 0 ; i < MAX_WEAPONS ; i++ ) {
-	//	cg.weaponSelect++;
-	//	if ( cg.weaponSelect == MAX_WEAPONS ) {
-	//		cg.weaponSelect = 0;
-	//	}
-	//	if ( cg.weaponSelect == WP_GAUNTLET ) {
-	//		continue;		// never cycle to gauntlet
-	//	}
-	//	if ( CG_WeaponSelectable( cg.weaponSelect ) ) {
-	//		break;
-	//	}
-	//}
-	//if ( i == MAX_WEAPONS ) {
-	//	cg.weaponSelect = original;
-	//}
+	cg.iWeaponCommand = 12;
+	cg.iWeaponCommandSend = 0;
 }
 
 /*
@@ -689,34 +652,52 @@ CG_PrevWeapon_f
 ===============
 */
 void CG_PrevWeapon_f( void ) {
-	int		i;
-	int		original;
+	cg.iWeaponCommand = 11;
+	cg.iWeaponCommandSend = 0;
+}
 
-	if ( !cg.snap ) {
-		return;
-	}
-	if ( cg.snap->ps.pm_flags & PMF_FOLLOW ) {
-		return;
-	}
+/*
+===============
+CG_PrevWeapon_f
+===============
+*/
+void CG_UseLastWeapon_f( void )
+{
+	cg.iWeaponCommand = 13;
+	cg.iWeaponCommandSend = 0;
+}
 
-	cg.weaponSelectTime = cg.time;
-	original = cg.weaponSelect;
+/*
+===============
+CG_HolsterWeapon_f
+===============
+*/
+void CG_HolsterWeapon_f( void )
+{
+	cg.iWeaponCommand = 14;
+	cg.iWeaponCommandSend = 0;
+}
 
-	//for ( i = 0 ; i < MAX_WEAPONS ; i++ ) {
-	//	cg.weaponSelect--;
-	//	if ( cg.weaponSelect == -1 ) {
-	//		cg.weaponSelect = MAX_WEAPONS - 1;
-	//	}
-	//	if ( cg.weaponSelect == WP_GAUNTLET ) {
-	//		continue;		// never cycle to gauntlet
-	//	}
-	//	if ( CG_WeaponSelectable( cg.weaponSelect ) ) {
-	//		break;
-	//	}
-	//}
-	//if ( i == MAX_WEAPONS ) {
-	//	cg.weaponSelect = original;
-	//}
+/*
+===============
+CG_DropWeapon_f
+===============
+*/
+void CG_DropWeapon_f( void )
+{
+	cg.iWeaponCommand = 15;
+	cg.iWeaponCommandSend = 0;
+}
+
+/*
+===============
+CG_ToggleItem_f
+===============
+*/
+void CG_ToggleItem_f()
+{
+	cg.iWeaponCommand = 7;
+	cg.iWeaponCommandSend = 0;
 }
 
 /*

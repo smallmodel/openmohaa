@@ -67,6 +67,9 @@ void CG_Footstep(char *szTagName, centity_t *ent, /*refEntity_t *pREnt,*/
 	vec3_t mins, maxs;
 	vec3_t vStart, vEnd, forward;
 
+
+	CG_Printf("CG_Footstep: %s\n",szTagName);
+
 	vStart[0] = ent->lerpOrigin[0];
 	vStart[1] = ent->lerpOrigin[1];
 	vStart[2] = ent->lerpOrigin[2] + 8.0;
