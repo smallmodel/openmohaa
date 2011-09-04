@@ -91,7 +91,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define SURF_FOLIAGE			0x2000000	// foliage effects
 #define SURF_SNOW				0x4000000	// snow effects
 #define SURF_CARPET				0x8000000	// carpet effects
-#define SURF_UNKNOWN2			0x10000000	// IneQuation: WTF?
+#define SURF_BACKSIDE			0x10000000	// su44: backside
 #define SURF_NODLIGHT			0x20000000	// don't dlight even if solid (solid lava, skies)
 #define SURF_HINT				0x40000000	// make a primary bsp splitter
 #define SURF_UNKNOWN3			0x80000000	// IneQuation: WTF?
