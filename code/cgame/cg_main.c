@@ -26,7 +26,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 int forceModelModificationCount = -1;
 
-void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum );
+void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum, int randomSeed );
 void CG_Shutdown( void );
 
 
@@ -42,7 +42,7 @@ intptr_t vmMain( int command, int arg0, int arg1, int arg2, int arg3, int arg4, 
 
 	switch ( command ) {
 	case CG_INIT:
-		CG_Init( arg0, arg1, arg2 );
+		CG_Init( arg0, arg1, arg2, arg3 );
 		return 0;
 	case CG_SHUTDOWN:
 		CG_Shutdown();
@@ -721,7 +721,7 @@ Called after every level change or subsystem restart
 Will perform callbacks to make the loading info screen update.
 =================
 */
-void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum ) {
+void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum, int randomSeed ) {
 	const char	*s;
 	int i;
 
@@ -729,6 +729,8 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum ) {
 	memset( &cgs, 0, sizeof( cgs ) );
 	memset( &cg, 0, sizeof( cg ) );
 	memset( cg_entities, 0, sizeof(cg_entities) );
+
+	srand( randomSeed );
 
 	cg.clientNum = clientNum;
 

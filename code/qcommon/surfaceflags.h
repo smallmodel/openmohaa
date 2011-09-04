@@ -39,29 +39,36 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define CONTENTS_NOBOTCLIP		0x0200
 
 #define CONTENTS_FENCE			0x2000
+#define CONTENTS_WOMBAT4		0x4000
 #define	CONTENTS_AREAPORTAL		0x8000
+#define MASK_WOMBAT5
 
 #define	CONTENTS_PLAYERCLIP		0x10000
 #define	CONTENTS_MONSTERCLIP	0x20000
-
 #define	CONTENTS_WEAPONCLIP		0x40000
 #define	CONTENTS_VEHICLECLIP	0x80000
-#define CONTENTS_SHOOTONLY		0x100000
+#define MASK_CLIP				(CONTENTS_PLAYERCLIP|CONTENTS_MONSTERCLIP|CONTENTS_WEAPONCLIP|CONTENTS_VEHICLECLIP)
 
-// IneQuation: WTF? are these three even used in MoHAA?
+#define CONTENTS_SHOOTONLY		0x100000
 #define CONTENTS_DONOTENTER		0x200000
 #define CONTENTS_BOTCLIP		0x400000
 #define CONTENTS_MOVER			0x800000
+#define MASK_WOMBAT1			(CONTENTS_SHOOTONLY|CONTENTS_DONOTENTER|CONTENTS_BOTCLIP|CONTENTS_MOVER)
 
 #define	CONTENTS_ORIGIN			0x1000000	// removed before bsping an entity
-
 #define	CONTENTS_BODY			0x2000000	// should never be on a brush, only in game
 #define	CONTENTS_CORPSE			0x4000000
 #define	CONTENTS_DETAIL			0x8000000	// brushes not used for the bsp
+#define MASK_WOMBAT2			(CONTENTS_ORIGIN|CONTENTS_BODY|CONTENTS_CORPSE|CONTENTS_DETAIL)
+
 #define	CONTENTS_STRUCTURAL		0x10000000	// brushes used for the bsp
 #define	CONTENTS_TRANSLUCENT	0x20000000	// don't consume surface fragments inside
 #define	CONTENTS_TRIGGER		0x40000000
 #define	CONTENTS_NODROP			0x80000000	// don't leave bodies or items (death fog, lava)
+
+#define MASK_FOOTSTEP			0x42022901
+#define MASK_TREADMARK			0x42012B01
+#define MASK_WOMBAT				(MASK_WOMBAT2|MASK_WOMBAT1|MASK_CLIP|MASK_WOMBAT5)
 
 #define	SURF_NODAMAGE			0x1		// never give falling damage
 #define	SURF_SLICK				0x2		// effects game physics
@@ -95,3 +102,4 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define SURF_NODLIGHT			0x20000000	// don't dlight even if solid (solid lava, skies)
 #define SURF_HINT				0x40000000	// make a primary bsp splitter
 #define SURF_UNKNOWN3			0x80000000	// IneQuation: WTF?
+

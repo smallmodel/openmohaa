@@ -33,17 +33,87 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // snd_step_wade - (wade; for when wading through deeper water)
 
 static void CG_FootstepMain(trace_t *trace, int iRunning, int iEquipment) {
-	char *soundNameBase = "snd_step_";
-	vec3_t v;
-	if(CG_PointContents(trace->endpos,-1) & 0x38 ) {
-		v[0] = trace->endpos[0];
-		v[1] = trace->endpos[1];
-		v[2] = trace->endpos[2] + 16.0;
-		if(CG_PointContents(trace->endpos,-1) & 0x38 ) {
-			// TODO
+    char sSoundName[MAX_QPATH] = "snd_step_";
+
+    int surftype;
+    int contents;
+	int surfaceFlags;
+	vec3_t pos;
+
+	ubersound_t *snd = 0;
+
+	if ( !iRunning )
+		return;
+
+	if ( iEquipment ) {
+		snd = CG_GetUbersound( "snd_step_equipment" );
+		if (snd)
+			trap_S_StartSound( trace->endpos, trace->entityNum, CHAN_ITEM, snd->sfxHandle );
+	}
+
+	surfaceFlags = trace->surfaceFlags;
+	contents = CG_PointContents(trace->endpos,-1);
+	if (contents & (CONTENTS_LAVA|CONTENTS_SLIME|CONTENTS_WATER) ) {
+		// wombat: we test if the water is deep or shallow
+		VectorCopy( trace->endpos, pos );
+		pos[2] += 16.0f;
+		contents = CG_PointContents(pos,-1);
+		if (contents & (CONTENTS_LAVA|CONTENTS_SLIME|CONTENTS_WATER) )
+			snd = CG_GetUbersound( "snd_step_wade" );
+		else
+			snd = CG_GetUbersound( "snd_step_puddle" );
+	} else {
+		if ( surfaceFlags & SURF_PAPER ) {
+			snd = CG_GetUbersound( "snd_step_paper" );
+		}
+		else if ( surfaceFlags & SURF_WOOD ) {
+			snd = CG_GetUbersound( "snd_step_wood" );
+		}
+		else if ( surfaceFlags & SURF_METAL ) {
+			snd = CG_GetUbersound( "snd_step_metal" );
+		}
+		else if ( surfaceFlags & SURF_ROCK ) {
+			snd = CG_GetUbersound( "snd_step_stone" );
+		}
+		else if ( surfaceFlags & SURF_DIRT ) {
+			snd = CG_GetUbersound( "snd_step_dirt" );
+		}
+		else if ( surfaceFlags & SURF_GRILL ) {
+			snd = CG_GetUbersound( "snd_step_grill" );
+		}
+		else if ( surfaceFlags & SURF_GRASS ) {
+			snd = CG_GetUbersound( "snd_step_grass" );
+		}
+		else if ( surfaceFlags & SURF_MUD ) {
+			snd = CG_GetUbersound( "snd_step_mud" );
+		}
+		else if ( surfaceFlags & SURF_PUDDLE ) {
+			snd = CG_GetUbersound( "snd_step_puddle" );
+		}
+		else if ( surfaceFlags & SURF_GLASS ) {
+			snd = CG_GetUbersound( "snd_step_glass" );
+		}
+		else if ( surfaceFlags & SURF_GRAVEL ) {
+			snd = CG_GetUbersound( "snd_step_gravel" );
+		}
+		else if ( surfaceFlags & SURF_SAND ) {
+			snd = CG_GetUbersound( "snd_step_sand" );
+		}
+		else if ( surfaceFlags & SURF_FOLIAGE ) {
+			snd = CG_GetUbersound( "snd_step_foliage" );
+		}
+		else if ( surfaceFlags & SURF_SNOW ) {
+			snd = CG_GetUbersound( "snd_step_snow" );
+		}
+		else if ( surfaceFlags & SURF_CARPET ) {
+			snd = CG_GetUbersound( "snd_step_carpet" );
 		}
 	}
-	// TODO
+	if ( !snd ) {
+		CG_Printf( "CG_FootstepMain: could not load sound for surface %i\n", trace->surfaceFlags );
+		return;
+	}
+	trap_S_StartSound( trace->endpos, trace->entityNum, CHAN_BODY, snd->sfxHandle );
 }
 
 void CG_MeleeImpact(float *vStart, float *vEnd) {
@@ -68,7 +138,7 @@ void CG_Footstep(char *szTagName, centity_t *ent, /*refEntity_t *pREnt,*/
 	vec3_t vStart, vEnd, forward;
 
 
-	CG_Printf("CG_Footstep: %s\n",szTagName);
+//	CG_Printf("CG_Footstep: %s\n",szTagName);
 
 	vStart[0] = ent->lerpOrigin[0];
 	vStart[1] = ent->lerpOrigin[1];
@@ -137,16 +207,20 @@ void CG_Footstep(char *szTagName, centity_t *ent, /*refEntity_t *pREnt,*/
 	if ( ent->currentState.eType == ET_PLAYER )	{
 		cliptoentities = 1;
 		cylinder = 1;
-		mask = 1107372801;
+		mask = MASK_TREADMARK;
 	} else {
 		cliptoentities = 0;
 		cylinder = 0;
-		mask = 1107437825;
+		mask = MASK_FOOTSTEP;
 	}
 	CG_Trace(&trace, vStart, mins, maxs, vEnd,
 		ent->currentState.number, mask/*, cylinder, cliptoentities*/);
-	if ( trace.fraction == 1.0 ) {
-		CG_FootstepMain(&trace, iRunning, iEquipment);
+	if ( trace.fraction != 1.0 ) {
+		int equip;
+		if (rand() > RAND_MAX*0.70)
+			equip = qtrue; // play only in 30% of cases
+		else equip = qfalse;
+		CG_FootstepMain(&trace, iRunning, equip);
 	} else {
 		//if ( cg_debugFootsteps.integer )
 		//	CG_Printf("Footstep: missed floor\n");

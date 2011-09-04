@@ -216,7 +216,7 @@ void CG_ModelAnim( centity_t *cent ) {
 		if(tagNum != -1) {
 			if(CG_TIKI_BoneOnGround(cent,tiki,tagNum)) {
 				if(!cent->bFootOnGround_Left) {
-					CG_Footstep("Bip01 L Foot",cent,0,0);
+					CG_Footstep("Bip01 L Foot",cent,1,0);
 				}
 				cent->bFootOnGround_Left = 1;
 			} else {
@@ -228,7 +228,7 @@ void CG_ModelAnim( centity_t *cent ) {
 		if(tagNum != -1) {
 			if(CG_TIKI_BoneOnGround(cent,tiki,tagNum)) {
 				if(!cent->bFootOnGround_Right) {
-					CG_Footstep("Bip01 R Foot",cent,0,0);
+					CG_Footstep("Bip01 R Foot",cent,1,0);
 				}
 				cent->bFootOnGround_Right = 1;
 			} else {

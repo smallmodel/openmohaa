@@ -3,20 +3,46 @@
 | |_| | |_) |  __/ | | | |  | | |_| |  _  |/ ___ \  / ___ \
  \___/| .__/ \___|_| |_|_|  |_|\___/|_| |_/_/   \_\/_/   \_\
       |_|
-Building
+
+Running
+=======================
+a) extract archive to your MOHAA installation directory.
+-or-
+b) Copy all pak*.pk3 files and the sound/ directory from your MOHAA/main
+directory into openmohaa's 'main' directory.
+
+Install Microsoft Visual C++ 2010 Redistributable from
+http://www.microsoft.com/download/en/details.aspx?id=5555
+
+Please report bugs to #openmohaa on freenet IRC.
+
+Compiling
 =======================
 *NIX:
-make sure you have compiler installed
+make sure you have compiler + libraries installed
 Required extra libaries: libopenal-dev libsdl-dev libmad-dev
 Run 'make'
 
 WIN:
+You will need include files and libraries for OpenAL, SDL and libmad:
+=====
+SDL
+http://www.libsdl.org/ download Source code, compile
+=====
+OpenAL
+http://connect.creativelabs.com/openal/default.aspx download OpenAL soft source
+download CMake at http://www.cmake.org/cmake/resources/software.html
+run cmake on OpenAL, compile
+=====
+LibMAD
+http://www.underbit.com/products/mad/ download source code, compile
+=====
 MSVC solution files are in misc/msvc/ (VC9) and misc/msvc10 (VC10)
 
-If you don't have MSVC, install mingw, start it and change to openmohaa
-directory, run 'make'
+Open .sln file, set include and library directories for your SDL, OpenAL and LibMAD
+COMPILE!
 
-You will need include files and libraries for OpenAL, SDL and libmad.
+Can also be compiled with mingw, just run 'make'.
 
 MOSX:
 Run './make-macosx-ub.sh'
@@ -29,25 +55,6 @@ The built binaries reside in the 'build' directory.
 For further instructions:
 Please refer to ioquake3's README (README.ioq3).
 Or get in touch with any of our developers (->forums/irc).
-
-Running
-=======================
-In order to run the game, you need the original MOHAA media files,
-which are stored in pak*.pk3 files.
-
-Copy all pak*.pk3 files and sound/ directory from your MOHAA/main directory
-into openmohaa's 'main' directory (found in the 'build' directory).
-
-Now you need the SDL library. Windows users can download the ready-to-use
-DLL file at http://www.libsdl.org/, Linux users need to find the right packages
-like libsdl and libopenal libmad
-
-Now run openmohaa.
-
-Note that with non-US keyboard settings, you may have problems toggling
-the in-game console. The right key should type '`' or '~'
-
-
 
 Developing
 =======================

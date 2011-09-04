@@ -762,8 +762,10 @@ static void ComputeColors( shaderStage_t *pStage )
 	{
 		case CGEN_LIGHTING_GRID:
 		case CGEN_GLOBAL_COLOR:
+			Com_Memset( tess.svars.colors, 0xff, tess.numVertexes * 4 );
 		break;
 		case CGEN_LIGHTING_SPHERICAL:
+			Com_Memset( tess.svars.colors, 0xff, tess.numVertexes * 4 );
 //			RB_CalcColorFromConstant( (unsigned char *)tess.svars.colors, pStage->constantColor );
 		break;
 		case CGEN_NOISE:
