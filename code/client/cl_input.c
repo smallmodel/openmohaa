@@ -496,6 +496,9 @@ void CL_CmdButtons( usercmd_t *cmd ) {
 	if ( anykeydown && Key_GetCatcher( ) == 0 ) {
 		cmd->buttons |= BUTTON_ANY;
 	}
+
+	// su44: add weapon command bits
+	cmd->buttons |= cl.cgameUserCmdValue;
 }
 
 

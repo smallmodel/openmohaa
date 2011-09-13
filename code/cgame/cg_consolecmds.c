@@ -255,6 +255,12 @@ static consoleCommand_t	commands[] = {
 	//{ "camera", CG_Camera_f },
 	{ "loaddeferred", CG_LoadDeferredPlayers },
 	{ "locationprint", CG_LocationPrint_f },
+	// su44: MoHAA commands
+	{ "toggleitem", CG_ToggleItem_f },
+	{ "weapdrop", CG_DropWeapon_f },
+	{ "holster", CG_HolsterWeapon_f },
+	{ "weapnext", CG_NextWeapon_f },
+	{ "weapprev", CG_PrevWeapon_f },
 };
 
 

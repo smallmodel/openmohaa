@@ -242,7 +242,7 @@ void CG_CalcViewModelMovement(float fViewBobPhase, float fViewBobAmp,
 
 
 }
-#define ITEM_WEAPON 1
+
 void CG_ViewModelAnim() {
 	char anim[128];
 	char tmp[128];

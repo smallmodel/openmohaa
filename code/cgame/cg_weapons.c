@@ -730,4 +730,18 @@ void CG_Weapon_f( void ) {
 	cg.weaponSelect = num;
 }
 
+// su44: encode current weapon command for MoHAA
+int CG_WeaponCommandButtonBits() {
+	int ret;
+	if( !cg.iWeaponCommand )
+		return 0;
 
+	ret = (cg.iWeaponCommand << 7) & 0x780;
+
+	cg.iWeaponCommandSend++;
+
+	if( cg.iWeaponCommandSend > 2 )
+		cg.iWeaponCommand = 0;
+
+	return ret;
+}

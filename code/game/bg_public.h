@@ -154,6 +154,11 @@ typedef enum {
 	VMA_NUMANIMATIONS
 } viewmodelanim_t;
 
+// su44: playerState_t::activeItems[8] slots
+// they are sent as 16 bits
+// TODO: find out rest of them
+#define ITEM_WEAPON		1	// current mainhand weapon
+
 /*
 ===================================================================================
 
