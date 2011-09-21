@@ -658,7 +658,8 @@ static void CG_LoadClientInfo( int clientNum, clientInfo_t *ci ) {
 	teamname[0] = 0;
 
 	modelloaded = qtrue;
-#if 0	if ( !CG_RegisterClientModelname( ci, ci->modelName, ci->skinName, ci->headModelName, ci->headSkinName, teamname ) ) {
+#if 0
+	if ( !CG_RegisterClientModelname( ci, ci->modelName, ci->skinName, ci->headModelName, ci->headSkinName, teamname ) ) {
 		if ( cg_buildScript.integer ) {
 			CG_Error( "CG_RegisterClientModelname( %s, %s, %s, %s %s ) failed", ci->modelName, ci->skinName, ci->headModelName, ci->headSkinName, teamname );
 		}
