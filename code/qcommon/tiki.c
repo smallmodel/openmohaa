@@ -1247,6 +1247,10 @@ again:
 					else if (!Q_stricmp(token, "ischaracter")) {
 
 					}
+					else if (!Q_stricmp(token, "radius")) {
+						token = COM_ParseExt(&text, qtrue);
+						
+					}
 					else {
 						Com_Printf("Unknown token %s in section %s of file %s\n",token,sections[section],fname);
 					}

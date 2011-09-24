@@ -961,7 +961,19 @@ void RB_SurfaceSKD( skdSurface_t *sf ) {
 			(*out)[3] = 127;
 #endif
 		}
-	}
+	} else
 #endif
+	{
+		// an attemp to fix bizarre vertex colors bug
+		color4ub_t *col;
+		
+		col = &tess.vertexColors[baseVertex];
+		for(i = 0; i < sf->numVerts; i++,col++) {
+			(*col)[0] = 255;
+			(*col)[1] = 255;
+			(*col)[2] = 255;
+			(*col)[3] = 255;
+		}
+	}
 	tess.numVertexes+= sf->numVerts;
 }
