@@ -1875,6 +1875,155 @@ void CG_DrawPlayerTeam() {
 		}
 	}
 }
+static void CG_DrawOverlayTopBottom(qhandle_t handleTop, qhandle_t handleBottom, float fAlpha) {
+	float halfH;
+	float ofs;
+	float ofsHR;
+	vec4_t color;
+
+	color[0] = 1.f;
+	color[1] = 1.f;
+	color[2] = 1.f;
+	color[3] = fAlpha;
+	trap_R_SetColor(color);
+
+	halfH = cgs.glconfig.vidHeight >> 1;
+	ofs = (cgs.glconfig.vidWidth - cgs.glconfig.vidHeight) >> 1;
+	ofsHR = ofs + halfH;
+
+	// draw overlay square
+	trap_R_DrawStretchPic( ofs, 0, halfH, halfH, 1.f, 0, 0, 1.f, handleTop);
+	trap_R_DrawStretchPic( ofsHR, 0, halfH, halfH, 0, 0, 1.f, 1.f, handleTop);
+	trap_R_DrawStretchPic( ofs, halfH, halfH, halfH, 1.f, 0, 0, 1.f, handleBottom);
+	trap_R_DrawStretchPic( ofsHR, halfH, halfH, halfH, 0, 0, 1.f, 1.f, handleBottom);
+
+	// draw black borders
+	VectorSet(color,0,0,0);
+	trap_R_SetColor(color);
+	trap_R_DrawStretchPic( 0, 0, ofs, cgs.glconfig.vidHeight, 0, 0, 1.f, 1.f, cgs.media.blackShader);
+	trap_R_DrawStretchPic( cgs.glconfig.vidWidth - ofs, 0, ofs, cgs.glconfig.vidHeight,
+		0, 0, 1.f, 1.f, cgs.media.blackShader);
+}
+
+static void CG_DrawOverlayMiddle(qhandle_t handle, float fAlpha ) {
+	float halfH;
+	float ofs;
+	float ofsHR;
+	float color[4];
+
+	color[0] = 1.f;
+	color[1] = 1.f;
+	color[2] = 1.f;
+	// su44: thats a hack, such a thing is not done in MoHAA.
+	// probably something is wrong with our shader system
+	// maybe "textures/hud/zoomoverlay" cGen is broken?
+	color[3] = 1.f - fAlpha; // should be: "color[3] = fAlpha;
+	trap_R_SetColor(color);
+
+	halfH = cgs.glconfig.vidHeight >> 1;
+	ofs = (cgs.glconfig.vidWidth - cgs.glconfig.vidHeight) >> 1;
+	ofsHR = ofs + halfH;
+
+	// draw overlay square
+	trap_R_DrawStretchPic(ofs, 0, halfH, halfH, 0, 0, 1.f, 1.f, handle);
+	trap_R_DrawStretchPic( ofsHR, 0, halfH, halfH, 1.f, 0, 0, 1.f, handle);
+	trap_R_DrawStretchPic( ofs, halfH, halfH, halfH, 0, 1.f, 1.f, 0, handle);
+	trap_R_DrawStretchPic( ofsHR, halfH, halfH, halfH, 1.f, 1.f, 0, 0, handle);
+
+	// draw black borders
+	VectorSet(color,0,0,0);
+	color[3] = fAlpha;
+	trap_R_SetColor(color);
+	trap_R_DrawStretchPic( 0, 0, ofs, cgs.glconfig.vidHeight, 0, 0, 1.f, 1.f, cgs.media.blackShader);
+	trap_R_DrawStretchPic(cgs.glconfig.vidWidth - ofs, 0, cgs.glconfig.vidWidth - ofs,
+		cgs.glconfig.vidHeight, 0, 0, 1.f, 1.f, cgs.media.blackShader);
+}
+static void CG_DrawOverlayFullScreen(qhandle_t handle, float fAlpha) {
+	float halfH;
+	float halfW;
+	vec4_t color;
+
+	VectorSet(color,1.f,1.f,1.f);
+	color[3] = fAlpha;
+	trap_R_SetColor(color);
+
+	halfH = cgs.glconfig.vidHeight >> 1;
+	halfW = cgs.glconfig.vidWidth >> 1;
+
+	trap_R_DrawStretchPic( 0, 0, halfW, halfH, 1.f, 0, 0, 1.f, handle );
+	trap_R_DrawStretchPic( halfW, 0, halfW, halfH, 1.f, 0, 0, 1.f, handle );
+	trap_R_DrawStretchPic( 0, halfH, halfW, halfH, 0, 1.f, 1.f, 0, handle );
+	trap_R_DrawStretchPic( halfW, halfH, halfW, halfH, 1.f, 1.f, 0, 0, handle );
+}
+
+/*
+=================
+CG_DrawZoomOverlay
+=================
+*/
+static float cg_alpha;
+static int cg_zoomType;
+static void CG_DrawZoomOverlay() {
+	char *itemName;
+	int drawOverlay;
+	int itemIndex;
+	signed int inZoom;
+	snapshot_t *snap;
+
+	snap = cg.snap;
+	itemName = "";
+	drawOverlay = 1;
+	if ( snap ) {
+		itemIndex = snap->ps.activeItems[ITEM_WEAPON];
+		if ( itemIndex >= 0 ) {
+			itemName = CG_ConfigString(CS_WEAPONS + itemIndex);
+		}
+
+		if ( strcmp(itemName, "Spy Camera") ) {
+			if ( strcmp(itemName, "Binoculars") ) {
+				inZoom = cg.snap->ps.stats[STAT_INZOOM];
+				if ( inZoom && inZoom <= 30 ) {
+					if ( strcmp(itemName, "KAR98 - Sniper") )
+						cg_zoomType = 0;
+					else
+						cg_zoomType = 1;
+				} else {
+					drawOverlay = 0;
+				}
+			} else {
+				cg_zoomType = 3;
+			}
+		} else {
+			cg_zoomType = 2;
+		}
+		if ( drawOverlay ) {
+			cg_alpha += cg.frametime * 0.015;
+			if ( cg_alpha > 1.0 )
+				cg_alpha = 1.0;
+drawOverlayLabel:
+			if ( cg_zoomType == 1 ) {
+				CG_DrawOverlayTopBottom(cgs.media.kar98TopOverlayShader, cgs.media.kar98BottomOverlayShader, cg_alpha);
+			} else {
+				if ( cg_zoomType > 1 ) {
+					if ( cg_zoomType != 2 ) {
+						if ( cg_zoomType == 3 )
+							CG_DrawOverlayFullScreen(cgs.media.binocularsOverlayShader, cg_alpha);
+					}
+				} else {
+					if ( !cg_zoomType )
+						CG_DrawOverlayMiddle(cgs.media.zoomOverlayShader, cg_alpha);
+				}
+			}
+			return;
+		}
+		cg_alpha -= cg.frametime * 0.015;
+		if(cg_alpha < 0) {
+			cg_alpha = 0;
+		} else {
+			goto drawOverlayLabel;
+		}
+	}
+}
 
 /*
 =================
@@ -1901,6 +2050,8 @@ void CG_Draw2D( int serverTime, stereoFrame_t stereoView, qboolean demoPlayback 
 	CG_DrawPlayerTeam();
 	// su44: draw custom hud elements set by cg messages
 	CG_HudDrawElements();
+	// su44: draw sniper rifles/binoculars zoom overlay
+	CG_DrawZoomOverlay();
 
 //	CG_DrawVote();
 //	CG_DrawTeamVote();

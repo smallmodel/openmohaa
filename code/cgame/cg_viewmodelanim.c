@@ -107,6 +107,8 @@ void CG_AddViewModelAnimAttachment(refEntity_t *ent, centity_t *cent) {
 	int i;
 	if(cg.renderingThirdPerson || cg.viewModelEnt.bones == 0)
 		return;
+	if(cg.snap->ps.stats[STAT_INZOOM])
+		return;
 	ent->renderfx = RF_FIRST_PERSON;
 #if 0 //doesnt work, tag_num is incorrect..
 	CG_BoneLocal2World(cg.viewModelEnt.bones+cent->currentState.tag_num,cg.viewModelEnt.origin,cg.refdefViewAngles,ent->origin,outRot);
@@ -257,6 +259,9 @@ void CG_ViewModelAnim() {
 	vec3_t vMovement;
 
 	if(cg.renderingThirdPerson)
+		return;
+
+	if(cg.snap->ps.stats[STAT_INZOOM])
 		return;
 
 	ent = &cg.viewModelEnt;

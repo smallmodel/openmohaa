@@ -477,7 +477,8 @@ static void CG_OffsetFirstPersonView( void ) {
 	VectorMA( cg.refdef.vieworg, cg.predictedPlayerState.fLeanAngle*0.5f, right, tmp );
 	CG_Trace(&trace,cg.refdef.vieworg,mins,maxs,tmp,-1,CONTENTS_SOLID);
 	VectorCopy(trace.endpos,cg.refdef.vieworg);
-
+	// fLeanAngle range: <-40,40>
+	//CG_Printf("Leanangle: %f\n",cg.predictedPlayerState.fLeanAngle);
 #endif
 }
 
@@ -520,6 +521,7 @@ static int CG_CalcFov( void ) {
 	float	f;
 	int		inwater;
 
+#if 0
 	if ( cg.predictedPlayerState.pm_type == PM_INTERMISSION ) {
 		// if in intermission, use a fixed value
 		fov_x = 90;
@@ -561,6 +563,13 @@ static int CG_CalcFov( void ) {
 			}
 		}
 	}
+#else
+	// su44: use FOV value send by MoHAA server
+	if(cg.snap)
+		fov_x = cg.snap->ps.fov;
+	else 
+		fov_x = 90;
+#endif
 
 	x = cg.refdef.width / tan( fov_x / 360 * M_PI );
 	fov_y = atan2( cg.refdef.height, x );

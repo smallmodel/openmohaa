@@ -575,6 +575,12 @@ static void CG_RegisterGraphics( void ) {
 	cgs.media.shadowMarkShader = trap_R_RegisterShader( "markShadow" );
 	cgs.media.wakeMarkShader = trap_R_RegisterShader( "wake" );
 
+	// su44: MoHAA zoom overlays
+	cgs.media.zoomOverlayShader = trap_R_RegisterShader("textures/hud/zoomoverlay");
+	cgs.media.kar98TopOverlayShader = trap_R_RegisterShader("textures/hud/kartop.tga");
+	cgs.media.kar98BottomOverlayShader = trap_R_RegisterShader("textures/hud/karbottom.tga");
+	cgs.media.binocularsOverlayShader = trap_R_RegisterShader("textures/hud/binocularsoverlay");
+
 	// register the inline models
 	cgs.numInlineModels = trap_CM_NumInlineModels();
 	for ( i = 1 ; i < cgs.numInlineModels ; i++ ) {

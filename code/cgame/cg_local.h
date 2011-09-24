@@ -709,6 +709,12 @@ typedef struct {
 	qhandle_t	redKamikazeShader;
 	qhandle_t	blueKamikazeShader;
 
+	// su44: MoHAA zoom overlay shaders
+	qhandle_t	zoomOverlayShader;
+	qhandle_t	kar98TopOverlayShader;
+	qhandle_t	kar98BottomOverlayShader;
+	qhandle_t	binocularsOverlayShader;
+
 	// weapon effect models
 	qhandle_t	bulletFlashModel;
 	qhandle_t	ringFlashModel;
@@ -1289,6 +1295,7 @@ void CG_Bullet( vec3_t origin, int sourceEntityNum, vec3_t normal, qboolean fles
 void CG_RailTrail( clientInfo_t *ci, vec3_t start, vec3_t end );
 void CG_AddViewWeapon (playerState_t *ps);
 void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent, int team );
+int CG_WeaponCommandButtonBits();
 
 //
 // cg_marks.c
