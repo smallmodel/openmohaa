@@ -369,14 +369,10 @@ void G_InitGentity( gentity_t *e ) {
 
 	e->inuse = qtrue;
 	e->classname = "noclass";
+	G_GetNullEntityState(&e->s);
+	G_GetNullEntityState(&e->r.s);
 	e->s.number = e - g_entities;
 	e->r.ownerNum = ENTITYNUM_NONE;
-
-	e->r.s.parent = ENTITYNUM_NONE;
-	e->r.s.tag_num = -1;
-	for(i = 0; i < 5; i++) {
-		e->r.s.bone_tag[i] = -1;
-	}
 }
 
 /*
@@ -417,6 +413,7 @@ gentity_t *G_Spawn( void ) {
 
 			// reuse this slot
 			G_InitGentity( e );
+			assert(e->s.parent == 1023);
 			return e;
 		}
 		if ( i != MAX_GENTITIES ) {
@@ -438,6 +435,7 @@ gentity_t *G_Spawn( void ) {
 		&level.clients[0].ps, sizeof( level.clients[0] ) );
 
 	G_InitGentity( e );
+	assert(e->s.parent == 1023);
 	return e;
 }
 

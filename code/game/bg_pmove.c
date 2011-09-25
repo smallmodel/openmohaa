@@ -1583,7 +1583,7 @@ void PmoveSingle (pmove_t *pmove) {
 		!( pm->cmd.buttons & (BUTTON_ATTACK | BUTTON_USE) ) ) {
 		pm->ps->pm_flags &= ~PMF_RESPAWNED;
 	}
-
+#if 0
 	// if talk button is down, dissallow all other input
 	// this is to prevent any possible intercept proxy from
 	// adding fake talk balloons
@@ -1595,7 +1595,7 @@ void PmoveSingle (pmove_t *pmove) {
 		pmove->cmd.rightmove = 0;
 		pmove->cmd.upmove = 0;
 	}
-
+#endif
 	// clear all pmove local vars
 	memset (&pml, 0, sizeof(pml));
 
@@ -1781,5 +1781,6 @@ void Pmove (pmove_t *pmove) {
 	pmove->ps->vEyePos[2] += pmove->ps->viewheight;
 	VectorCopy(pmove->ps->vEyePos,pmove->ps->camera_origin);
 	VectorCopy(pmove->ps->vEyePos,pmove->ps->camera_posofs);
+	pmove->ps->fov = 80;
 }
 

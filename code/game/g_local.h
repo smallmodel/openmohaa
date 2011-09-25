@@ -174,6 +174,14 @@ struct gentity_s {
 	// timing variables
 	float		wait;
 	float		random;
+
+	// su44: we dont have a q3 trajectory_t struct in MoHAA,
+	// but in OpenMoHAA we need it for func_rotatingdoors,
+	// so I'm leaving it here
+	trajectory_t s_pos;
+	trajectory_t s_apos;
+
+	int			lastUseEntity;
 };
 
 

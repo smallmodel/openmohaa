@@ -397,6 +397,12 @@ void G_UpdateCvars( void ) {
 	}
 }
 
+void G_SetFogInfo(int cull, float distance, vec3_t farplane_color) {
+	// cg.farplane_cull cg.farplane_distance cg.farplane_color[3]
+//	trap_SetConfigstring(CS_FOGINFO,va("%i %f %f %f %f",0,4096.f,1.f,1.f,1.f));
+
+	
+}
 /*
 ============
 G_InitGame
@@ -404,7 +410,7 @@ G_InitGame
 ============
 */
 void G_InitGame( int levelTime, int randomSeed, int restart ) {
-	int					i;
+	int					i, j;
 
 	G_Printf ("------- Game Initialization -------\n");
 	G_Printf ("gamename: %s\n", GAMEVERSION);
@@ -422,6 +428,14 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	memset( &level, 0, sizeof( level ) );
 	level.time = levelTime;
 	level.startTime = levelTime;
+
+	/*j = trap_CM_NumInlineModels();
+	for(i = 1; i < j; i++) {
+		if(G_ModelIndex( va("*%i",i) ) != i) {
+			G_Error("model indexc mismatch\n");
+		}
+	}*/
+
 
 	level.snd_fry = G_SoundIndex("sound/player/fry.wav");	// FIXME standing in lava / slime
 
@@ -499,6 +513,25 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 
 	G_RemapTeamShaders();
 
+	//G_SetFogInfo(0,4096,vec3_origin);
+
+trap_SetConfigstring(5,"-1"); // warmup???
+trap_SetConfigstring(8,"music/mohdm2.mus");
+
+
+	trap_SetConfigstring(CS_FOGINFO,va("%i %f %f %f %f",1,4500,0.3330,0.3330,0.3290));
+	trap_SetConfigstring(CS_SKYINFO,va("%f %i",1,1.f));
+
+
+
+	trap_SetConfigstring(1876,"2");
+	trap_SetConfigstring(1878,"su44 sepctarosplayers test");
+	trap_SetConfigstring(1879,"su44 aliesplayers test");
+	trap_SetConfigstring(1880,"su44 axisplayers test");
+//1876: 3
+//1878: 1 spectator 1 player(s)
+//1879: 3 allies 0 player(s)
+//1880: 4 axis 0 player(s)
 }
 
 

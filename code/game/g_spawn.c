@@ -208,7 +208,7 @@ spawn_t	spawns[] = {
 	{"func_plat", SP_func_plat},
 	{"func_button", SP_func_button},
 	//{"func_door", SP_func_door},
-	//{"func_rotatingdoor", SP_func_rotatingdoor},	// IneQuation
+	{"func_rotatingdoor", SP_func_rotatingdoor},	// IneQuation
 	{"func_static", SP_func_static},
 	{"func_rotating", SP_func_rotating},
 	{"func_bobbing", SP_func_bobbing},
@@ -668,5 +668,21 @@ void G_SpawnEntitiesFromString( void ) {
 	}
 
 	level.spawning = qfalse;			// any future calls to G_Spawn*() will be errors
+}
+
+void G_GetNullEntityState(entityState_t *nullState) {
+
+	Com_Memset( nullState, 0, sizeof(entityState_t) );
+	nullState->alpha = 1.0f;
+	nullState->scale = 1.0f;
+	nullState->parent = ENTITYNUM_NONE;
+	nullState->tag_num = -1;
+	nullState->constantLight = -1;
+	nullState->renderfx = 16;
+	nullState->bone_tag[4] = -1;
+	nullState->bone_tag[3] = -1;
+	nullState->bone_tag[2] = -1;
+	nullState->bone_tag[1] = -1;
+	nullState->bone_tag[0] = -1;
 }
 

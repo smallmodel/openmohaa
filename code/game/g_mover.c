@@ -307,7 +307,7 @@ qboolean G_MoverPush( gentity_t *pusher, vec3_t move, vec3_t amove, gentity_t **
 		// the move was blocked an entity
 
 		//// bobbing entities are instant-kill and never get blocked
-		//if ( pusher->s.pos.trType == TR_SINE || pusher->s.apos.trType == TR_SINE ) {
+		//if ( pusher->s_pos.trType == TR_SINE || pusher->s_apos.trType == TR_SINE ) {
 		//	G_Damage( check, pusher, pusher, NULL, NULL, 99999, 0, MOD_CRUSH );
 		//	continue;
 		//}
@@ -341,7 +341,60 @@ G_MoverTeam
 =================
 */
 void G_MoverTeam( gentity_t *ent ) {
-	
+		vec3_t		move, amove;
+	gentity_t	*part, *obstacle;
+	vec3_t		origin, angles;
+	qboolean	apos;
+
+	obstacle = NULL;
+
+	// make sure all team slaves can move before commiting
+	// any moves or calling any think functions
+	// if the move is blocked, all moved objects will be backed out
+	pushed_p = pushed;
+	for (part = ent ; part ; part=part->teamchain) {
+		// get current position
+		BG_EvaluateTrajectory( &part->s_pos, level.time, origin );
+		BG_EvaluateTrajectory( &part->s_apos, level.time, angles );
+		VectorSubtract( origin, part->r.currentOrigin, move );
+		VectorSubtract( angles, part->r.currentAngles, amove );
+		if ( !G_MoverPush( part, move, amove, &obstacle ) ) {
+			break;	// move was blocked
+		}
+	}
+
+	if (part) {
+		// go back to the previous position
+		for ( part = ent ; part ; part = part->teamchain ) {
+			part->s_pos.trTime += level.time - level.previousTime;
+			part->s_apos.trTime += level.time - level.previousTime;
+			BG_EvaluateTrajectory( &part->s_pos, level.time, part->r.currentOrigin );
+			BG_EvaluateTrajectory( &part->s_apos, level.time, part->r.currentAngles );
+			trap_LinkEntity( part );
+		}
+
+		// if the pusher has a "blocked" function, call it
+		if (ent->blocked) {
+			ent->blocked( ent, obstacle );
+		}
+		return;
+	}
+
+	// the move succeeded
+	apos = !Q_stricmp(ent->classname, "func_rotatingdoor");	// IneQuation
+	for ( part = ent ; part ; part = part->teamchain ) {
+		// call the reached function if time is at or past end point
+		if ( (apos ? part->s_apos.trType : part->s_pos.trType) == TR_LINEAR_STOP ) {
+			if ( level.time >= (apos
+				? part->s_apos.trTime + part->s_apos.trDuration
+				: part->s_pos.trTime + part->s_pos.trDuration) ) {
+				if ( part->reached ) {
+					part->reached( part );
+				}
+			}
+		}
+	}
+
 }
 
 /*
@@ -351,6 +404,21 @@ G_RunMover
 ================
 */
 void G_RunMover( gentity_t *ent ) {
+	// if not a team captain, don't do anything, because
+	// the captain will handle everything
+	if ( ent->flags & FL_TEAMSLAVE ) {
+		return;
+	}
+
+	// if stationary at one of the positions, don't move anything
+	if ( ent->s_pos.trType != TR_STATIONARY || ent->s_apos.trType != TR_STATIONARY ) {
+		G_MoverTeam( ent );
+	}
+
+	// check think function
+	G_RunThink( ent );
+	BG_EvaluateTrajectory(&ent->s_pos,level.time,ent->s.origin);
+	BG_EvaluateTrajectory(&ent->s_apos,level.time,ent->s.angles);
 
 }
 
@@ -370,7 +438,49 @@ SetMoverState
 ===============
 */
 void SetMoverState( gentity_t *ent, moverState_t moverState, int time ) {
+	vec3_t			delta;
+	float			f;
+	trajectory_t	*tr;
+	float			*result;
 
+	// IneQuation: rotating door support
+	if (!Q_stricmp(ent->classname, "func_rotatingdoor")) {
+		tr = &ent->s_apos;
+		result = ent->r.currentAngles;
+	} else {
+		tr = &ent->s_pos;
+		result = ent->r.currentOrigin;
+	}
+
+	ent->moverState = moverState;
+
+	tr->trTime = time;
+	switch( moverState ) {
+	case MOVER_POS1:
+		VectorCopy( ent->pos1, tr->trBase );
+		tr->trType = TR_STATIONARY;
+		break;
+	case MOVER_POS2:
+		VectorCopy( ent->pos2, tr->trBase );
+		tr->trType = TR_STATIONARY;
+		break;
+	case MOVER_1TO2:
+		VectorCopy( ent->pos1, tr->trBase );
+		VectorSubtract( ent->pos2, ent->pos1, delta );
+		f = 1000.0 / tr->trDuration;
+		VectorScale( delta, f, tr->trDelta );
+		tr->trType = TR_LINEAR_STOP;
+		break;
+	case MOVER_2TO1:
+		VectorCopy( ent->pos2, tr->trBase );
+		VectorSubtract( ent->pos1, ent->pos2, delta );
+		f = 1000.0 / tr->trDuration;
+		VectorScale( delta, f, tr->trDelta );
+		tr->trType = TR_LINEAR_STOP;
+		break;
+	}
+	BG_EvaluateTrajectory( tr, level.time, result );
+	trap_LinkEntity( ent );
 }
 
 /*
@@ -397,7 +507,15 @@ ReturnToPos1
 ================
 */
 void ReturnToPos1( gentity_t *ent ) {
+	MatchTeam( ent, MOVER_2TO1, level.time );
 
+	// looping sound
+	ent->s.loopSound = ent->soundLoop;
+
+	// starting sound
+	//if ( ent->sound2to1 ) {
+	//	G_AddEvent( ent, EV_GENERAL_SOUND, ent->sound2to1 );
+	//}
 }
 
 
@@ -407,6 +525,43 @@ Reached_BinaryMover
 ================
 */
 void Reached_BinaryMover( gentity_t *ent ) {
+	// stop the looping sound
+	ent->s.loopSound = ent->soundLoop;
+
+	if ( ent->moverState == MOVER_1TO2 ) {
+		// reached pos2
+		SetMoverState( ent, MOVER_POS2, level.time );
+
+		// play sound
+		//if ( ent->soundPos2 ) {
+		//	G_AddEvent( ent, EV_GENERAL_SOUND, ent->soundPos2 );
+		//}
+
+		// return to pos1 after a delay
+		ent->think = ReturnToPos1;
+		ent->nextthink = level.time + ent->wait;
+
+		// fire targets
+		if ( !ent->activator ) {
+			ent->activator = ent;
+		}
+		G_UseTargets( ent, ent->activator );
+	} else if ( ent->moverState == MOVER_2TO1 ) {
+		// reached pos1
+		SetMoverState( ent, MOVER_POS1, level.time );
+
+		// play sound
+		//if ( ent->soundPos1 ) {
+		//	G_AddEvent( ent, EV_GENERAL_SOUND, ent->soundPos1 );
+		//}
+
+		// close areaportals
+		if ( ent->teammaster == ent || !ent->teammaster ) {
+			trap_AdjustAreaPortalState( ent, qfalse );
+		}
+	} else {
+		G_Error( "Reached_BinaryMover: bad moverState" );
+	}
 
 }
 
@@ -417,6 +572,105 @@ Use_BinaryMover
 ================
 */
 void Use_BinaryMover( gentity_t *ent, gentity_t *other, gentity_t *activator ) {
+	int				total;
+	int				partial;
+	trajectory_t	*tr;
+
+	// only the master should be used
+	if ( ent->flags & FL_TEAMSLAVE ) {
+		Use_BinaryMover( ent->teammaster, other, activator );
+		return;
+	}
+
+	if (!Q_stricmp(ent->classname, "func_rotatingdoor"))
+		tr = &ent->s_apos;
+	else
+		tr = &ent->s_pos;
+
+	ent->activator = activator;
+
+	if ( ent->moverState == MOVER_POS1 ) {
+		// IneQuation: if this is a rotating door, check if we need to inverse
+		// its pos2 to switch the opening direction
+		// ent->movedir is door plane normal, ent->physicsBounce is the plane's distance from (0 0 0)
+		if (!Q_stricmp(ent->classname, "func_rotatingdoor")) {
+			float dot = DotProduct(activator->r.currentOrigin, ent->movedir) + ent->physicsBounce;
+			if ((dot > 0 && ent->splashMethodOfDeath != 0) || (dot < 0 && ent->splashMethodOfDeath != 1)) {
+				VectorInverse(ent->pos2);
+				ent->splashMethodOfDeath = !ent->splashMethodOfDeath;
+			}
+		}
+
+		// start moving 50 msec later, becase if this was player
+		// triggered, level.time hasn't been advanced yet
+		MatchTeam( ent, MOVER_1TO2, level.time + 50 );
+
+		// starting sound
+//		if ( ent->sound1to2 ) {
+//			G_AddEvent( ent, EV_GENERAL_SOUND, ent->sound1to2 );
+//		}
+
+		// looping sound
+		ent->s.loopSound = ent->soundLoop;
+
+		// open areaportal
+		if ( ent->teammaster == ent || !ent->teammaster ) {
+			trap_AdjustAreaPortalState( ent, qtrue );
+		}
+		return;
+	}
+
+	// if all the way up, just delay before coming down
+	if ( ent->moverState == MOVER_POS2 ) {
+		//ent->nextthink = level.time + ent->wait;
+		// IneQuation: WTF? close, without waiting
+		// start moving 50 msec later, becase if this was player
+		// triggered, level.time hasn't been advanced yet
+		MatchTeam(ent, MOVER_2TO1, level.time/* + 50 */);	// IneQuation: this delay makes it look glitchy
+
+		// switch off the thinker so that the door doesn't try closing again
+		ent->nextthink = level.time - 100;
+
+		// starting sound
+		//if (ent->sound2to1)
+		//	G_AddEvent(ent, EV_GENERAL_SOUND, ent->sound2to1);
+
+		// looping sound
+		ent->s.loopSound = ent->soundLoop;
+		return;
+	}
+
+	// only partway down before reversing
+	if ( ent->moverState == MOVER_2TO1 ) {
+		total = tr->trDuration;
+		partial = level.time - tr->trTime;
+		if ( partial > total ) {
+			partial = total;
+		}
+
+		MatchTeam( ent, MOVER_1TO2, level.time - ( total - partial ) );
+
+//		if ( ent->sound1to2 ) {
+//			G_AddEvent( ent, EV_GENERAL_SOUND, ent->sound1to2 );
+//		}
+		return;
+	}
+
+	// only partway up before reversing
+	if ( ent->moverState == MOVER_1TO2 ) {
+		total = tr->trDuration;
+		partial = level.time - tr->trTime;
+		if ( partial > total ) {
+			partial = total;
+		}
+
+		MatchTeam( ent, MOVER_2TO1, level.time - ( total - partial ) );
+
+		//if ( ent->sound2to1 ) {
+		//	G_AddEvent( ent, EV_GENERAL_SOUND, ent->sound2to1 );
+		//}
+		return;
+	}
 
 }
 
@@ -431,6 +685,97 @@ so the movement delta can be calculated
 ================
 */
 void InitMover( gentity_t *ent ) {
+	vec3_t		move;
+	float		distance;
+	float		light;
+	vec3_t		color;
+	qboolean	lightSet, colorSet;
+	char		*sound;
+
+	// if the "model2" key is set, use a seperate model
+	// for drawing, but clip against the brushes
+	//if ( ent->model2 ) {
+	//	ent->s.modelindex2 = G_ModelIndex( ent->model2 );
+	//}
+	///////////ent->s.modelindex = G_ModelIndex(ent->model);
+
+	// if the "loopsound" key is set, use a constant looping sound when moving
+	if ( G_SpawnString( "noise", "100", &sound ) ) {
+		ent->s.loopSound = G_SoundIndex( sound );
+	}
+
+	// if the "color" or "light" keys are set, setup constantLight
+	lightSet = G_SpawnFloat( "light", "100", &light );
+	colorSet = G_SpawnVector( "color", "1 1 1", color );
+	if ( lightSet || colorSet ) {
+		int		r, g, b, i;
+
+		r = color[0] * 255;
+		if ( r > 255 ) {
+			r = 255;
+		}
+		g = color[1] * 255;
+		if ( g > 255 ) {
+			g = 255;
+		}
+		b = color[2] * 255;
+		if ( b > 255 ) {
+			b = 255;
+		}
+		i = light / 4;
+		if ( i > 255 ) {
+			i = 255;
+		}
+		ent->s.constantLight = r | ( g << 8 ) | ( b << 16 ) | ( i << 24 );
+	}
+
+
+	ent->use = Use_BinaryMover;
+	ent->reached = Reached_BinaryMover;
+
+	ent->moverState = MOVER_POS1;
+	ent->r.svFlags = SVF_USE_CURRENT_ORIGIN;
+	ent->s.eType = ET_MOVER;
+	// IneQuation
+	if (Q_stricmp(ent->classname, "func_rotatingdoor")) {
+		VectorCopy (ent->pos1, ent->r.currentOrigin);
+		trap_LinkEntity (ent);
+
+		ent->s_pos.trType = TR_STATIONARY;
+		VectorCopy( ent->pos1, ent->s_pos.trBase );
+
+		// calculate time to reach second position from speed
+		VectorSubtract( ent->pos2, ent->pos1, move );
+		distance = VectorLength( move );
+		if ( ! ent->speed ) {
+			ent->speed = 100;
+		}
+		VectorScale( move, ent->speed, ent->s_pos.trDelta );
+		ent->s_pos.trDuration = distance * 1000 / ent->speed;
+		if ( ent->s_pos.trDuration <= 0 ) {
+			ent->s_pos.trDuration = 1;
+		}
+	} else {
+		VectorCopy(ent->s.origin, ent->r.currentOrigin);
+		VectorClear(ent->r.currentAngles);
+		trap_LinkEntity(ent);
+
+		// linear component - basically static
+		ent->s_pos.trType = TR_STATIONARY;
+		VectorCopy(ent->s.origin, ent->s_pos.trBase);
+		VectorClear(ent->s_pos.trDelta);
+		ent->s_pos.trDuration = 1;
+
+		// angular component
+		ent->s_apos.trType = TR_STATIONARY;
+		VectorClear(ent->s_apos.trBase);
+		VectorSubtract(ent->pos2, ent->pos1, move);
+		/*distance = */VectorNormalize(move);
+		//distance /= ent->speed;
+		VectorScale(move, ent->speed, ent->s_apos.trDelta);
+		ent->s_apos.trDuration = (float)ent->splashRadius / ent->speed * 1000;
+		//VectorSet(ent->s_apos.trDelta, 0, ent->speed, 0);
+	}
 
 }
 
@@ -452,6 +797,27 @@ Blocked_Door
 ================
 */
 void Blocked_Door( gentity_t *ent, gentity_t *other ) {
+	// remove anything other than a client
+	//if ( !other->client ) {
+	//	// except CTF flags!!!!
+	//	if( other->s.eType == ET_ITEM /*&& other->item->giType == IT_TEAM*/ ) {
+	//		Team_DroppedFlagThink( other );
+	//		return;
+	//	}
+	////	G_TempEntity( other->s.origin, EV_ITEM_POP );
+	//	G_FreeEntity( other );
+	//	return;
+	//}
+
+	if ( ent->damage ) {
+		G_Damage( other, ent, ent, NULL, NULL, ent->damage, 0, MOD_CRUSH );
+	}
+	if (ent->spawnflags & 4 && Q_stricmp(ent->classname, "func_rotatingdoor")) {	// IneQuation: rotating doors don't crush
+		return;		// crushers don't reverse
+	}
+G_Printf("Blocked_Door: reversing\n");
+	// reverse direction
+	Use_BinaryMover( ent, ent, other );
 
 }
 

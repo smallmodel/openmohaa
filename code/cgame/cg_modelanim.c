@@ -118,7 +118,11 @@ void CG_ModelAnim( centity_t *cent ) {
 		VectorCopy(cent->lerpOrigin,ent.origin);
 	}
 
-	ent.hModel = cgs.gameModels[s1->modelindex];
+	if(s1->eType == ET_MOVER) {
+		ent.hModel = cgs.inlineDrawModel[s1->modelindex];
+	} else {
+		ent.hModel = cgs.gameModels[s1->modelindex];
+	}
 	
 	tiki = cgs.gameTIKIs[s1->modelindex];
 	if(tiki && tiki->numAnims) {

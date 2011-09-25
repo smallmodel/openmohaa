@@ -512,7 +512,8 @@ static void SV_BuildClientSnapshot( client_t *client ) {
 	}
 	svEnt = &sv.svEntities[ clientNum ];
 
-	svEnt->snapshotCounter = sv.snapshotCounter;
+	// su44: that's not done in MoHAA
+	//svEnt->snapshotCounter = sv.snapshotCounter;
 
 	// find the client's viewpoint
 	VectorCopy( ps->origin, org );

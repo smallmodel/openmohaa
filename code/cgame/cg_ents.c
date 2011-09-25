@@ -499,6 +499,8 @@ static void CG_AddCEntity( centity_t *cent ) {
 		//CG_Error( "Bad entity type: %i\n", cent->currentState.eType );
 		CG_Printf( "Bad entity type: %i\n", cent->currentState.eType ); 
 		break;
+case ET_MOVER: // su44: ET_MOVER is used only if running a local openmohaa server.
+	// this needs to be fixed soon in our game code
 	case ET_GENERAL:
 		CG_ModelAnim( cent );
 		//CG_General( cent );

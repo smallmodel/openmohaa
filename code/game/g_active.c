@@ -496,8 +496,10 @@ void ClientUse(gentity_t *ent) {
 	VectorMA(g_muzzle, 96.f, forward, right);
 	trap_Trace(&tr, g_muzzle, NULL, NULL, right, ent - g_entities, MASK_SOLID);
 
-	if (tr.fraction == 1.f || tr.entityNum == ENTITYNUM_NONE || tr.entityNum == ENTITYNUM_WORLD)
+	if (tr.fraction == 1.f || tr.entityNum == ENTITYNUM_NONE || tr.entityNum == ENTITYNUM_WORLD) {
+		ent->lastUseEntity = tr.entityNum;
 		return;	// nothing interesting hit
+	}
 	other = g_entities + tr.entityNum;
 	if (other->client) { // push them around
 		// make the velocity lateral only so that they can't make others go over obstacles
@@ -509,9 +511,12 @@ void ClientUse(gentity_t *ent) {
 		other->client->ps.velocity[2] += 16.f;	// nudge the velocity upwards so that it's not eaten immediately by ground friction
 		return;
 	}
-	if (other->s.eType == ET_MOVER && other->splashDamage) {
-//		Use_BinaryMover(other, ent, ent);
+	if(ent->lastUseEntity != tr.entityNum) {
+		if (other->s.eType == ET_MOVER && other->splashDamage) {
+			Use_BinaryMover(other, ent, ent);
+		}
 	}
+	ent->lastUseEntity = tr.entityNum;
 }
 
 /*
@@ -777,6 +782,12 @@ void ClientThink_real( gentity_t *ent ) {
 		return;
 	}
 
+	if(client->buttons & BUTTON_USE) {
+		ClientUse(ent);
+	} else {
+		ent->lastUseEntity = ENTITYNUM_NONE;
+	}
+
 	// perform once-a-second actions
 	ClientTimerActions( ent, msec );
 }
@@ -836,13 +847,13 @@ void SpectatorClientEndFrame( gentity_t *ent ) {
 		}
 		if ( clientNum >= 0 ) {
 			cl = &level.clients[ clientNum ];
-			//if ( cl->pers.connected == CON_CONNECTED && cl->sess.sessionTeam != TEAM_SPECTATOR ) {
+			if ( cl->pers.connected == CON_CONNECTED && cl->sess.sessionTeam != TEAM_SPECTATOR ) {
 			//	flags = (cl->ps.eFlags & ~(EF_VOTED | EF_TEAMVOTED)) | (ent->client->ps.eFlags & (EF_VOTED | EF_TEAMVOTED));
-			//	ent->client->ps = cl->ps;
-			//	ent->client->ps.pm_flags |= PMF_FOLLOW;
+				ent->client->ps = cl->ps;
+				ent->client->ps.pm_flags |= PMF_FOLLOW;
 			//	ent->client->ps.eFlags = flags;
-			//	return;
-			//} else 
+				return;
+			} else 
 			
 			{
 				// drop them to free spectators unless they are dedicated camera followers
