@@ -1598,6 +1598,7 @@ $(B)/missionpack/vm/qagame.qvm: $(MPGVMOBJ) $(GDIR)/g_syscalls.asm $(Q3ASM)
 
 Q3UIOBJ_ = \
   $(B)/main/ui/ui_main.o \
+  $(B)/main/ui/ui_model.o \
   $(B)/main/ui/ui_quarks.o \
   $(B)/main/ui/ui_urc.o \
   \
