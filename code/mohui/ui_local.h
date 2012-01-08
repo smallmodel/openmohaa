@@ -28,6 +28,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "ui_public.h"
 #include "../client/keycodes.h"
 #include "../game/bg_public.h"
+#include "../qcommon/tiki_local.h"
 
 
 #define UI_MAX_URCSIZE		131072
@@ -40,7 +41,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define UI_CHECKBOX_SIZE	16
 
 typedef void (*voidfunc_f)(void);
-typedef struct tiki_s tiki_t;
+//typedef struct tiki_s tiki_t;
 
 typedef enum uiBorderstyle_s {
 	UI_BORDER_NONE,

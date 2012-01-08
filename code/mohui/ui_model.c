@@ -21,7 +21,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 #include "ui_local.h"
-#include "../qcommon/tiki_local.h"
 #include "../renderer/tr_public.h"
 
 void UI_RenderModel(uiResource_t *res) {
