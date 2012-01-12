@@ -1146,7 +1146,8 @@ CL_Connect_f
 
 ================
 */
-#define TEST_SERVER "87.106.44.167:12205"
+// we have our own server provided to us by mohaaaa.co.uk
+#define TEST_SERVER "109.70.148.54:12287"
 void CL_Connect_f( void ) {
 	char	*server;
 	char	serverString[ 22 ];
