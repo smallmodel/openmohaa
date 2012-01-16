@@ -22,7 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
 #include "g_local.h"
-//#include "../qcommon/tiki_local.h" // fixme!
+#include "../qcommon/tiki_local.h" // fixme!
 
 qboolean	G_SpawnString( const char *key, const char *defaultString, char **out ) {
 	int		i;
@@ -270,6 +270,22 @@ spawn_t	spawns[] = {
 	{NULL, 0}
 };
 
+const char *G_FixTIKIPath(const char *in) {
+	static char path[256];
+
+	if(in[0] == '*')
+		return in; // that's a bsp inline model
+	if(trap_FS_FOpenFile(in,0,FS_READ) > 0) {
+		return in;
+	}
+	strcpy(path,"models/");
+	strcat(path,in);
+	if(trap_FS_FOpenFile(path,0,FS_READ) > 0) {
+		return path;
+	}
+	return in;
+}
+
 /*
 ===============
 G_CallSpawn
@@ -298,6 +314,22 @@ qboolean G_CallSpawn( gentity_t *ent ) {
 
 	// try to spawn a tiki model
 	if(ent->model && ent->model[0] /*&& ent->model[0] != '*'*/) {
+		if(ent->model[0] != '*') {
+			char *ptr1, *ptr2;
+			ptr1 = ent->model;
+			ptr2 = ent->model;
+			// su44: fix double '/' in TIKI paths from entities lump.
+			// The same issue is also in R_LoadStaticModels.
+			while(*ptr1) {
+				if(ptr1[0] == '/' && ptr1[1] == '/') {
+					ptr1++;
+				}
+				*ptr2 = *ptr1;
+				ptr1++;
+				ptr2++;
+			}
+			*ptr2 = 0;
+		}
 #if 0
 		tiki = trap_TIKI_RegisterModel(ent->model);
 		if(!tiki) {
@@ -315,20 +347,19 @@ qboolean G_CallSpawn( gentity_t *ent ) {
 			return qtrue;
 		}
 #else
-			float dummy;
-			ent->s.modelindex = G_ModelIndex(ent->model);
-			ent->s.eType = ET_MODELANIM;
-			//if(ent->model[0]=='*') {
-			//	trap_SetBrushModel(ent, ent->model);
-			//} else
-			{
-				VectorSet (ent->r.mins, -128, -128, -128);
-				VectorSet (ent->r.maxs, 128, 128, 128);			
-			}
-			ent->s.frameInfo[0].weight = 1.f;
-			G_SetOrigin( ent, ent->s.origin );
-			trap_LinkEntity (ent);
-			return qtrue;
+		ent->s.modelindex = G_ModelIndex(G_FixTIKIPath(ent->model));
+		ent->s.eType = ET_MODELANIM;
+		//if(ent->model[0]=='*') {
+		//	trap_SetBrushModel(ent, ent->model);
+		//} else
+		{
+			VectorSet (ent->r.mins, -128, -128, -128);
+			VectorSet (ent->r.maxs, 128, 128, 128);			
+		}
+		ent->s.frameInfo[0].weight = 1.f;
+		G_SetOrigin( ent, ent->s.origin );
+		trap_LinkEntity (ent);
+		return qtrue;
 #endif
 	}
 

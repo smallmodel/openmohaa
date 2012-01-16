@@ -86,6 +86,8 @@ void CG_AttachEntity(refEntity_t *e, centity_t *parent, int boneIndex, vec3_t ou
 		VectorCopy(a,outAngles);
 }
 qboolean CG_TIKI_BoneOnGround(centity_t *cent, tiki_t *tiki, int boneIndex) {
+	if(cent->bones == 0)
+		return qfalse;
 	//CG_Printf("Z: %f\n",cent->bones[boneIndex].p[2]);
 	if(cent->bones[boneIndex].p[2] < 6)
 		return qfalse;
