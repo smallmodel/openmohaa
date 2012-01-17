@@ -1,7 +1,7 @@
 /*
 ===========================================================================
 Copyright (C) 2008 Leszek Godlewski
-Copyright (C) 2010-2011 su44
+Copyright (C) 2010-2012 su44
 
 This file is part of OpenMoHAA source code.
 
@@ -1106,12 +1106,15 @@ static tiki_t *TIKI_Load(const char *fname) {
 	int				len;
 	int				i, j, level = 0;
 	tikiAnim_t		*anim;
-	tikiAnim_t		*anims[1024];
+	tikiAnim_t		*anims[2048];
 	int				numCmds;
 	tikiCommand_t	cmds[512];
 	char			*cmdTxts[512];
 	char			cmdText[2048];
 	tiki_t			*includes[TIKI_MAX_INCLUDES];
+	qboolean insideIncludesBlock = qfalse;
+	qboolean headskinCaseFound = qfalse;
+	qboolean headmodelCaseFound = qfalse;
 	struct
 	{
 		char surface[64];
@@ -1160,13 +1163,154 @@ again:
 			token = COM_ParseExt(&text, qtrue);
 			// TODO
 		}
+		else if (!Q_stricmp(token, "$include")) {
+			// su44: moved it here, because in singleplayer human models
+			// "$include" keyword is used in "setup" section as well.
+			// see models/human/coxswain.tik
+			token = COM_ParseExt(&text, qtrue);
+			strcpy(tmp,token);
+			includes[out->numIncludes] = TIKI_RegisterModel(tmp);
+			out->numIncludes++;
+			goto again;
+		}
+		else if(!Q_stricmp(token, "includes")) {
+			// su44: "includes" keyword is used only by singleplayer human models
+			// see models/human/new_generic_human.tik
+			qboolean load = qfalse;
+			const char *mapName;
+
+			mapName = Cvar_VariableString("mapname");
+			while(token[0] && token[0] != '{') {
+				token = COM_ParseExt(&text, qfalse);
+				if(!Q_stricmpn(mapName,token,strlen(mapName))) {
+					load = qtrue;
+				}
+			}
+			if(token[0] != '{')
+				token = COM_ParseExt(&text, qtrue);
+			if(token[0] != '{') {
+				Com_Error(ERR_DROP,"TIKI_Load: Expected { to follow 'includes', found %s",token);
+			}
+			if(token[1])
+				token++;
+			else
+				token = COM_ParseExt(&text, qtrue);
+
+			if(load == qfalse) {
+				int tmpLevel;
+				
+				tmpLevel = 1;
+				// skip block between curly braces
+				while(1) {
+					if(token[0] == '}') {
+						tmpLevel--;
+						if(tmpLevel == 0)
+							break;
+					} else if(token[0] == '{') {
+						tmpLevel++;
+					}
+					token = COM_ParseExt(&text, qtrue);
+				}
+			} else {
+				insideIncludesBlock = qtrue;
+				goto again;
+			}
+		}
 		else if(token[0]=='}') {
-			level--;
-			if(level == 0) {
-				section = SECTION_ROOT;
+			if(level == 0 && insideIncludesBlock) {
+				insideIncludesBlock = qfalse;
+			} else {
+				level--;
+				if(level == 0) {
+					section = SECTION_ROOT;
+				}
 			}
 			token++;
 			goto again;
+		}
+		else if(!Q_stricmp(token, "skelmodel")) {
+			// another hack for singleplayer human models
+			goto parseSkelmodel;
+		}
+		else if(!Q_stricmp(token, "surface")) {
+			// another hack for singleplayer human models
+			goto parseSurface;
+		}
+		else if(!Q_stricmp(token, "case")) {
+			// used only in singleplayer human models
+			token = COM_ParseExt(&text, qtrue);
+			if(!Q_stricmp(token, "headmodel")) {
+				// there can be more than one argument
+				while(token[0]) {
+					token = COM_ParseExt(&text, qfalse);
+				}
+				token = COM_ParseExt(&text, qtrue);
+				if(token[0] != '{') {
+					Com_Error(ERR_DROP,"TIKI_Load: Expected { to follow 'case headmodel', found %s",token);
+				}
+				if(token[1])
+					token++;
+				else
+					token = COM_ParseExt(&text, qtrue);
+				// HACK - always load first case
+				if(headmodelCaseFound) {
+					int tmpLevel;
+					
+					tmpLevel = 1;
+					// skip block between curly braces
+					while(1) {
+						if(token[0] == '}') {
+							tmpLevel--;
+							if(tmpLevel == 0)
+								break;
+						} else if(token[0] == '{') {
+							tmpLevel++;
+						}
+						token = COM_ParseExt(&text, qtrue);
+					}
+				} else {
+					headmodelCaseFound = qtrue;
+				}
+				goto again;
+			} else if(!Q_stricmp(token, "headskin")) {
+				// there can be more than one argument
+				while(token[0]) {
+					token = COM_ParseExt(&text, qfalse);
+				}
+				token = COM_ParseExt(&text, qtrue);
+				if(token[0] != '{') {
+					Com_Error(ERR_DROP,"TIKI_Load: Expected { to follow 'case headskin', found %s",token);
+				}
+				if(token[1])
+					token++;
+				else
+					token = COM_ParseExt(&text, qtrue);
+				// HACK - always load first case
+				if(headskinCaseFound) {
+					int tmpLevel;
+					
+					tmpLevel = 1;
+					// skip block between curly braces
+					while(1) {
+						if(token[0] == '}') {
+							tmpLevel--;
+							if(tmpLevel == 0)
+								break;
+						} else if(token[0] == '{') {
+							tmpLevel++;
+						}
+						token = COM_ParseExt(&text, qtrue);
+					}					
+				} else {
+					headskinCaseFound = qtrue;
+					
+				}
+				goto again;
+			} else if(!Q_stricmp(token, "weapon")) {
+
+			} else {
+				Com_Error(ERR_DROP,"TIKI_Load: unknown 'case' %s in TIKI file %s",token,fname);
+			}
 		}
 		else {
 			switch (section) {
@@ -1198,19 +1342,13 @@ again:
 						section = SECTION_ANIMATIONS;
 						goto again;
 					}
-					else if (!Q_stricmp(token, "$include")) {
-						token = COM_ParseExt(&text, qtrue);
-						strcpy(tmp,token);
-						includes[out->numIncludes] = TIKI_RegisterModel(tmp);
-						out->numIncludes++;
-						goto again;
-					}
 					else {
 						Com_Printf("Unknown token %s in section %s of file %s\n",token,sections[section],fname);
 					}
 				break;
 				case SECTION_SETUP:
 					if (!Q_stricmp(token, "skelmodel")) {
+parseSkelmodel:
 						token = COM_ParseExt(&text, qtrue);
 						strcpy(tmp,path);
 						i = strlen(tmp);
@@ -1225,6 +1363,7 @@ again:
 #endif
 					}
 					else if (!Q_stricmp(token, "surface")) {
+parseSurface:
 						token = COM_ParseExt(&text, qtrue);
 						strcpy(tmp,token);
 						token = COM_ParseExt(&text, qtrue);
@@ -1437,7 +1576,7 @@ again:
 									if(token[0] == '}') 
 										break;
 								}
-								if(numCmds) {
+								if(numCmds && anim) {
 									anim->numClientCmds = numCmds;
 									anim->clientCmds = Hunk_Alloc(sizeof(tikiCommand_t)*numCmds,h_low);
 									memcpy(anim->clientCmds,cmds,sizeof(tikiCommand_t)*numCmds);
@@ -1472,6 +1611,10 @@ again:
 				out->boneNames =  out->includes[i]->boneNames;
 				out->bones =  out->includes[i]->bones;
 				out->numBones =  out->includes[i]->numBones;
+			} else {
+				// TODO: code this, without the function below singleplayer
+				// human head models won't show up.
+				/// TIKI_MergeSKD2(out->surfs,out->includes[i]->surfs);
 			}
 #endif
 		}

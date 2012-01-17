@@ -1,7 +1,7 @@
 /*
 ===========================================================================
 Copyright (C) 2008 Leszek Godlewski
-Copyright (C) 2010-2011 su44
+Copyright (C) 2010-2012 su44
 
 This file is part of OpenMoHAA source code.
 
@@ -29,7 +29,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "qfiles.h"
 #include "../renderer/tr_public.h"
 
-#define TIKI_MAX_INCLUDES			32
+#define TIKI_MAX_INCLUDES			512 // 32 su44: increased for MoHAA singleplayer human models (new_generic_human.tik, etc)
 #define MAX_TIKI_SURFACES			32
 
 #define TIKI_FRAME_ENTRY	-1

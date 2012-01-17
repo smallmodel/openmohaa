@@ -1225,6 +1225,49 @@ void Cmd_Stats_f( gentity_t *ent ) {
 }
 
 /*
+============
+Cmd_Spawn
+============
+*/
+// su44: spawn any TIKI model in front of local player view.
+// You don't have to add "models/" dir to the front of path.
+// Example usage: "spawn weapons/bar.tik",
+// "spawn human/coxswain.tik", etc.
+void Cmd_Spawn( gentity_t *clent ) {
+	char arg[MAX_TOKEN_CHARS];
+	const char *tikiFName;
+	vec3_t o, f;
+	gentity_t *ent;
+	tiki_t *tiki;
+
+	if ( trap_Argc() != 2 ) {
+		trap_SendServerCommand( ent-g_entities, "print \"Usage: spawn <TIKI model path>.\n\"" );
+		return;
+	}
+	trap_Argv( 1, arg, sizeof( arg ) );
+	tikiFName = G_FixTIKIPath(arg);
+	tiki = trap_TIKI_RegisterModel(tikiFName);
+	if(!tiki) {
+		trap_SendServerCommand( ent-g_entities, va("print \"Server couldn't load %s.\n\"",arg));
+		return;
+	}
+	ent = G_Spawn();
+	ent->classname = "Animate"; // TODO: get classname from TIKI file
+	ent->model = G_NewString(tikiFName);
+	AngleVectors(clent->client->ps.viewangles,f,0,0);
+	VectorCopy(clent->client->ps.origin,o);
+	VectorMA(o,64,f,ent->s.origin);
+	ent->s.origin[2] += clent->client->ps.viewheight;
+	ent->s.modelindex = G_ModelIndex(tikiFName);
+	ent->s.eType = ET_MODELANIM;
+	VectorSet (ent->r.mins, -128, -128, -128);
+	VectorSet (ent->r.maxs, 128, 128, 128);			
+	ent->s.frameInfo[0].weight = 1.f;
+	G_SetOrigin( ent, ent->s.origin );
+	trap_LinkEntity(ent);
+}
+
+/*
 =================
 ClientCommand
 =================
@@ -1330,6 +1373,8 @@ void ClientCommand( int clientNum ) {
 		Cmd_SetViewpos_f( ent );
 	else if (Q_stricmp (cmd, "stats") == 0)
 		Cmd_Stats_f( ent );
+	else if (Q_stricmp (cmd, "spawn") == 0)
+		Cmd_Spawn( ent ); // su44
 	else
 		trap_SendServerCommand( clientNum, va("print \"unknown cmd %s\n\"", cmd ) );
 }
