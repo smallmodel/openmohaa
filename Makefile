@@ -4,9 +4,7 @@
 # GNU Make required
 #
 
-#wombat: for SERVER we need to resolve tiki dependency on renderer
-BUILD_SERVER = 0
-# QVM not our bsiness right now
+# wombat: we do not use/need QVMs currently
 BUILD_GAME_QVM = 0
 
 
@@ -1302,7 +1300,7 @@ Q3DOBJ = \
   $(B)/ded/net_chan.o \
   $(B)/ded/net_ip.o \
   $(B)/ded/huffman.o \
-#  $(B)/ded/tiki.o \
+  $(B)/ded/tiki.o \
   \
   $(B)/ded/q_math.o \
   $(B)/ded/q_shared.o \

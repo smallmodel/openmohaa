@@ -1663,6 +1663,9 @@ void R_LoadLightGrid( lump_t *lightGridPalette, lump_t *lightGridOffsets, lump_t
 		return;
 	}
 
+	w->lightGridSize[0] = 32;
+	w->lightGridSize[1] = 32;
+	w->lightGridSize[2] = 32;
 	w->lightGridInverseSize[0] = 1.0f / w->lightGridSize[0];
 	w->lightGridInverseSize[1] = 1.0f / w->lightGridSize[1];
 	w->lightGridInverseSize[2] = 1.0f / w->lightGridSize[2];
