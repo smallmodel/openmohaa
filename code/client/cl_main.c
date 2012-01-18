@@ -2767,7 +2767,8 @@ void CL_Init( void ) {
 	//
 	wombat = Cvar_Get( "wombat", "0", 0 );
 	cl_noprint = Cvar_Get( "cl_noprint", "0", 0 );
-	cl_motd = Cvar_Get ("cl_motd", "1", 0);
+	// maybe we can set up our own motd server once :)
+	cl_motd = Cvar_Get ("cl_motd", "0", 0);
 
 	cl_timeout = Cvar_Get ("cl_timeout", "200", 0);
 
