@@ -30,7 +30,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "../renderer/tr_local.h"
 #include "../client/client.h"
 #include "../sys/sys_local.h"
 
@@ -299,7 +298,7 @@ static void IN_ActivateMouse( void )
 	}
 
 	// in_nograb makes no sense unless fullscreen
-	if( !r_fullscreen->integer )
+	if( !cl_r_fullscreen->integer )
 	{
 		if( in_nograb->modified || !mouseActive )
 		{
@@ -734,7 +733,7 @@ void IN_Frame (void)
 	IN_JoyMove( );
 
 	// Release the mouse if the console if down and we're windowed
-	if( ( Key_GetCatcher( ) & KEYCATCH_CONSOLE ) && !r_fullscreen->integer )
+	if( ( Key_GetCatcher( ) & KEYCATCH_CONSOLE ) && !cl_r_fullscreen->integer )
 		IN_DeactivateMouse( );
 	else
 		IN_ActivateMouse( );

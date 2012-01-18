@@ -22,14 +22,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 #include "tiki_local.h"
-//#include "../renderer/tr_local.h"
+#include "../client/client.h"
 
 #define TIKI_FILE_HASH_SIZE		1024
 static	tiki_t					*hashTable[TIKI_FILE_HASH_SIZE];
 
 
 char *TIKI_GetBoneNameFromIndex(int globalBoneName);
-qhandle_t RE_RegisterShader( const char *name );
 // copied over from renderer/tr_shader.c
 #ifdef __GNUCC__
   #warning TODO: check if long is ok here
@@ -1650,7 +1649,7 @@ parseSurface:
 			for(j = 0; j < numSurfShaders; j++) {
 				// "all" keyword is used in eg. models/ammo/thompson_clip.tik
 				if(!Q_stricmp(surfShaders[j].surface,"all")) {
-					out->surfShaders[i] = RE_RegisterShader(surfShaders[j].shader);
+					out->surfShaders[i] = re.RegisterShader(surfShaders[j].shader);
 				} else {
 					int testLen;
 					char *star;
@@ -1662,7 +1661,7 @@ parseSurface:
 						testLen = strlen(surfShaders[j].surface)+1;
 					}
 					if(!Q_stricmpn(sf->name,surfShaders[j].surface,testLen)) {
-						out->surfShaders[i] = RE_RegisterShader(surfShaders[j].shader);
+						out->surfShaders[i] = re.RegisterShader(surfShaders[j].shader);
 					}
 				}
 			}

@@ -4,6 +4,7 @@
 	Version="9,00"
 	Name="quake3"
 	ProjectGUID="{81CB51C4-B434-4E12-B69B-BAEE102F2852}"
+	RootNamespace="quake3"
 	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
@@ -144,6 +145,106 @@
 				Optimization="0"
 				AdditionalIncludeDirectories="..\..\code\al\;..\..\code\libcurl\;..\..\code\SDL12\include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;USE_OPENAL;_CRT_SECURE_NO_DEPRECATE;BOTLIB;USE_ICON;USE_CURL"
+				RuntimeLibrary="3"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderFile="$(IntDir)\quake3.pch"
+				AssemblerListingLocation="$(IntDir)\"
+				ObjectFile="$(IntDir)\"
+				ProgramDataBaseFileName="$(IntDir)\"
+				BrowseInformation="1"
+				BrowseInformationFile="$(IntDir)\"
+				WarningLevel="3"
+				SuppressStartupBanner="true"
+				DebugInformationFormat="4"
+			/>
+			<Tool
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_DEBUG"
+				Culture="1033"
+				ResourceOutputFileName="..\winquake.res"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalDependencies="user32.lib advapi32.lib winmm.lib wsock32.lib openal32.lib SDLmain.lib SDL.lib OpenGL32.lib libcurl.lib"
+				OutputFile="..\..\build\openmohaa.exe"
+				LinkIncremental="2"
+				SuppressStartupBanner="true"
+				AdditionalLibraryDirectories="..\..\code\libs\win32"
+				IgnoreDefaultLibraryNames=""
+				GenerateDebugInformation="true"
+				ProgramDatabaseFile="$(IntDir)\quake3.pdb"
+				GenerateMapFile="true"
+				MapFileName="$(IntDir)\quake3.map"
+				SubSystem="2"
+				StackReserveSize="8388608"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
+				TargetMachine="1"
+			/>
+			<Tool
+				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
+			/>
+			<Tool
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				Description="Post build processing.."
+				CommandLine="rem bash -c &quot;perl ./unix/cons -- debug&quot;"
+			/>
+		</Configuration>
+		<Configuration
+			Name="Debug_PlugableRenderer|Win32"
+			OutputDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
+			ConfigurationType="1"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="false"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+				PreprocessorDefinitions="_DEBUG"
+				MkTypLibCompatible="true"
+				SuppressStartupBanner="true"
+				TargetEnvironment="1"
+				TypeLibraryName="$(IntDir)\quake3.tlb"
+				HeaderFileName=""
+			/>
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories="..\..\code\al\;..\..\code\libcurl\;..\..\code\SDL12\include"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;USE_OPENAL;_CRT_SECURE_NO_DEPRECATE;BOTLIB;USE_ICON;USE_CURL;USE_RENDERER_DLL"
 				RuntimeLibrary="3"
 				UsePrecompiledHeader="0"
 				PrecompiledHeaderFile="$(IntDir)\quake3.pch"
@@ -437,6 +538,16 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
+					Name="Debug_PlugableRenderer|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release|Win32"
 					>
 					<Tool
@@ -480,6 +591,16 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
+					Name="Debug_PlugableRenderer|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release|Win32"
 					>
 					<Tool
@@ -514,6 +635,16 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug_PlugableRenderer|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -570,6 +701,16 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
+					Name="Debug_PlugableRenderer|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release|Win32"
 					>
 					<Tool
@@ -604,6 +745,16 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug_PlugableRenderer|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -656,6 +807,16 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
+					Name="Debug_PlugableRenderer|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release|Win32"
 					>
 					<Tool
@@ -690,6 +851,16 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug_PlugableRenderer|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -742,6 +913,16 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
+					Name="Debug_PlugableRenderer|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release|Win32"
 					>
 					<Tool
@@ -776,6 +957,16 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug_PlugableRenderer|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -828,6 +1019,16 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
+					Name="Debug_PlugableRenderer|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release|Win32"
 					>
 					<Tool
@@ -862,6 +1063,16 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug_PlugableRenderer|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -914,6 +1125,16 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
+					Name="Debug_PlugableRenderer|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release|Win32"
 					>
 					<Tool
@@ -948,6 +1169,16 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug_PlugableRenderer|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -1004,6 +1235,16 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
+					Name="Debug_PlugableRenderer|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release|Win32"
 					>
 					<Tool
@@ -1038,6 +1279,16 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug_PlugableRenderer|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -1090,6 +1341,16 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
+					Name="Debug_PlugableRenderer|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release|Win32"
 					>
 					<Tool
@@ -1124,6 +1385,16 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug_PlugableRenderer|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -1184,6 +1455,16 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
+					Name="Debug_PlugableRenderer|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release|Win32"
 					>
 					<Tool
@@ -1218,6 +1499,16 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug_PlugableRenderer|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -1270,6 +1561,16 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
+					Name="Debug_PlugableRenderer|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release|Win32"
 					>
 					<Tool
@@ -1304,6 +1605,16 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug_PlugableRenderer|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -1356,6 +1667,16 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
+					Name="Debug_PlugableRenderer|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release|Win32"
 					>
 					<Tool
@@ -1390,6 +1711,16 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug_PlugableRenderer|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -1442,6 +1773,16 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
+					Name="Debug_PlugableRenderer|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release|Win32"
 					>
 					<Tool
@@ -1484,10 +1825,26 @@
 			<File
 				RelativePath="..\..\code\sdl\sdl_gamma.c"
 				>
+				<FileConfiguration
+					Name="Debug_PlugableRenderer|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\code\sdl\sdl_glimp.c"
 				>
+				<FileConfiguration
+					Name="Debug_PlugableRenderer|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\code\sdl\sdl_input.c"
@@ -1512,6 +1869,16 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug_PlugableRenderer|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -1576,6 +1943,16 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
+					Name="Debug_PlugableRenderer|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release|Win32"
 					>
 					<Tool
@@ -1623,6 +2000,16 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
+					Name="Debug_PlugableRenderer|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release|Win32"
 					>
 					<Tool
@@ -1657,6 +2044,16 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug_PlugableRenderer|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -1713,6 +2110,16 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
+					Name="Debug_PlugableRenderer|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release|Win32"
 					>
 					<Tool
@@ -1747,6 +2154,16 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug_PlugableRenderer|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -1799,6 +2216,16 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
+					Name="Debug_PlugableRenderer|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release|Win32"
 					>
 					<Tool
@@ -1833,6 +2260,16 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug_PlugableRenderer|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -1885,6 +2322,16 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
+					Name="Debug_PlugableRenderer|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release|Win32"
 					>
 					<Tool
@@ -1919,6 +2366,16 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug_PlugableRenderer|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -1971,6 +2428,16 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
+					Name="Debug_PlugableRenderer|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release|Win32"
 					>
 					<Tool
@@ -2005,6 +2472,16 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug_PlugableRenderer|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -2057,6 +2534,16 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
+					Name="Debug_PlugableRenderer|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release|Win32"
 					>
 					<Tool
@@ -2091,6 +2578,16 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug_PlugableRenderer|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -2155,6 +2652,16 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
+					Name="Debug_PlugableRenderer|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release|Win32"
 					>
 					<Tool
@@ -2189,6 +2696,16 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug_PlugableRenderer|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -2241,6 +2758,16 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
+					Name="Debug_PlugableRenderer|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release|Win32"
 					>
 					<Tool
@@ -2275,6 +2802,16 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug_PlugableRenderer|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -2459,146 +2996,434 @@
 				<File
 					RelativePath="..\..\code\jpeg-6\jcapimin.c"
 					>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\jpeg-6\jccoefct.c"
 					>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\jpeg-6\jccolor.c"
 					>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\jpeg-6\jcdctmgr.c"
 					>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\jpeg-6\jchuff.c"
 					>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\jpeg-6\jcinit.c"
 					>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\jpeg-6\jcmainct.c"
 					>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\jpeg-6\jcmarker.c"
 					>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\jpeg-6\jcmaster.c"
 					>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\jpeg-6\jcomapi.c"
 					>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\jpeg-6\jcparam.c"
 					>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\jpeg-6\jcphuff.c"
 					>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\jpeg-6\jcprepct.c"
 					>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\jpeg-6\jcsample.c"
 					>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\jpeg-6\jctrans.c"
 					>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\jpeg-6\jdapimin.c"
 					>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\jpeg-6\jdapistd.c"
 					>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\jpeg-6\jdatadst.c"
 					>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\jpeg-6\jdatasrc.c"
 					>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\jpeg-6\jdcoefct.c"
 					>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\jpeg-6\jdcolor.c"
 					>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\jpeg-6\jddctmgr.c"
 					>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\jpeg-6\jdhuff.c"
 					>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\jpeg-6\jdinput.c"
 					>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\jpeg-6\jdmainct.c"
 					>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\jpeg-6\jdmarker.c"
 					>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\jpeg-6\jdmaster.c"
 					>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\jpeg-6\jdpostct.c"
 					>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\jpeg-6\jdsample.c"
 					>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\jpeg-6\jdtrans.c"
 					>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\jpeg-6\jerror.c"
 					>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\jpeg-6\jfdctflt.c"
 					>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\jpeg-6\jidctflt.c"
 					>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\jpeg-6\jmemmgr.c"
 					>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\jpeg-6\jmemnobs.c"
 					>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\jpeg-6\jutils.c"
 					>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 			</Filter>
 			<Filter
@@ -2883,98 +3708,290 @@
 				<File
 					RelativePath="..\..\code\renderer\tr_animation.c"
 					>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\renderer\tr_backend.c"
 					>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\renderer\tr_bsp.c"
 					>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\renderer\tr_cmds.c"
 					>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\renderer\tr_curve.c"
 					>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\renderer\tr_flares.c"
 					>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\renderer\tr_font.c"
 					>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\renderer\tr_image.c"
 					>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\renderer\tr_init.c"
 					>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\renderer\tr_light.c"
 					>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\renderer\tr_main.c"
 					>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\renderer\tr_marks.c"
 					>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\renderer\tr_mesh.c"
 					>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\renderer\tr_model.c"
 					>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\renderer\tr_noise.c"
 					>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\renderer\tr_scene.c"
 					>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\renderer\tr_shade.c"
 					>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\renderer\tr_shade_calc.c"
 					>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\renderer\tr_shader.c"
 					>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\renderer\tr_shadows.c"
 					>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\renderer\tr_sky.c"
 					>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\renderer\tr_sprite.c"
 					>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\renderer\tr_surface.c"
 					>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\renderer\tr_world.c"
 					>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 			</Filter>
 		</Filter>

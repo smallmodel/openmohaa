@@ -1934,9 +1934,9 @@ void R_LoadStaticModels(lump_t *l) {
 			s_worldData.staticModels[i].bones =  ri.Hunk_Alloc(sizeof(bone_t)*tr.models[s_worldData.staticModels[i].model]->tiki->numBones,h_low);
 			s_worldData.staticModels[i].radius = 0;
 			ClearBounds(s_worldData.staticModels[i].bounds[0],s_worldData.staticModels[i].bounds[1]);
-			TIKI_AppendFrameBoundsAndRadius(tiki,0,0,&s_worldData.staticModels[i].radius,s_worldData.staticModels[i].bounds);
-			TIKI_SetChannels(tiki,0,0,0,s_worldData.staticModels[i].bones);
-			TIKI_Animate(tiki,s_worldData.staticModels[i].bones);
+			ri.TIKI_AppendFrameBoundsAndRadius(tiki,0,0,&s_worldData.staticModels[i].radius,s_worldData.staticModels[i].bounds);
+			ri.TIKI_SetChannels(tiki,0,0,0,s_worldData.staticModels[i].bones);
+			ri.TIKI_Animate(tiki,s_worldData.staticModels[i].bones);
 		}
 	}
 	ri.Printf(PRINT_DEVELOPER, "R_LoadStaticModels: %d static models loaded\n", s_worldData.numStaticModels);

@@ -24,7 +24,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "tr_types.h"
 
-#define	REF_API_VERSION		8
+#define	REF_API_VERSION		9
+
+typedef struct tiki_s tiki_t;
 
 //
 // these are the functions exported by the refresh module
@@ -170,6 +172,22 @@ typedef struct {
 	e_status (*CIN_RunCinematic) (int handle);
 
 	void	(*CL_WriteAVIVideoFrame)( const byte *buffer, int size );
+
+	// su44 - plugable renderer architecture
+	byte	*(*CM_ClusterPVS)(int cluster);
+	tiki_t	*(*TIKI_RegisterModel)(const char *fname);
+	void	(*TIKI_SetChannels)(tiki_t *tiki, int animIndex, float animTime, float animWeight, bone_t *bones);
+	void	(*TIKI_AppendFrameBoundsAndRadius)( struct tiki_s *tiki, int animIndex, float animTime, float *outRadius, vec3_t outBounds[2] );
+	void	(*TIKI_Animate)(tiki_t *tiki, bone_t *bones);
+
+	int		(*Cvar_VariableIntegerValue)( const char *var_name );
+	//void	(*Cbuf_AddText)( const char *text );
+
+	// input event handling
+	void	(*IN_Init)(void);
+	void	(*IN_Shutdown)(void);
+	void	(*IN_Restart)(void);
+
 } refimport_t;
 
 

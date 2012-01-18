@@ -22,7 +22,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // cl_main.c  -- client main loop
 
 #include "client.h"
+#include "../qcommon/tiki_local.h"
+#include "../sys/sys_local.h"
 #include <limits.h>
+#ifdef USE_RENDERER_DLL
+#include "../sys/sys_loadlib.h"
+#endif
 
 cvar_t	*cl_nodelta;
 cvar_t	*cl_debugMove;
@@ -80,6 +85,8 @@ cvar_t	*cl_guidServerUniq;
 
 cvar_t	*wombat;
 
+cvar_t	*cl_r_fullscreen;
+
 clientActive_t		cl;
 clientConnection_t	clc;
 clientStatic_t		cls;
@@ -87,6 +94,14 @@ vm_t				*cgvm;
 
 // Structure containing functions exported from refresh DLL
 refexport_t	re;
+
+#ifdef USE_RENDERER_DLL
+// su44: for plugable renderer system
+refexport_t* (*DGetRefAPI)(int apiVersion, refimport_t * rimp) = NULL;
+static cvar_t  *cl_renderer = NULL;
+static void    *rendererLib = NULL;
+#endif // USE_RENDERER_DLL
+
 
 ping_t	cl_pinglist[MAX_PINGREQUESTS];
 
@@ -2400,6 +2415,13 @@ void CL_ShutdownRef( void ) {
 	}
 	re.Shutdown( qtrue );
 	Com_Memset( &re, 0, sizeof( re ) );
+#ifdef USE_RENDERER_DLL
+	// su44: remember to unload renderer library
+	if(rendererLib) {
+		Sys_UnloadLibrary(rendererLib);
+		rendererLib = NULL;
+	}
+#endif
 }
 
 /*
@@ -2486,6 +2508,9 @@ CL_InitRef
 void CL_InitRef( void ) {
 	refimport_t	ri;
 	refexport_t	*ret;
+#ifdef USE_RENDERER_DLL
+	char dllName[256];
+#endif
 
 	Com_Printf( "----- Initializing Renderer ----\n" );
 
@@ -2507,6 +2532,7 @@ void CL_InitRef( void ) {
 	ri.Hunk_AllocateTempMemory = Hunk_AllocateTempMemory;
 	ri.Hunk_FreeTempMemory = Hunk_FreeTempMemory;
 	ri.CM_DrawDebugSurface = CM_DrawDebugSurface;
+	ri.CM_ClusterPVS = CM_ClusterPVS;
 	ri.FS_ReadFile = FS_ReadFile;
 	ri.FS_FreeFile = FS_FreeFile;
 	ri.FS_WriteFile = FS_WriteFile;
@@ -2525,7 +2551,51 @@ void CL_InitRef( void ) {
 
 	ri.CL_WriteAVIVideoFrame = CL_WriteAVIVideoFrame;
 
+	ri.TIKI_RegisterModel = TIKI_RegisterModel;
+	ri.TIKI_SetChannels = TIKI_SetChannels;
+	ri.TIKI_AppendFrameBoundsAndRadius = TIKI_AppendFrameBoundsAndRadius;
+	ri.TIKI_Animate = TIKI_Animate;
+
+	ri.Cvar_VariableIntegerValue = Cvar_VariableIntegerValue;
+
+	ri.IN_Init = IN_Init;
+	ri.IN_Shutdown = IN_Shutdown;
+	//ri.IN_Restart = IN_Restart;
+
+#ifdef USE_RENDERER_DLL
+	// su44: load renderer dll
+	cl_renderer = Cvar_Get("cl_renderer", "glom", CVAR_ARCHIVE);
+	Q_snprintf(dllName, sizeof(dllName), "renderer_%s" ARCH_STRING DLL_EXT, cl_renderer->string); 
+	Com_Printf("Loading \"%s\"...", dllName);
+	if((rendererLib = Sys_LoadLibrary(dllName)) == 0) {
+#ifdef _WIN32
+		Com_Printf("failed:\n\"%s\"\n", Sys_LibraryError());
+#else
+		char            fn[1024];
+
+		Q_strncpyz(fn, Sys_Cwd(), sizeof(fn));
+		strncat(fn, "/", sizeof(fn) - strlen(fn) - 1);
+		strncat(fn, dllName, sizeof(fn) - strlen(fn) - 1);
+
+		Com_Printf("Loading \"%s\"...", fn);
+		if((rendererLib = Sys_LoadLibrary(fn)) == 0)
+		{
+			Com_Error(ERR_FATAL, "failed:\n\"%s\"", Sys_LibraryError());
+		}
+#endif	/* _WIN32 */
+	}
+
+	Com_Printf("done\n");
+
+	DGetRefAPI = Sys_LoadFunction(rendererLib, "GetRefAPI");
+	if(!DGetRefAPI)
+	{
+		Com_Error(ERR_FATAL, "Can't load symbol GetRefAPI: '%s'",  Sys_LibraryError());
+	}
+	ret = DGetRefAPI( REF_API_VERSION, &ri );
+#else
 	ret = GetRefAPI( REF_API_VERSION, &ri );
+#endif
 
 #if defined __USEA3D && defined __A3D_GEOM
 	hA3Dg_ExportRenderGeom (ret);
@@ -2748,6 +2818,8 @@ void CL_Init( void ) {
 #endif
 
 	cl_serverStatusResendTime = Cvar_Get ("cl_serverStatusResendTime", "750", 0);
+
+	cl_r_fullscreen = Cvar_Get( "r_fullscreen", "1", CVAR_ARCHIVE );
 
 	// init autoswitch so the ui will have it correctly even
 	// if the cgame hasn't been started

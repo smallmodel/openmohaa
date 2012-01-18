@@ -96,7 +96,7 @@ GLimp_Shutdown
 */
 void GLimp_Shutdown( void )
 {
-	IN_Shutdown();
+	ri.IN_Shutdown();
 
 	SDL_QuitSubSystem( SDL_INIT_VIDEO );
 	screen = NULL;
@@ -416,7 +416,7 @@ static qboolean GLimp_StartDriverAndSetMode( int mode, qboolean fullscreen )
 		ri.Printf( PRINT_ALL, "OK\n");
 	}
 
-	if (fullscreen && Cvar_VariableIntegerValue( "in_nograb" ) )
+	if (fullscreen && ri.Cvar_VariableIntegerValue( "in_nograb" ) )
 	{
 		ri.Printf( PRINT_ALL, "Fullscreen not allowed with in_nograb 1\n");
 		ri.Cvar_Set( "r_fullscreen", "0" );
@@ -642,7 +642,7 @@ void GLimp_Init( void )
 	ri.Cvar_Get( "r_availableModes", "", CVAR_ROM );
 
 	// This depends on SDL_INIT_VIDEO, hence having it here
-	IN_Init( );
+	ri.IN_Init( );
 
 	return;
 }
@@ -686,7 +686,8 @@ void GLimp_EndFrame( void )
 
 		// SDL_WM_ToggleFullScreen didn't work, so do it the slow way
 		if( !sdlToggled )
-			Cbuf_AddText( "vid_restart" );
+			ri.Cmd_ExecuteText(EXEC_APPEND, "vid_restart");
+			//ri.Cbuf_AddText( "vid_restart" );
 
 		r_fullscreen->modified = qfalse;
 	}

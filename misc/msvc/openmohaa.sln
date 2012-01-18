@@ -12,6 +12,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ui", "ui.vcproj", "{A8EAC38
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mohui", "mohui.vcproj", "{BCBC4A0D-CB9B-492E-85D0-FC414D7AB8BC}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "renderer_glom", "renderer_glom.vcproj", "{E737A8FF-C9C8-442B-ADF5-530E8AC290B6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug TA|Win32 = Debug TA|Win32
@@ -68,6 +70,14 @@ Global
 		{BCBC4A0D-CB9B-492E-85D0-FC414D7AB8BC}.Release TA|Win32.Build.0 = Release TA|Win32
 		{BCBC4A0D-CB9B-492E-85D0-FC414D7AB8BC}.Release|Win32.ActiveCfg = Release|Win32
 		{BCBC4A0D-CB9B-492E-85D0-FC414D7AB8BC}.Release|Win32.Build.0 = Release|Win32
+		{E737A8FF-C9C8-442B-ADF5-530E8AC290B6}.Debug TA|Win32.ActiveCfg = Debug|Win32
+		{E737A8FF-C9C8-442B-ADF5-530E8AC290B6}.Debug TA|Win32.Build.0 = Debug|Win32
+		{E737A8FF-C9C8-442B-ADF5-530E8AC290B6}.Debug|Win32.ActiveCfg = Debug|Win32
+		{E737A8FF-C9C8-442B-ADF5-530E8AC290B6}.Debug|Win32.Build.0 = Debug|Win32
+		{E737A8FF-C9C8-442B-ADF5-530E8AC290B6}.Release TA|Win32.ActiveCfg = Release|Win32
+		{E737A8FF-C9C8-442B-ADF5-530E8AC290B6}.Release TA|Win32.Build.0 = Release|Win32
+		{E737A8FF-C9C8-442B-ADF5-530E8AC290B6}.Release|Win32.ActiveCfg = Release|Win32
+		{E737A8FF-C9C8-442B-ADF5-530E8AC290B6}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

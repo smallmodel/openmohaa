@@ -179,7 +179,7 @@ qhandle_t RE_RegisterModel( const char *name ) {
 	// IneQuation: TIKI support
 	if (!Q_stricmp(fext, "tik")) {
 		tiki_t *tiki;
-		tiki = TIKI_RegisterModel(name);
+		tiki = ri.TIKI_RegisterModel(name);
 		if (!tiki) {
 			ri.Printf(PRINT_WARNING,"RE_RegisterModel: couldn't load TIKI file %s\n", name);
 			mod->type = MOD_BAD;
