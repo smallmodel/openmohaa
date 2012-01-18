@@ -502,6 +502,106 @@
 				CommandLine="rem bash -c &quot;perl ./unix/cons -- debug-TA&quot;"
 			/>
 		</Configuration>
+		<Configuration
+			Name="Debug_Dedicated|Win32"
+			OutputDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
+			ConfigurationType="1"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="false"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+				PreprocessorDefinitions="_DEBUG"
+				MkTypLibCompatible="true"
+				SuppressStartupBanner="true"
+				TargetEnvironment="1"
+				TypeLibraryName="$(IntDir)\quake3.tlb"
+				HeaderFileName=""
+			/>
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories="..\..\code\al\;..\..\code\libcurl\;..\..\code\SDL12\include"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;USE_OPENAL;_CRT_SECURE_NO_DEPRECATE;BOTLIB;USE_ICON;USE_CURL;DEDICATED"
+				RuntimeLibrary="3"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderFile="$(IntDir)\quake3.pch"
+				AssemblerListingLocation="$(IntDir)\"
+				ObjectFile="$(IntDir)\"
+				ProgramDataBaseFileName="$(IntDir)\"
+				BrowseInformation="1"
+				BrowseInformationFile="$(IntDir)\"
+				WarningLevel="3"
+				SuppressStartupBanner="true"
+				DebugInformationFormat="4"
+			/>
+			<Tool
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_DEBUG"
+				Culture="1033"
+				ResourceOutputFileName="..\winquake.res"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalDependencies="user32.lib advapi32.lib winmm.lib wsock32.lib openal32.lib OpenGL32.lib libcurl.lib"
+				OutputFile="..\..\build\openmohaa_dedicated.exe"
+				LinkIncremental="2"
+				SuppressStartupBanner="true"
+				AdditionalLibraryDirectories="..\..\code\libs\win32"
+				IgnoreDefaultLibraryNames=""
+				GenerateDebugInformation="true"
+				ProgramDatabaseFile="$(IntDir)\quake3.pdb"
+				GenerateMapFile="true"
+				MapFileName="$(IntDir)\quake3.map"
+				SubSystem="1"
+				StackReserveSize="8388608"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
+				TargetMachine="1"
+			/>
+			<Tool
+				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
+			/>
+			<Tool
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				Description="Post build processing.."
+				CommandLine="rem bash -c &quot;perl ./unix/cons -- debug&quot;"
+			/>
+		</Configuration>
 	</Configurations>
 	<References>
 	</References>
@@ -510,544 +610,6 @@
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;hpj;bat;for;f90"
 			>
-			<File
-				RelativePath="..\..\code\client\cl_avi.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\code\client\cl_cgame.c"
-				>
-				<FileConfiguration
-					Name="Release TA|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug_PlugableRenderer|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug TA|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\..\code\client\cl_cin.c"
-				>
-				<FileConfiguration
-					Name="Release TA|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug_PlugableRenderer|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug TA|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\..\code\client\cl_console.c"
-				>
-				<FileConfiguration
-					Name="Release TA|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug_PlugableRenderer|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug TA|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\..\code\client\cl_curl.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\code\client\cl_input.c"
-				>
-				<FileConfiguration
-					Name="Release TA|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug_PlugableRenderer|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug TA|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\..\code\client\cl_keys.c"
-				>
-				<FileConfiguration
-					Name="Release TA|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug_PlugableRenderer|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug TA|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\..\code\client\cl_main.c"
-				>
-				<FileConfiguration
-					Name="Release TA|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug_PlugableRenderer|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug TA|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\..\code\client\cl_net_chan.c"
-				>
-				<FileConfiguration
-					Name="Release TA|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug_PlugableRenderer|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug TA|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\..\code\client\cl_parse.c"
-				>
-				<FileConfiguration
-					Name="Release TA|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug_PlugableRenderer|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug TA|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\..\code\client\cl_scrn.c"
-				>
-				<FileConfiguration
-					Name="Release TA|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug_PlugableRenderer|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug TA|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\..\code\client\cl_ui.c"
-				>
-				<FileConfiguration
-					Name="Release TA|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug_PlugableRenderer|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug TA|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-			</File>
 			<File
 				RelativePath="..\..\code\qcommon\cm_load.c"
 				>
@@ -1092,6 +654,16 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug TA|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug_Dedicated|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -1153,6 +725,16 @@
 						BrowseInformation="1"
 					/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug_Dedicated|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\code\qcommon\cm_polylib.c"
@@ -1198,6 +780,16 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug TA|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug_Dedicated|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -1263,6 +855,16 @@
 						BrowseInformation="1"
 					/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug_Dedicated|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\code\qcommon\cm_trace.c"
@@ -1308,6 +910,16 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug TA|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug_Dedicated|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -1369,6 +981,16 @@
 						BrowseInformation="1"
 					/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug_Dedicated|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\code\qcommon\common.c"
@@ -1422,6 +1044,16 @@
 						BrowseInformation="1"
 					/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug_Dedicated|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\code\sys\con_log.c"
@@ -1430,6 +1062,34 @@
 			<File
 				RelativePath="..\..\code\sys\con_passive.c"
 				>
+				<FileConfiguration
+					Name="Debug_Dedicated|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\code\sys\con_win32.c"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug_PlugableRenderer|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\code\qcommon\cvar.c"
@@ -1475,6 +1135,16 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug TA|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug_Dedicated|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -1536,6 +1206,16 @@
 						BrowseInformation="1"
 					/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug_Dedicated|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\code\qcommon\huffman.c"
@@ -1581,6 +1261,16 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug TA|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug_Dedicated|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -1642,6 +1332,16 @@
 						BrowseInformation="1"
 					/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug_Dedicated|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\code\qcommon\md5.c"
@@ -1687,6 +1387,16 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug TA|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug_Dedicated|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -1748,6 +1458,16 @@
 						BrowseInformation="1"
 					/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug_Dedicated|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\code\qcommon\net_chan.c"
@@ -1801,6 +1521,16 @@
 						BrowseInformation="1"
 					/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug_Dedicated|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\code\qcommon\net_ip.c"
@@ -1821,798 +1551,11 @@
 			<File
 				RelativePath="..\..\code\client\qal.c"
 				>
-			</File>
-			<File
-				RelativePath="..\..\code\sdl\sdl_gamma.c"
-				>
-				<FileConfiguration
-					Name="Debug_PlugableRenderer|Win32"
-					ExcludedFromBuild="true"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\..\code\sdl\sdl_glimp.c"
-				>
-				<FileConfiguration
-					Name="Debug_PlugableRenderer|Win32"
-					ExcludedFromBuild="true"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\..\code\sdl\sdl_input.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\code\sdl\sdl_snd.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\code\client\snd_adpcm.c"
-				>
-				<FileConfiguration
-					Name="Release TA|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug_PlugableRenderer|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug TA|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\..\code\client\snd_codec.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\code\client\snd_codec_ogg.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\code\client\snd_codec_wav.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\code\client\snd_dma.c"
-				>
-				<FileConfiguration
-					Name="Release TA|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug_PlugableRenderer|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug TA|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\..\code\client\snd_main.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\code\client\snd_mem.c"
-				>
-				<FileConfiguration
-					Name="Release TA|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug_PlugableRenderer|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug TA|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\..\code\client\snd_mix.c"
-				>
-				<FileConfiguration
-					Name="Release TA|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug_PlugableRenderer|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug TA|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\..\code\client\snd_openal.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\code\client\snd_wavelet.c"
-				>
-				<FileConfiguration
-					Name="Release TA|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug_PlugableRenderer|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug TA|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\..\code\server\sv_bot.c"
-				>
-				<FileConfiguration
-					Name="Release TA|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug_PlugableRenderer|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug TA|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\..\code\server\sv_ccmds.c"
-				>
-				<FileConfiguration
-					Name="Release TA|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug_PlugableRenderer|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug TA|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\..\code\server\sv_client.c"
-				>
-				<FileConfiguration
-					Name="Release TA|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug_PlugableRenderer|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug TA|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\..\code\server\sv_game.c"
-				>
-				<FileConfiguration
-					Name="Release TA|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug_PlugableRenderer|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug TA|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\..\code\server\sv_init.c"
-				>
-				<FileConfiguration
-					Name="Release TA|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug_PlugableRenderer|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug TA|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\..\code\server\sv_main.c"
-				>
-				<FileConfiguration
-					Name="Release TA|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug_PlugableRenderer|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug TA|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\..\code\server\sv_net_chan.c"
-				>
-				<FileConfiguration
-					Name="Release TA|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug_PlugableRenderer|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug TA|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\..\code\server\sv_snapshot.c"
-				>
-				<FileConfiguration
-					Name="Release TA|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug_PlugableRenderer|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug TA|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\..\code\server\sv_world.c"
-				>
-				<FileConfiguration
-					Name="Release TA|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug_PlugableRenderer|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug TA|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						PreprocessorDefinitions=""
-						BrowseInformation="1"
 					/>
 				</FileConfiguration>
 			</File>
@@ -2623,6 +1566,13 @@
 			<File
 				RelativePath="..\..\code\sys\sys_win32.c"
 				>
+				<FileConfiguration
+					Name="Debug_Dedicated|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\code\qcommon\tiki.c"
@@ -2672,6 +1622,16 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug TA|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug_Dedicated|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -2733,6 +1693,16 @@
 						BrowseInformation="1"
 					/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug_Dedicated|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\code\qcommon\vm_interpreted.c"
@@ -2778,6 +1748,16 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug TA|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug_Dedicated|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -2839,7 +1819,1772 @@
 						BrowseInformation="1"
 					/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug_Dedicated|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
 			</File>
+			<Filter
+				Name="client"
+				>
+				<File
+					RelativePath="..\..\code\client\cl_avi.c"
+					>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\code\client\cl_cgame.c"
+					>
+					<FileConfiguration
+						Name="Release TA|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="2"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="2"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug TA|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\code\client\cl_cin.c"
+					>
+					<FileConfiguration
+						Name="Release TA|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="2"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="2"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug TA|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\code\client\cl_console.c"
+					>
+					<FileConfiguration
+						Name="Release TA|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="2"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="2"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug TA|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\code\client\cl_curl.c"
+					>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\code\client\cl_input.c"
+					>
+					<FileConfiguration
+						Name="Release TA|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="2"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="2"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug TA|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\code\client\cl_keys.c"
+					>
+					<FileConfiguration
+						Name="Release TA|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="2"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="2"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug TA|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\code\client\cl_main.c"
+					>
+					<FileConfiguration
+						Name="Release TA|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="2"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="2"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug TA|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\code\client\cl_net_chan.c"
+					>
+					<FileConfiguration
+						Name="Release TA|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="2"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="2"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug TA|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\code\client\cl_parse.c"
+					>
+					<FileConfiguration
+						Name="Release TA|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="2"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="2"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug TA|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\code\client\cl_scrn.c"
+					>
+					<FileConfiguration
+						Name="Release TA|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="2"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="2"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug TA|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\code\client\cl_ui.c"
+					>
+					<FileConfiguration
+						Name="Release TA|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="2"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="2"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug TA|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+				</File>
+			</Filter>
+			<Filter
+				Name="server"
+				>
+				<File
+					RelativePath="..\..\code\server\sv_bot.c"
+					>
+					<FileConfiguration
+						Name="Release TA|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="2"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="2"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug TA|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\code\server\sv_ccmds.c"
+					>
+					<FileConfiguration
+						Name="Release TA|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="2"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="2"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug TA|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\code\server\sv_client.c"
+					>
+					<FileConfiguration
+						Name="Release TA|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="2"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="2"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug TA|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\code\server\sv_game.c"
+					>
+					<FileConfiguration
+						Name="Release TA|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="2"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="2"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug TA|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\code\server\sv_init.c"
+					>
+					<FileConfiguration
+						Name="Release TA|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="2"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="2"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug TA|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\code\server\sv_main.c"
+					>
+					<FileConfiguration
+						Name="Release TA|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="2"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="2"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug TA|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\code\server\sv_net_chan.c"
+					>
+					<FileConfiguration
+						Name="Release TA|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="2"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="2"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug TA|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\code\server\sv_snapshot.c"
+					>
+					<FileConfiguration
+						Name="Release TA|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="2"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="2"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug TA|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\code\server\sv_world.c"
+					>
+					<FileConfiguration
+						Name="Release TA|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="2"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="2"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug TA|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+				</File>
+			</Filter>
+			<Filter
+				Name="null"
+				>
+				<File
+					RelativePath="..\..\code\null\null_client.c"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\code\null\null_input.c"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\code\null\null_snddma.c"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+				</File>
+			</Filter>
+			<Filter
+				Name="sdl"
+				>
+				<File
+					RelativePath="..\..\code\sdl\sdl_gamma.c"
+					>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\code\sdl\sdl_glimp.c"
+					>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\code\sdl\sdl_input.c"
+					>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\code\sdl\sdl_snd.c"
+					>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+				</File>
+			</Filter>
+			<Filter
+				Name="snd"
+				>
+				<File
+					RelativePath="..\..\code\client\snd_adpcm.c"
+					>
+					<FileConfiguration
+						Name="Release TA|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="2"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="2"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug TA|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\code\client\snd_codec.c"
+					>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\code\client\snd_codec_ogg.c"
+					>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\code\client\snd_codec_wav.c"
+					>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\code\client\snd_dma.c"
+					>
+					<FileConfiguration
+						Name="Release TA|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="2"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="2"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug TA|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\code\client\snd_main.c"
+					>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\code\client\snd_mem.c"
+					>
+					<FileConfiguration
+						Name="Release TA|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="2"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="2"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug TA|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\code\client\snd_mix.c"
+					>
+					<FileConfiguration
+						Name="Release TA|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="2"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="2"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug TA|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\code\client\snd_openal.c"
+					>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\code\client\snd_wavelet.c"
+					>
+					<FileConfiguration
+						Name="Release TA|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="2"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_PlugableRenderer|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="2"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug TA|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							PreprocessorDefinitions=""
+							BrowseInformation="1"
+						/>
+					</FileConfiguration>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -3004,12 +3749,28 @@
 							Name="VCCLCompilerTool"
 						/>
 					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\jpeg-6\jccoefct.c"
 					>
 					<FileConfiguration
 						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
 						ExcludedFromBuild="true"
 						>
 						<Tool
@@ -3028,12 +3789,28 @@
 							Name="VCCLCompilerTool"
 						/>
 					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\jpeg-6\jcdctmgr.c"
 					>
 					<FileConfiguration
 						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
 						ExcludedFromBuild="true"
 						>
 						<Tool
@@ -3052,12 +3829,28 @@
 							Name="VCCLCompilerTool"
 						/>
 					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\jpeg-6\jcinit.c"
 					>
 					<FileConfiguration
 						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
 						ExcludedFromBuild="true"
 						>
 						<Tool
@@ -3076,12 +3869,28 @@
 							Name="VCCLCompilerTool"
 						/>
 					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\jpeg-6\jcmarker.c"
 					>
 					<FileConfiguration
 						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
 						ExcludedFromBuild="true"
 						>
 						<Tool
@@ -3100,12 +3909,28 @@
 							Name="VCCLCompilerTool"
 						/>
 					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\jpeg-6\jcomapi.c"
 					>
 					<FileConfiguration
 						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
 						ExcludedFromBuild="true"
 						>
 						<Tool
@@ -3124,12 +3949,28 @@
 							Name="VCCLCompilerTool"
 						/>
 					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\jpeg-6\jcphuff.c"
 					>
 					<FileConfiguration
 						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
 						ExcludedFromBuild="true"
 						>
 						<Tool
@@ -3148,12 +3989,28 @@
 							Name="VCCLCompilerTool"
 						/>
 					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\jpeg-6\jcsample.c"
 					>
 					<FileConfiguration
 						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
 						ExcludedFromBuild="true"
 						>
 						<Tool
@@ -3172,12 +4029,28 @@
 							Name="VCCLCompilerTool"
 						/>
 					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\jpeg-6\jdapimin.c"
 					>
 					<FileConfiguration
 						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
 						ExcludedFromBuild="true"
 						>
 						<Tool
@@ -3196,12 +4069,28 @@
 							Name="VCCLCompilerTool"
 						/>
 					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\jpeg-6\jdatadst.c"
 					>
 					<FileConfiguration
 						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
 						ExcludedFromBuild="true"
 						>
 						<Tool
@@ -3220,12 +4109,28 @@
 							Name="VCCLCompilerTool"
 						/>
 					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\jpeg-6\jdcoefct.c"
 					>
 					<FileConfiguration
 						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
 						ExcludedFromBuild="true"
 						>
 						<Tool
@@ -3244,12 +4149,28 @@
 							Name="VCCLCompilerTool"
 						/>
 					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\jpeg-6\jddctmgr.c"
 					>
 					<FileConfiguration
 						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
 						ExcludedFromBuild="true"
 						>
 						<Tool
@@ -3268,12 +4189,28 @@
 							Name="VCCLCompilerTool"
 						/>
 					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\jpeg-6\jdinput.c"
 					>
 					<FileConfiguration
 						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
 						ExcludedFromBuild="true"
 						>
 						<Tool
@@ -3292,12 +4229,28 @@
 							Name="VCCLCompilerTool"
 						/>
 					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\jpeg-6\jdmarker.c"
 					>
 					<FileConfiguration
 						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
 						ExcludedFromBuild="true"
 						>
 						<Tool
@@ -3316,12 +4269,28 @@
 							Name="VCCLCompilerTool"
 						/>
 					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\jpeg-6\jdpostct.c"
 					>
 					<FileConfiguration
 						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
 						ExcludedFromBuild="true"
 						>
 						<Tool
@@ -3340,12 +4309,28 @@
 							Name="VCCLCompilerTool"
 						/>
 					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\jpeg-6\jdtrans.c"
 					>
 					<FileConfiguration
 						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
 						ExcludedFromBuild="true"
 						>
 						<Tool
@@ -3364,12 +4349,28 @@
 							Name="VCCLCompilerTool"
 						/>
 					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\jpeg-6\jfdctflt.c"
 					>
 					<FileConfiguration
 						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
 						ExcludedFromBuild="true"
 						>
 						<Tool
@@ -3388,12 +4389,28 @@
 							Name="VCCLCompilerTool"
 						/>
 					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\jpeg-6\jmemmgr.c"
 					>
 					<FileConfiguration
 						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
 						ExcludedFromBuild="true"
 						>
 						<Tool
@@ -3412,12 +4429,28 @@
 							Name="VCCLCompilerTool"
 						/>
 					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\jpeg-6\jutils.c"
 					>
 					<FileConfiguration
 						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
 						ExcludedFromBuild="true"
 						>
 						<Tool
@@ -3716,12 +4749,28 @@
 							Name="VCCLCompilerTool"
 						/>
 					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\renderer\tr_backend.c"
 					>
 					<FileConfiguration
 						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
 						ExcludedFromBuild="true"
 						>
 						<Tool
@@ -3740,12 +4789,28 @@
 							Name="VCCLCompilerTool"
 						/>
 					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\renderer\tr_cmds.c"
 					>
 					<FileConfiguration
 						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
 						ExcludedFromBuild="true"
 						>
 						<Tool
@@ -3764,12 +4829,28 @@
 							Name="VCCLCompilerTool"
 						/>
 					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\renderer\tr_flares.c"
 					>
 					<FileConfiguration
 						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
 						ExcludedFromBuild="true"
 						>
 						<Tool
@@ -3788,12 +4869,28 @@
 							Name="VCCLCompilerTool"
 						/>
 					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\renderer\tr_image.c"
 					>
 					<FileConfiguration
 						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
 						ExcludedFromBuild="true"
 						>
 						<Tool
@@ -3812,12 +4909,28 @@
 							Name="VCCLCompilerTool"
 						/>
 					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\renderer\tr_light.c"
 					>
 					<FileConfiguration
 						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
 						ExcludedFromBuild="true"
 						>
 						<Tool
@@ -3836,12 +4949,28 @@
 							Name="VCCLCompilerTool"
 						/>
 					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\renderer\tr_marks.c"
 					>
 					<FileConfiguration
 						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
 						ExcludedFromBuild="true"
 						>
 						<Tool
@@ -3860,12 +4989,28 @@
 							Name="VCCLCompilerTool"
 						/>
 					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\renderer\tr_model.c"
 					>
 					<FileConfiguration
 						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
 						ExcludedFromBuild="true"
 						>
 						<Tool
@@ -3884,12 +5029,28 @@
 							Name="VCCLCompilerTool"
 						/>
 					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\renderer\tr_scene.c"
 					>
 					<FileConfiguration
 						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
 						ExcludedFromBuild="true"
 						>
 						<Tool
@@ -3908,12 +5069,28 @@
 							Name="VCCLCompilerTool"
 						/>
 					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\renderer\tr_shade_calc.c"
 					>
 					<FileConfiguration
 						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
 						ExcludedFromBuild="true"
 						>
 						<Tool
@@ -3932,12 +5109,28 @@
 							Name="VCCLCompilerTool"
 						/>
 					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\renderer\tr_shadows.c"
 					>
 					<FileConfiguration
 						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
 						ExcludedFromBuild="true"
 						>
 						<Tool
@@ -3956,12 +5149,28 @@
 							Name="VCCLCompilerTool"
 						/>
 					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\renderer\tr_sprite.c"
 					>
 					<FileConfiguration
 						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
 						ExcludedFromBuild="true"
 						>
 						<Tool
@@ -3980,12 +5189,28 @@
 							Name="VCCLCompilerTool"
 						/>
 					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\code\renderer\tr_world.c"
 					>
 					<FileConfiguration
 						Name="Debug_PlugableRenderer|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_Dedicated|Win32"
 						ExcludedFromBuild="true"
 						>
 						<Tool

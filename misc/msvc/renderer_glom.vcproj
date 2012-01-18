@@ -310,6 +310,107 @@
 				CommandLine="rem bash -c &quot;perl ./unix/cons -- debug&quot;"
 			/>
 		</Configuration>
+		<Configuration
+			Name="Debug_Dedicated|Win32"
+			OutputDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
+			ConfigurationType="2"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="false"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+				PreprocessorDefinitions="_DEBUG"
+				MkTypLibCompatible="true"
+				SuppressStartupBanner="true"
+				TargetEnvironment="1"
+				TypeLibraryName="$(IntDir)\renderer_glom.tlb"
+				HeaderFileName=""
+			/>
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories="..\..\code\al\;..\..\code\libcurl\;..\..\code\SDL12\include"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;USE_OPENAL;_CRT_SECURE_NO_DEPRECATE;BOTLIB;USE_ICON;USE_CURL;RENDERER_DLL"
+				RuntimeLibrary="3"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderFile="$(IntDir)\renderer_glom.pch"
+				AssemblerListingLocation="$(IntDir)\"
+				ObjectFile="$(IntDir)\"
+				ProgramDataBaseFileName="$(IntDir)\"
+				BrowseInformation="1"
+				BrowseInformationFile="$(IntDir)\"
+				WarningLevel="3"
+				SuppressStartupBanner="true"
+				DebugInformationFormat="4"
+			/>
+			<Tool
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_DEBUG"
+				Culture="1033"
+				ResourceOutputFileName="..\winquake.res"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalDependencies="user32.lib advapi32.lib winmm.lib wsock32.lib openal32.lib SDLmain.lib SDL.lib OpenGL32.lib libcurl.lib"
+				OutputFile="..\..\build\renderer_glomx86.dll"
+				LinkIncremental="2"
+				SuppressStartupBanner="true"
+				AdditionalLibraryDirectories="..\..\code\libs\win32"
+				IgnoreDefaultLibraryNames=""
+				ModuleDefinitionFile="renderer.def"
+				GenerateDebugInformation="true"
+				ProgramDatabaseFile="$(IntDir)\renderer_glom.pdb"
+				GenerateMapFile="true"
+				MapFileName="$(IntDir)\renderer_glom.map"
+				SubSystem="2"
+				StackReserveSize="8388608"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
+				TargetMachine="1"
+			/>
+			<Tool
+				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
+			/>
+			<Tool
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				Description="Post build processing.."
+				CommandLine="rem bash -c &quot;perl ./unix/cons -- debug&quot;"
+			/>
+		</Configuration>
 	</Configurations>
 	<References>
 	</References>

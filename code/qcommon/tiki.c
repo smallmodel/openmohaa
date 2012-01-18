@@ -53,6 +53,15 @@ static long generateHashValue(const char *fname, const int size) {
 	return hash;
 }
 
+qhandle_t TIKI_RE_RegisterShader( const char *name ) {
+#ifdef DEDICATED
+	return 0;
+#else
+	return re.RegisterShader( name );
+#endif
+}
+
+
 // bones... called every frame from cgame, animated by CG_ModelAnim, then passed to renderer with refEntities
 #define MAX_GLOBAL_BONES 4096
 static bone_t globalBones[MAX_GLOBAL_BONES];
@@ -1649,7 +1658,7 @@ parseSurface:
 			for(j = 0; j < numSurfShaders; j++) {
 				// "all" keyword is used in eg. models/ammo/thompson_clip.tik
 				if(!Q_stricmp(surfShaders[j].surface,"all")) {
-					out->surfShaders[i] = re.RegisterShader(surfShaders[j].shader);
+					out->surfShaders[i] = TIKI_RE_RegisterShader(surfShaders[j].shader);
 				} else {
 					int testLen;
 					char *star;
@@ -1661,7 +1670,7 @@ parseSurface:
 						testLen = strlen(surfShaders[j].surface)+1;
 					}
 					if(!Q_stricmpn(sf->name,surfShaders[j].surface,testLen)) {
-						out->surfShaders[i] = re.RegisterShader(surfShaders[j].shader);
+						out->surfShaders[i] = TIKI_RE_RegisterShader(surfShaders[j].shader);
 					}
 				}
 			}
