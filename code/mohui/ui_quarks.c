@@ -589,7 +589,7 @@ void UI_DrawHUD( playerState_t *ps ) {
 
 	UI_DrawMenu( &uis.hudMenus[HUD_AMMO], qtrue );
 	UI_DrawMenu( &uis.hudMenus[HUD_COMPASS], qfalse );
-	UI_DrawMenu( &uis.hudMenus[HUD_FRAGLIMIT], qtrue );
+//	UI_DrawMenu( &uis.hudMenus[HUD_FRAGLIMIT], qtrue );
 	UI_DrawMenu( &uis.hudMenus[HUD_HEALTH], qtrue );
 //	UI_DrawMenu( &uis.hudMenus[HUD_ITEMS], qtrue );
 	UI_DrawMenu( &uis.hudMenus[HUD_SCORE], qtrue );

@@ -98,28 +98,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define CS_ALLIES				1879
 #define CS_AXIS					1880
 
-//not on mohaa
-//#define	CS_SCORES1				6
-//#define	CS_SCORES2				7
-//#define CS_VOTE_TIME			8
-//#define CS_VOTE_STRING			9
-//#define	CS_VOTE_YES				10
-//#define	CS_VOTE_NO				11
-//#define CS_TEAMVOTE_TIME		12
-//#define CS_TEAMVOTE_STRING		14
-//#define	CS_TEAMVOTE_YES			16
-//#define	CS_TEAMVOTE_NO			18
-//
-//#define	CS_INTERMISSION			22		// when 1, fraglimit/timelimit has been hit and intermission will start in a second or two
-//#define CS_FLAGSTATUS			23		// string indicating flag status in CTF
-//#define CS_SHADERSTATE			24
-//#define CS_BOTINFO				25
-//
-//#define	CS_ITEMS				27		// string of 0's and 1's that tell which items are present
-//#define CS_LOCATIONS			(CS_PLAYERS+MAX_CLIENTS)
-//#define CS_PARTICLES			(CS_LOCATIONS+MAX_LOCATIONS)
-
-
 #define CS_MAX					(CS_PARTICLES+MAX_LOCATIONS)
 #if (CS_MAX) > MAX_CONFIGSTRINGS
 #error overflow: (CS_MAX) > MAX_CONFIGSTRINGS
