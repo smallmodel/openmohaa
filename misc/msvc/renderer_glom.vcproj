@@ -444,7 +444,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\code\cgame\tr_types.h"
+				RelativePath="..\..\code\renderer\tr_types.h"
 				>
 			</File>
 		</Filter>

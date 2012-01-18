@@ -1468,7 +1468,7 @@ typedef struct shaderCommands_s
 	void		(*currentStageIteratorFunc)( void );
 	shaderStage_t	**xstages;
 
-	qboolean skipVertexColorsAlpha;
+	qboolean useStaticModelVertexColors;
 } shaderCommands_t;
 
 extern	shaderCommands_t	tess;

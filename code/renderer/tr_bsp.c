@@ -1894,6 +1894,7 @@ su44 was here
 void R_LoadStaticModels(lump_t *l) {
 	dstaticModel_t	*in;
 	int i;
+	int totalStaticModelVertices;
 
 	in = (void *)(fileBase + l->fileofs);
 	if (l->filelen % sizeof(dstaticModel_t))
@@ -1901,6 +1902,8 @@ void R_LoadStaticModels(lump_t *l) {
 	s_worldData.numStaticModels = l->filelen / sizeof(dstaticModel_t);
 
 	s_worldData.staticModels = ri.Hunk_Alloc(s_worldData.numStaticModels * sizeof(mstaticModel_t), h_low);
+
+	totalStaticModelVertices = 0;
 
 	for(i = 0; i < s_worldData.numStaticModels; i++) {
 		char tmp[256];
@@ -1910,6 +1913,8 @@ void R_LoadStaticModels(lump_t *l) {
 		s_worldData.staticModels[i].scale = in[i].scale;
 		s_worldData.staticModels[i].firstVert = in[i].firstVertexData;
 		s_worldData.staticModels[i].numVerts = in[i].numVertexData;
+		totalStaticModelVertices += in[i].numVertexData;
+
 		// "models" path is sometimes missing..
 		if(Q_stricmpn(in[i].model,"models/",7)) {
 			strcpy(tmp,"models/");
@@ -1941,6 +1946,11 @@ void R_LoadStaticModels(lump_t *l) {
 			ri.TIKI_SetChannels(tiki,0,0,0,s_worldData.staticModels[i].bones);
 			ri.TIKI_Animate(tiki,s_worldData.staticModels[i].bones);
 		}
+	}
+
+	if(s_worldData.numSMColors != totalStaticModelVertices) {
+		ri.Printf(PRINT_WARNING, "R_LoadStaticModels: vertexColors data mismatch (%i,%i)\n",
+			s_worldData.numSMColors,totalStaticModelVertices);
 	}
 	ri.Printf(PRINT_DEVELOPER, "R_LoadStaticModels: %d static models loaded\n", s_worldData.numStaticModels);
 }
@@ -2160,9 +2170,9 @@ void RE_LoadWorldMap( const char *name ) {
 	// IneQuation
 	R_LoadTerrain(&header->lumps[LUMP_TERRAIN]);
 	// su44
-	R_LoadStaticModels(&header->lumps[LUMP_STATICMODELDEF]);
 	R_LoadSMVertexColors(&header->lumps[LUMP_STATICMODELDATA]);
 	R_LoadStaticModelIndexes(&header->lumps[LUMP_STATICMODELINDEXES]);
+	R_LoadStaticModels(&header->lumps[LUMP_STATICMODELDEF]);
 	R_LoadSphereLights(&header->lumps[LUMP_SPHERELIGHTS]);
 	R_LoadSphereLightVis(&header->lumps[LUMP_SPHERELIGHTVIS]);
 

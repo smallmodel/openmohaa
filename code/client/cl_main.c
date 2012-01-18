@@ -2569,7 +2569,7 @@ void CL_InitRef( void ) {
 	Com_Printf("Loading \"%s\"...", dllName);
 	if((rendererLib = Sys_LoadLibrary(dllName)) == 0) {
 #ifdef _WIN32
-		Com_Printf("failed:\n\"%s\"\n", Sys_LibraryError());
+		Com_Error(ERR_FATAL, "failed:\n\"%s\"\n", Sys_LibraryError());
 #else
 		char            fn[1024];
 

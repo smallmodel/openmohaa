@@ -937,7 +937,7 @@ void RB_SurfaceSKD( skdSurface_t *sf ) {
 
 		sm = &tr.world->staticModels[backEnd.currentEntity->e.staticModelIndex-1];
 
-		tess.skipVertexColorsAlpha = qtrue;
+		tess.useStaticModelVertexColors = qtrue;
 
 		cdofs = 0;
 		sf2 = tiki->surfs;
@@ -953,27 +953,31 @@ void RB_SurfaceSKD( skdSurface_t *sf ) {
 			(*out)[0] = (*in)[0];
 			(*out)[1] = (*in)[1];
 			(*out)[2] = (*in)[2];
-//			(*out)[3] = 255;
-#else
+			(*out)[3] = 255;
+#elif 0
+			((int*)out) = tr.identityLightByte;
+#else		
+			// su44: set it to something special so
+			// I can debug vertex colors rendering
 			(*out)[0] = 255;
 			(*out)[1] = 0;
 			(*out)[2] = 0;
-			(*out)[3] = 127;
+			(*out)[3] = 255;
 #endif
 		}
-	} else
+	} //else
 #endif
-	{
-		// an attemp to fix bizarre vertex colors bug
-		color4ub_t *col;
-		
-		col = &tess.vertexColors[baseVertex];
-		for(i = 0; i < sf->numVerts; i++,col++) {
-			(*col)[0] = 255;
-			(*col)[1] = 255;
-			(*col)[2] = 255;
-			(*col)[3] = 255;
-		}
-	}
+	//{
+	//	// an attemp to fix bizarre vertex colors bug
+	//	color4ub_t *col;
+	//	
+	//	col = &tess.vertexColors[baseVertex];
+	//	for(i = 0; i < sf->numVerts; i++,col++) {
+	//		(*col)[0] = 255;
+	//		(*col)[1] = 255;
+	//		(*col)[2] = 255;
+	//		(*col)[3] = 255;
+	//	}
+	//}
 	tess.numVertexes+= sf->numVerts;
 }

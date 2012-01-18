@@ -1073,15 +1073,20 @@ static void RB_IterateStagesGeneric( shaderCommands_t *input )
 			break;
 		}
 
-		ComputeColors( pStage );
+		if(tess.useStaticModelVertexColors == qfalse) {
+			ComputeColors( pStage );
+		} else {
+			memcpy(tess.svars.colors,tess.vertexColors,tess.numVertexes*sizeof(color4ub_t));
+		}
 		ComputeTexCoords( pStage );
 
 		if ( !setArraysOnce )
 		{
 			qglEnableClientState( GL_COLOR_ARRAY );
-			if(tess.skipVertexColorsAlpha) {
-				qglColorPointer( 3, GL_UNSIGNED_BYTE, 4, tess.svars.colors );
-			} else {
+			//if(tess.skipVertexColorsAlpha) {
+			//	qglColorPointer( 3, GL_UNSIGNED_BYTE, 4, tess.svars.colors );
+			//} else 
+			{
 				qglColorPointer( 4, GL_UNSIGNED_BYTE, 0, tess.svars.colors );
 			}
 		}
@@ -1176,9 +1181,10 @@ void RB_StageIteratorGeneric( void )
 		setArraysOnce = qtrue;
 
 		qglEnableClientState( GL_COLOR_ARRAY);
-		if(tess.skipVertexColorsAlpha) {
-			qglColorPointer( 3, GL_UNSIGNED_BYTE, 4, tess.svars.colors );
-		} else {
+		//if(tess.skipVertexColorsAlpha) {
+		//	qglColorPointer( 3, GL_UNSIGNED_BYTE, 4, tess.svars.colors );
+		//} else 
+		{
 			qglColorPointer( 4, GL_UNSIGNED_BYTE, 0, tess.svars.colors );
 		}
 
@@ -1283,9 +1289,10 @@ void RB_StageIteratorVertexLitTexture( void )
 	qglEnableClientState( GL_COLOR_ARRAY);
 	qglEnableClientState( GL_TEXTURE_COORD_ARRAY);
 
-	if(tess.skipVertexColorsAlpha) {
-		qglColorPointer( 3, GL_UNSIGNED_BYTE, 4, tess.svars.colors );
-	} else {
+	//if(tess.skipVertexColorsAlpha) {
+	//	qglColorPointer( 3, GL_UNSIGNED_BYTE, 4, tess.svars.colors );
+	//} else 
+	{
 		qglColorPointer( 4, GL_UNSIGNED_BYTE, 0, tess.svars.colors );
 	}
 	qglTexCoordPointer( 2, GL_FLOAT, 16, tess.texCoords[0][0] );
@@ -1487,7 +1494,7 @@ void RB_EndSurface( void ) {
 	}
 	// clear shader so we can tell we don't have any unclosed surfaces
 	tess.numIndexes = 0;
-	tess.skipVertexColorsAlpha = qfalse;
+	tess.useStaticModelVertexColors = qfalse;
 	GLimp_LogComment( "----------\n" );
 }
 
