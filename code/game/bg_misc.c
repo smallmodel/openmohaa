@@ -26,34 +26,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "bg_public.h"
 
 /*
-============
-BG_PlayerTouchesItem
-
-Items can be picked up without actually touching their physical bounds to make
-grabbing them easier
-============
-*/
-qboolean	BG_PlayerTouchesItem( playerState_t *ps, entityState_t *item, int atTime ) {
-	vec3_t		origin;
-
-	BG_EvaluateTrajectory( &item->pos, atTime, origin );
-
-	// we are ignoring ducked differences here
-	if ( ps->origin[0] - origin[0] > 44
-		|| ps->origin[0] - origin[0] < -50
-		|| ps->origin[1] - origin[1] > 36
-		|| ps->origin[1] - origin[1] < -36
-		|| ps->origin[2] - origin[2] > 36
-		|| ps->origin[2] - origin[2] < -36 ) {
-		return qfalse;
-	}
-
-	return qtrue;
-}
-
-
-
-/*
 ================
 BG_CanItemBeGrabbed
 
@@ -323,9 +295,9 @@ void BG_PlayerStateToEntityState( playerState_t *ps, entityState_t *s, qboolean 
 	int		i;
 
 	if ( ps->pm_type == PM_INTERMISSION || ps->pm_type == PM_SPECTATOR ) {
-		s->eType = ET_INVISIBLE;
+		s->eType = 0;//ET_INVISIBLE;
 	} else if ( ps->stats[STAT_HEALTH] <= GIB_HEALTH ) {
-		s->eType = ET_INVISIBLE;
+		s->eType = 0;//ET_INVISIBLE;
 	} else {
 		s->eType = ET_PLAYER;
 	}
@@ -371,9 +343,9 @@ void BG_PlayerStateToEntityStateExtraPolate( playerState_t *ps, entityState_t *s
 	int		i;
 
 	if ( ps->pm_type == PM_INTERMISSION || ps->pm_type == PM_SPECTATOR ) {
-		s->eType = ET_INVISIBLE;
+		s->eType = 0;//ET_INVISIBLE;
 	} else if ( ps->stats[STAT_HEALTH] <= GIB_HEALTH ) {
-		s->eType = ET_INVISIBLE;
+		s->eType = 0;//ET_INVISIBLE;
 	} else {
 		s->eType = ET_PLAYER;
 	}

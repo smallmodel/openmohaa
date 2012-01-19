@@ -26,6 +26,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // q_shared.h -- included first by ALL program modules.
 // A user mod should never modify this file
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 #define PRODUCT_NAME            "OpenMoHAA"
 #define PRODUCT_VERSION         "0.1"
 
@@ -151,6 +155,10 @@ typedef int		clipHandle_t;
 #define NULL ((void *)0)
 #endif
 
+#ifndef BIT
+#define BIT(x)				(1 << x)
+#endif
+
 #define	MAX_QINT			0x7fffffff
 #define	MIN_QINT			(-MAX_QINT-1)
 
@@ -159,6 +167,15 @@ typedef int		clipHandle_t;
 #define	PITCH				0		// up / down
 #define	YAW					1		// left / right
 #define	ROLL				2		// fall over
+
+// plane sides
+typedef enum
+{
+	SIDE_FRONT = 0,
+	SIDE_BACK = 1,
+	SIDE_ON = 2,
+	SIDE_CROSS = 3
+} planeSide_t;
 
 // the game guarantees that no string from the network will ever
 // exceed MAX_STRING_CHARS
@@ -266,6 +283,9 @@ void *Hunk_Alloc( int size, ha_pref preference );
 #define Com_Memset memset
 #define Com_Memcpy memcpy
 
+#define Com_Allocate malloc
+#define Com_Dealloc free
+
 #define CIN_system	1
 #define CIN_loop	2
 #define	CIN_hold	4
@@ -289,6 +309,7 @@ typedef vec_t quat_t[4]; // | x y z w |
 typedef vec_t vec5_t[5];
 typedef vec_t matrix3x3_t[9];
 typedef vec_t matrix_t[16];
+typedef vec3_t axis_t[3];
 
 typedef	int	fixed4_t;
 typedef	int	fixed8_t;
@@ -368,14 +389,33 @@ extern vec4_t	g_color_table[8];
 #define DEG2RAD( a ) ( ( (a) * M_PI ) / 180.0F )
 #define RAD2DEG( a ) ( ( (a) * 180.0f ) / M_PI )
 
+#define Q_max(a, b)      ((a) > (b) ? (a) : (b))
+#define Q_min(a, b)      ((a) < (b) ? (a) : (b))
+#define Q_bound(a, b, c) (Q_max(a, Q_min(b, c)))
+#define Q_clamp(a, b, c) ((b) >= (c) ? (a)=(b) : (a) < (b) ? (a)=(b) : (a) > (c) ? (a)=(c) : (a))
+#define Q_lerp(from, to, frac) (from + ((to - from) * frac))
+
 struct cplane_s;
 
 extern	vec3_t	vec3_origin;
 extern	vec3_t	axisDefault[3];
+extern matrix_t matrixIdentity;
 
 #define	nanmask (255<<23)
 
 #define	IS_NAN(x) (((*(int *)&x)&nanmask)==nanmask)
+
+static ID_INLINE long Q_ftol(float f)
+{
+#if id386_sse && defined(_MSC_VER)
+	static int      tmp;
+	__asm fld f
+	__asm fistp tmp
+	__asm mov eax, tmp
+#else
+	return (long)f;
+#endif
+}
 
 #if idppc
 
@@ -408,6 +448,7 @@ float Q_rsqrt( float f );		// reciprocal square root
 
 #define SQRTFAST( x ) ( (x) * Q_rsqrt( x ) )
 
+byte ClampByte(int i);
 signed char ClampChar( int i );
 signed short ClampShort( int i );
 
@@ -475,15 +516,26 @@ unsigned ColorBytes3 (float r, float g, float b);
 unsigned ColorBytes4 (float r, float g, float b, float a);
 
 float NormalizeColor( const vec3_t in, vec3_t out );
+void ClampColor(vec4_t color);
 
 float RadiusFromBounds( const vec3_t mins, const vec3_t maxs );
 void ClearBounds( vec3_t mins, vec3_t maxs );
+void ZeroBounds(vec3_t mins, vec3_t maxs);
 void AddPointToBounds( const vec3_t v, vec3_t mins, vec3_t maxs );
 void BoundsAdd(vec3_t mins, vec3_t maxs, const vec3_t mins2, const vec3_t maxs2);
 
 #if !defined( Q3_VM ) || ( defined( Q3_VM ) && defined( __Q3_VM_MATH ) )
 static ID_INLINE int VectorCompare( const vec3_t v1, const vec3_t v2 ) {
 	if (v1[0] != v2[0] || v1[1] != v2[1] || v1[2] != v2[2]) {
+		return 0;
+	}
+	return 1;
+}
+
+static ID_INLINE int VectorCompare4(const vec4_t v1, const vec4_t v2)
+{
+	if(v1[0] != v2[0] || v1[1] != v2[1] || v1[2] != v2[2] || v1[3] != v2[3])
+	{
 		return 0;
 	}
 	return 1;
@@ -559,6 +611,8 @@ vec_t VectorNormalize (vec3_t v);		// returns vector length
 vec_t VectorNormalize2( const vec3_t v, vec3_t out );
 void Vector4Scale( const vec4_t in, vec_t scale, vec4_t out );
 void VectorRotate( vec3_t in, vec3_t matrix[3], vec3_t out );
+
+int NearestPowerOfTwo(int val);
 int Q_log2(int val);
 
 float Q_acos(float c);
@@ -596,6 +650,8 @@ float AngleNormalize180 ( float angle );
 float AngleDelta ( float angle1, float angle2 );
 
 qboolean PlaneFromPoints( vec4_t plane, const vec3_t a, const vec3_t b, const vec3_t c );
+qboolean PlanesGetIntersectionPoint(const vec4_t plane1, const vec4_t plane2, const vec4_t plane3, vec3_t out);
+void PlaneIntersectRay(const vec3_t rayPos, const vec3_t rayDir, const vec4_t plane, vec3_t res);
 void ProjectPointOnPlane( vec3_t dst, const vec3_t p, const vec3_t normal );
 void RotatePointAroundVector( vec3_t dst, const vec3_t dir, const vec3_t point, float degrees );
 void RotateAroundDirection( vec3_t axis[3], float yaw );
@@ -604,7 +660,7 @@ void MakeNormalVectors( const vec3_t forward, vec3_t right, vec3_t up );
 
 //int	PlaneTypeForNormal (vec3_t normal);
 
-void MatrixMultiply(float in1[3][3], float in2[3][3], float out[3][3]);
+void Matrix3x3Multiply(float in1[3][3], float in2[3][3], float out[3][3]);
 void AngleVectors( const vec3_t angles, vec3_t forward, vec3_t right, vec3_t up);
 void PerpendicularVector( vec3_t dst, const vec3_t src );
 
@@ -642,7 +698,7 @@ void            MatrixSetupZRotation(matrix_t m, vec_t degrees);
 void            MatrixSetupTranslation(matrix_t m, vec_t x, vec_t y, vec_t z);
 void            MatrixSetupScale(matrix_t m, vec_t x, vec_t y, vec_t z);
 void            MatrixSetupShear(matrix_t m, vec_t x, vec_t y);
-//void            MatrixMultiply(const matrix_t a, const matrix_t b, matrix_t out);
+void            Matrix4x4Multiply(const matrix_t a, const matrix_t b, matrix_t out);
 void            MatrixMultiply2(matrix_t m, const matrix_t m2);
 void            MatrixMultiplyRotation(matrix_t m, vec_t pitch, vec_t yaw, vec_t roll);
 void            MatrixMultiplyZRotation(matrix_t m, vec_t degrees);
@@ -797,6 +853,25 @@ void            QuatSlerp(const quat_t from, const quat_t to, float frac, quat_t
 void            QuatTransformVector(const quat_t q, const vec3_t in, vec3_t out);
 int Q_isnan( float x );
 
+//=============================================
+
+
+typedef struct
+{
+	qboolean        frameMemory;
+	int             currentElements;
+	int             maxElements;	// will reallocate and move when exceeded
+	void          **elements;
+} growList_t;
+
+// you don't need to init the growlist if you don't mind it growing and moving
+// the list as it expands
+void            Com_InitGrowList(growList_t * list, int maxElements);
+void            Com_DestroyGrowList(growList_t * list);
+int             Com_AddToGrowList(growList_t * list, void *data);
+void           *Com_GrowListElement(const growList_t * list, int index);
+int             Com_IndexForGrowListElement(const growList_t * list, const void *element);
+
 
 //=============================================
 
@@ -811,6 +886,9 @@ void	COM_BeginParseSession( const char *name );
 int		COM_GetCurrentParseLine( void );
 char	*COM_Parse( char **data_p );
 char	*COM_ParseExt( char **data_p, qboolean allowLineBreak );
+void	Com_SkipRestOfLine(char **data);
+void	Com_SkipBracedSection(char **program);
+void	Com_Parse1DMatrix(char **buf_p, int x, float *m, qboolean checkBrackets);
 int		COM_Compress( char *data_p );
 void	COM_ParseError( char *format, ... ) __attribute__ ((format (printf, 1, 2)));
 void	COM_ParseWarning( char *format, ... ) __attribute__ ((format (printf, 1, 2)));
@@ -883,6 +961,7 @@ char	*Q_strlwr( char *s1 );
 char	*Q_strupr( char *s1 );
 char	*Q_strrchr( const char* string, int c );
 const char	*Q_stristr( const char *s, const char *find);
+qboolean Q_strreplace(char *dest, int destsize, const char *find, const char *replace);
 
 // buffer size safe library replacements
 void	Q_strncpyz( char *dest, const char *src, int destsize );
@@ -943,6 +1022,7 @@ void Info_NextPair( const char **s, char *key, char *value );
 // this is only here so the functions in q_shared.c and bg_*.c can link
 void	QDECL Com_Error( int level, const char *error, ... ) __attribute__ ((format (printf, 2, 3)));
 void	QDECL Com_Printf( const char *msg, ... ) __attribute__ ((format (printf, 1, 2)));
+void	QDECL Com_DPrintf( const char *msg, ... ) __attribute__ ((format (printf, 1, 2)));
 
 
 /*
@@ -1024,6 +1104,7 @@ COLLISION DETECTION
 #define	PLANE_Y			1
 #define	PLANE_Z			2
 #define	PLANE_NON_AXIAL	3
+#define PLANE_NON_PLANAR 4
 
 
 /*
@@ -1032,7 +1113,23 @@ PlaneTypeForNormal
 =================
 */
 
-#define PlaneTypeForNormal(x) (x[0] == 1.0 ? PLANE_X : (x[1] == 1.0 ? PLANE_Y : (x[2] == 1.0 ? PLANE_Z : PLANE_NON_AXIAL) ) )
+//#define PlaneTypeForNormal(x) (x[0] == 1.0 ? PLANE_X : (x[1] == 1.0 ? PLANE_Y : (x[2] == 1.0 ? PLANE_Z : PLANE_NON_AXIAL) ) )
+static ID_INLINE int PlaneTypeForNormal(vec3_t normal)
+{
+	if(normal[0] == 1.0)
+		return PLANE_X;
+
+	if(normal[1] == 1.0)
+		return PLANE_Y;
+
+	if(normal[2] == 1.0)
+		return PLANE_Z;
+
+	if(normal[0] == 0.0 && normal[1] == 0.0 && normal[2] == 0.0)
+		return PLANE_NON_PLANAR;
+
+	return PLANE_NON_AXIAL;
+}
 
 // plane_t structure
 // !!! if this is changed, it must be changed in asm code too !!!
@@ -1534,5 +1631,8 @@ typedef enum _flag_status {
 #define CDKEY_LEN 16
 #define CDCHKSUM_LEN 2
 
+#if defined(__cplusplus)
+}
+#endif
 
 #endif	// __Q_SHARED_H

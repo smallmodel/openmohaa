@@ -124,6 +124,22 @@ void COM_DefaultExtension (char *path, int maxSize, const char *extension ) {
 }
 
 /*
+============
+Com_HashKey
+============
+*/
+int Com_HashKey(char *string, int maxlen) {
+	int register hash, i;
+
+	hash = 0;
+	for (i = 0; i < maxlen && string[i] != '\0'; i++) {
+		hash += string[i] * (119 + i);
+	}
+	hash = (hash ^ (hash >> 10) ^ (hash >> 20));
+	return hash;
+}
+
+/*
 ============================================================================
 
 					BYTE ORDER FUNCTIONS
@@ -515,6 +531,84 @@ char *COM_ParseExt( char **data_p, qboolean allowLineBreaks )
 }
 
 
+/*
+=================
+Com_SkipBracedSection
+
+The next token should be an open brace.
+Skips until a matching close brace is found.
+Internal brace depths are properly skipped.
+=================
+*/
+void Com_SkipBracedSection(char **program)
+{
+	char           *token;
+	int             depth;
+
+	depth = 0;
+	do
+	{
+		token = COM_ParseExt(program, qtrue);
+		if(token[1] == 0)
+		{
+			if(token[0] == '{')
+			{
+				depth++;
+			}
+			else if(token[0] == '}')
+			{
+				depth--;
+			}
+		}
+	} while(depth && *program);
+}
+
+/*
+=================
+Com_SkipRestOfLine
+=================
+*/
+void Com_SkipRestOfLine(char **data)
+{
+	char           *p;
+	int             c;
+
+	p = *data;
+	while((c = *p++) != 0)
+	{
+		if(c == '\n')
+		{
+			com_lines++;
+			break;
+		}
+	}
+
+	*data = p;
+}
+
+void Com_Parse1DMatrix(char **buf_p, int x, float *m, qboolean checkBrackets)
+{
+	char           *token;
+	int             i;
+
+	if(checkBrackets)
+	{
+		COM_MatchToken(buf_p, "(");
+	}
+
+	for(i = 0; i < x; i++)
+	{
+		token = COM_Parse(buf_p);
+		m[i] = atof(token);
+	}
+
+	if(checkBrackets)
+	{
+		COM_MatchToken(buf_p, ")");
+	}
+}
+
+
 #if 0
 // no longer used
 /*
@@ -877,6 +971,47 @@ const char *Q_stristr( const char *s, const char *find)
   }
   return s;
 }
+
+
+
+/*
+=============
+Q_strreplace
+
+replaces content of find by replace in dest
+=============
+*/
+qboolean Q_strreplace(char *dest, int destsize, const char *find, const char *replace)
+{
+	int             lstart, lfind, lreplace, lend;
+	char           *s;
+	char            backup[32000];	// big, but small enough to fit in PPC stack
+
+	lend = strlen(dest);
+	if(lend >= destsize)
+	{
+		Com_Error(ERR_FATAL, "Q_strreplace: already overflowed");
+	}
+
+	s = strstr(dest, find);
+	if(!s)
+	{
+		return qfalse;
+	}
+	else
+	{
+		Q_strncpyz(backup, dest, lend + 1);
+		lstart = s - dest;
+		lfind = strlen(find);
+		lreplace = strlen(replace);
+
+		strncpy(s, replace, destsize - lstart - 1);
+		strncpy(s + lreplace, backup + lstart + lfind, destsize - lstart - lreplace - 1);
+
+		return qtrue;
+	}
+}
+
 
 
 int Q_PrintStrlen( const char *string ) {
@@ -1380,4 +1515,96 @@ char *Com_SkipTokens( char *s, int numTokens, char *sep )
 		return p;
 	else
 		return s;
+}
+
+
+/*
+============================================================================
+
+GROWLISTS
+
+============================================================================
+*/
+
+// malloc / free all in one place for debugging
+//extern          "C" void *Com_Allocate(int bytes);
+//extern          "C" void Com_Dealloc(void *ptr);
+
+void Com_InitGrowList(growList_t * list, int maxElements)
+{
+	list->maxElements = maxElements;
+	list->currentElements = 0;
+	list->elements = (void **)Com_Allocate(list->maxElements * sizeof(void *));
+}
+
+void Com_DestroyGrowList(growList_t * list)
+{
+	Com_Dealloc(list->elements);
+	memset(list, 0, sizeof(*list));
+}
+
+int Com_AddToGrowList(growList_t * list, void *data)
+{
+	void          **old;
+
+	if(list->currentElements != list->maxElements)
+	{
+		list->elements[list->currentElements] = data;
+		return list->currentElements++;
+	}
+
+	// grow, reallocate and move
+	old = list->elements;
+
+	if(list->maxElements < 0)
+	{
+		Com_Error(ERR_FATAL, "Com_AddToGrowList: maxElements = %i", list->maxElements);
+	}
+
+	if(list->maxElements == 0)
+	{
+		// initialize the list to hold 100 elements
+		Com_InitGrowList(list, 100);
+		return Com_AddToGrowList(list, data);
+	}
+
+	list->maxElements *= 2;
+
+//  Com_DPrintf("Resizing growlist to %i maxElements\n", list->maxElements);
+
+	list->elements = (void **)Com_Allocate(list->maxElements * sizeof(void *));
+
+	if(!list->elements)
+	{
+		Com_Error(ERR_DROP, "Growlist alloc failed");
+	}
+
+	Com_Memcpy(list->elements, old, list->currentElements * sizeof(void *));
+
+	Com_Dealloc(old);
+
+	return Com_AddToGrowList(list, data);
+}
+
+void           *Com_GrowListElement(const growList_t * list, int index)
+{
+	if(index < 0 || index >= list->currentElements)
+	{
+		Com_Error(ERR_DROP, "Com_GrowListElement: %i out of range of %i", index, list->currentElements);
+	}
+	return list->elements[index];
+}
+
+int Com_IndexForGrowListElement(const growList_t * list, const void *element)
+{
+	int             i;
+
+	for(i = 0; i < list->currentElements; i++)
+	{
+		if(list->elements[i] == element)
+		{
+			return i;
+		}
+	}
+	return -1;
 }

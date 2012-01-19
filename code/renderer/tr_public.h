@@ -194,6 +194,8 @@ typedef struct {
 // this is the only function actually exported at the linker level
 // If the module can't init to a valid rendering state, NULL will be
 // returned.
+#ifndef RENDERER_DLL
 refexport_t*GetRefAPI( int apiVersion, refimport_t *rimp );
+#endif // RENDERER_DLL
 
 #endif	// __TR_PUBLIC_H

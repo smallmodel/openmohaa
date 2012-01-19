@@ -357,10 +357,10 @@ static qboolean PM_CheckJump( void ) {
 	pm->ps->velocity[2] = JUMP_VELOCITY;
 
 	if ( pm->cmd.forwardmove >= 0 ) {
-		PM_ForceLegsAnim( LEGS_JUMP );
+//		PM_ForceLegsAnim( LEGS_JUMP );
 		pm->ps->pm_flags &= ~PMF_BACKWARDS_JUMP;
 	} else {
-		PM_ForceLegsAnim( LEGS_JUMPB );
+//		PM_ForceLegsAnim( LEGS_JUMPB );
 		pm->ps->pm_flags |= PMF_BACKWARDS_JUMP;
 	}
 
@@ -871,9 +871,9 @@ static void PM_CrashLand( void ) {
 
 	// decide which landing animation to use
 	if ( pm->ps->pm_flags & PMF_BACKWARDS_JUMP ) {
-		PM_ForceLegsAnim( LEGS_LANDB );
+//		PM_ForceLegsAnim( LEGS_LANDB );
 	} else {
-		PM_ForceLegsAnim( LEGS_LAND );
+//		PM_ForceLegsAnim( LEGS_LAND );
 	}
 
 //	pm->ps->legsTimer = TIMER_LAND;
@@ -1025,10 +1025,10 @@ static void PM_GroundTraceMissed( void ) {
 		pm->trace (&trace, pm->ps->origin, pm->mins, pm->maxs, point, pm->ps->clientNum, pm->tracemask);
 		if ( trace.fraction == 1.0 ) {
 			if ( pm->cmd.forwardmove >= 0 ) {
-				PM_ForceLegsAnim( LEGS_JUMP );
+//				PM_ForceLegsAnim( LEGS_JUMP );
 				pm->ps->pm_flags &= ~PMF_BACKWARDS_JUMP;
 			} else {
-				PM_ForceLegsAnim( LEGS_JUMPB );
+//				PM_ForceLegsAnim( LEGS_JUMPB );
 				pm->ps->pm_flags |= PMF_BACKWARDS_JUMP;
 			}
 		}
@@ -1077,10 +1077,10 @@ static void PM_GroundTrace( void ) {
 		}
 		// go into jump animation
 		if ( pm->cmd.forwardmove >= 0 ) {
-			PM_ForceLegsAnim( LEGS_JUMP );
+//			PM_ForceLegsAnim( LEGS_JUMP );
 			pm->ps->pm_flags &= ~PMF_BACKWARDS_JUMP;
 		} else {
-			PM_ForceLegsAnim( LEGS_JUMPB );
+//			PM_ForceLegsAnim( LEGS_JUMPB );
 			pm->ps->pm_flags |= PMF_BACKWARDS_JUMP;
 		}
 
@@ -1279,7 +1279,7 @@ static void PM_Footsteps( void ) {
 //		}
 		// airborne leaves position in cycle intact, but doesn't advance
 		if ( pm->waterlevel > 1 ) {
-			PM_ContinueLegsAnim( LEGS_SWIM );
+//			PM_ContinueLegsAnim( LEGS_SWIM );
 		}
 		return;
 	}
@@ -1289,9 +1289,9 @@ static void PM_Footsteps( void ) {
 		if (  pm->xyspeed < 5 ) {
 			pm->ps->bobCycle = 0;	// start at beginning of cycle again
 			if ( pm->ps->pm_flags & PMF_DUCKED ) {
-				PM_ContinueLegsAnim( LEGS_IDLECR );
+//				PM_ContinueLegsAnim( LEGS_IDLECR );
 			} else {
-				PM_ContinueLegsAnim( LEGS_IDLE );
+//				PM_ContinueLegsAnim( LEGS_IDLE );
 			}
 		}
 		return;
@@ -1303,10 +1303,10 @@ static void PM_Footsteps( void ) {
 	if ( pm->ps->pm_flags & PMF_DUCKED ) {
 		bobmove = 0.5;	// ducked characters bob much faster
 		if ( pm->ps->pm_flags & PMF_BACKWARDS_RUN ) {
-			PM_ContinueLegsAnim( LEGS_BACKCR );
+//			PM_ContinueLegsAnim( LEGS_BACKCR );
 		}
 		else {
-			PM_ContinueLegsAnim( LEGS_WALKCR );
+//			PM_ContinueLegsAnim( LEGS_WALKCR );
 		}
 		// ducked characters never play footsteps
 	/*
@@ -1323,19 +1323,19 @@ static void PM_Footsteps( void ) {
 		if ( !( pm->cmd.buttons & BUTTON_WALKING ) ) {
 			bobmove = 0.4f;	// faster speeds bob faster
 			if ( pm->ps->pm_flags & PMF_BACKWARDS_RUN ) {
-				PM_ContinueLegsAnim( LEGS_BACK );
+//				PM_ContinueLegsAnim( LEGS_BACK );
 			}
 			else {
-				PM_ContinueLegsAnim( LEGS_RUN );
+//				PM_ContinueLegsAnim( LEGS_RUN );
 			}
 			footstep = qtrue;
 		} else {
 			bobmove = 0.3f;	// walking bobs slow
 			if ( pm->ps->pm_flags & PMF_BACKWARDS_RUN ) {
-				PM_ContinueLegsAnim( LEGS_BACKWALK );
+//				PM_ContinueLegsAnim( LEGS_BACKWALK );
 			}
 			else {
-				PM_ContinueLegsAnim( LEGS_WALK );
+//				PM_ContinueLegsAnim( LEGS_WALK );
 			}
 		}
 	}

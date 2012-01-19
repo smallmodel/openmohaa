@@ -33,7 +33,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 vec3_t	vec3_origin = {0,0,0};
 vec3_t	axisDefault[3] = { { 1, 0, 0 }, { 0, 1, 0 }, { 0, 0, 1 } };
-
+matrix_t matrixIdentity = {	1, 0, 0, 0,
+							0, 1, 0, 0,
+							0, 0, 1, 0,
+							0, 0, 0, 1};
 
 vec4_t		colorBlack	= {0, 0, 0, 1};
 vec4_t		colorRed	= {1, 0, 0, 1};
@@ -162,6 +165,16 @@ float	Q_crandom( int *seed ) {
 
 //=======================================================
 
+byte ClampByte(int i) {
+	if(i < 0) {
+		return 0;
+	}
+	if(i > 255) {
+		return 255;
+	}
+	return i;
+}
+
 signed char ClampChar( int i ) {
 	if ( i < -128 ) {
 		return -128;
@@ -259,6 +272,21 @@ float NormalizeColor( const vec3_t in, vec3_t out ) {
 }
 
 
+void ClampColor(vec4_t color)
+{
+	int             i;
+
+	for(i = 0; i < 4; i++)
+	{
+		if(color[i] < 0)
+			color[i] = 0;
+
+		if(color[i] > 1)
+			color[i] = 1;
+	}
+}
+
+
 /*
 =====================
 PlaneFromPoints
@@ -281,6 +309,58 @@ qboolean PlaneFromPoints( vec4_t plane, const vec3_t a, const vec3_t b, const ve
 	return qtrue;
 }
 
+qboolean PlanesGetIntersectionPoint(const vec4_t plane1, const vec4_t plane2, const vec4_t plane3, vec3_t out)
+{
+	// http://www.cgafaq.info/wiki/Intersection_of_three_planes
+
+	vec3_t	n1, n2, n3;
+	vec3_t	n1n2, n2n3, n3n1;
+	vec_t	denom;
+
+	VectorNormalize2(plane1, n1);
+	VectorNormalize2(plane2, n2);
+	VectorNormalize2(plane3, n3);
+
+	CrossProduct(n1, n2, n1n2);
+	CrossProduct(n2, n3, n2n3);
+	CrossProduct(n3, n1, n3n1);
+
+	denom = DotProduct(n1, n2n3);
+
+	// check if the denominator is zero (which would mean that no intersection is to be found
+	if(denom == 0)
+	{
+		// no intersection could be found, return <0,0,0>
+		VectorClear(out);
+		return qfalse;
+	}
+
+	VectorClear(out);
+
+	VectorMA(out, plane1[3], n2n3, out);
+	VectorMA(out, plane2[3], n3n1, out);
+	VectorMA(out, plane3[3], n1n2, out);
+
+	VectorScale(out, 1.0f / denom, out);
+
+	return qtrue;
+}
+
+void PlaneIntersectRay(const vec3_t rayPos, const vec3_t rayDir, const vec4_t plane, vec3_t res)
+{
+	vec3_t          dir;
+	float           sect;
+	float			distToPlane;
+	float			planeDotRay;
+
+	VectorNormalize2(rayDir, dir);
+
+	distToPlane = DotProduct(plane, rayPos) - plane[3];
+	planeDotRay = DotProduct(plane, dir);
+	sect = -(distToPlane) / planeDotRay;
+
+	VectorMA(rayPos, sect, dir, res);
+}
 vec_t PlaneNormalize(vec4_t plane)
 {
 	vec_t           length, ilength;
@@ -356,8 +436,8 @@ void RotatePointAroundVector( vec3_t dst, const vec3_t dir, const vec3_t point,
 	zrot[1][0] = -sin( rad );
 	zrot[1][1] = cos( rad );
 
-	MatrixMultiply( m, zrot, tmpmat );
-	MatrixMultiply( tmpmat, im, rot );
+	Matrix4x4Multiply( m, zrot, tmpmat );
+	Matrix4x4Multiply( tmpmat, im, rot );
 
 	for ( i = 0; i < 3; i++ ) {
 		dst[i] = rot[i][0] * point[0] + rot[i][1] * point[1] + rot[i][2] * point[2];
@@ -1060,6 +1140,10 @@ void ClearBounds( vec3_t mins, vec3_t maxs ) {
 	mins[0] = mins[1] = mins[2] = 99999;
 	maxs[0] = maxs[1] = maxs[2] = -99999;
 }
+void ZeroBounds(vec3_t mins, vec3_t maxs) {
+	mins[0] = mins[1] = mins[2] = 0;
+	maxs[0] = maxs[1] = maxs[2] = 0;
+}
 
 void AddPointToBounds( const vec3_t v, vec3_t mins, vec3_t maxs ) {
 	if ( v[0] < mins[0] ) {
@@ -1240,6 +1324,15 @@ void Vector4Scale( const vec4_t in, vec_t scale, vec4_t out ) {
 	out[3] = in[3]*scale;
 }
 
+int NearestPowerOfTwo(int val)
+{
+	int             answer;
+
+	for(answer = 1; answer < val; answer <<= 1)
+		;
+	return answer;
+}
+
 
 int Q_log2( int val ) {
 	int answer;
@@ -1274,10 +1367,10 @@ int	PlaneTypeForNormal (vec3_t normal) {
 
 /*
 ================
-MatrixMultiply
+Matrix3x3Multiply
 ================
 */
-void MatrixMultiply(float in1[3][3], float in2[3][3], float out[3][3]) {
+void Matrix3x3Multiply(float in1[3][3], float in2[3][3], float out[3][3]) {
 	out[0][0] = in1[0][0] * in2[0][0] + in1[0][1] * in2[1][0] +
 				in1[0][2] * in2[2][0];
 	out[0][1] = in1[0][0] * in2[0][1] + in1[0][1] * in2[1][1] +
@@ -1892,11 +1985,11 @@ void MatrixSetupShear(matrix_t m, vec_t x, vec_t y)
 	m[ 2] = 0;      m[ 6] = 0;      m[10] = 1;      m[14] = 0;
 	m[ 3] = 0;      m[ 7] = 0;      m[11] = 0;      m[15] = 1;
 }
-/*
-void MatrixMultiply(const matrix_t a, const matrix_t b, matrix_t out)
+
+void Matrix4x4Multiply(const matrix_t a, const matrix_t b, matrix_t out)
 {
 #if id386_sse
-//#error MatrixMultiply
+//#error Matrix3x3Multiply
 	int				i;
 	__m128			_t0, _t1, _t2, _t3, _t4, _t5, _t6, _t7;
 
@@ -1948,13 +2041,13 @@ void MatrixMultiply(const matrix_t a, const matrix_t b, matrix_t out)
 		out[15] = b[12]*a[ 3] + b[13]*a[ 7] + b[14]*a[11] + b[15]*a[15];
 #endif
 }
-*/
+
 void MatrixMultiply2(matrix_t m, const matrix_t m2)
 {
 	matrix_t        tmp;
 
 	MatrixCopy(m, tmp);
-	MatrixMultiply(tmp, m2, m);
+	Matrix4x4Multiply(tmp, m2, m);
 }
 
 void MatrixMultiplyRotation(matrix_t m, vec_t pitch, vec_t yaw, vec_t roll)
@@ -1964,7 +2057,7 @@ void MatrixMultiplyRotation(matrix_t m, vec_t pitch, vec_t yaw, vec_t roll)
 	MatrixCopy(m, tmp);
 	MatrixFromAngles(rot, pitch, yaw, roll);
 
-	MatrixMultiply(tmp, rot, m);
+	Matrix4x4Multiply(tmp, rot, m);
 }
 
 void MatrixMultiplyZRotation(matrix_t m, vec_t degrees)
@@ -1974,7 +2067,7 @@ void MatrixMultiplyZRotation(matrix_t m, vec_t degrees)
 	MatrixCopy(m, tmp);
 	MatrixSetupZRotation(rot, degrees);
 
-	MatrixMultiply(tmp, rot, m);
+	Matrix4x4Multiply(tmp, rot, m);
 }
 
 void MatrixMultiplyTranslation(matrix_t m, vec_t x, vec_t y, vec_t z)
@@ -1984,7 +2077,7 @@ void MatrixMultiplyTranslation(matrix_t m, vec_t x, vec_t y, vec_t z)
 
 	MatrixCopy(m, tmp);
 	MatrixSetupTranslation(trans, x, y, z);
-	MatrixMultiply(tmp, trans, m);
+	Matrix4x4Multiply(tmp, trans, m);
 #else
 	m[12] += m[ 0] * x + m[ 4] * y + m[ 8] * z;
 	m[13] += m[ 1] * x + m[ 5] * y + m[ 9] * z;
@@ -2000,7 +2093,7 @@ void MatrixMultiplyScale(matrix_t m, vec_t x, vec_t y, vec_t z)
 
 	MatrixCopy(m, tmp);
 	MatrixSetupScale(scale, x, y, z);
-	MatrixMultiply(tmp, scale, m);
+	Matrix4x4Multiply(tmp, scale, m);
 #else
 	m[ 0] *= x;     m[ 4] *= y;        m[ 8] *= z;
 	m[ 1] *= x;     m[ 5] *= y;        m[ 9] *= z;
@@ -2015,7 +2108,7 @@ void MatrixMultiplyShear(matrix_t m, vec_t x, vec_t y)
 
 	MatrixCopy(m, tmp);
 	MatrixSetupShear(shear, x, y);
-	MatrixMultiply(tmp, shear, m);
+	Matrix4x4Multiply(tmp, shear, m);
 }
 
 #ifndef FLT_EPSILON

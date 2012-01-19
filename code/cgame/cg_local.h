@@ -359,8 +359,6 @@ typedef struct {
 
 	qhandle_t		modelIcon;
 
-	animation_t		animations[MAX_TOTALANIMATIONS];
-
 	sfxHandle_t		sounds[MAX_CUSTOM_SOUNDS];
 } clientInfo_t;
 
