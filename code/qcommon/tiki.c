@@ -444,11 +444,45 @@ void TIKI_Animate(tiki_t *tiki, bone_t *bones)
 				break;
 				case JT_HOSEROT:
 				{
+					cvar_t *su44 = Cvar_Get("su44","0",CVAR_ARCHIVE);
 					hose = (tikiBoneHoseRot_t*)tiki->bones[i];
 			//		Com_Printf("hoserot const ofs %f %f %f for ",hose->const_offset[0],hose->const_offset[1],hose->const_offset[2]);
 
-					QuatCopy(bones[hose->targetIndex].q,bones[i].q);
-					VectorCopy(bones[hose->targetIndex].p,bones[i].p); 
+					if(su44->integer && hose->hoseRotType == HRTYPE_ROTATEBOTH180Y) {	
+						// it fixes human model legs but screws viewmodelanims
+						quat_t	pos,res,temp;
+						quat_t hq;
+			
+						// su44: try to construct hose quat
+						// (bendMax is in degrees, 180, etc ?);
+						// We need to rotate arount Y axis
+						QuatSet(hq,0,hose->bendMax/180,0,0);
+						QuatCalcW(hq); // compute w componten
+
+						// su44: use hose baseposs
+						VectorCopy(hose->basePos,pos);
+
+						pos[3]=0;
+						QuaternionMultiply(temp,pos,bones[hose->parentIndex].q);
+						QuatInverse(bones[hose->parentIndex].q);
+						QuaternionMultiply(res,bones[hose->parentIndex].q,temp);
+						QuatInverse(bones[hose->parentIndex].q);
+						bones[i].p[0] = res[0] + bones[hose->parentIndex].p[0];
+						bones[i].p[1] = res[1] + bones[hose->parentIndex].p[1];
+						bones[i].p[2] = res[2] + bones[hose->parentIndex].p[2];
+						// here we're using new quat that he have just calculated instead of 
+						// one provided by "TIKI_SetChannels" (which is infact always identity
+						// because there are no channel data for hoserot bones)
+						QuatInverse(hq);
+						QuatCopy(hq,temp);
+						QuatInverse(hq);
+						QuaternionMultiply(bones[i].q,temp,bones[hose->parentIndex].q);
+						QuatNormalize(bones[i].q);
+
+					} else {
+						QuatCopy(bones[hose->targetIndex].q,bones[i].q);
+						VectorCopy(bones[hose->targetIndex].p,bones[i].p); 
+					}
 				}
 				break;
 				case JT_AVROT:
