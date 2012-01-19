@@ -1332,8 +1332,8 @@ CL_Vid_Restart_f
 
 Restart the video subsystem
 
-we also have to reload the UI and CGame because the renderer
-doesn't know what graphics to reload
+we also have to reload the UI, CGame and TIKI system
+because the renderer doesn't know what graphics to reload
 =================
 */
 void CL_Vid_Restart_f( void ) {
@@ -1354,6 +1354,8 @@ void CL_Vid_Restart_f( void ) {
 	CL_ShutdownCGame();
 	// shutdown the renderer and clear the renderer interface
 	CL_ShutdownRef();
+	// su44: free cached TIKI models
+	TIKI_ClearUp();
 	// client is no longer pure untill new checksums are sent
 	CL_ResetPureClientAtServer();
 	// clear pak references
