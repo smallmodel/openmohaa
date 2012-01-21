@@ -5162,6 +5162,11 @@ void            FreeVertexHashTable(vertexHash_t ** hashTable);
 void            R_InitFreeType();
 void            R_DoneFreeType();
 void            RE_RegisterFont(const char *fontName, int pointSize, fontInfo_t * font);
+// IneQuation: MoHAA string drawing, wombat
+int				RE_Text_Width(fontInfo_t *font, const char *text, int limit, qboolean useColourCodes);
+int				RE_Text_Height(fontInfo_t *font, const char *text, int limit, qboolean useColourCodes);
+void			RE_Text_Paint(fontInfo_t *font, float x, float y, float scale, float alpha, const char *text, float adjust, int limit, qboolean useColourCodes, qboolean is640);
+void			RE_Text_PaintChar(fontInfo_t *font, float x, float y, float scale, int c, qboolean is640);
 
 // bani
 void			RE_RenderToTexture(int textureid, int x, int y, int w, int h);

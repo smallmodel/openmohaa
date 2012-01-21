@@ -352,6 +352,11 @@ void RE_RegisterFont(const char *fontName, int pointSize, fontInfo_t * font)
 	float           dpi = 72;	//
 	float           glyphScale = 72.0f / dpi;	// change the scale to be relative to 1 based on 72 dpi ( so dpi of 144 means a scale of .5 )
 
+	if (!fontName) {
+		ri.Printf(PRINT_ALL, "RE_RegisterFont: called with empty name\n");
+		return;
+	}
+
 	if(pointSize <= 0)
 	{
 		pointSize = 12;
@@ -369,6 +374,104 @@ void RE_RegisterFont(const char *fontName, int pointSize, fontInfo_t * font)
 		return;
 	}
 
+   // IneQuation: try a RitualFont first
+    Com_sprintf(fileName, sizeof(fileName), "fonts/%s.RitualFont", fontName);
+    for (i = 0; i < registeredFontCount; i++) {
+		if (!Q_stricmp(fileName, registeredFont[i].name)) {
+			Com_Memcpy(font, &registeredFont[i], sizeof(fontInfo_t));
+			return;
+		}
+	}
+
+	len = ri.FS_ReadFile(fileName, &faceData);
+	if (len > 0) {
+		char *p = (char *)faceData;
+	    char *token;
+
+	    Q_strncpyz(font->name, fileName, sizeof(font->name));
+
+	    token = COM_Parse(&p);
+	    if (!strcmp(token, "RitFont")) {
+			int			j;
+	    	float		height, aspect;	// aspect is the aspect ratio of the tga file
+	    	char		indirections[256];
+	    	shader_t	*fontShader;
+	    	vec4_t		locations;
+
+			Com_sprintf(fileName, sizeof(fileName), "gfx/fonts/%s", fontName);
+//	    	fontShader = R_FindShader(fileName, LIGHTMAP_2D, qfalse);
+			fontShader = R_FindShader(fileName, SHADER_2D, qfalse);
+			Com_Memset(font->glyphs, 0, sizeof(font->glyphs));
+			font->glyphScale = 1.f;
+
+			token = COM_Parse(&p);
+            while (token && token[0]) {
+            	if (!Q_stricmp(token, "height")) {
+            		token = COM_Parse(&p);
+					height = atof(token);
+            	} else if (!Q_stricmp(token, "aspect")) {
+            		token = COM_Parse(&p);
+            		aspect = atof(token);
+            	} else if (!Q_stricmp(token, "indirections")) {
+            		// skip the opening brace
+            		COM_Parse(&p);
+            		for (i = 0; i < 256; i++) {
+            			token = COM_Parse(&p);
+            			indirections[i] = atoi(token);
+            		}
+            		// skip the trailing brace
+            		COM_Parse(&p);
+            	} else if (!Q_stricmp(token, "locations")) {
+            		// skip the opening brace
+            		COM_Parse(&p);
+            		for (i = 0; i < 256; i++) {
+            			for (j = 0; j < 256; j++) {
+							if (indirections[j] == i)
+								break;
+            			}
+						// we'll need the value of j in a while, and parsing all the locations is required anyway in order to exit cleanly
+            			// skip the opening brace
+						COM_Parse(&p);
+            			token = COM_Parse(&p);
+            			locations[0] = atoi(token);
+            			token = COM_Parse(&p);
+            			locations[1] = atoi(token);
+            			token = COM_Parse(&p);
+            			locations[2] = atoi(token);
+            			token = COM_Parse(&p);
+            			locations[3] = atoi(token);
+            			// skip the trailing brace
+						COM_Parse(&p);
+						if (j == 256)
+							continue;	// character not supported by font, skip it
+						//font->glyphs[i].top = locations[1];
+						//font->glyphs[i].bottom = font->glyphs[i].top + locations[3];
+						font->glyphs[j].s = (float)locations[0] / fontShader->stages[0]->bundle[0].image[0]->width;
+						font->glyphs[j].t = (float)locations[1] / fontShader->stages[0]->bundle[0].image[0]->height;
+						font->glyphs[j].s2 = (float)(locations[0] + locations[2]) / fontShader->stages[0]->bundle[0].image[0]->width;
+						font->glyphs[j].t2 = (float)(locations[1] + locations[3]) / fontShader->stages[0]->bundle[0].image[0]->height;
+						font->glyphs[j].imageWidth = font->glyphs[j].xSkip = font->glyphs[j].pitch = locations[2];
+						font->glyphs[j].imageHeight = font->glyphs[j].height = locations[3];
+						font->glyphs[j].glyph = fontShader->index;
+						Q_strncpyz(font->glyphs[j].shaderName, fileName, sizeof(font->glyphs[0].shaderName));
+            		}
+            		// skip the trailing brace
+            		COM_Parse(&p);
+            	} else {
+            		ri.Printf(PRINT_WARNING, "RE_RegisterFont: unknown token %s.\n", token);
+            		return;
+            	}
+                token = COM_Parse(&p);
+            }
+            if (registeredFontCount < MAX_FONTS - 1)
+				Com_Memcpy(&registeredFont[registeredFontCount++], font, sizeof(fontInfo_t));
+			else
+				ri.Printf(PRINT_WARNING, "RE_RegisterFont: MAX_FONTS (%d) exceeded.\n", MAX_FONTS);
+            return;	// successfully loaded a RitualFont
+	    } else
+            ri.Printf(PRINT_WARNING, "RE_RegisterFont: %s is not a valid RitualFont (invalid ident %s).\n", fileName, token);
+	}
+	// if this fails, try loading the FreeType-rendered fonts
 #if defined(COMPAT_ET)
 	Com_sprintf(fileName, sizeof(fileName), "fonts/%s_%i.dat", fontName, pointSize);
 #else
@@ -602,4 +705,209 @@ void R_DoneFreeType()
 	}
 #endif
 	registeredFontCount = 0;
+}
+
+
+// IneQuation: exports to deal with universal text drawing; adapted from cgame
+
+/*
+===================
+RE_Text_Width
+===================
+Returns text width in pixels.
+*/
+int RE_Text_Width(fontInfo_t *font, const char *text, int limit, qboolean useColourCodes) {
+	int count,len;
+	float out;
+	glyphInfo_t *glyph;
+// FIXME: see ui_main.c, same problem
+//	const unsigned char *s = text;
+	const char *s = text;
+
+	if (!font) {
+		font = &registeredFont[0];
+		if (!font) {
+			ri.Printf(PRINT_WARNING, "RE_Text_Width: no fonts registered!\n");
+			return strlen(text) * 16;	// return something
+		}
+	}
+
+	out = 0;
+	if (text) {
+		len = strlen(text);
+		if (limit > 0 && len > limit)
+			len = limit;
+		count = 0;
+		while (s && *s && count < len) {
+			if (useColourCodes && Q_IsColorString(s)) {
+				s += 2;
+				continue;
+			} else {
+				glyph = &font->glyphs[(int)*s];
+				out += glyph->xSkip;
+				s++;
+				count++;
+			}
+		}
+	}
+	return out * font->glyphScale;
+}
+
+/*
+===================
+RE_Text_Height
+===================
+Returns text height in pixels.
+*/
+int RE_Text_Height(fontInfo_t *font, const char *text, int limit, qboolean useColourCodes) {
+	int len, count;
+	float max;
+	glyphInfo_t *glyph;
+// TTimo: FIXME
+//	const unsigned char *s = text;
+	const char *s = text;
+
+	if (!font) {
+		font = &registeredFont[0];
+		if (!font) {
+			ri.Printf(PRINT_WARNING, "RE_Text_Height: no fonts registered!\n");
+			return 16;	// return something
+		}
+	}
+
+	max = 0;
+	if (text) {
+		len = strlen(text);
+		if (limit > 0 && len > limit)
+			len = limit;
+		count = 0;
+		while (s && *s && count < len) {
+			if (useColourCodes && Q_IsColorString(s)) {
+				s += 2;
+				continue;
+			} else {
+				glyph = &font->glyphs[(int)*s]; // TTimo: FIXME: getting nasty warnings without the cast, hopefully this doesn't break the VM build
+				if (max < glyph->height)
+					max = glyph->height;
+				s++;
+				count++;
+			}
+		}
+	}
+	return max * font->glyphScale;
+}
+
+/*
+===================
+RE_Text_PaintChar
+===================
+Paints a single character.
+*/
+void RE_Text_PaintChar(fontInfo_t *font, float x, float y, float scale, int c, qboolean is640) {
+	glyphInfo_t *glyph;
+	float xscale;
+	float yscale;
+
+	if ( is640 ) {
+		xscale=glConfig.vidWidth/640.0f;
+		yscale=glConfig.vidHeight/480.0f;
+	} else {
+		xscale=1.0f;
+		yscale=1.0f;
+	}
+
+	glyph = &font->glyphs[c];
+	if (c != '\n' && glyph->imageWidth == 0 && glyph->imageHeight == 0) {
+		glyph = &font->glyphs['?'];
+		// this is so annoying..
+		//ri.Printf(PRINT_WARNING, "RE_Text_PaintChar: no #%d character in font %s!\n", (int)c, font->name);
+	}
+	RE_StretchPic(x * xscale, y*yscale - font->glyphScale * glyph->top,
+		glyph->imageWidth * font->glyphScale * scale * xscale,
+		glyph->imageHeight * font->glyphScale * scale * yscale,
+		glyph->s,
+		glyph->t,
+		glyph->s2,
+		glyph->t2,
+		glyph->glyph);
+}
+
+/*
+===================
+RE_Text_Paint
+===================
+Paints a string. The alpha value will be ignored unless useColourCodes is qtrue.
+*/
+void RE_Text_Paint(fontInfo_t *font, float x, float y, float scale, float alpha, const char *text, float adjust, int limit, qboolean useColourCodes, qboolean is640) {
+	int len, count;
+	vec4_t newColor;
+	glyphInfo_t *glyph;
+	float xscale;
+	float yscale;
+
+	if(!font) {
+		if(!registeredFontCount)
+			return;
+		font = &registeredFont[0];
+	}
+	if ( is640 ) {
+		xscale=glConfig.vidWidth/640.0f;
+		yscale=glConfig.vidHeight/480.0f;
+	} else {
+		xscale=1.0f;
+		yscale=1.0f;
+	}
+
+	if (text) {
+// TTimo: FIXME
+//		const unsigned char *s = text;
+		const char *s = text;
+		len = strlen(text);
+		if (limit > 0 && len > limit)
+			len = limit;
+		count = 0;
+		while (s && *s && count < len) {
+			glyph = &font->glyphs[(int)*s]; // TTimo: FIXME: getting nasty warnings without the cast, hopefully this doesn't break the VM build
+			if (*s != '\n' && glyph->imageWidth == 0 && glyph->imageHeight == 0) {
+				glyph = &font->glyphs['?'];
+				//ri.Printf(PRINT_WARNING, "RE_Text_Paint: no #%d character in font %s!\n", (int)*s, font->name);
+			}
+			if (useColourCodes && Q_IsColorString(s)) {
+				memcpy(newColor, g_color_table[ColorIndex(*(s+1))], sizeof(newColor));
+				newColor[3] = alpha;
+				RE_SetColor(newColor);
+				s += 2;
+				continue;
+			} else {
+				float yadj = font->glyphScale * scale * glyph->top;
+				/*if (style == ITEM_TEXTSTYLE_SHADOWED || style == ITEM_TEXTSTYLE_SHADOWEDMORE) {
+					int ofs = style == ITEM_TEXTSTYLE_SHADOWED ? 1 : 2;
+					colorBlack[3] = newColor[3];
+					RE_SetColor(colorBlack);
+					RE_StretchPic(x + ofs, y - yadj + ofs,
+						glyph->imageWidth * font->glyphScale,
+						glyph->imageHeight * font->glyphScale,
+						glyph->s,
+						glyph->t,
+						glyph->s2,
+						glyph->t2,
+						glyph->glyph);
+					colorBlack[3] = 1.0;
+					RE_SetColor( newColor );
+				}*/
+				RE_StretchPic(x*xscale, (y - yadj)*yscale,
+					glyph->imageWidth * font->glyphScale * scale*xscale,
+					glyph->imageHeight * font->glyphScale * scale*yscale,
+					glyph->s,
+					glyph->t,
+					glyph->s2,
+					glyph->t2,
+					glyph->glyph);
+				x += (glyph->xSkip * font->glyphScale * scale) + adjust;
+				s++;
+				count++;
+			}
+		}
+		RE_SetColor(NULL);
+	}
 }

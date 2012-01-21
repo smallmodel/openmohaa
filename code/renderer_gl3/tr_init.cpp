@@ -2273,19 +2273,6 @@ static void RE_PurgeCache(void)
 	*/
 }
 
-// IneQuation: string drawing, wombat
-int RE_Text_Width(fontInfo_t *font, const char *text, int limit, qboolean useColourCodes) {
-	return 16;
-}
-int RE_Text_Height(fontInfo_t *font, const char *text, int limit, qboolean useColourCodes) {
-	return 16;
-}
-void RE_Text_Paint(fontInfo_t *font, float x, float y, float scale, float alpha, const char *text, float adjust, int limit, qboolean useColourCodes, qboolean is640) {
-
-}
-void RE_Text_PaintChar(fontInfo_t *font, float x, float y, float scale, int c, qboolean is640) {
-
-}
 int	RE_GetShaderWidth(qhandle_t shader) {
 	return 512;
 }

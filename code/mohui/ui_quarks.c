@@ -350,9 +350,13 @@ void UI_KeyEvent( int key, int down ) {
 				if (res->active ==qfalse)
 					continue;
 				if (res->type == UI_RES_FIELD) {
+					int len;
 					trap_Cvar_VariableStringBuffer(res->linkcvarname, buffer,64);
-					buffer[strnlen(buffer,64)-1] = 0;
-					trap_Cvar_Set( res->linkcvarname, buffer );
+					len = strnlen(buffer,64);
+					if(len > 0) {
+						buffer[len-1] = 0;
+						trap_Cvar_Set( res->linkcvarname, buffer );
+					}
 				}
 			}
 			break;
