@@ -401,6 +401,9 @@ void RE_RegisterFont(const char *fontName, int pointSize, fontInfo_t * font)
 			Com_sprintf(fileName, sizeof(fileName), "gfx/fonts/%s", fontName);
 //	    	fontShader = R_FindShader(fileName, LIGHTMAP_2D, qfalse);
 			fontShader = R_FindShader(fileName, SHADER_2D, qfalse);
+			if(fontShader->numStages == 0) {
+				return; // something went wrong in R_FindShader
+			}
 			Com_Memset(font->glyphs, 0, sizeof(font->glyphs));
 			font->glyphScale = 1.f;
 

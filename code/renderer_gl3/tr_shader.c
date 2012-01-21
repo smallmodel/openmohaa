@@ -1867,6 +1867,11 @@ static qboolean ParseStage(shaderStage_t * stage, char **text)
 				blendSrcBits = GLS_SRCBLEND_SRC_ALPHA;
 				blendDstBits = GLS_DSTBLEND_ONE_MINUS_SRC_ALPHA;
 			}
+			else if ( !Q_stricmp( token, "alphaadd" ) )
+			{
+				blendSrcBits = GLS_SRCBLEND_SRC_ALPHA;
+				blendDstBits = GLS_DSTBLEND_ONE;
+			}
 			else
 			{
 				// complex double blends
@@ -2102,6 +2107,23 @@ static qboolean ParseStage(shaderStage_t * stage, char **text)
 			{
 				stage->rgbGen = CGEN_ONE_MINUS_VERTEX;
 			}
+			// su44: MoHAA-specific shader keyword, not supported yet
+			else if ( !Q_stricmp( token, "lightingSpherical" ) )
+			{
+				//stage->rgbGen = CGEN_LIGHTING_SPHERICAL;
+			}
+			else if ( !Q_stricmp( token, "global" ) )
+			{ // su44: it's used in ui shaders, eg main_a and main_b from scripts/mohmenu.shader
+				stage->rgbGen = CGEN_IDENTITY;
+			}
+			else if ( !Q_stricmp( token, "static" ) )
+			{
+				//stage->rgbGen = CGEN_STATIC;
+			}
+			else if ( !Q_stricmp( token, "lightingGrid" ) )
+			{
+				//stage->rgbGen = CGEN_LIGHTING_GRID;
+			}
 			else
 			{
 				ri.Printf(PRINT_WARNING, "WARNING: unknown rgbGen parameter '%s' in shader '%s'\n", token, shader.name);
@@ -2171,7 +2193,7 @@ static qboolean ParseStage(shaderStage_t * stage, char **text)
 				ParseWaveForm(text, &stage->alphaWave);
 				stage->alphaGen = AGEN_WAVEFORM;
 			}
-			else if(!Q_stricmp(token, "const"))
+			else if(!Q_stricmp(token, "const") || !Q_stricmp( token, "constant" ))
 			{
 				token = COM_ParseExt(text, qfalse);
 				stage->constantColor[3] = 255 * atof(token);
@@ -2206,6 +2228,114 @@ static qboolean ParseStage(shaderStage_t * stage, char **text)
 				ri.Printf(PRINT_WARNING, "WARNING: alphaGen portal keyword not supported in shader '%s'\n", shader.name);
 				stage->type = ST_PORTALMAP;
 				Com_SkipRestOfLine(text);
+			}
+			// IneQuation: more alpha generation methods from FAKK2
+			else if (!Q_stricmp(token, "dot"))
+			{
+				ri.Printf(PRINT_ALL, "FIXME: ParseStage: stub alphaGen dot!!!\n");
+				// TODO
+				//stage->alphaGen = AGEN_DOT;
+				token = COM_ParseExt(text, qfalse);
+				if (token[0] == 0) {
+					//shader.agenDotMin = 0.f;
+					//shader.agenDotMax = 1.f;
+					ri.Printf(PRINT_WARNING, "WARNING: missing range params for alphaGen dot in shader '%s', defaulting to 0..1\n", shader.name);
+				}
+				/*else
+					shader.agenDotMin = atof(token);*/
+				token = COM_ParseExt(text, qfalse);
+				if (token[0] == 0) {
+					//shader.agenDotMin = 0.f;
+					//shader.agenDotMax = 1.f;
+					ri.Printf(PRINT_WARNING, "WARNING: missing range params for alphaGen dot in shader '%s', defaulting to 0..1\n", shader.name);
+				}
+				/*else
+					shader.agenDotMax = atof(token);*/
+			}
+			else if (!Q_stricmp(token, "oneMinusDot"))
+			{
+				ri.Printf(PRINT_ALL, "FIXME: ParseStage: stub alphaGen oneMinusDot!!!\n");
+				// TODO
+				//stage->alphaGen = AGEN_ONE_MINUS_DOT;
+				token = COM_ParseExt(text, qfalse);
+				if (token[0] == 0) {
+					//shader.agenDotMin = 0.f;
+					//shader.agenDotMax = 1.f;
+					ri.Printf(PRINT_WARNING, "WARNING: missing range params for alphaGen oneMinusDot in shader '%s', defaulting to 0..1\n", shader.name);
+				}
+				/*else
+					shader.agenDotMin = atof(token);*/
+				token = COM_ParseExt(text, qfalse);
+				if (token[0] == 0) {
+					//shader.agenDotMin = 0.f;
+					//shader.agenDotMax = 1.f;
+					ri.Printf(PRINT_WARNING, "WARNING: missing range params for alphaGen oneMinusDot in shader '%s', defaulting to 0..1\n", shader.name);
+				}
+				/*else
+					shader.agenDotMax = atof(token);*/
+			}
+			else if (!Q_stricmp(token, "skyAlpha"))
+			{
+				ri.Printf(PRINT_ALL, "FIXME: ParseStage: stub alphaGen skyAlpha!!!\n");
+				// TODO
+				//stage->alphaGen = AGEN_SKYALPHA;
+			}
+			else if (!Q_stricmp(token, "oneMinusSkyAlpha"))
+			{
+				ri.Printf(PRINT_ALL, "FIXME: ParseStage: stub alphaGen oneMinusSkyAlpha!!!\n");
+				// TODO
+				//stage->alphaGen = AGEN_ONE_MINUS_SKYALPHA;
+			}
+			// this one seems to have been introduced in MoHAA
+			else if (!Q_stricmp(token, "tCoord"))
+			{
+				ri.Printf(PRINT_ALL, "FIXME: ParseStage: stub alphaGen tCoord!!!\n");
+				// TODO
+				//stage->alphaGen = AGEN_TCOORD;
+
+				token = COM_ParseExt(text, qfalse);
+				if (token[0] == 0) {
+					//shader.tCoordS = 0.f;
+					//shader.tCoordT = 1.f;
+					ri.Printf(PRINT_WARNING, "WARNING: missing range params for alphaGen tCoord in shader '%s', defaulting to 0..1\n", shader.name);
+				}
+				/*else
+					shader.tCoordS = atof(token);*/
+
+				token = COM_ParseExt(text, qfalse);
+				if (token[0] == 0) {
+					//shader.tCoordS = 0.f;
+					//shader.tCoordT = 1.f;
+					ri.Printf(PRINT_WARNING, "WARNING: missing range params for alphaGen tCoord in shader '%s', defaulting to 0..1\n", shader.name);
+				}
+				/*else
+					shader.tCoordT = atof(token);*/
+			}
+			// su44: see shader firstaid_dm
+			else if ( !Q_stricmp( token, "distFade" ) )
+			{//usage: distFade 1024 512 ???
+				//stage->alphaGen = AGEN_DISTFADE;
+				token = COM_ParseExt(text, qfalse);
+				if (token[0] == 0) {
+					ri.Printf(PRINT_WARNING, "WARNING: missing distance1 parm for alphaGen distFade in shader '%s'\n", shader.name);
+				}
+				token = COM_ParseExt(text, qfalse);
+				if (token[0] == 0) {
+					ri.Printf(PRINT_WARNING, "WARNING: missing distance2 parm for alphaGen distFade in shader '%s'\n", shader.name);
+				}
+			}
+			// su44: see shader static_tree1sprite
+			else if (!Q_stricmp(token, "oneMinusDistFade"))
+			{
+				//stage->alphaGen = AGEN_ONEMINUSDISTFADE;
+				token = COM_ParseExt(text, qfalse);
+				if (token[0] == 0) {
+					ri.Printf(PRINT_WARNING, "WARNING: missing distance1 parm for alphaGen oneMinusDistFade in shader '%s'\n", shader.name);
+				}
+				token = COM_ParseExt(text, qfalse);
+				if (token[0] == 0) {
+					ri.Printf(PRINT_WARNING, "WARNING: missing distance2 parm for alphaGen oneMinusDistFade in shader '%s'\n", shader.name);
+				}
 			}
 			else
 			{
@@ -2527,6 +2657,11 @@ static qboolean ParseStage(shaderStage_t * stage, char **text)
 		else if(!Q_stricmp(token, "glowStage"))
 		{
 			ri.Printf(PRINT_WARNING, "WARNING: glowStage keyword not supported in shader '%s'\n", shader.name);
+		}
+		// su44: added for MoHAA
+		else if(!Q_stricmp(token, "nextbundle"))
+		{
+			ri.Printf(PRINT_WARNING, "WARNING: MoHAA nextbundle keyword not supported in shader '%s'\n", shader.name);
 		}
 		else
 		{
@@ -4318,6 +4453,12 @@ static qboolean ParseShader(char *_text)
 		{
 			continue;
 		}
+		// su44:: all keywords below were added for compatibility with MoHAA
+		else if(!Q_stricmp(token, "force32bit"))
+		{
+
+			continue;
+		}
 		else
 		{
 			ri.Printf(PRINT_WARNING, "WARNING: unknown general shader parameter '%s' in '%s'\n", token, shader.name);
@@ -5308,6 +5449,10 @@ static char    *FindShaderInShaderText(const char *shaderName)
 			//ri.Printf(PRINT_ALL, "found shader '%s' by linear search\n", shaderName);
 			return p;
 		}
+		// su44: in MoHAA, there is a single shader called "table"
+		// which conflicts with "table" keyword used by Doom3 and Xreal.
+		// See scripts/items.shader from pak0.pk3.
+#if 0
 		// skip shader tables
 		else if(!Q_stricmp(token, "table"))
 		{
@@ -5316,6 +5461,7 @@ static char    *FindShaderInShaderText(const char *shaderName)
 
 			Com_SkipBracedSection(&p);
 		}
+#endif
 		// support shader templates
 		else if(!Q_stricmp(token, "guide"))
 		{
@@ -6364,6 +6510,10 @@ static void ScanAndLoadShaderFiles(void)
 				break;
 			}
 
+			// su44: in MoHAA, there is a single shader called "table"
+			// which conflicts with "table" keyword used by Doom3 and Xreal.
+			// See scripts/items.shader from pak0.pk3.
+#if 0
 			// skip shader tables
 			if(!Q_stricmp(token, "table"))
 			{
@@ -6373,7 +6523,9 @@ static void ScanAndLoadShaderFiles(void)
 				Com_SkipBracedSection(&p);
 			}
 			// support shader templates
-			else if(!Q_stricmp(token, "guide"))
+			else 
+#endif
+				if(!Q_stricmp(token, "guide"))
 			{
 				// parse shader name
 				token = COM_ParseExt(&p, qtrue);
@@ -6466,6 +6618,10 @@ static void ScanAndLoadShaderFiles(void)
 				break;
 			}
 
+			// su44: in MoHAA, there is a single shader called "table"
+			// which conflicts with "table" keyword used by Doom3 and Xreal.
+			// See scripts/items.shader from pak0.pk3.
+#if 0
 			// parse shader tables
 			if(!Q_stricmp(token, "table"))
 			{
@@ -6537,7 +6693,9 @@ static void ScanAndLoadShaderFiles(void)
 				}
 			}
 			// support shader templates
-			else if(!Q_stricmp(token, "guide"))
+			else 
+#endif
+				if(!Q_stricmp(token, "guide"))
 			{
 				// parse shader name
 				oldp = p;
