@@ -82,10 +82,15 @@ void CG_MakeBulletHole(float *i_vPos, float *i_vNorm, int iLarge,
 	trace_t *pPreTrace, qboolean bMakeSound) {
 	char *s;
 
-
+#if 0
+	// su44: make an "explosion" effect here so I can debug bullet holes coordinates
+	CG_MakeExplosion(i_vPos,vec3_origin,0,trap_R_RegisterShader("heavy_pipe"),250,qtrue);
+#endif
 	s = "bhole_";
 
-	///////CG_ImpactMark(0,i_vPos,i_vNorm,0,1,1,1,1,qfalse,8,qfalse);
+	// TODO: choose an appropriate decal shader and play hit sound
+
+	CG_ImpactMark(trap_R_RegisterShader("bhole_wood"),i_vPos,i_vNorm,0,1,1,1,1,qfalse,8,qfalse);
 }
 
 void CG_AddBulletImpacts() {
@@ -114,6 +119,49 @@ void CG_AddBulletImpacts() {
 static void CG_MakeBubbleTrail(float *i_vStart, float *i_vEnd, int iLarge) {
 	// TODO
 }
+// this is called from CG_MakeBulletTracerInternal
+static void CG_BulletTracerEffect(float *i_vStart, float *i_vEnd)
+{
+	byte fTracerColor[4]; // su44: in MoHAA it was "float[4]"
+	int iLife;
+	vec3_t vNewStart;
+	int v2;
+
+	VectorCopy(i_vStart,vNewStart);
+	
+	v2 = 1;
+
+	iLife = 20;
+	fTracerColor[0] = 255;
+	fTracerColor[1] = 255;
+	fTracerColor[2] = 255;
+	fTracerColor[3] = 255;
+	return CG_CreateBeam(
+			vNewStart, // start
+			&vec3_origin, // dir
+			0, // owner
+			1, // model
+			1.0, // alpha
+			1.0, // scale
+			8192, // flags
+			1000.0, // len
+			iLife, // life
+			1, // qboolean create
+			i_vEnd, // endpointvec
+			0, // min_ofs
+			0, // maxs_ofs
+			0, // overlap
+			1, // numSubdivions
+			0, // delay
+			"tracer", // beamshadername
+			fTracerColor, // modulate (in FAKK that's a byte[4], in MoH that's float[4])
+			0, // numSphereBeams
+			0.0, // sphereradius
+			v2, //toggleDelay
+			1.0, //endapha
+			0, // renderfx
+			"tracereffect"); // name
+}
 
 static void CG_MakeBulletTracerInternal(float *i_vBarrel, float *i_vStart,
 	float (*i_vEnd)[3], int i_iNumBullets, qboolean iLarge,
@@ -121,13 +169,16 @@ static void CG_MakeBulletTracerInternal(float *i_vBarrel, float *i_vStart,
 	trace_t tr;
 	int i;
 
-
-	////for(i = 0; i < i_iNumBullets; i++) {
-	////	CG_Trace(&tr,i_vStart,i_vEnd[i],vec3_origin,vec3_origin,-1,MASK_SHOT);
-	////	if(tr.fraction != 1.f) {
-	////		CG_MakeBulletHole(tr.endpos,tr.plane.normal,iLarge,&tr,qfalse);
-	////	}
-	////}
+	for(i = 0; i < i_iNumBullets; i++) {
+		CG_BulletTracerEffect(i_vBarrel,i_vEnd[i]);
+		CG_Trace(&tr,i_vBarrel,vec3_origin,vec3_origin,i_vEnd[i],-1,MASK_SHOT);
+		if(tr.fraction != 1.f && tr.allsolid == qfalse) {
+			CG_MakeBulletHole(tr.endpos,tr.plane.normal,iLarge,&tr,qfalse);
+		} else {
+			// su44: it happens quite often. Is it a bug?
+			//CG_Printf("CG_MakeBulletTracerInternal: missed\n");
+		}
+	}
 
 }
 
@@ -146,6 +197,7 @@ static void CG_MakeBulletTracer(float *i_vBarrel, float *i_vStart,
 			bt->iLarge = iLarge;
 			bt->iTracerVisible = iTracerVisible;
 			bt->bIgnoreEntities = bIgnoreEntities;
+			bullet_tracers_count++;
 			for(i = 0; i < i_iNumBullets; i++) {
 				VectorCopy(i_vEnd[i],bullet_tracer_bullets[bullet_tracer_bullets_count]);
 				bullet_tracer_bullets_count++;
@@ -173,7 +225,7 @@ void CG_AddBulletTracers() {
 }
 
 static void CG_MakeExplosionEffect(float *vPos, int iType) {
-	// TODO
+	CG_MakeExplosion(vPos,vec3_origin,0,trap_R_RegisterShader("gren_explosion"),1000,qtrue);
 }
 
 static void CG_MakeEffect_Normal(int iEffect, vec3_t vPos, vec3_t vNormal) {
@@ -308,7 +360,9 @@ void CG_ParseCGMessage() {
 
 	do {
 		msgtype = trap_MSG_ReadBits( 6 );
-//Com_Printf( "CG_ParseCGMessage: command type %i\n", msgtype ); 
+		if(cg_debugCGMessages.integer) {
+			Com_Printf( "CG_ParseCGMessage: command type %i\n", msgtype );
+		}
 		switch ( msgtype ) {
 			case 1: // BulletTracer (visible?)
 				vecTmp[0] = trap_MSG_ReadCoord();
@@ -343,7 +397,7 @@ void CG_ParseCGMessage() {
 				vecTmp[1] = trap_MSG_ReadCoord();
 				vecTmp[2] = trap_MSG_ReadCoord();
 				iTemp = trap_MSG_ReadBits( 6 );
-			case 4: // BulletTracer multiple times
+			case 4: // BulletTracer multiple times (shotgun shot)
 				if ( msgtype == 4 )
 					iTemp = 0;
 				vecStart[0] = trap_MSG_ReadCoord();
@@ -444,8 +498,8 @@ void CG_ParseCGMessage() {
 				vecEnd[2] = trap_MSG_ReadCoord();
 				CG_MeleeImpact(vecStart,vecEnd);
 				break;
-			case 12:
-			case 13:
+			case 12: // m1 frag/stiel grenade explosion
+			case 13: // bazooka/panzershrek projectile explosion
 				vecStart[0] = trap_MSG_ReadCoord();
 				vecStart[1] = trap_MSG_ReadCoord();
 				vecStart[2] = trap_MSG_ReadCoord();
@@ -459,7 +513,7 @@ void CG_ParseCGMessage() {
 			case 16:
 			case 17:
 			case 18:
-			case 19:
+			case 19: // oil barrel effect
 			case 20:
 			case 21:
 			case 22:

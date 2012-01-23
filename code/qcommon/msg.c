@@ -1502,6 +1502,13 @@ void MSG_ReadDeltaEntity( msg_t *msg, entityState_t *from, entityState_t *to,
 	for ( i = 0, field = entityStateFields ; i < lc ; i++, field++ ) {
 		fromF = (int *)( (byte *)from + field->offset );
 		toF = (int *)( (byte *)to + field->offset );
+#if 1
+		// su44: trying to find the cause of "unrecognized entity field type" error.
+		// It seems that "field" ptr got screwed somewhere
+		if(field->offset > sizeof(entityState_t)) {
+			Com_Error( ERR_DROP, "MSG_ReadDeltaEntity: field offset %i is larger than size of entityState (i %i)\n", field->offset, i );
+		}
+#endif
 		if ( ! MSG_ReadBits( msg, 1 ) ) {
 			// no change
 			*toF = *fromF;

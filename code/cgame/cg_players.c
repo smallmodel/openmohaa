@@ -23,54 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // cg_players.c -- handle the media and animation for player entities
 #include "cg_local.h"
 
-char	*cg_customSoundNames[MAX_CUSTOM_SOUNDS] = {
-	"*death1.wav",
-	"*death2.wav",
-	"*death3.wav",
-	"*jump1.wav",
-	"*pain25_1.wav",
-	"*pain50_1.wav",
-	"*pain75_1.wav",
-	"*pain100_1.wav",
-	"*falling1.wav",
-	"*gasp.wav",
-	"*drown.wav",
-	"*fall1.wav",
-	"*taunt.wav"
-};
-
-
-/*
-================
-CG_CustomSound
-
-================
-*/
-sfxHandle_t	CG_CustomSound( int clientNum, const char *soundName ) {
-	clientInfo_t *ci;
-	int			i;
-
-	if ( soundName[0] != '*' ) {
-		return trap_S_RegisterSound( soundName, qfalse );
-	}
-
-	if ( clientNum < 0 || clientNum >= MAX_CLIENTS ) {
-		clientNum = 0;
-	}
-	ci = &cgs.clientinfo[ clientNum ];
-
-	for ( i = 0 ; i < MAX_CUSTOM_SOUNDS && cg_customSoundNames[i] ; i++ ) {
-		if ( !strcmp( soundName, cg_customSoundNames[i] ) ) {
-			return ci->sounds[i];
-		}
-	}
-
-	CG_Error( "Unknown custom sound: %s", soundName );
-	return 0;
-}
-
-
-
 /*
 =============================================================================
 
@@ -92,17 +44,6 @@ static qboolean	CG_FileExists(const char *filename) {
 		return qtrue;
 	}
 	return qfalse;
-}
-
-
-/*
-==========================
-CG_RegisterClientModelname
-==========================
-*/
-static qboolean CG_RegisterClientModelname( clientInfo_t *ci, const char *modelName, const char *skinName, const char *headModelName, const char *headSkinName, const char *teamName ) {
-	
-	return qtrue;
 }
 
 /*
@@ -319,10 +260,10 @@ void CG_NewClientInfo( int clientNum ) {
 
 	// colors
 	v = Info_ValueForKey( configstring, "c1" );
-	CG_ColorFromString( v, newInfo.color1 );
+//	CG_ColorFromString( v, newInfo.color1 );
 
 	v = Info_ValueForKey( configstring, "c2" );
-	CG_ColorFromString( v, newInfo.color2 );
+//	CG_ColorFromString( v, newInfo.color2 );
 
 	// bot skill
 	v = Info_ValueForKey( configstring, "skill" );

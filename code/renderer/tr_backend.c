@@ -189,6 +189,12 @@ void GL_TexEnv( int env )
 		qglTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_ADD );
 		break;
 	default:
+		// su44: quick, dirty fix for "nextbundle" problem in
+		// tracer shader
+		if(tess.shader && !strcmp(tess.shader->name,"tracer")) {
+			qglTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );
+			break;
+		}
 		ri.Error( ERR_DROP, "GL_TexEnv: invalid env '%d' passed\n", env );
 		break;
 	}

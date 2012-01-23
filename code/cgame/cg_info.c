@@ -24,41 +24,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "cg_local.h"
 
-#define MAX_LOADING_PLAYER_ICONS	16
-#define MAX_LOADING_ITEM_ICONS		26
-
-static int			loadingPlayerIconCount;
-static int			loadingItemIconCount;
-static qhandle_t	loadingPlayerIcons[MAX_LOADING_PLAYER_ICONS];
-static qhandle_t	loadingItemIcons[MAX_LOADING_ITEM_ICONS];
-
-
-/*
-===================
-CG_DrawLoadingIcons
-===================
-*/
-static void CG_DrawLoadingIcons( void ) {
-	int		n;
-	int		x, y;
-
-	for( n = 0; n < loadingPlayerIconCount; n++ ) {
-		x = 16 + n * 78;
-		y = 324-40;
-		CG_DrawPic( x, y, 64, 64, loadingPlayerIcons[n] );
-	}
-
-	for( n = 0; n < loadingItemIconCount; n++ ) {
-		y = 400-40;
-		if( n >= 13 ) {
-			y += 40;
-		}
-		x = 16 + n % 13 * 48;
-		CG_DrawPic( x, y, 32, 32, loadingItemIcons[n] );
-	}
-}
-
-
 /*
 ======================
 CG_LoadingString
@@ -75,16 +40,6 @@ void CG_LoadingString( const char *s ) {
 	cgs.loadingStage++;
 	trap_UpdateScreen();
 }
-
-/*
-===================
-CG_LoadingClient
-===================
-*/
-void CG_LoadingClient( int clientNum ) {
-
-}
-
 
 /*
 ====================

@@ -1032,7 +1032,12 @@ static void CG_ServerCommand( void ) {
 		return;
 	}
 
-	
+	// su44: send just before server map change
+	if ( !strcmp( cmd, "fadesound" ) ) {
+		// TODO
+		return;
+	}
+
 
 	CG_Printf( "Unknown client game command: %s\n", cmd );
 }

@@ -191,17 +191,6 @@ static void CG_General( centity_t *cent ) {
 
 /*
 ==================
-CG_Speaker
-
-Speaker entities can automatically play sounds
-==================
-*/
-static void CG_Speaker( centity_t *cent ) {
-
-}
-
-/*
-==================
 CG_Item
 ==================
 */
@@ -406,8 +395,6 @@ static void CG_InterpolateEntityPosition( centity_t *cent ) {
 
 	// this will linearize a sine or parabolic curve, but it is important
 	// to not extrapolate player positions if more recent data is available
-//	BG_EvaluateTrajectory( &cent->currentState.pos, cg.snap->serverTime, current );
-//	BG_EvaluateTrajectory( &cent->nextState.pos, cg.nextSnap->serverTime, next );
 	// su44: adjusted for MOH
 	current = &cent->currentState.origin[0];
 	next = &cent->nextState.origin[0];
@@ -416,8 +403,6 @@ static void CG_InterpolateEntityPosition( centity_t *cent ) {
 	cent->lerpOrigin[1] = current[1] + f * ( next[1] - current[1] );
 	cent->lerpOrigin[2] = current[2] + f * ( next[2] - current[2] );
 
-//	BG_EvaluateTrajectory( &cent->currentState.apos, cg.snap->serverTime, current );
-//	BG_EvaluateTrajectory( &cent->nextState.apos, cg.nextSnap->serverTime, next );
 	current = &cent->currentState.angles[0];
 	next = &cent->nextState.angles[0];
 

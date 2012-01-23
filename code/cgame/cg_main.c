@@ -207,6 +207,7 @@ vmCvar_t	vm_offset_vel_side;
 vmCvar_t	vm_offset_vel_up;
 vmCvar_t	vm_offset_upvel;
 vmCvar_t	vm_lean_lower;
+vmCvar_t	cg_debugCGMessages;
 
 typedef struct {
 	vmCvar_t	*vmCvar;
@@ -336,6 +337,7 @@ static cvarTable_t cvarTable[] = {
 	{ &vm_offset_vel_up, "vm_offset_vel_up", "-4.0", 0},
 	{ &vm_offset_upvel, "vm_offset_upvel", "0.0025", 0},
 	{ &vm_lean_lower, "vm_lean_lower", "0.1", 0},
+	{ &cg_debugCGMessages, "cg_debugCGMessages", "0", 0},
 };
 
 static int  cvarTableSize = sizeof( cvarTable ) / sizeof( cvarTable[0] );
@@ -672,7 +674,6 @@ CG_RegisterClients
 static void CG_RegisterClients( void ) {
 	int		i;
 
-	CG_LoadingClient(cg.clientNum);
 	CG_NewClientInfo(cg.clientNum);
 
 	for (i=0 ; i<MAX_CLIENTS ; i++) {
@@ -686,7 +687,6 @@ static void CG_RegisterClients( void ) {
 		if ( !clientInfo[0]) {
 			continue;
 		}
-		CG_LoadingClient( i );
 		CG_NewClientInfo( i );
 	}
 	CG_BuildSpectatorString();

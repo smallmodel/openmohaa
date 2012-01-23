@@ -1083,6 +1083,7 @@ extern	vmCvar_t		vm_offset_vel_side;
 extern	vmCvar_t		vm_offset_vel_up;
 extern	vmCvar_t		vm_offset_upvel;
 extern	vmCvar_t		vm_lean_lower;
+extern	vmCvar_t		cg_debugCGMessages; // su44: for debuging in cg_parsemsg.c
 
 // UBERSOUND
 #define UBERSOUND_FILE	"ubersound/ubersound.scr"
@@ -1244,16 +1245,6 @@ void CG_Trace( trace_t *result, const vec3_t start, const vec3_t mins, const vec
 					 int skipNumber, int mask );
 void CG_PredictPlayerState( void );
 void CG_LoadDeferredPlayers( void );
-
-
-//
-// cg_events.c
-//
-void CG_CheckEvents( centity_t *cent );
-const char	*CG_PlaceString( int rank );
-void CG_EntityEvent( centity_t *cent, vec3_t position );
-void CG_PainEvent( centity_t *cent, int health );
-
 
 //
 // cg_ents.c

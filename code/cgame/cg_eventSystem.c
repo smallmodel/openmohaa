@@ -409,7 +409,8 @@ again:
 		}
 		CG_CentBoneIndexLocal2World(i,ent,v,a);
 		CG_ProcessSpawnEvent(ent,v,a,text);
-		
+	} else if(!strcmp(token,"tagspawnlinked")) {
+		return; // FIXME!
 	} else if(!strcmp(token,"tagdlight")) {
 		float r,g,b,intensity;
 	// tagdlight( String tagName, Float red, Float green,
@@ -512,6 +513,10 @@ again:
 		} else if(!Q_stricmp(token,"walk")) {
 			//iRunning = ??;
 		} else if(!Q_stricmp(token,"ladder")) {
+			//iRunning = ??;
+		} else if(!Q_stricmp(token,"R")) {
+			//iRunning = ??;
+		} else if(!Q_stricmp(token,"L")) {
 			//iRunning = ??;
 		} else {
 			//iRunning = ??;

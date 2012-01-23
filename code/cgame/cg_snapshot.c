@@ -145,9 +145,6 @@ static void CG_TransitionEntity( centity_t *cent ) {
 
 	// clear the next state.  if will be set by the next CG_SetNextSnap
 	cent->interpolate = qfalse;
-
-	// check for events
-	CG_CheckEvents( cent );
 }
 
 
@@ -190,9 +187,6 @@ void CG_SetInitialSnapshot( snapshot_t *snap ) {
 		cent->currentValid = qtrue;
 
 		CG_ResetEntity( cent );
-
-		// check for events
-		CG_CheckEvents( cent );
 	}
 }
 

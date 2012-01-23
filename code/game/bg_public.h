@@ -25,7 +25,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // because games can change separately from the main system version, we need a
 // second version that must match between game and cgame
 
-//#define	GAME_VERSION		BASEGAME "-1"
 #define	GAME_VERSION		"mohaa-base-1"
 
 #define	DEFAULT_GRAVITY		800
@@ -33,15 +32,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define	ARMOR_PROTECTION	0.66
 
 #define	MAX_ITEMS			256
-
-#define	RANK_TIED_FLAG		0x4000
-
-#define DEFAULT_SHOTGUN_SPREAD	700
-#define DEFAULT_SHOTGUN_COUNT	11
-
-#define	ITEM_RADIUS			15		// item sizes are needed for client side pickup detection
-
-#define	LIGHTNING_RANGE		768
 
 #define	SCORE_NOT_PRESENT	-9999	// for the CS_SCORES[12] when only one player is present
 
@@ -226,21 +216,6 @@ void Pmove (pmove_t *pmove);
 
 // player_state->stats[] indexes
 // NOTE: may not have more than 32
-#if 0
-typedef enum {
-	STAT_HEALTH,
-	STAT_HOLDABLE_ITEM,
-#ifdef MISSIONPACK
-	STAT_PERSISTANT_POWERUP,
-#endif
-	STAT_WEAPONS,					// 16 bit fields
-	STAT_ARMOR,
-	STAT_DEAD_YAW,					// look this direction when dead (FIXME: get rid of?)
-	STAT_CLIENTS_READY,				// bit mask of clients wishing to exit the intermission (FIXME: configstring?)
-	STAT_MAX_HEALTH					// health / armor limit, changable by handicap
-} statIndex_t;
-#else
-#define STAT_CLIENTS_READY 0
 typedef enum {
 	STAT_HEALTH,
 	STAT_MAX_HEALTH,
@@ -275,31 +250,7 @@ typedef enum {
 	STAT_LAST_STAT
 } statIndex_t;
 #define STAT_DEAD_YAW 5 // su44: Is there a DEAD_YAW stat in MoHAA?
-#endif
-#if 0
-// player_state->persistant[] indexes
-// these fields are the only part of player_state that isn't
-// cleared on respawn
-// NOTE: may not have more than 16
-typedef enum {
-	PERS_SCORE,						// !!! MUST NOT CHANGE, SERVER AND GAME BOTH REFERENCE !!!
-	PERS_HITS,						// total points damage inflicted so damage beeps can sound on change
-	PERS_RANK,						// player rank or team rank
-	PERS_TEAM,						// player team
-	PERS_SPAWN_COUNT,				// incremented every respawn
-	PERS_PLAYEREVENTS,				// 16 bits that can be flipped for events
-	PERS_ATTACKER,					// clientnum of last damage inflicter
-	PERS_ATTACKEE_ARMOR,			// health/armor of last person we attacked
-	PERS_KILLED,					// count of the number of times you died
-	// player awards tracking
-	PERS_IMPRESSIVE_COUNT,			// two railgun hits in a row
-	PERS_EXCELLENT_COUNT,			// two successive kills in a short amount of time
-	PERS_DEFEND_COUNT,				// defend awards
-	PERS_ASSIST_COUNT,				// assist awards
-	PERS_GAUNTLET_FRAG_COUNT,		// kills with the guantlet
-	PERS_CAPTURES					// captures
-} persEnum_t;
-#endif
+
 
 // entityState_t->eFlags
 #define	EF_DEAD				0x00000001		// don't draw a foe marker over players with EF_DEAD
