@@ -1406,7 +1406,6 @@ Q3CGOBJ_ = \
   $(B)/main/cgame/cg_drawtools.o \
   $(B)/main/cgame/cg_effects.o \
   $(B)/main/cgame/cg_ents.o \
-  $(B)/main/cgame/cg_event.o \
   $(B)/main/cgame/cg_eventSystem.o \
   $(B)/main/cgame/cg_info.o \
   $(B)/main/cgame/cg_localents.o \
@@ -1451,12 +1450,10 @@ MPCGOBJ_ = \
   $(B)/missionpack/game/bg_slidemove.o \
   $(B)/missionpack/game/bg_lib.o \
   $(B)/missionpack/cgame/cg_consolecmds.o \
-  $(B)/missionpack/cgame/cg_newdraw.o \
   $(B)/missionpack/cgame/cg_draw.o \
   $(B)/missionpack/cgame/cg_drawtools.o \
   $(B)/missionpack/cgame/cg_effects.o \
   $(B)/missionpack/cgame/cg_ents.o \
-  $(B)/missionpack/cgame/cg_event.o \
   $(B)/missionpack/cgame/cg_info.o \
   $(B)/missionpack/cgame/cg_localents.o \
   $(B)/missionpack/cgame/cg_marks.o \
