@@ -365,8 +365,6 @@ float vectoyaw( const vec3_t vec ) {
 
 
 void G_InitGentity( gentity_t *e ) {
-	int i;
-
 	e->inuse = qtrue;
 	e->classname = "noclass";
 	G_GetNullEntityState(&e->s);

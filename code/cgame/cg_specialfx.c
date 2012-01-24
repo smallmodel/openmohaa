@@ -45,6 +45,11 @@ static void CG_FootstepMain(trace_t *trace, int iRunning, int iEquipment) {
 	if ( !iRunning )
 		return;
 
+	// su44: it seems that trace_t::surfaceFlags
+	// are not set if trace_t::allsolid == qtrue
+	if( trace->allsolid == qtrue )
+		return;
+
 	if ( iEquipment ) {
 		snd = CG_GetUbersound( "snd_step_equipment" );
 		if (snd)
@@ -110,7 +115,9 @@ static void CG_FootstepMain(trace_t *trace, int iRunning, int iEquipment) {
 		}
 	}
 	if ( !snd ) {
-		CG_Printf( "CG_FootstepMain: could not load sound for surface %i\n", trace->surfaceFlags );
+		if(trace->surfaceFlags) {
+			CG_Printf( "CG_FootstepMain: could not load sound for surface %i\n", trace->surfaceFlags );
+		}
 		return;
 	}
 	trap_S_StartSound( trace->endpos, trace->entityNum, CHAN_BODY, snd->sfxHandle );

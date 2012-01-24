@@ -253,7 +253,6 @@ static consoleCommand_t	commands[] = {
 	{ "tcmd", CG_TargetCommand_f },
 	{ "startOrbit", CG_StartOrbit_f },
 	//{ "camera", CG_Camera_f },
-	{ "loaddeferred", CG_LoadDeferredPlayers },
 	{ "locationprint", CG_LocationPrint_f },
 	// su44: MoHAA commands
 	{ "toggleitem", CG_ToggleItem_f },

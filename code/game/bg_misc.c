@@ -294,7 +294,7 @@ and after local prediction on the client
 void BG_PlayerStateToEntityState( playerState_t *ps, entityState_t *s, qboolean snap ) {
 	int		i;
 
-	if ( ps->pm_type == PM_INTERMISSION || ps->pm_type == PM_SPECTATOR ) {
+	if ( ps->pm_type == PM_SPECTATOR ) {
 		s->eType = 0;//ET_INVISIBLE;
 	} else if ( ps->stats[STAT_HEALTH] <= GIB_HEALTH ) {
 		s->eType = 0;//ET_INVISIBLE;
@@ -342,7 +342,7 @@ and after local prediction on the client
 void BG_PlayerStateToEntityStateExtraPolate( playerState_t *ps, entityState_t *s, int time, qboolean snap ) {
 	int		i;
 
-	if ( ps->pm_type == PM_INTERMISSION || ps->pm_type == PM_SPECTATOR ) {
+	if ( ps->pm_type == PM_SPECTATOR ) {
 		s->eType = 0;//ET_INVISIBLE;
 	} else if ( ps->stats[STAT_HEALTH] <= GIB_HEALTH ) {
 		s->eType = 0;//ET_INVISIBLE;

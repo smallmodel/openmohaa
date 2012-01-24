@@ -1416,7 +1416,6 @@ Q3CGOBJ_ = \
   $(B)/main/cgame/cg_playerstate.o \
   $(B)/main/cgame/cg_predict.o \
   $(B)/main/cgame/cg_rain.o \
-  $(B)/main/cgame/cg_scoreboard.o \
   $(B)/main/cgame/cg_servercmds.o \
   $(B)/main/cgame/cg_snapshot.o \
   $(B)/main/cgame/cg_specialfx.o \
@@ -1460,7 +1459,6 @@ MPCGOBJ_ = \
   $(B)/missionpack/cgame/cg_players.o \
   $(B)/missionpack/cgame/cg_playerstate.o \
   $(B)/missionpack/cgame/cg_predict.o \
-  $(B)/missionpack/cgame/cg_scoreboard.o \
   $(B)/missionpack/cgame/cg_servercmds.o \
   $(B)/missionpack/cgame/cg_snapshot.o \
   $(B)/missionpack/cgame/cg_view.o \

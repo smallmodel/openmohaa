@@ -1506,10 +1506,6 @@ void PM_UpdateViewAngles( playerState_t *ps, const usercmd_t *cmd ) {
 	short		temp;
 	int		i;
 
-	if ( ps->pm_type == PM_INTERMISSION || ps->pm_type == PM_SPINTERMISSION) {
-		return;		// no view changes at all
-	}
-
 	if ( ps->pm_type != PM_SPECTATOR && ps->stats[STAT_HEALTH] <= 0 ) {
 		return;		// no view changes at all
 	}
@@ -1651,14 +1647,6 @@ void PmoveSingle (pmove_t *pmove) {
 		PM_NoclipMove ();
 		PM_DropTimers ();
 		return;
-	}
-
-	if (pm->ps->pm_type == PM_FREEZE) {
-		return;		// no movement at all
-	}
-
-	if ( pm->ps->pm_type == PM_INTERMISSION || pm->ps->pm_type == PM_SPINTERMISSION) {
-		return;		// no movement at all
 	}
 
 	// set watertype, and waterlevel

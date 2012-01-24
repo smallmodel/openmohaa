@@ -1910,8 +1910,10 @@ BotIntermission
 */
 qboolean BotIntermission(bot_state_t *bs) {
 	//NOTE: we shouldn't be looking at the game code...
-	if (level.intermissiontime) return qtrue;
-	return (bs->cur_ps.pm_type == PM_FREEZE || bs->cur_ps.pm_type == PM_INTERMISSION);
+	if (level.intermissiontime)
+		return qtrue;
+	//return (bs->cur_ps.pm_type == PM_FREEZE || bs->cur_ps.pm_type == PM_INTERMISSION);
+	return qfalse;
 }
 
 /*

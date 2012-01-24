@@ -36,7 +36,7 @@ void CG_InitRainEffect() {
 	cg.rain.numshaders = 0;
 }
 
-void CG_RainCSUpdated(int num, char *str) {
+void CG_RainCSUpdated(int num, const char *str) {
 	if( num == CS_RAIN_DENSITY ) {
 		cg.rain.density = atof(str);
 	} else if( num == CS_RAIN_SPEED ) {

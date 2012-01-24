@@ -272,94 +272,9 @@ typedef struct localEntity_s {
 
 //======================================================================
 
-
 typedef struct {
-	int				client;
-	int				score;
-	int				ping;
-	int				time;
-	int				scoreFlags;
-	int				powerUps;
-	int				accuracy;
-	int				impressiveCount;
-	int				excellentCount;
-	int				guantletCount;
-	int				defendCount;
-	int				assistCount;
-	int				captures;
-	qboolean	perfect;
-	int				team;
-} score_t;
-
-// each client has an associated clientInfo_t
-// that contains media references necessary to present the
-// client model and other color coded effects
-// this is regenerated each time a client's configstring changes,
-// usually as a result of a userinfo (name, model, etc) change
-#define	MAX_CUSTOM_SOUNDS	32
-
-typedef struct {
-	qboolean		infoValid;
-
-	char			name[MAX_QPATH];
-	team_t			team;
-
-	int				botSkill;		// 0 = not bot, 1-5 = bot
-
-	vec3_t			color1;
-	vec3_t			color2;
-
-	int				score;			// updated by score servercmds
-	int				location;		// location index for team mode
-	int				health;			// you only get this info about your teammates
-	int				armor;
-	int				curWeapon;
-
-	int				handicap;
-	int				wins, losses;	// in tourney mode
-
-	int				teamTask;		// task in teamplay (offence/defence)
-	qboolean		teamLeader;		// true when this is a team leader
-
-	int				powerups;		// so can display quad/flag status
-
-	int				medkitUsageTime;
-	int				invulnerabilityStartTime;
-	int				invulnerabilityStopTime;
-
-	int				breathPuffTime;
-
-	// when clientinfo is changed, the loading of models/skins/sounds
-	// can be deferred until you are dead, to prevent hitches in
-	// gameplay
-	char			modelName[MAX_QPATH];
-	char			skinName[MAX_QPATH];
-	char			headModelName[MAX_QPATH];
-	char			headSkinName[MAX_QPATH];
-	char			redTeam[MAX_TEAMNAME];
-	char			blueTeam[MAX_TEAMNAME];
-	qboolean		deferred;
-
-	qboolean		newAnims;		// true if using the new mission pack animations
-	qboolean		fixedlegs;		// true if legs yaw is always the same as torso yaw
-	qboolean		fixedtorso;		// true if torso never changes yaw
-
-	vec3_t			headOffset;		// move head in icon views
-	footstep_t		footsteps;
-	gender_t		gender;			// from model
-
-	qhandle_t		legsModel;
-	qhandle_t		legsSkin;
-
-	qhandle_t		torsoModel;
-	qhandle_t		torsoSkin;
-
-	qhandle_t		headModel;
-	qhandle_t		headSkin;
-
-	qhandle_t		modelIcon;
-
-	sfxHandle_t		sounds[MAX_CUSTOM_SOUNDS];
+	int team;
+	char name[64];
 } clientInfo_t;
 
 // su44: MoHAA rain/snow effect
@@ -471,7 +386,6 @@ typedef struct {
 	int			numScores;
 	int			selectedScore;
 	int			teamScores[2];
-	score_t		scores[MAX_CLIENTS];
 	qboolean	showScores;
 	qboolean	scoreBoardShowing;
 	int			scoreFadeTime;
@@ -1133,7 +1047,6 @@ void CG_MouseEvent(int x, int y);
 void CG_EventHandling(int type);
 void CG_RankRunFrame( void );
 void CG_SetScoreSelection(void *menu);
-score_t *CG_GetSelectedScore( void );
 void CG_BuildSpectatorString( void );
 
 
@@ -1199,7 +1112,6 @@ void CG_AddLagometerFrameInfo( void );
 void CG_AddLagometerSnapshotInfo( snapshot_t *snap );
 void CG_CenterPrint( const char *str, int y, int charWidth );
 void CG_LocationPrint( const char *str, int x, int y, int charWidth );
-void CG_DrawHead( float x, float y, float w, float h, int clientNum, vec3_t headAngles );
 void CG_DrawActive( stereoFrame_t stereoView );
 void CG_DrawFlagModel( float x, float y, float w, float h, int team, qboolean force2D );
 void CG_DrawTeamBackground( int x, int y, int w, int h, float alpha, int team );
@@ -1244,7 +1156,6 @@ int	CG_PointContents( const vec3_t point, int passEntityNum );
 void CG_Trace( trace_t *result, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end,
 					 int skipNumber, int mask );
 void CG_PredictPlayerState( void );
-void CG_LoadDeferredPlayers( void );
 
 //
 // cg_ents.c
@@ -1368,9 +1279,6 @@ void CG_InitConsoleCommands( void );
 void CG_ExecuteNewServerCommands( int latestSequence );
 void CG_ParseServerinfo( void );
 void CG_SetConfigValues( void );
-void CG_LoadVoiceChats( void );
-void CG_VoiceChatLocal( int mode, qboolean voiceOnly, int clientNum, int color, const char *cmd );
-void CG_PlayBufferedVoiceChats( void );
 
 //
 // cg_playerstate.c
@@ -1644,7 +1552,7 @@ void CG_MultiBeam(centity_t *cent);
 
 // cg_rain.c
 void CG_InitRainEffect();
-void CG_RainCSUpdated(int num, char *str);
+void CG_RainCSUpdated(int num, const char *str);
 void CG_Rain(centity_t *cent);
 
 // cg_specialfx.c

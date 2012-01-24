@@ -553,7 +553,7 @@ void CG_AddPacketEntities( void ) {
 	AnglesToAxis( cg.autoAngles, cg.autoAxis );
 	AnglesToAxis( cg.autoAnglesFast, cg.autoAxisFast );
 
-#if 0 // su44: that's not done here in MoHAA (?)
+#if 1 // su44: that's not done here in MoHAA (?)
 	// generate and add the entity from the playerstate
 	ps = &cg.predictedPlayerState;
 	BG_PlayerStateToEntityState( ps, &cg.predictedPlayerEntity.currentState, qfalse );

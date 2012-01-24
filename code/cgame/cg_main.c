@@ -505,8 +505,6 @@ called during a precache command
 */
 static void CG_RegisterSounds( void ) {
 	int		i;
-	char	items[MAX_ITEMS+1];
-	char	name[MAX_QPATH];
 	const char	*soundName;
 	char	buffer[MAX_STRING_CHARS];
 
@@ -538,20 +536,6 @@ This function may execute for a couple of minutes with a slow disk.
 */
 static void CG_RegisterGraphics( void ) {
 	int			i;
-	char		items[MAX_ITEMS+1];
-	static char		*sb_nums[11] = {
-		"gfx/2d/numbers/zero_32b",
-		"gfx/2d/numbers/one_32b",
-		"gfx/2d/numbers/two_32b",
-		"gfx/2d/numbers/three_32b",
-		"gfx/2d/numbers/four_32b",
-		"gfx/2d/numbers/five_32b",
-		"gfx/2d/numbers/six_32b",
-		"gfx/2d/numbers/seven_32b",
-		"gfx/2d/numbers/eight_32b",
-		"gfx/2d/numbers/nine_32b",
-		"gfx/2d/numbers/minus_32b",
-	};
 
 	// clear any references to old media
 	memset( &cg.refdef, 0, sizeof( cg.refdef ) );
@@ -563,9 +547,6 @@ static void CG_RegisterGraphics( void ) {
 
 	// precache status bar pics
 	CG_LoadingString( "game media" );
-
-
-
 
 
 	cgs.media.crosshairShader[0] = trap_R_RegisterShader( "gfx/2d/BLANK" );
@@ -654,7 +635,7 @@ void CG_BuildSpectatorString(void) {
 	int i;
 	cg.spectatorList[0] = 0;
 	for (i = 0; i < MAX_CLIENTS; i++) {
-		if (cgs.clientinfo[i].infoValid && cgs.clientinfo[i].team == TEAM_SPECTATOR ) {
+		if (cgs.clientinfo[i].team == TEAM_SPECTATOR ) {
 			Q_strcat(cg.spectatorList, sizeof(cg.spectatorList), va("%s     ", cgs.clientinfo[i].name));
 		}
 	}

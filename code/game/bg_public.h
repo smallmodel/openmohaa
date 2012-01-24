@@ -31,8 +31,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define	GIB_HEALTH			-40
 #define	ARMOR_PROTECTION	0.66
 
-#define	MAX_ITEMS			256
-
 #define	SCORE_NOT_PRESENT	-9999	// for the CS_SCORES[12] when only one player is present
 
 #define	VOTE_TIME			30000	// 30 seconds before vote times out
@@ -138,14 +136,18 @@ movement on the server game.
 ===================================================================================
 */
 
+// su44: our pmtype_t enum must be the same
+// as in MoHAA, because playerState_t::pm_type
+// is send over the net and used by cgame
+// for movement prediction
 typedef enum {
 	PM_NORMAL,		// can accelerate and turn
+	PM_CLIMBWALL, // su44: I think it's used for ladders
 	PM_NOCLIP,		// noclip movement
-	PM_SPECTATOR,	// still run into walls
 	PM_DEAD,		// no acceleration or turning, but free falling
-	PM_FREEZE,		// stuck in place with no control
-	PM_INTERMISSION,	// no movement or status bar
-	PM_SPINTERMISSION	// no movement or status bar
+
+	// TODO: remove this one below, there is no PM_SPECTATOR in MoH
+	PM_SPECTATOR,	// still run into walls
 } pmtype_t;
 
 typedef enum {
@@ -182,7 +184,6 @@ typedef struct {
 	int			tracemask;			// collide against these types of surfaces
 	int			debugLevel;			// if set, diagnostic output will be printed
 	qboolean	noFootsteps;		// if the game is setup for no footsteps by the server
-	qboolean	gauntletHit;		// true if a gauntlet attack would actually hit something
 
 	int			framecount;
 
@@ -251,6 +252,14 @@ typedef enum {
 } statIndex_t;
 #define STAT_DEAD_YAW 5 // su44: Is there a DEAD_YAW stat in MoHAA?
 
+// player_state->persistant[] indexes
+// these fields are the only part of player_state that isn't
+// cleared on respawn
+// NOTE: may not have more than 16
+typedef enum { 
+	PERS_SCORE,		// !!! MUST NOT CHANGE, SERVER AND GAME BOTH REFERENCE !!!
+	PERS_TEAM		// player team
+} persEnum_t;
 
 // entityState_t->eFlags
 #define	EF_DEAD				0x00000001		// don't draw a foe marker over players with EF_DEAD
@@ -299,40 +308,46 @@ typedef enum {
 #define TEAM_MAXOVERLAY		32
 
 // means of death
+// su44: changed to MoHAA's
 typedef enum {
-	MOD_UNKNOWN,
-	MOD_SHOTGUN,
-	MOD_GAUNTLET,
-	MOD_MACHINEGUN,
-	MOD_GRENADE,
-	MOD_GRENADE_SPLASH,
-	MOD_ROCKET,
-	MOD_ROCKET_SPLASH,
-	MOD_PLASMA,
-	MOD_PLASMA_SPLASH,
-	MOD_RAILGUN,
-	MOD_LIGHTNING,
-	MOD_BFG,
-	MOD_BFG_SPLASH,
-	MOD_WATER,
-	MOD_SLIME,
-	MOD_LAVA,
-	MOD_CRUSH,
-	MOD_TELEFRAG,
-	MOD_FALLING,
+	MOD_NONE,
 	MOD_SUICIDE,
-	MOD_TARGET_LASER,
-	MOD_TRIGGER_HURT,
-#ifdef MISSIONPACK
-	MOD_NAIL,
-	MOD_CHAINGUN,
-	MOD_PROXIMITY_MINE,
-	MOD_KAMIKAZE,
-	MOD_JUICED,
-#endif
-	MOD_GRAPPLE
-} meansOfDeath_t;
+	MOD_CRUSH,
+	MOD_CRUSH_EVERY_FRAME,
+	MOD_TELEFRAG,
+	MOD_LAVA,
+	MOD_SLIME,
+	MOD_FALLING,
+	MOD_LAST_SELF_INFLICTED,
+	MOD_EXPLOSION,
+	MOD_EXPLODEWALL,
+	MOD_ELECTRIC,
+	MOD_ELECTRICWATER,
+	MOD_THROWNOBJECT,
+	MOD_GRENADE,
+	MOD_BEAM,
+	MOD_ROCKET,
+	MOD_IMPACT,
+	MOD_BULLET,
+	MOD_FAST_BULLET,
+	MOD_VEHICLE,
+	MOD_FIRE,
+	MOD_FLASHBANG,
+	MOD_ON_FIRE,
+	MOD_GIB,
+	MOD_IMPALE,
+	MOD_BASH,
+	MOD_SHOTGUN,
+	MOD_TOTAL_NUMBER,
 
+	// su44: these are not present in MoH,
+	// but deleting them would give compile
+	// errors in game module
+	MOD_WATER,
+	MOD_TRIGGER_HURT,
+	MOD_UNKNOWN = MOD_NONE,
+
+} meansOfDeath_t;
 
 //---------------------------------------------------------
 
@@ -385,10 +400,3 @@ void	BG_EvaluateTrajectoryDelta( const trajectory_t *tr, int atTime, vec3_t resu
 
 void	BG_PlayerStateToEntityState( playerState_t *ps, entityState_t *s, qboolean snap );
 void	BG_PlayerStateToEntityStateExtraPolate( playerState_t *ps, entityState_t *s, int time, qboolean snap );
-
-#define ARENAS_PER_TIER		4
-#define MAX_ARENAS			1024
-#define	MAX_ARENAS_TEXT		8192
-
-#define MAX_BOTS			1024
-#define MAX_BOTS_TEXT		8192

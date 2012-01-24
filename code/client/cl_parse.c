@@ -774,6 +774,9 @@ void CL_ParseServerMessage( msg_t *msg ) {
 			CL_ParseLocationprint( msg );
 			break;
 		case svc_cgameMessage:
+			if(cgvm==0) {
+				Com_Error(ERR_DROP,"CL_ParseServerMessage: tried to parse cg message without cgame loaded\n");
+			}
 			CL_ParseCGMessage( msg );
 			break;
 		}

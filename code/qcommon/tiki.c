@@ -1584,7 +1584,8 @@ parseSurface:
 
 #if 1
 										// HACK - MoHAA allows linebreaks in tagspawn commands
-										if(!Q_stricmp(token,"tagspawn")) {
+										if(!Q_stricmp(token,"tagspawn") || !Q_stricmp(token,"tagspawnlinked")
+											 || !Q_stricmp(token,"originspawn")) {
 											if(cmdText[0]!=0) {
 												strcat(cmdText," ");
 											}

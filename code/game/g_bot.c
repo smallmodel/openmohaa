@@ -24,6 +24,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "g_local.h"
 
+#define ARENAS_PER_TIER		4
+#define MAX_ARENAS			1024
+#define	MAX_ARENAS_TEXT		8192
+
+#define MAX_BOTS			1024
+#define MAX_BOTS_TEXT		8192
 
 static int		g_numBots;
 static char		*g_botInfos[MAX_BOTS];

@@ -196,22 +196,17 @@ Sets the coordinates of the rendered window
 static void CG_CalcVrect (void) {
 	int		size;
 
-	// the intermission should allways be full screen
-	if ( cg.snap->ps.pm_type == PM_INTERMISSION ) {
+	// bound normal viewsize
+	if (cg_viewsize.integer < 30) {
+		trap_Cvar_Set ("cg_viewsize","30");
+		size = 30;
+	} else if (cg_viewsize.integer > 100) {
+		trap_Cvar_Set ("cg_viewsize","100");
 		size = 100;
 	} else {
-		// bound normal viewsize
-		if (cg_viewsize.integer < 30) {
-			trap_Cvar_Set ("cg_viewsize","30");
-			size = 30;
-		} else if (cg_viewsize.integer > 100) {
-			trap_Cvar_Set ("cg_viewsize","100");
-			size = 100;
-		} else {
-			size = cg_viewsize.integer;
-		}
-
+		size = cg_viewsize.integer;
 	}
+
 	cg.refdef.width = cgs.glconfig.vidWidth*size/100;
 	cg.refdef.width &= ~1;
 
@@ -337,10 +332,6 @@ static void CG_OffsetFirstPersonView( void ) {
 	trace_t trace;
 	vec3_t mins = { -8, -8, -8 };
 	vec3_t maxs = { 8, 8, 8 };
-	
-	if ( cg.snap->ps.pm_type == PM_INTERMISSION ) {
-		return;
-	}
 
 	origin = cg.refdef.vieworg;
 	angles = cg.refdefViewAngles;
@@ -687,14 +678,6 @@ static int CG_CalcViewValues( void ) {
 		}
 	}
 */
-	// intermission view
-	if ( ps->pm_type == PM_INTERMISSION ) {
-		VectorCopy( ps->origin, cg.refdef.vieworg );
-		VectorCopy( ps->viewangles, cg.refdefViewAngles );
-		AnglesToAxis( cg.refdefViewAngles, cg.refdef.viewaxis );
-		return CG_CalcFov();
-	}
-
 	cg.bobcycle = ( ps->bobCycle & 128 ) >> 7;
 	cg.bobfracsin = fabs( sin( ( ps->bobCycle & 127 ) / 127.0 * M_PI ) );
 	cg.xyspeed = sqrt( ps->velocity[0] * ps->velocity[0] +
@@ -868,9 +851,6 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 
 	// add buffered sounds
 	CG_PlayBufferedSounds();
-
-	// play buffered voice chats
-	CG_PlayBufferedVoiceChats();
 
 	// finish up the rest of the refdef
 	if ( cg.testModelEntity.hModel ) {
