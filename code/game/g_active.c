@@ -520,19 +520,6 @@ void ClientUse(gentity_t *ent) {
 	ent->lastUseEntity = tr.entityNum;
 }
 
-/*
-================
-ClientEvents
-
-Events will be passed on to the clients for presentation,
-but any server game effects are handled here
-================
-*/
-void ClientEvents( gentity_t *ent, int oldEventSequence ) {
-
-
-}
-
 void BotTestSolid(vec3_t origin);
 
 /*
@@ -558,7 +545,6 @@ once for each server frame, which makes for smooth demo recording.
 void ClientThink_real( gentity_t *ent ) {
 	gclient_t	*client;
 	pmove_t		pm;
-	int			oldEventSequence;
 	int			msec;
 	usercmd_t	*ucmd;
 
@@ -740,9 +726,6 @@ void ClientThink_real( gentity_t *ent ) {
 
 	ent->waterlevel = pm.waterlevel;
 	ent->watertype = pm.watertype;
-
-	// execute client events
-	ClientEvents( ent, oldEventSequence );
 
 	// link entity now, after any personal teleporters have been used
 	trap_LinkEntity (ent);
