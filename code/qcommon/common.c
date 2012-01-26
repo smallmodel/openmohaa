@@ -3090,6 +3090,8 @@ Field_CompleteFilename
 static void Field_CompleteFilename( const char *dir,
 		const char *ext, qboolean stripExt )
 {
+	int pos;
+
 	matchCount = 0;
 	shortestMatch[ 0 ] = 0;
 
@@ -3098,9 +3100,9 @@ static void Field_CompleteFilename( const char *dir,
 	if( matchCount == 0 )
 		return;
 
-	Q_strncpyz( &completionField->buffer[ strlen( completionField->buffer ) -
-		strlen( completionString ) ], shortestMatch,
-		sizeof( completionField->buffer ) );
+	pos = strlen( completionField->buffer ) - strlen( completionString );
+	Q_strncpyz( &completionField->buffer[ pos ], shortestMatch,
+		sizeof( completionField->buffer ) - pos );
 	completionField->cursor = strlen( completionField->buffer );
 
 	if( matchCount == 1 )

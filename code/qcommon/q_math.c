@@ -436,8 +436,8 @@ void RotatePointAroundVector( vec3_t dst, const vec3_t dir, const vec3_t point,
 	zrot[1][0] = -sin( rad );
 	zrot[1][1] = cos( rad );
 
-	Matrix4x4Multiply( m, zrot, tmpmat );
-	Matrix4x4Multiply( tmpmat, im, rot );
+	Matrix3x3Multiply( m, zrot, tmpmat );
+	Matrix3x3Multiply( tmpmat, im, rot );
 
 	for ( i = 0; i < 3; i++ ) {
 		dst[i] = rot[i][0] * point[0] + rot[i][1] * point[1] + rot[i][2] * point[2];

@@ -625,12 +625,21 @@ static void CG_ServerCommand( void ) {
 	}
 
 	if ( !strcmp( cmd, "print" ) ) {
-		// wombat: the first byte looks to be always 0x03.
+		// TODO: print to screen, too
 		const char *ptr;
 		char	unkown;
 		ptr = CG_Argv(1);
 		unkown = *ptr;
-		CG_Printf( "%s", ptr+1 );
+		if ( *ptr == 0x01 ) // fgame message, not bold
+			CG_Printf( "Game Message: %s", ptr+1 );
+		else if ( *ptr == 0x02 ) // ??
+			CG_Printf( "Game Message: %s", ptr+1 );
+		else if ( *ptr == 0x03 ) // fgame message, bold
+			CG_Printf( "Game Message Bold: %s", ptr+1 );
+		else if ( *ptr == 0x04 ) // Death Message
+			CG_Printf( "Death Message: %s", ptr+1 );
+		else
+			CG_Printf( "%s", ptr );
 
 		return;
 	}
