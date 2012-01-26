@@ -1001,6 +1001,7 @@ extern	vmCvar_t		cg_debugCGMessages; // su44: for debuging in cg_parsemsg.c
 
 // UBERSOUND
 #define UBERSOUND_FILE	"ubersound/ubersound.scr"
+#define UBERDIALOG_FILE	"ubersound/uberdialog.scr"
 // su44: vanilla AA uberdialog.scr is 870195
 // wombat: it is larger in German version
 #define UBERSOUND_SIZE	1048576 // 300000
@@ -1023,6 +1024,8 @@ typedef struct ubersound_s {
 
 	sfxHandle_t			sfxHandle;
 	qboolean			hasLoaded;
+	int					variations; // some sounds have enumerated variations
+	struct ubersound_s* nextVariation;
 	struct ubersound_s*	hashNext;
 } ubersound_t;
 

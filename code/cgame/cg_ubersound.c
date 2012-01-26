@@ -62,17 +62,29 @@ static ubersound_t*	US_Find( const char *snd_name ) {
 
 ubersound_t*	CG_GetUbersound( const char *name ) {
 	ubersound_t *snd;
+
 	snd = US_Find( name );
 
 	if ( !snd ) {
 		CG_Printf( "CG_GetUbersound: sound %s not found.\n", name );
 		return NULL;
 	}
-	else if ( snd->hasLoaded == qtrue )
-		return snd;
-	else {
-		snd->sfxHandle = trap_S_RegisterSound( snd->wavfile, qfalse );
+	// if there are more than one version, choose randomly
+	if ( snd->variations ) {
+		int i, var;
+
+		var = rand();
+		var *= snd->variations;
+		var /= RAND_MAX+1;
+
+		// CG_Printf( "random sound %i of %i\n", var, snd->variations );
+		for (i=0;i<var;i++)
+			snd = snd->nextVariation;
 	}
+
+	if ( snd->hasLoaded == qfalse )
+		snd->sfxHandle = trap_S_RegisterSound( snd->wavfile, qfalse );
+
 	return snd;
 }
 
@@ -149,14 +161,15 @@ qboolean US_CheckMapstring( const char *mapstring ) {
 	return qfalse;
 }
 
-void CG_LoadUberSoundFile( const char *fname ) {
+void CG_LoadUberSoundFile( const char *fname, qboolean sndVar ) {
+	// sndVar decides whether the last digit (if it is a digit) provides a variation of the same sound
 	fileHandle_t	f;
 	int				len;
 
 	char			*token;
 	char			*ptr;
 	qboolean		end;
-	ubersound_t*	snd;
+	ubersound_t		*oldSnd, *newSnd;
 	int				i;
 
 	CG_Printf( "=== Loading %s ===\n", fname );
@@ -178,30 +191,56 @@ void CG_LoadUberSoundFile( const char *fname ) {
 	token = COM_Parse( &ptr );
 
 	while (*token) {
+		newSnd = &snd_indexes[snd_numIndexes];
 		if ( !Q_strncmp(token,"aliascache",MAX_QPATH) || !Q_strncmp(token,"alias",MAX_QPATH) ) {
-			CG_ParseUSline( &ptr, &snd_indexes[snd_numIndexes] );
+			CG_ParseUSline( &ptr, newSnd );
 
-			if ( US_CheckMapstring( snd_indexes[snd_numIndexes].mapstring ) == qtrue ) {
-				if ( snd_indexes[snd_numIndexes].name[strlen(snd_indexes[snd_numIndexes].name)-1] == '1' )
-					snd_indexes[snd_numIndexes].name[strlen(snd_indexes[snd_numIndexes].name)-1] = 0;
-				i = generateHashValue(snd_indexes[snd_numIndexes].name);
-				snd = hashTable[i];
-				if (snd) {
-					while (snd->hashNext)
-						snd = snd->hashNext;
-					snd->hashNext = &snd_indexes[snd_numIndexes];
+			if ( US_CheckMapstring( newSnd->mapstring ) == qtrue ) {
+				int variation;
+
+				variation = atoi(newSnd->name + strlen(newSnd->name)-1);
+				if ( sndVar == qtrue && variation ) {
+					newSnd->name[strlen(newSnd->name)-1] = 0;
+					oldSnd = US_Find(newSnd->name);
+					if ( oldSnd ) {
+						oldSnd->variations++;
+						for (i=oldSnd->variations;i>2;i--)
+							oldSnd = oldSnd->nextVariation;
+						oldSnd->nextVariation = newSnd;
+						if ( newSnd->loaded == qtrue ) {
+							 newSnd->sfxHandle = trap_S_RegisterSound( newSnd->wavfile, qfalse );
+							 newSnd->hasLoaded = qtrue;
+						}
+						snd_numIndexes++;
+						if ( snd_numIndexes >= MAX_UBERSOUNDS ) {
+							snd_numIndexes--;
+							CG_Error( "CG_LoadUbersound: too many aliascaches in file.\n" );
+						}
+						continue;
+					}
+					else newSnd->variations++;
+				}
+
+				i = generateHashValue(newSnd->name);
+				oldSnd = hashTable[i];
+				if (oldSnd) {
+					while (oldSnd->hashNext)
+						oldSnd = oldSnd->hashNext;
+					oldSnd->hashNext = newSnd;
 				}
 				else
-					hashTable[i] = &snd_indexes[snd_numIndexes];
-				if ( snd_indexes[snd_numIndexes].loaded == qtrue ) {
-					 snd_indexes[snd_numIndexes].sfxHandle = trap_S_RegisterSound( snd_indexes[snd_numIndexes].wavfile, qfalse );
-					 snd_indexes[snd_numIndexes].hasLoaded = qtrue;
+					hashTable[i] = newSnd;
+				if ( newSnd->loaded == qtrue ) {
+					 newSnd->sfxHandle = trap_S_RegisterSound( newSnd->wavfile, qfalse );
+					 newSnd->hasLoaded = qtrue;
 				}
 				snd_numIndexes++;
 				if ( snd_numIndexes >= MAX_UBERSOUNDS ) {
 					snd_numIndexes--;
 					CG_Error( "CG_LoadUbersound: too many aliascaches in file.\n" );
 				}
+			} else {
+				Com_Memset(newSnd,0,sizeof(ubersound_t) );
 			}
 		} //su44: "end" token is missing in MoHAA's uberdialog.scr
 		//else if ( !Q_strncmp( token, "end", MAX_QPATH ) ) {
@@ -222,9 +261,9 @@ void CG_LoadUbersound( void ) {
 	Com_Memset(hashTable, 0, sizeof(hashTable));
 	snd_numIndexes = 0;
 
-	CG_LoadUberSoundFile(UBERSOUND_FILE);
+	CG_LoadUberSoundFile(UBERSOUND_FILE, qtrue);
 	// su44: used by MoHAA voicechats
-	CG_LoadUberSoundFile("ubersound/uberdialog.scr");
+	CG_LoadUberSoundFile(UBERDIALOG_FILE, qfalse);
 }
 
 const char* CG_LoadMusic( const char *musicfile ) {
