@@ -1143,7 +1143,7 @@ static tiki_t *TIKI_Load(const char *fname) {
 	tiki_t			*out;
 	char			*buf,*text, *token;
 	char			tmp[128], tmp2[128];
-	char			path[128];
+	char			path[128] = "";
 	skdSurface_t	*sf;
 	int				len;
 	int				i, j, level = 0;
@@ -1394,7 +1394,7 @@ parseSkelmodel:
 						token = COM_ParseExt(&text, qtrue);
 						strcpy(tmp,path);
 						i = strlen(tmp);
-						if(tmp[i-1] != '/')
+						if(i && tmp[i-1] != '/')
 							strcat(tmp,"/");
 						strcat(tmp,token);
 						if(out->surfs == 0)

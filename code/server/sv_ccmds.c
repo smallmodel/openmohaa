@@ -760,7 +760,8 @@ static void SV_TIKI_DumpBones_f( void ) {
 			return;
 	}
 	for(i = 0; i < tiki->numBones; i++) {
-		Com_Printf("Bone %i of %i - %s\n",i,tiki->numBones,TIKI_GetBoneNameFromIndex(tiki->boneNames[i]));
+		Com_Printf("Bone %i of %i - %s, type %i\n",i,tiki->numBones,
+			TIKI_GetBoneNameFromIndex(tiki->boneNames[i]),*((int*)tiki->bones[i]));
 	}
 }
 
