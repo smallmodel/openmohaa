@@ -30,9 +30,6 @@
     <ClCompile Include="..\..\..\code\cgame\cg_ents.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\code\cgame\cg_event.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\code\cgame\cg_info.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -48,9 +45,6 @@
     <ClCompile Include="..\..\..\code\cgame\cg_modelanim.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\code\cgame\cg_newdraw.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\code\cgame\cg_players.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -58,9 +52,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\code\cgame\cg_predict.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\code\cgame\cg_scoreboard.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\code\cgame\cg_servercmds.c">

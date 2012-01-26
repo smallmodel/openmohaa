@@ -88,23 +88,17 @@
     <ClCompile Include="..\..\..\code\cgame\cg_drawtools.c" />
     <ClCompile Include="..\..\..\code\cgame\cg_effects.c" />
     <ClCompile Include="..\..\..\code\cgame\cg_ents.c" />
-    <ClCompile Include="..\..\..\code\cgame\cg_event.c" />
     <ClCompile Include="..\..\..\code\cgame\cg_eventSystem.c" />
     <ClCompile Include="..\..\..\code\cgame\cg_info.c" />
     <ClCompile Include="..\..\..\code\cgame\cg_localents.c" />
     <ClCompile Include="..\..\..\code\cgame\cg_main.c" />
     <ClCompile Include="..\..\..\code\cgame\cg_marks.c" />
     <ClCompile Include="..\..\..\code\cgame\cg_modelanim.c" />
-    <ClCompile Include="..\..\..\code\cgame\cg_newdraw.c">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="..\..\..\code\cgame\cg_parsemsg.c" />
     <ClCompile Include="..\..\..\code\cgame\cg_players.c" />
     <ClCompile Include="..\..\..\code\cgame\cg_playerstate.c" />
     <ClCompile Include="..\..\..\code\cgame\cg_predict.c" />
     <ClCompile Include="..\..\..\code\cgame\cg_rain.c" />
-    <ClCompile Include="..\..\..\code\cgame\cg_scoreboard.c" />
     <ClCompile Include="..\..\..\code\cgame\cg_servercmds.c" />
     <ClCompile Include="..\..\..\code\cgame\cg_snapshot.c" />
     <ClCompile Include="..\..\..\code\cgame\cg_specialfx.c" />
