@@ -482,6 +482,10 @@ int	trap_TIKI_GetBoneNameIndex( const char *boneName ) {
 	return syscall(CG_TIKI_GETBONENAMEINDEX, boneName);
 }
 
+int	trap_TIKI_GetAnimIndex( tiki_t *tiki, const char *animName ) {
+	return syscall(CG_TIKI_GETANIMINDEX, tiki, animName);
+}
+
 void trap_SetEyeInfo( vec3_t origin, vec3_t angles ) {
 	syscall(CG_SETEYEINFO, origin, angles);
 }

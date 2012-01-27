@@ -534,8 +534,25 @@ void UI_DrawMenu( uiMenu_t *menu, qboolean foreground ) {
 					}
 				}
 				else if ( res->statvar == qtrue ) {
-					if ( !res->itemstat )
+					if ( !res->itemstat ) {
 						trap_R_Text_Paint( res->font,res->rect[0],res->rect[1],1,0,va("%i",playerState->stats[res->playerstat]),1,0,qtrue,qtrue);
+					} else {
+						// su44: see ui/hud_ammo_bar.tik.
+						if(res->itemstat == 1) {
+							switch ( res->textalign ) {
+								case UI_ALIGN_LEFT:
+								trap_R_Text_Paint( res->font,res->rect[0],res->rect[1],1,0,uis.currentViewModelWeaponName,1,0,qtrue,qtrue);
+								break;
+								case UI_ALIGN_NONE:
+								case UI_ALIGN_CENTER:
+								trap_R_Text_Paint( res->font,res->rect[0]+ (res->rect[2] - trap_R_Text_Width( res->font, uis.currentViewModelWeaponName, 0,qtrue ))/2,res->rect[1]+ (res->rect[3] -trap_R_Text_Height( res->font, uis.currentViewModelWeaponName, 0,qtrue ))/2,1,0,uis.currentViewModelWeaponName,1,0,qtrue,qtrue);
+								break;
+								case UI_ALIGN_RIGHT:
+								trap_R_Text_Paint( res->font,res->rect[0]+ res->rect[2] - trap_R_Text_Width( res->font, uis.currentViewModelWeaponName, 0,qtrue ),res->rect[1],1,0,uis.currentViewModelWeaponName,1,0,qtrue,qtrue);
+								break;
+							}
+						}
+					}
 				}
 				else {
 					if ( res->shader )
@@ -586,10 +603,22 @@ UI_DrawHUD
 */
 void UI_DrawHUD( playerState_t *ps ) {
 	int i;
+	char path[MAX_QPATH];
 //for (i=0;i<STAT_LAST_STAT;i++){
 //	Com_Printf( "%i val: %i\n", i, stats[i] );
 //}
 	playerState = ps;
+
+	trap_GetConfigString(CS_WEAPONS+ps->activeItems[ITEM_WEAPON],uis.currentViewModelWeaponName,sizeof(uis.currentViewModelWeaponName));
+
+	//Com_Printf("Current ui weapon: %s\n",uis.currentViewModelWeaponName);
+	sprintf(path,"hud_ammo_%s",uis.currentViewModelWeaponName);
+
+	// check if player weapon has changed
+	if(Q_stricmp(uis.currentViewModelWeaponURC,path)) {
+		strcpy(uis.currentViewModelWeaponURC,path);
+		UI_LoadURC(path,&uis.hudMenus[HUD_AMMO]);
+	}
 
 	UI_DrawMenu( &uis.hudMenus[HUD_AMMO], qtrue );
 	UI_DrawMenu( &uis.hudMenus[HUD_COMPASS], qfalse );

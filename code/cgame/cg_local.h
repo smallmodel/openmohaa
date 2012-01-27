@@ -504,6 +504,7 @@ typedef struct {
 	// development tool
 	refEntity_t		testModelEntity;
 	char			testModelName[MAX_QPATH];
+	char			testModelAnim[MAX_QPATH]; // su44: for testing TIKI model animations
 	qboolean		testGun;
 
 } cg_t;
@@ -1062,6 +1063,7 @@ void CG_TestModelNextFrame_f (void);
 void CG_TestModelPrevFrame_f (void);
 void CG_TestModelNextSkin_f (void);
 void CG_TestModelPrevSkin_f (void);
+void CG_TestModelAnim_f (void);
 void CG_ZoomDown_f( void );
 void CG_ZoomUp_f( void );
 void CG_AddBufferedSound( sfxHandle_t sfx);

@@ -256,6 +256,10 @@ typedef struct {
 	// menu list
 	uiMenulist_t		menuList[UI_MAX_FILES];
 	int					MLP;	// menu list pointer
+
+	// su44
+	char				currentViewModelWeaponName[MAX_QPATH]; // eg BAR
+	char				currentViewModelWeaponURC[MAX_QPATH]; // eg hud_ammo_BAR
 } uiStatic_t;
 
 

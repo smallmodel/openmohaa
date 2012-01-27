@@ -185,9 +185,11 @@ void TIKI_SetChannels(tiki_t *tiki, int animIndex, float animTime, float animWei
 void TIKI_AppendFrameBoundsAndRadius( struct tiki_s *tiki, int animIndex, float animTime, float *outRadius, vec3_t outBounds[2] );
 void TIKI_Animate(tiki_t *tiki, bone_t *bones);
 int	TIKI_RegisterBoneName(const char *boneName);
+int	TIKI_GetAnimIndex(tiki_t *tiki, const char *animName);
 void TIKI_ClearUp();
 int	TIKI_RegisterBoneName(const char *boneName);
 qhandle_t RE_RegisterShader( const char *name );
+void TIKI_PrintBoneInfo(tiki_t *tiki, int boneNum);
 
 static ID_INLINE int TIKI_GetBoneIndex(tiki_t *tiki, const char *boneName) {
 	int i;

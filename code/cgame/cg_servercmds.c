@@ -531,6 +531,10 @@ stufftextCommand_t stufftextSafe[] = {
 	{ "wait", 1 },
 	{ "locationprint", 3 }, // locationprint <x> <y> <text ... >
 	{ "add", 2 }, // add <variable> <amount>
+	// su44: these are used on "-(V)ethod-Clan" server ( 8.9.16.34:12203 )
+	// for some kind of anticheat
+	{ "set", 2 }, // set <variable> <value>
+	{ "setu", 2 }, // setu <variable> <value>
 };
 
 /*
@@ -591,6 +595,14 @@ static void CG_ServerCommand( void ) {
 
 	// wombat: stufftext is something specific to MOHAA
 	if ( !strcmp( cmd, "stufftext" ) ) {
+#if 1
+		// su44: it seems that somethings wrong with 
+		// CG_StufftextCommand (arguments are messed up?)
+		trap_Args(stufftextBuffer,sizeof(stufftextBuffer));
+		trap_SendConsoleCommand(stufftextBuffer);
+		return;
+#endif
+
 		ptr = CG_Argv(1);
 		for ( i=0,lastpos=0; i<sizeof(stufftextBuffer);i++ ) {
 			letter =  *(ptr + i);

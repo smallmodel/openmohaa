@@ -607,7 +607,7 @@ void CG_MultiBeam(centity_t *cent) {
 		VectorCopy(currpt2,prevpt2);
 	}      
 }
-float trap_R_Noise() {
+float trap_R_Noise( float x, float y, float z, float t ) {
 	return 1.f; // TODO
 }
 static void CG_BuildRendererBeam( vec3_t start, vec3_t end, float angleVar, int numSubdivisions,

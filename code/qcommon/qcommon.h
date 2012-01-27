@@ -247,7 +247,7 @@ PROTOCOL
 */
 
 #define	PROTOCOL_VERSION	8
-// 1.31 - 67
+// su44: MoHAA v 1.00 uses protocol version 6
 
 // maintain a list of compatible protocols for demo playing
 // NOTE: that stuff only works with two digits protocols

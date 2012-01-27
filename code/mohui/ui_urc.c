@@ -559,6 +559,8 @@ void	UI_LoadURC( const char *name, uiMenu_t *menu ) {
 		return;
 	}
 
+	memset(menu,0,sizeof(uiMenu_t)); // su44 was here
+
 	trap_FS_Read( buffer, len, f );
 	buffer[len] = 0;
 

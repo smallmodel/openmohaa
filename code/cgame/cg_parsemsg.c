@@ -232,8 +232,26 @@ static void CG_MakeEffect_Normal(int iEffect, vec3_t vPos, vec3_t vNormal) {
 	// TODO
 }
 
-static void CG_SpawnEffectModel(char *model, vec3_t origin) {
-	// TODO
+static void CG_SpawnEffectModel(const char *model, vec3_t origin) {
+	localEntity_t *le;
+	vec3_t spawnAngles = { 0, 0, 0 };
+	qhandle_t h;
+
+	le = CG_AllocLocalEntity();
+	le->endTime = cg.time + 100;
+	le->leType = LE_SKIP;
+	le->pos.trType = TR_GRAVITY;
+	le->pos.trTime = cg.time - (rand()&15);
+	VectorCopy(origin,le->pos.trBase);
+	VectorCopy(origin,le->refEntity.origin);
+	le->angles.trType = TR_STATIONARY;
+	VectorCopy(spawnAngles,le->angles.trBase);
+	AnglesToAxis(spawnAngles,le->refEntity.axis);
+
+	h = trap_R_RegisterModel(model);
+	le->refEntity.hModel = h;
+	le->leType = LE_FRAGMENT;
+	le->tiki = trap_TIKI_RegisterModel(model);
 }
 
 void CG_HudDrawElements() {
@@ -515,16 +533,16 @@ void CG_ParseCGMessage() {
 			case 18:
 			case 19: // oil barrel effect
 			case 20:
-			case 21:
-			case 22:
+			case 21: // oil barrel effect top
+			case 22: // oil barrel effect top - first hit
 				vecStart[0] = trap_MSG_ReadCoord();
 				vecStart[1] = trap_MSG_ReadCoord();
 				vecStart[2] = trap_MSG_ReadCoord();
 				trap_MSG_ReadDir( vecEnd );
 				CG_MakeEffect_Normal(msgtype/* + 67*/,vecStart,vecEnd);
 				break;
-			case 23:
-			case 24:
+			case 23: // broke crate
+			case 24: // broke glass window
 				vecStart[0] = trap_MSG_ReadCoord();
 				vecStart[1] = trap_MSG_ReadCoord();
 				vecStart[2] = trap_MSG_ReadCoord();

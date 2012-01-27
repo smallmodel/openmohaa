@@ -61,6 +61,88 @@ qhandle_t TIKI_RE_RegisterShader( const char *name ) {
 #endif
 }
 
+// an utility for debuging
+void TIKI_PrintBoneInfo(tiki_t *tiki, int boneNum) {
+	tikiBonePosRot_t	*posrot, *bone;
+	tikiBoneRotation_t	*rot;
+	tikiBoneShoulder_t	*should;
+	tikiBoneElbow_t		*elbow;
+	tikiBoneWrist_t		*wrist;
+	tikiBoneHoseRot_t	*hose;
+	tikiBoneAVRot_t		*av;
+
+	bone = (tikiBonePosRot_t*) tiki->bones[boneNum];
+
+	switch(*(int*)tiki->bones[boneNum])
+	{	
+		case JT_ROTATION:
+		{
+			rot = (tikiBoneRotation_t*)tiki->bones[boneNum];
+			Com_Printf("%s, parent %i, type 0 - JT_ROTATION, const offset %f %f %f\n",
+				TIKI_GetBoneNameFromIndex(tiki->boneNames[boneNum]),rot->parentIndex,rot->const_offset[0],
+				rot->const_offset[1],rot->const_offset[2]);
+		}
+		break;
+		case JT_POSROT_SKC:
+		{
+			posrot = (tikiBonePosRot_t*)tiki->bones[boneNum];
+			Com_Printf("%s, parent %i, type 1 - posrot\n",
+				TIKI_GetBoneNameFromIndex(tiki->boneNames[boneNum]),posrot->parentIndex);
+
+		}
+		break;	
+		case JT_SHOULDER:
+		{
+			should = (tikiBoneShoulder_t*)tiki->bones[boneNum];
+			Com_Printf("%s, parent %i, type 2 - JT_SHOULDER, const offset %f %f %f\n",
+				TIKI_GetBoneNameFromIndex(tiki->boneNames[boneNum]),should->parentIndex,should->const_offset[0],
+				should->const_offset[1],should->const_offset[2]);
+
+		}
+		break;
+		case JT_ELBOW:
+		{
+			elbow = (tikiBoneElbow_t*)tiki->bones[boneNum];
+			Com_Printf("%s, parent %i, type 2 - JT_ELBOW, const offset %f %f %f\n",
+				TIKI_GetBoneNameFromIndex(tiki->boneNames[boneNum]),elbow->parentIndex,elbow->const_offset[0],
+				elbow->const_offset[1],elbow->const_offset[2]);
+
+		}
+		break;
+		case JT_WRIST:
+		{
+			wrist = (tikiBoneWrist_t*) tiki->bones[boneNum];
+			Com_Printf("%s, parent %i, type 4 - JT_WRIST, const offset %f %f %f\n",
+				TIKI_GetBoneNameFromIndex(tiki->boneNames[boneNum]),wrist->parentIndex,wrist->const_offset[0],
+				wrist->const_offset[1],wrist->const_offset[2]);
+
+
+		}
+		break;
+		case JT_HOSEROT:
+		{
+			hose = (tikiBoneHoseRot_t*)tiki->bones[boneNum];
+			Com_Printf("%s, parent %i, type 5 - JT_HOSEROT, basePos %f %f %f, hoseType %i, "
+				"bendMax %f, bendRatio %f, spinRadio %f, target %i\n",
+				TIKI_GetBoneNameFromIndex(tiki->boneNames[boneNum]),hose->parentIndex,hose->basePos[0],
+				hose->basePos[1],hose->basePos[2],hose->hoseRotType,hose->bendMax,hose->bendRatio,
+				hose->spinRatio,hose->targetIndex);
+
+		}
+		break;
+		case JT_AVROT:
+		{
+			av = (tikiBoneAVRot_t*) tiki->bones[boneNum];
+			Com_Printf("%s, parent %i, type 5 - JT_AVROT, const offset %f %f %f, ref1 %i, ref2 %i, bone2weight %f\n",
+				TIKI_GetBoneNameFromIndex(tiki->boneNames[boneNum]),av->parentIndex,av->const_offset[0],
+				av->const_offset[1],av->const_offset[2],av->m_reference1,av->m_reference2,av->m_bone2weight);
+		}
+		break;
+		default:
+			Com_Error(ERR_DROP,"TIKI_PrintBoneInfo: unsupported bone type %boneNum",*((int**)tiki->bones)[boneNum]);
+		break;
+	}
+}
 
 // bones... called every frame from cgame, animated by CG_ModelAnim, then passed to renderer with refEntities
 #define MAX_GLOBAL_BONES 4096
@@ -235,6 +317,14 @@ void TIKI_SetChannels_interpolate(tiki_t *tiki, bone_t *bones, tikiAnim_t *anim,
 		bones++;
 	}
 }
+float TIKI_ClampAnimTime( tikiAnim_t *anim, float time ) {
+	float totalTime;
+	totalTime = anim->frameTime * anim->numFrames;
+	while(time > totalTime) {
+		time -= totalTime;
+	}
+	return time;
+}
 static void TIKI_AppendFrameBoundsAndRadiusSingle( tikiFrame_t *frame, float *outRadius, vec3_t outBounds[2]) {
 	BoundsAdd(outBounds[0],outBounds[1],frame->bounds[0],frame->bounds[1]);
 	if(frame->radius > *outRadius) {
@@ -255,6 +345,9 @@ void TIKI_AppendFrameBoundsAndRadius( struct tiki_s *tiki, int animIndex, float 
 		TIKI_AppendFrameBoundsAndRadiusSingle(anim->frames,outRadius,outBounds);
 		return;
 	}
+#if 1
+	animTime = TIKI_ClampAnimTime(anim,animTime);
+#endif
 	i = 1;
 	frame = anim->frames;
 	while(animTime > anim->frameTime) {
@@ -288,6 +381,10 @@ void TIKI_SetChannels(tiki_t *tiki, int animIndex, float animTime, float animWei
 		return;
 	}
 	else {
+#if 1
+		animTime = TIKI_ClampAnimTime(anim,animTime);
+#endif
+
 		i = 1;
 		while(animTime > anim->frameTime) {
 			animTime-=anim->frameTime;
