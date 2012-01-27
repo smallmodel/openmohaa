@@ -560,6 +560,12 @@ void CG_StufftextCommand( const char *cmd ) {
 			return;
 		}
 	}
+	// wombat: some servers use ST commands for anti-cheat measures
+	// we don't use the whitelist right now...
+	Com_Printf( "^3Executing stufftext command: \"%s\"\n", cmd ); 
+	trap_SendConsoleCommand( cmd );
+	return;
+
 	for ( i = 0 ; i < sizeof( stufftextSafe ) / sizeof( stufftextSafe[0] ) ; i++ ) {
 		if ( !Q_stricmp( ptr2, stufftextSafe[i].cmd ) ) {
 			trap_SendConsoleCommand( cmd );
@@ -595,13 +601,6 @@ static void CG_ServerCommand( void ) {
 
 	// wombat: stufftext is something specific to MOHAA
 	if ( !strcmp( cmd, "stufftext" ) ) {
-#if 1
-		// su44: it seems that somethings wrong with 
-		// CG_StufftextCommand (arguments are messed up?)
-		trap_Args(stufftextBuffer,sizeof(stufftextBuffer));
-		trap_SendConsoleCommand(stufftextBuffer);
-		return;
-#endif
 
 		ptr = CG_Argv(1);
 		for ( i=0,lastpos=0; i<sizeof(stufftextBuffer);i++ ) {
@@ -639,19 +638,31 @@ static void CG_ServerCommand( void ) {
 	if ( !strcmp( cmd, "print" ) ) {
 		// TODO: print to screen, too
 		const char *ptr;
-		char	unkown;
+		serverMessageType_t smt;
+
 		ptr = CG_Argv(1);
-		unkown = *ptr;
-		if ( *ptr == 0x01 ) // fgame message, not bold
-			CG_Printf( "Game Message: %s", ptr+1 );
-		else if ( *ptr == 0x02 ) // ??
-			CG_Printf( "Game Message: %s", ptr+1 );
-		else if ( *ptr == 0x03 ) // fgame message, bold
-			CG_Printf( "Game Message Bold: %s", ptr+1 );
-		else if ( *ptr == 0x04 ) // Death Message
-			CG_Printf( "Death Message: %s", ptr+1 );
-		else
-			CG_Printf( "%s", ptr );
+		smt = (serverMessageType_t)*ptr;
+
+		switch ( smt ) {
+			case SMT_YELLOW:
+				CG_Printf( "Game Message: %s", ptr+1 );
+				break;
+			case SMT_CHAT:
+				CG_Printf( "Chat Message: %s", ptr+1 );
+				break;
+			case SMT_WHITE:
+				CG_Printf( "Game Message: %s", ptr+1 );
+				break;
+			case SMT_DEATH:
+				CG_Printf( "Game Message: %s", ptr+1 );
+				break;
+			case SMT_UNKNOWN:
+				CG_Printf( "Unknown Message: %s", ptr+1 );
+				break;
+			default:
+				CG_Printf( "%s", ptr );
+				break;
+		}
 
 		return;
 	}

@@ -116,6 +116,17 @@ typedef enum {
 
 //=================================================
 
+typedef enum  {
+	SMT_NONE,
+	SMT_YELLOW,		// below compass, color yellow
+	SMT_CHAT,		// right of compass, color grey
+	SMT_WHITE,		// below compass, color white
+	SMT_DEATH,		// right of compass, color red
+	SMT_UNKNOWN		// don't know if exists. observe with breakpoint
+} serverMessageType_t;
+
+//=================================================
+
 // player entities need to track more information
 // than any other type of entity.
 
