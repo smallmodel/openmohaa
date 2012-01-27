@@ -376,7 +376,8 @@ void Field_VariableSizeDraw(fontInfo_t *font, field_t *edit, int x, int y, int w
 			cursorChar = '_';
 		}
 
-		i = drawLen - strlen( str );
+//		i = drawLen - strlen( str );
+		str[edit->cursor] = 0;
 
 		/*if ( size == SMALLCHAR_WIDTH ) {
 			SCR_DrawSmallChar( x + ( edit->cursor - prestep - i ) * size, y, cursorChar );

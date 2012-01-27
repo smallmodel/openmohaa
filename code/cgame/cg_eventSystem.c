@@ -529,6 +529,7 @@ again:
 			iEquipment = atoi(token);
 		}
 
+		iRunning = 0;
 		CG_Footstep(str,ent,/*0,*/iRunning,iEquipment);
 
 	} else if(!strcmp(token,"emitteroff")) {
