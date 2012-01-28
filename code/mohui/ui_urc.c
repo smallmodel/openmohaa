@@ -229,12 +229,12 @@ void UI_ParseMenuResource( const char *token, char **ptr, uiResource_t *res, int
 			res->statbarRange[0] = atof(PARSE_PTR);
 			res->statbarRange[1] = atof(PARSE_PTR);
 		}
-		else if ( !Q_strncmp(var,"vertical",8) )
-			res->statbar = STATBAR_VERTICAL;
 		else if ( !Q_strncmp(var,"vertical_stagger_even",21) )
 			res->statbar = STATBAR_VERTICAL_STAGGER_EVEN;
 		else if ( !Q_strncmp(var,"vertical_stagger_odd",20) )
 			res->statbar = STATBAR_VERTICAL_STAGGER_ODD;
+		else if ( !Q_strncmp(var,"vertical",8) )
+			res->statbar = STATBAR_VERTICAL;
 		else if ( !Q_strncmp(var,"headingspinner",14) ) {
 			res->statbar = STATBAR_HEADING_SPINNER;
 			res->statbarRange[0] = atof(PARSE_PTR);
@@ -403,7 +403,8 @@ qboolean UI_ParseMenuToken( const char *token, char **ptr, uiMenu_t *menu ) {
 			res->type = UI_RES_SLIDER;
 		else if ( !Q_strncmp( var, "FAKKServerList", 6 ) )
 			res->type = UI_RES_SERVERLIST;
-		else Com_Printf( "UI_ParseMenuToken: unknown menu resource type %s\n", var );
+		else
+			Com_Printf( "UI_ParseMenuToken: unknown menu resource type %s\n", var );
 
 		var = PARSE_PTR ;
 		if ( *var == '{' ) {

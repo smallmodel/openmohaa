@@ -447,7 +447,7 @@ Logic to bring the menu resources to screen
 void UI_DrawMenu( uiMenu_t *menu, qboolean foreground ) {
 	int				j;
 	int				k;
-	char			text[256];
+//	char			text[256];
 	int				frac;
 
 	uiResource_t	*res;
@@ -529,8 +529,50 @@ void UI_DrawMenu( uiMenu_t *menu, qboolean foreground ) {
 							if ( res->statbarshader && playerState->stats[res->maxplayerstat]!=0) {
 								frac = res->rect[3] * playerState->stats[res->playerstat] / playerState->stats[res->maxplayerstat];
 								UI_DrawHandlePic( res->rect[0], res->rect[1]+res->rect[3] - frac, res->rect[2], frac, res->statbarshader );
+							} else if( res->statbartileshader ) {
+								float picH, baseOfs;
+								int c, i;
+
+								picH = res->rect[3] / playerState->stats[res->maxplayerstat];
+								c = playerState->stats[res->playerstat];
+								baseOfs = res->rect[1] + res->rect[3] - picH;
+								for(i = 0; i < c; i++) {
+									float ofs = baseOfs - i * picH;
+									UI_DrawHandlePic( res->rect[0], ofs, res->rect[2], picH, res->statbartileshader );
+								}
 							}
 							break;
+						// su44: stagger statbars for bullet icons (see "ui/hud_ammo_***.urc")
+						case STATBAR_VERTICAL_STAGGER_ODD:
+							UI_SetColor( res->bgcolor );
+							if ( playerState->stats[res->maxplayerstat]!=0) {
+								float picH, baseOfs;
+								int c, i;
+
+								picH = res->rect[3] / playerState->stats[res->maxplayerstat];
+								c = playerState->stats[res->playerstat];
+								baseOfs = res->rect[1] + res->rect[3]- picH;
+								for(i = 1; i < c; i+=2) {
+									float ofs = baseOfs - i * picH;
+									UI_DrawHandlePic( res->rect[0], ofs, res->rect[2], picH*2, res->statbartileshader );
+								}
+							}
+							break;
+						case STATBAR_VERTICAL_STAGGER_EVEN:
+							UI_SetColor( res->bgcolor );
+							if ( playerState->stats[res->maxplayerstat]!=0) {
+								float picH, baseOfs;
+								int c, i;
+								
+								picH = res->rect[3] / playerState->stats[res->maxplayerstat];
+								c = playerState->stats[res->playerstat];
+								baseOfs = res->rect[1] + res->rect[3] - picH*2;
+								for(i = 0; i < c; i+=2) {
+									float ofs = baseOfs - i * picH;
+									UI_DrawHandlePic( res->rect[0], ofs, res->rect[2], picH*2, res->statbartileshader );
+								}
+							}
+							break;	
 					}
 				}
 				else if ( res->statvar == qtrue ) {
@@ -602,7 +644,7 @@ UI_DrawHUD
 =================
 */
 void UI_DrawHUD( playerState_t *ps ) {
-	int i;
+//	int i;
 	char path[MAX_QPATH];
 //for (i=0;i<STAT_LAST_STAT;i++){
 //	Com_Printf( "%i val: %i\n", i, stats[i] );
@@ -646,11 +688,11 @@ void UI_Refresh( int realtime )
 {
 	static qboolean	first=qtrue;
 	int				i;
-	int				j;
-	int				k;
-	uiMenu_t		*menu;
-	uiResource_t	*res;
-	qhandle_t		cvarshader;
+//	int				j;
+//	int				k;
+//	uiMenu_t		*menu;
+//	uiResource_t	*res;
+//	qhandle_t		cvarshader;
 
 	uis.frametime = realtime - uis.realtime;
 	uis.realtime  = realtime;
