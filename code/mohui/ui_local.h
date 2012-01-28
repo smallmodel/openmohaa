@@ -75,7 +75,8 @@ typedef enum uiResType_s {
 	UI_RES_LISTBOX,
 	UI_RES_SLIDER,
 	UI_RES_PULLDOWN,
-	UI_RES_SERVERLIST
+	UI_RES_SERVERLIST,
+	UI_RES_LANSERVERLIST
 } uiResType_t;
 
 typedef enum uiSlidertype_s {
@@ -100,7 +101,7 @@ typedef enum {
 typedef struct uiResource_s {
 	uiResType_t			type;
 	char				name[UI_MAX_NAME];
-	uiMenuDirection_t	align[2];
+//	uiMenuDirection_t	align[2];
 	int					rect[4];
 	vec4_t				fgcolor;
 	vec4_t				bgcolor;
@@ -124,7 +125,7 @@ typedef struct uiResource_s {
 	char				*linkstring2[UI_MAX_SELECT];
 
 	char				*title;
-	uiAlign_t			textalign;
+	uiAlign_t			align;
 	qhandle_t			menushader;
 	qhandle_t			selmenushader;
 	int					selentries;
@@ -362,6 +363,7 @@ int				trap_LAN_ServerStatus( const char *serverAddress, char *serverStatus, int
 void			trap_LAN_ClearPing( int n );
 void			trap_LAN_GetPing( int n, char *buf, int buflen, int *pingtime );
 void			trap_LAN_GetPingInfo( int n, char *buf, int buflen );
+int				trap_LAN_GetServerPing( int source, int n );
 int				trap_MemoryRemaining( void );
 void			trap_GetCDKey( char *buf, int buflen );
 void			trap_SetCDKey( char *buf );

@@ -472,6 +472,7 @@ void UI_DrawMenu( uiMenu_t *menu, qboolean foreground ) {
 		else UI_SetColor( res->bgcolor );
 
 		switch ( res->type ) {
+			int i;
 
 			case UI_RES_LABEL:
 				if ( res->enablewithcvar == qtrue )
@@ -494,7 +495,7 @@ void UI_DrawMenu( uiMenu_t *menu, qboolean foreground ) {
 					} else if ( res->statvar==qfalse ) {
 						if (res->borderstyle != UI_BORDER_NONE )
 							UI_DrawBox( res->rect[0],res->rect[1], res->rect[2],res->rect[3],qfalse, menu->size[0], menu->size[1] );
-						switch ( res->textalign ) {
+						switch ( res->align ) {
 							case UI_ALIGN_LEFT:
 							trap_R_Text_Paint( res->font,res->rect[0],res->rect[1],1,0,res->title,1,0,qtrue,qtrue);
 							break;
@@ -584,7 +585,7 @@ void UI_DrawMenu( uiMenu_t *menu, qboolean foreground ) {
 					} else {
 						// su44: see ui/hud_ammo_bar.tik.
 						if(res->itemstat == 1) {
-							switch ( res->textalign ) {
+							switch ( res->align ) {
 								case UI_ALIGN_LEFT:
 								trap_R_Text_Paint( res->font,res->rect[0],res->rect[1],1,0,uis.currentViewModelWeaponName,1,0,qtrue,qtrue);
 								break;
@@ -599,6 +600,10 @@ void UI_DrawMenu( uiMenu_t *menu, qboolean foreground ) {
 						}
 					}
 				}
+				else if ( res->linkcvarname && res->rendermodel == qfalse ) {
+						trap_Cvar_Update( &res->linkcvar );
+						trap_R_Text_Paint( res->font,res->rect[0],res->rect[1],1,0,res->linkcvar.string,1,0,qtrue,qtrue);
+					}
 				else {
 					if ( res->shader )
 						UI_DrawHandlePic( res->rect[0], res->rect[1], res->rect[2], res->rect[3], res->shader );
@@ -653,6 +658,25 @@ void UI_DrawMenu( uiMenu_t *menu, qboolean foreground ) {
 					UI_DrawHandlePic( res->rect[0], res->rect[1], res->rect[2], res->rect[3], res->menushader );
 				}
 				break;
+			case UI_RES_LANSERVERLIST:
+				UI_DrawBox( res->rect[0], res->rect[1], res->rect[2], res->rect[3], qfalse, menu->size[0], menu->size[1] );
+				UI_SetColor( colorYellow );
+				trap_R_Text_Paint( res->font, res->rect[0],res->rect[1],1,1,"Server Name",0,0,qfalse,qtrue );
+				trap_R_Text_Paint( res->font, res->rect[0]+128,res->rect[1],1,1,"Map",0,0,qfalse,qtrue );
+				trap_R_Text_Paint( res->font, res->rect[0]+256,res->rect[1],1,1,"Players",0,0,qfalse,qtrue );
+				trap_R_Text_Paint( res->font, res->rect[0]+384,res->rect[1],1,1,"GameType",0,0,qfalse,qtrue );
+				trap_R_Text_Paint( res->font, res->rect[0]+512,res->rect[1],1,1,"Ping",0,0,qfalse,qtrue );
+
+				for (i=0;i<trap_LAN_GetServerCount( AS_LOCAL );i++) {
+					char buf[512];
+					int ping;
+
+					trap_LAN_GetServerPing( AS_LOCAL,i  );
+					trap_LAN_GetServerInfo(AS_LOCAL,i,buf,sizeof(buf));
+					trap_R_Text_Paint( res->font, res->rect[0],res->rect[1]+14+i*14,1,1,buf,0,0,qfalse,qtrue );
+				}
+				UI_SetColor( NULL );
+				break;
 		}
 	}
 }
@@ -703,7 +727,8 @@ void UI_DrawHUD( playerState_t *ps ) {
 //	UI_DrawMenu( &uis.hudMenus[HUD_TIMELIMIT], qfalse );
 //	UI_DrawMenu( &uis.hudMenus[HUD_WEAPONS], qtrue );
 
-	UI_DrawMenu( &uis.crosshair, qtrue );
+	if ( !playerState->stats[STAT_INZOOM] )
+		UI_DrawMenu( &uis.crosshair, qtrue );
 
 	trap_Cvar_Update( &ui_showscores );
 	if ( ui_showscores.integer == 1 ) {

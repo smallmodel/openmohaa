@@ -1,6 +1,6 @@
 /*
 ===========================================================================
-Copyright (C) 2010-2011 Michael Rieder
+Copyright (C) 2010-2012 Michael Rieder
 
 This file is part of OpenMohaa source code.
 
@@ -103,7 +103,7 @@ void UI_ParseMenuResource( const char *token, char **ptr, uiResource_t *res, int
 		res->linkcvartoshader = qtrue;
 	}
 	else if ( !Q_strncmp( token, "linkcvar", 8 ) ) {
-		res->linkcvarname = UI_Alloc( UI_MAX_NAME );
+		res->linkcvarname = (char*)UI_Alloc( UI_MAX_NAME );
 		Q_strncpyz( res->linkcvarname, PARSE_PTR, UI_MAX_NAME );
 		trap_Cvar_Register( &res->linkcvar, res->linkcvarname, "", 0 );
 	}
@@ -116,14 +116,14 @@ void UI_ParseMenuResource( const char *token, char **ptr, uiResource_t *res, int
 		res->title = UI_Alloc( UI_MAX_NAME );
 		Q_strncpyz( res->title, PARSE_PTR, UI_MAX_NAME );
 	}
-	else if ( !Q_strncmp( token, "textalign", 9 ) ) {
+	else if ( !Q_strncmp( token, "textalign", 9 )||!Q_strncmp( token, "align", 5 ) ) {
 		var = PARSE_PTR;
 		if ( !Q_strncmp(var,"left",4) )
-			res->textalign = UI_ALIGN_LEFT;
+			res->align = UI_ALIGN_LEFT;
 		else if ( !Q_strncmp(var,"center",128) )
-			res->textalign = UI_ALIGN_CENTER;
+			res->align = UI_ALIGN_CENTER;
 		else if ( !Q_strncmp(var,"right",5) )
-			res->textalign = UI_ALIGN_RIGHT;
+			res->align = UI_ALIGN_RIGHT;
 	}
 	else if ( !Q_strncmp( token, "checked_shader", 14 ) ) {
 		res->checked_shader = trap_R_RegisterShaderNoMip( PARSE_PTR );
@@ -401,8 +401,10 @@ qboolean UI_ParseMenuToken( const char *token, char **ptr, uiMenu_t *menu ) {
 			res->type = UI_RES_PULLDOWN;
 		else if ( !Q_strncmp( var, "Slider", 6 ) )
 			res->type = UI_RES_SLIDER;
-		else if ( !Q_strncmp( var, "FAKKServerList", 6 ) )
+		else if ( !Q_strncmp( var, "FAKKServerList", 14 ) )
 			res->type = UI_RES_SERVERLIST;
+		else if ( !Q_strncmp( var, "LANGameClass", 12 ) )
+			res->type = UI_RES_LANSERVERLIST;
 		else
 			Com_Printf( "UI_ParseMenuToken: unknown menu resource type %s\n", var );
 

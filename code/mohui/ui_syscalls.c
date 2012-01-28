@@ -307,7 +307,7 @@ int trap_LAN_ServerIsVisible( int source, int n) {
 }
 
 qboolean trap_LAN_UpdateVisiblePings( int source ) {
-	return syscall( UI_LAN_UPDATEVISIBLEPINGS, source );
+	return (qboolean)syscall( UI_LAN_UPDATEVISIBLEPINGS, source );
 }
 
 int trap_LAN_AddServer(int source, const char *name, const char *addr) {

@@ -3330,6 +3330,7 @@ void CL_LocalServers_f( void ) {
 	netadr_t	to;
 
 	Com_Printf( "Scanning for servers on the local network...\n");
+	Cvar_Set( "cl_langamerefreshstatus", "Scanning for servers on the local network...\n" );
 
 	// reset the list, waiting for response
 	cls.numlocalservers = 0;
