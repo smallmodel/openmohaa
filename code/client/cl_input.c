@@ -352,7 +352,9 @@ CL_MouseEvent
 */
 void CL_MouseEvent( int dx, int dy, int time ) {
 	if ( Key_GetCatcher( ) & KEYCATCH_UI || (cls.state >= CA_CONNECTING&&cls.state<=CA_CONNECTED) ) {
-		VM_Call( uivm, UI_MOUSE_EVENT, dx, dy );
+		if( uivm ) {
+			VM_Call( uivm, UI_MOUSE_EVENT, dx, dy );
+		}
 	} else if (Key_GetCatcher( ) & KEYCATCH_CGAME) {
 		VM_Call (cgvm, CG_MOUSE_EVENT, dx, dy);
 	} else {
