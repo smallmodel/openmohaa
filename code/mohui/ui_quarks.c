@@ -677,7 +677,7 @@ void UI_DrawMenu( uiMenu_t *menu, qboolean foreground ) {
 				break;
 			case UI_RES_LANSERVERLIST:
 				UI_DrawBox( res->rect[0], res->rect[1], res->rect[2], res->rect[3], qfalse, menu->size[0], menu->size[1] );
-				UI_SetColor( colorYellow );
+				UI_SetColor( colorGreen );
 				trap_R_Text_Paint( res->font, res->rect[0],res->rect[1],1,1,"Server Name",0,0,qfalse,qtrue );
 				trap_R_Text_Paint( res->font, res->rect[0]+128,res->rect[1],1,1,"Map",0,0,qfalse,qtrue );
 				trap_R_Text_Paint( res->font, res->rect[0]+256,res->rect[1],1,1,"Players",0,0,qfalse,qtrue );
@@ -705,6 +705,15 @@ void UI_DrawMenu( uiMenu_t *menu, qboolean foreground ) {
 								trap_R_Text_Paint( res->font, res->rect[0]+512,res->rect[1]+14+i*14,1,1,va("%i",ping),0,0,qfalse,qtrue );
 								UI_SetColor( colorYellow );
 							}
+							else if (i==res->selectedListEntry) {
+								UI_SetColor( color_orange );
+								trap_R_Text_Paint( res->font, res->rect[0],res->rect[1]+14+i*14,1,1,Info_ValueForKey(buf,"hostname"),0,0,qfalse,qtrue );
+								trap_R_Text_Paint( res->font, res->rect[0]+128,res->rect[1]+14+i*14,1,1,Info_ValueForKey(buf,"mapname"),0,0,qfalse,qtrue );
+								trap_R_Text_Paint( res->font, res->rect[0]+256,res->rect[1]+14+i*14,1,1,va("%s / %s",Info_ValueForKey(buf,"clients"),Info_ValueForKey(buf,"sv_maxclients")),0,0,qfalse,qtrue );
+								trap_R_Text_Paint( res->font, res->rect[0]+384,res->rect[1]+14+i*14,1,1,gtstrings[atoi(Info_ValueForKey(buf,"gametype"))],0,0,qfalse,qtrue );
+								trap_R_Text_Paint( res->font, res->rect[0]+512,res->rect[1]+14+i*14,1,1,va("%i",ping),0,0,qfalse,qtrue );
+								UI_SetColor( colorYellow );
+							}
 							else {
 								trap_R_Text_Paint( res->font, res->rect[0],res->rect[1]+14+i*14,1,1,Info_ValueForKey(buf,"hostname"),0,0,qfalse,qtrue );
 								trap_R_Text_Paint( res->font, res->rect[0]+128,res->rect[1]+14+i*14,1,1,Info_ValueForKey(buf,"mapname"),0,0,qfalse,qtrue );
@@ -713,6 +722,15 @@ void UI_DrawMenu( uiMenu_t *menu, qboolean foreground ) {
 								trap_R_Text_Paint( res->font, res->rect[0]+512,res->rect[1]+14+i*14,1,1,va("%i",ping),0,0,qfalse,qtrue );
 							}
 					}
+					else if (i==res->selectedListEntry) {
+								UI_SetColor( color_orange );
+								trap_R_Text_Paint( res->font, res->rect[0],res->rect[1]+14+i*14,1,1,Info_ValueForKey(buf,"hostname"),0,0,qfalse,qtrue );
+								trap_R_Text_Paint( res->font, res->rect[0]+128,res->rect[1]+14+i*14,1,1,Info_ValueForKey(buf,"mapname"),0,0,qfalse,qtrue );
+								trap_R_Text_Paint( res->font, res->rect[0]+256,res->rect[1]+14+i*14,1,1,va("%s / %s",Info_ValueForKey(buf,"clients"),Info_ValueForKey(buf,"sv_maxclients")),0,0,qfalse,qtrue );
+								trap_R_Text_Paint( res->font, res->rect[0]+384,res->rect[1]+14+i*14,1,1,gtstrings[atoi(Info_ValueForKey(buf,"gametype"))],0,0,qfalse,qtrue );
+								trap_R_Text_Paint( res->font, res->rect[0]+512,res->rect[1]+14+i*14,1,1,va("%i",ping),0,0,qfalse,qtrue );
+								UI_SetColor( colorYellow );
+							}
 					else {
 						res->hoverListEntry = -1;
 						trap_R_Text_Paint( res->font, res->rect[0],res->rect[1]+14+i*14,1,1,Info_ValueForKey(buf,"hostname"),0,0,qfalse,qtrue );
@@ -891,9 +909,9 @@ void UI_WidgetCommand( const char *widget, const char *command ) {
 				char buf[64];
 
 				case UI_RES_LANSERVERLIST:
-				if(!strcmp(command,"joingame") ) {
+				if(!strcmp(command,"joingame")&&res->selectedListEntry !=-1 ) {
 					trap_LAN_GetServerAddressString(AS_LOCAL,res->selectedListEntry,buf,sizeof(buf));
-					Com_Printf( "connect %s\n", buf );
+					trap_Cmd_ExecuteText( EXEC_APPEND, va("connect %s\n", buf) );
 				}
 				break;
 			}
@@ -948,7 +966,7 @@ qboolean UI_ConsoleCommand( int realTime ) {
 	}
 	else if ( Q_stricmp (cmd, "widgetcommand") == 0 ) {
 		if ( UI_Argc() == 3 )
-			UI_WidgetCommand( UI_Argv(1), UI_Argv(2) );
+			UI_WidgetCommand( va("%s",UI_Argv(1)), va("%s",UI_Argv(2)) );
 		else Com_Printf( "Usage: widgetcommand <widgetname> <command>\n" );
 		return qtrue;
 	}
