@@ -24,11 +24,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // executed by a key binding
 
 #include "cg_local.h"
-#include "../ui/ui_shared.h"
-#ifdef MISSIONPACK
-extern menuDef_t *menuScoreboard;
-#endif
-
 
 
 void CG_TargetCommand_f( void ) {
@@ -146,36 +141,6 @@ static void CG_TellAttacker_f( void ) {
 	trap_SendClientCommand( command );
 }
 
-static void CG_VoiceTellTarget_f( void ) {
-	int		clientNum;
-	char	command[128];
-	char	message[128];
-
-	clientNum = CG_CrosshairPlayer();
-	if ( clientNum == -1 ) {
-		return;
-	}
-
-	trap_Args( message, 128 );
-	Com_sprintf( command, 128, "vtell %i %s", clientNum, message );
-	trap_SendClientCommand( command );
-}
-
-static void CG_VoiceTellAttacker_f( void ) {
-	int		clientNum;
-	char	command[128];
-	char	message[128];
-
-	clientNum = CG_LastAttacker();
-	if ( clientNum == -1 ) {
-		return;
-	}
-
-	trap_Args( message, 128 );
-	Com_sprintf( command, 128, "vtell %i %s", clientNum, message );
-	trap_SendClientCommand( command );
-}
-
 /*
 ==================
 CG_StartOrbit_f
@@ -199,19 +164,6 @@ static void CG_StartOrbit_f( void ) {
 		trap_Cvar_Set("cg_thirdPersonRange", "100");
 	}
 }
-
-/*
-static void CG_Camera_f( void ) {
-	char name[1024];
-	trap_Argv( 1, name, sizeof(name));
-	if (trap_loadCamera(name)) {
-		cg.cameraMode = qtrue;
-		trap_startCamera(cg.time);
-	} else {
-		CG_Printf ("Unable to load camera %s\n",name);
-	}
-}
-*/
 
 static void CG_LocationPrint_f(void) {
 	char buffer[512];
@@ -286,11 +238,8 @@ static consoleCommand_t	commands[] = {
 	{ "sizedown", CG_SizeDown_f },
 	{ "weapnext", CG_NextWeapon_f },
 	{ "weapprev", CG_PrevWeapon_f },
-	{ "weapon", CG_Weapon_f },
 	{ "tell_target", CG_TellTarget_f },
 	{ "tell_attacker", CG_TellAttacker_f },
-	{ "vtell_target", CG_VoiceTellTarget_f },
-	{ "vtell_attacker", CG_VoiceTellAttacker_f },
 	{ "tcmd", CG_TargetCommand_f },
 	{ "startOrbit", CG_StartOrbit_f },
 	//{ "camera", CG_Camera_f },

@@ -252,24 +252,6 @@ void CG_AddMarks( void ) {
 			continue;
 		}
 
-		// fade out the energy bursts
-		if ( mp->markShader == cgs.media.energyMarkShader ) {
-
-			fade = 450 - 450 * ( (cg.time - mp->time ) / 3000.0 );
-			if ( fade < 255 ) {
-				if ( fade < 0 ) {
-					fade = 0;
-				}
-				if ( mp->verts[0].modulate[0] != 0 ) {
-					for ( j = 0 ; j < mp->poly.numVerts ; j++ ) {
-						mp->verts[j].modulate[0] = mp->color[0] * fade;
-						mp->verts[j].modulate[1] = mp->color[1] * fade;
-						mp->verts[j].modulate[2] = mp->color[2] * fade;
-					}
-				}
-			}
-		}
-
 		// fade all marks out with time
 		t = mp->time + MARK_TOTAL_TIME - cg.time;
 		if ( t < MARK_FADE_TIME ) {
@@ -1411,42 +1393,42 @@ void CG_ParticleSmoke (qhandle_t pshader, centity_t *cent)
 void CG_ParticleBulletDebris (vec3_t org, vec3_t vel, int duration)
 {
 
-	cparticle_t	*p;
+	//cparticle_t	*p;
 
-	if (!free_particles)
-		return;
-	p = free_particles;
-	free_particles = p->next;
-	p->next = active_particles;
-	active_particles = p;
-	p->time = cg.time;
-	
-	p->endtime = cg.time + duration;
-	p->startfade = cg.time + duration/2;
-	
-	p->color = EMISIVEFADE;
-	p->alpha = 1.0;
-	p->alphavel = 0;
+	//if (!free_particles)
+	//	return;
+	//p = free_particles;
+	//free_particles = p->next;
+	//p->next = active_particles;
+	//active_particles = p;
+	//p->time = cg.time;
+	//
+	//p->endtime = cg.time + duration;
+	//p->startfade = cg.time + duration/2;
+	//
+	//p->color = EMISIVEFADE;
+	//p->alpha = 1.0;
+	//p->alphavel = 0;
 
-	p->height = 0.5;
-	p->width = 0.5;
-	p->endheight = 0.5;
-	p->endwidth = 0.5;
+	//p->height = 0.5;
+	//p->width = 0.5;
+	//p->endheight = 0.5;
+	//p->endwidth = 0.5;
 
-	p->pshader = cgs.media.tracerShader;
+	//p->pshader = cgs.media.tracerShader;
 
-	p->type = P_SMOKE;
-	
-	VectorCopy(org, p->org);
+	//p->type = P_SMOKE;
+	//
+	//VectorCopy(org, p->org);
 
-	p->vel[0] = vel[0];
-	p->vel[1] = vel[1];
-	p->vel[2] = vel[2];
-	p->accel[0] = p->accel[1] = p->accel[2] = 0;
+	//p->vel[0] = vel[0];
+	//p->vel[1] = vel[1];
+	//p->vel[2] = vel[2];
+	//p->accel[0] = p->accel[1] = p->accel[2] = 0;
 
-	p->accel[2] = -60;
-	p->vel[2] += -20;
-	
+	//p->accel[2] = -60;
+	//p->vel[2] += -20;
+	//
 }
 
 /*
@@ -1518,70 +1500,70 @@ void CG_AddParticleShrapnel (localEntity_t *le)
 int CG_NewParticleArea (int num)
 {
 	// const char *str;
-	char *str;
-	char *token;
-	int type;
-	vec3_t origin, origin2;
-	int		i;
-	float range = 0;
-	int turb;
-	int	numparticles;
-	int	snum;
-	
-	str = (char *) CG_ConfigString (num);
-	if (!str[0])
-		return (0);
-	
-	// returns type 128 64 or 32
-	token = COM_Parse (&str);
-	type = atoi (token);
-	
-	if (type == 1)
-		range = 128;
-	else if (type == 2)
-		range = 64;
-	else if (type == 3)
-		range = 32;
-	else if (type == 0)
-		range = 256;
-	else if (type == 4)
-		range = 8;
-	else if (type == 5)
-		range = 16;
-	else if (type == 6)
-		range = 32;
-	else if (type == 7)
-		range = 64;
+	//char *str;
+	//char *token;
+	//int type;
+	//vec3_t origin, origin2;
+	//int		i;
+	//float range = 0;
+	//int turb;
+	//int	numparticles;
+	//int	snum;
+	//
+	//str = (char *) CG_ConfigString (num);
+	//if (!str[0])
+	//	return (0);
+	//
+	//// returns type 128 64 or 32
+	//token = COM_Parse (&str);
+	//type = atoi (token);
+	//
+	//if (type == 1)
+	//	range = 128;
+	//else if (type == 2)
+	//	range = 64;
+	//else if (type == 3)
+	//	range = 32;
+	//else if (type == 0)
+	//	range = 256;
+	//else if (type == 4)
+	//	range = 8;
+	//else if (type == 5)
+	//	range = 16;
+	//else if (type == 6)
+	//	range = 32;
+	//else if (type == 7)
+	//	range = 64;
 
 
-	for (i=0; i<3; i++)
-	{
-		token = COM_Parse (&str);
-		origin[i] = atof (token);
-	}
+	//for (i=0; i<3; i++)
+	//{
+	//	token = COM_Parse (&str);
+	//	origin[i] = atof (token);
+	//}
 
-	for (i=0; i<3; i++)
-	{
-		token = COM_Parse (&str);
-		origin2[i] = atof (token);
-	}
-		
-	token = COM_Parse (&str);
-	numparticles = atoi (token);
-	
-	token = COM_Parse (&str);
-	turb = atoi (token);
+	//for (i=0; i<3; i++)
+	//{
+	//	token = COM_Parse (&str);
+	//	origin2[i] = atof (token);
+	//}
+	//	
+	//token = COM_Parse (&str);
+	//numparticles = atoi (token);
+	//
+	//token = COM_Parse (&str);
+	//turb = atoi (token);
 
-	token = COM_Parse (&str);
-	snum = atoi (token);
-	
-	for (i=0; i<numparticles; i++)
-	{
-		if (type >= 4)
-			CG_ParticleBubble (cgs.media.waterBubbleShader, origin, origin2, turb, range, snum);
-		else
-			CG_ParticleSnow (cgs.media.waterBubbleShader, origin, origin2, turb, range, snum);
-	}
+	//token = COM_Parse (&str);
+	//snum = atoi (token);
+	//
+	//for (i=0; i<numparticles; i++)
+	//{
+	//	if (type >= 4)
+	//		CG_ParticleBubble (cgs.media.waterBubbleShader, origin, origin2, turb, range, snum);
+	//	else
+	//		CG_ParticleSnow (cgs.media.waterBubbleShader, origin, origin2, turb, range, snum);
+	//}
 
 	return (1);
 }
@@ -1867,84 +1849,84 @@ void CG_BloodPool (localEntity_t *le, qhandle_t pshader, trace_t *tr)
 
 void CG_ParticleBloodCloud (centity_t *cent, vec3_t origin, vec3_t dir)
 {
-	float	length;
-	float	dist;
-	float	crittersize;
-	vec3_t	angles, forward;
-	vec3_t	point;
-	cparticle_t	*p;
-	int		i;
-	
-	dist = 0;
+	//float	length;
+	//float	dist;
+	//float	crittersize;
+	//vec3_t	angles, forward;
+	//vec3_t	point;
+	//cparticle_t	*p;
+	//int		i;
+	//
+	//dist = 0;
 
-	length = VectorLength (dir);
-	vectoangles (dir, angles);
-	AngleVectors (angles, forward, NULL, NULL);
+	//length = VectorLength (dir);
+	//vectoangles (dir, angles);
+	//AngleVectors (angles, forward, NULL, NULL);
 
-	crittersize = LARGESIZE;
+	//crittersize = LARGESIZE;
 
-	if (length)
-		dist = length / crittersize;
+	//if (length)
+	//	dist = length / crittersize;
 
-	if (dist < 1)
-		dist = 1;
+	//if (dist < 1)
+	//	dist = 1;
 
-	VectorCopy (origin, point);
+	//VectorCopy (origin, point);
 
-	for (i=0; i<dist; i++)
-	{
-		VectorMA (point, crittersize, forward, point);	
-		
-		if (!free_particles)
-			return;
+	//for (i=0; i<dist; i++)
+	//{
+	//	VectorMA (point, crittersize, forward, point);	
+	//	
+	//	if (!free_particles)
+	//		return;
 
-		p = free_particles;
-		free_particles = p->next;
-		p->next = active_particles;
-		active_particles = p;
+	//	p = free_particles;
+	//	free_particles = p->next;
+	//	p->next = active_particles;
+	//	active_particles = p;
 
-		p->time = cg.time;
-		p->alpha = 1.0;
-		p->alphavel = 0;
-		p->roll = 0;
+	//	p->time = cg.time;
+	//	p->alpha = 1.0;
+	//	p->alphavel = 0;
+	//	p->roll = 0;
 
-		p->pshader = cgs.media.smokePuffShader;
+	//	p->pshader = cgs.media.smokePuffShader;
 
-		p->endtime = cg.time + 350 + (crandom() * 100);
-		
-		p->startfade = cg.time;
-		
-		p->width = LARGESIZE;
-		p->height = LARGESIZE;
-		p->endheight = LARGESIZE;
-		p->endwidth = LARGESIZE;
+	//	p->endtime = cg.time + 350 + (crandom() * 100);
+	//	
+	//	p->startfade = cg.time;
+	//	
+	//	p->width = LARGESIZE;
+	//	p->height = LARGESIZE;
+	//	p->endheight = LARGESIZE;
+	//	p->endwidth = LARGESIZE;
 
-		p->type = P_SMOKE;
+	//	p->type = P_SMOKE;
 
-		VectorCopy( origin, p->org );
-		
-		p->vel[0] = 0;
-		p->vel[1] = 0;
-		p->vel[2] = -1;
-		
-		VectorClear( p->accel );
+	//	VectorCopy( origin, p->org );
+	//	
+	//	p->vel[0] = 0;
+	//	p->vel[1] = 0;
+	//	p->vel[2] = -1;
+	//	
+	//	VectorClear( p->accel );
 
-		p->rotate = qfalse;
+	//	p->rotate = qfalse;
 
-		p->roll = rand()%179;
-		
-		p->color = BLOODRED;
-		
-		p->alpha = 0.75;
-		
-	}
+	//	p->roll = rand()%179;
+	//	
+	//	p->color = BLOODRED;
+	//	
+	//	p->alpha = 0.75;
+	//	
+	//}
 
 	
 }
 
 void CG_ParticleSparks (vec3_t org, vec3_t vel, int duration, float x, float y, float speed)
 {
-	cparticle_t	*p;
+	/*cparticle_t	*p;
 
 	if (!free_particles)
 		return;
@@ -1986,102 +1968,102 @@ void CG_ParticleSparks (vec3_t org, vec3_t vel, int duration, float x, float y, 
 	p->vel[2] += (20 + (crandom() * 10)) * speed;	
 
 	p->accel[0] = crandom () * 4;
-	p->accel[1] = crandom () * 4;
+	p->accel[1] = crandom () * 4;*/
 	
 }
 
 void CG_ParticleDust (centity_t *cent, vec3_t origin, vec3_t dir)
 {
-	float	length;
-	float	dist;
-	float	crittersize;
-	vec3_t	angles, forward;
-	vec3_t	point;
-	cparticle_t	*p;
-	int		i;
-	
-	dist = 0;
+	//float	length;
+	//float	dist;
+	//float	crittersize;
+	//vec3_t	angles, forward;
+	//vec3_t	point;
+	//cparticle_t	*p;
+	//int		i;
+	//
+	//dist = 0;
 
-	VectorNegate (dir, dir);
-	length = VectorLength (dir);
-	vectoangles (dir, angles);
-	AngleVectors (angles, forward, NULL, NULL);
+	//VectorNegate (dir, dir);
+	//length = VectorLength (dir);
+	//vectoangles (dir, angles);
+	//AngleVectors (angles, forward, NULL, NULL);
 
-	crittersize = LARGESIZE;
+	//crittersize = LARGESIZE;
 
-	if (length)
-		dist = length / crittersize;
+	//if (length)
+	//	dist = length / crittersize;
 
-	if (dist < 1)
-		dist = 1;
+	//if (dist < 1)
+	//	dist = 1;
 
-	VectorCopy (origin, point);
+	//VectorCopy (origin, point);
 
-	for (i=0; i<dist; i++)
-	{
-		VectorMA (point, crittersize, forward, point);	
-				
-		if (!free_particles)
-			return;
+	//for (i=0; i<dist; i++)
+	//{
+	//	VectorMA (point, crittersize, forward, point);	
+	//			
+	//	if (!free_particles)
+	//		return;
 
-		p = free_particles;
-		free_particles = p->next;
-		p->next = active_particles;
-		active_particles = p;
+	//	p = free_particles;
+	//	free_particles = p->next;
+	//	p->next = active_particles;
+	//	active_particles = p;
 
-		p->time = cg.time;
-		p->alpha = 5.0;
-		p->alphavel = 0;
-		p->roll = 0;
+	//	p->time = cg.time;
+	//	p->alpha = 5.0;
+	//	p->alphavel = 0;
+	//	p->roll = 0;
 
-		p->pshader = cgs.media.smokePuffShader;
+	//	p->pshader = cgs.media.smokePuffShader;
 
-		// RF, stay around for long enough to expand and dissipate naturally
-		if (length)
-			p->endtime = cg.time + 4500 + (crandom() * 3500);
-		else
-			p->endtime = cg.time + 750 + (crandom() * 500);
-		
-		p->startfade = cg.time;
-		
-		p->width = LARGESIZE;
-		p->height = LARGESIZE;
+	//	// RF, stay around for long enough to expand and dissipate naturally
+	//	if (length)
+	//		p->endtime = cg.time + 4500 + (crandom() * 3500);
+	//	else
+	//		p->endtime = cg.time + 750 + (crandom() * 500);
+	//	
+	//	p->startfade = cg.time;
+	//	
+	//	p->width = LARGESIZE;
+	//	p->height = LARGESIZE;
 
-		// RF, expand while falling
-		p->endheight = LARGESIZE*3.0;
-		p->endwidth = LARGESIZE*3.0;
+	//	// RF, expand while falling
+	//	p->endheight = LARGESIZE*3.0;
+	//	p->endwidth = LARGESIZE*3.0;
 
-		if (!length)
-		{
-			p->width *= 0.2f;
-			p->height *= 0.2f;
+	//	if (!length)
+	//	{
+	//		p->width *= 0.2f;
+	//		p->height *= 0.2f;
 
-			p->endheight = NORMALSIZE;
-			p->endwidth = NORMALSIZE;
-		}
+	//		p->endheight = NORMALSIZE;
+	//		p->endwidth = NORMALSIZE;
+	//	}
 
-		p->type = P_SMOKE;
+	//	p->type = P_SMOKE;
 
-		VectorCopy( point, p->org );
-		
-		p->vel[0] = crandom()*6;
-		p->vel[1] = crandom()*6;
-		p->vel[2] = random()*20;
+	//	VectorCopy( point, p->org );
+	//	
+	//	p->vel[0] = crandom()*6;
+	//	p->vel[1] = crandom()*6;
+	//	p->vel[2] = random()*20;
 
-		// RF, add some gravity/randomness
-		p->accel[0] = crandom()*3;
-		p->accel[1] = crandom()*3;
-		p->accel[2] = -PARTICLE_GRAVITY*0.4;
+	//	// RF, add some gravity/randomness
+	//	p->accel[0] = crandom()*3;
+	//	p->accel[1] = crandom()*3;
+	//	p->accel[2] = -PARTICLE_GRAVITY*0.4;
 
-		VectorClear( p->accel );
+	//	VectorClear( p->accel );
 
-		p->rotate = qfalse;
+	//	p->rotate = qfalse;
 
-		p->roll = rand()%179;
-		
-		p->alpha = 0.75;
-		
-	}
+	//	p->roll = rand()%179;
+	//	
+	//	p->alpha = 0.75;
+	//	
+	//}
 
 	
 }

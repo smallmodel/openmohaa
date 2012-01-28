@@ -238,7 +238,7 @@ static void CG_SpawnEffectModel(const char *model, vec3_t origin) {
 	qhandle_t h;
 
 	le = CG_AllocLocalEntity();
-	le->endTime = cg.time + 100;
+	le->endTime = cg.time + 5000;
 	le->leType = LE_SKIP;
 	le->pos.trType = TR_GRAVITY;
 	le->pos.trTime = cg.time - (rand()&15);

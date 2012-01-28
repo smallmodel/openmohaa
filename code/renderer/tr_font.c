@@ -845,6 +845,9 @@ void RE_Text_Paint(fontInfo_t *font, float x, float y, float scale, float alpha,
 				count++;
 			}
 		}
-		RE_SetColor(NULL);
+		if(useColourCodes) {
+			// su44: reset the color only if we have used q3-style colour codes in this string
+			RE_SetColor(NULL);
+		}
 	}
 }

@@ -109,7 +109,7 @@ void CG_ProcessSpawnEvent(centity_t *ent, vec3_t spawnOrigin, vec3_t spawnAngles
 	}
 
 	le = CG_AllocLocalEntity();
-	le->endTime = cg.time + 100;
+	le->endTime = cg.time + 10000;
 	le->leType = LE_SKIP;
 	//le->leFlags = LEF_TUMBLE;
 	le->pos.trType = TR_GRAVITY;

@@ -364,9 +364,6 @@ void CG_RegisterCvars( void ) {
 	forceModelModificationCount = cg_forceModel.modificationCount;
 
 	trap_Cvar_Register(NULL, "model", DEFAULT_MODEL, CVAR_USERINFO | CVAR_ARCHIVE );
-	trap_Cvar_Register(NULL, "headmodel", DEFAULT_MODEL, CVAR_USERINFO | CVAR_ARCHIVE );
-	trap_Cvar_Register(NULL, "team_model", DEFAULT_TEAM_MODEL, CVAR_USERINFO | CVAR_ARCHIVE );
-	trap_Cvar_Register(NULL, "team_headmodel", DEFAULT_TEAM_HEAD, CVAR_USERINFO | CVAR_ARCHIVE );
 }
 
 /*
@@ -423,10 +420,9 @@ void CG_UpdateCvars( void ) {
 }
 
 int CG_CrosshairPlayer( void ) {
-	if ( cg.time > ( cg.crosshairClientTime + 1000 ) ) {
+	if(cg.snap == 0)
 		return -1;
-	}
-	return cg.crosshairClientNum;
+	return cg.snap->ps.stats[STAT_INFOCLIENT];
 }
 
 int CG_LastAttacker( void ) {
@@ -623,30 +619,6 @@ static void CG_RegisterGraphics( void ) {
 */
 }
 
-
-
-/*
-=======================
-CG_BuildSpectatorString
-
-=======================
-*/
-void CG_BuildSpectatorString(void) {
-	int i;
-	cg.spectatorList[0] = 0;
-	for (i = 0; i < MAX_CLIENTS; i++) {
-		if (cgs.clientinfo[i].team == TEAM_SPECTATOR ) {
-			Q_strcat(cg.spectatorList, sizeof(cg.spectatorList), va("%s     ", cgs.clientinfo[i].name));
-		}
-	}
-	i = strlen(cg.spectatorList);
-	if (i != cg.spectatorLen) {
-		cg.spectatorLen = i;
-		cg.spectatorWidth = -1;
-	}
-}
-
-
 /*
 ===================
 CG_RegisterClients
@@ -670,7 +642,6 @@ static void CG_RegisterClients( void ) {
 		}
 		CG_NewClientInfo( i );
 	}
-	CG_BuildSpectatorString();
 }
 
 //===========================================================================
@@ -728,11 +699,11 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum, in
 	trap_R_RegisterFont( "verdana-14", 0, &cgs.media.verdana );
 
 	// load a few needed things before we do any screen updates
-	cgs.media.charsetShader		= trap_R_RegisterShader( "gfx/2d/bigchars" );
+//	cgs.media.charsetShader		= trap_R_RegisterShader( "gfx/2d/bigchars" );
 	cgs.media.whiteShader		= trap_R_RegisterShader( "*white" );
-	cgs.media.charsetProp		= trap_R_RegisterShaderNoMip( "menu/art/font1_prop.tga" );
-	cgs.media.charsetPropGlow	= trap_R_RegisterShaderNoMip( "menu/art/font1_prop_glo.tga" );
-	cgs.media.charsetPropB		= trap_R_RegisterShaderNoMip( "menu/art/font2_prop.tga" );
+//	cgs.media.charsetProp		= trap_R_RegisterShaderNoMip( "menu/art/font1_prop.tga" );
+//	cgs.media.charsetPropGlow	= trap_R_RegisterShaderNoMip( "menu/art/font1_prop_glo.tga" );
+//	cgs.media.charsetPropB		= trap_R_RegisterShaderNoMip( "menu/art/font2_prop.tga" );
 	cgs.media.blackShader = trap_R_RegisterShaderNoMip( "textures/mohmenu/black.tga" );
 
 	CG_RegisterCvars();
@@ -767,8 +738,6 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum, in
 
 	trap_CM_LoadMap( cgs.mapname );
 
-	cg.loading = qtrue;		// force players to load instead of defer
-
 	CG_LoadingString( "sounds" );
 
 	CG_RegisterSounds();
@@ -781,8 +750,6 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum, in
 	CG_LoadingString( "clients" );
 
 	CG_RegisterClients();		// if low on memory, some clients will be deferred
-
-	cg.loading = qfalse;	// future players will be deferred
 
 	CG_InitLocalEntities();
 

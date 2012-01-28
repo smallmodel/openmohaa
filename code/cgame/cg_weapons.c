@@ -29,7 +29,7 @@ CG_MachineGunEjectBrass
 ==========================
 */
 static void CG_MachineGunEjectBrass( centity_t *cent ) {
-	localEntity_t	*le;
+	/*localEntity_t	*le;
 	refEntity_t		*re;
 	vec3_t			velocity, xvelocity;
 	vec3_t			offset, xoffset;
@@ -92,7 +92,7 @@ static void CG_MachineGunEjectBrass( centity_t *cent ) {
 
 	le->leFlags = LEF_TUMBLE;
 	le->leBounceSoundType = LEBS_BRASS;
-	le->leMarkType = LEMT_NONE;
+	le->leMarkType = LEMT_NONE;*/
 }
 
 /*
@@ -101,75 +101,75 @@ CG_ShotgunEjectBrass
 ==========================
 */
 static void CG_ShotgunEjectBrass( centity_t *cent ) {
-	localEntity_t	*le;
-	refEntity_t		*re;
-	vec3_t			velocity, xvelocity;
-	vec3_t			offset, xoffset;
-	vec3_t			v[3];
-	int				i;
+	//localEntity_t	*le;
+	//refEntity_t		*re;
+	//vec3_t			velocity, xvelocity;
+	//vec3_t			offset, xoffset;
+	//vec3_t			v[3];
+	//int				i;
 
-	if ( cg_brassTime.integer <= 0 ) {
-		return;
-	}
+	//if ( cg_brassTime.integer <= 0 ) {
+	//	return;
+	//}
 
-	for ( i = 0; i < 2; i++ ) {
-		float	waterScale = 1.0f;
+	//for ( i = 0; i < 2; i++ ) {
+	//	float	waterScale = 1.0f;
 
-		le = CG_AllocLocalEntity();
-		re = &le->refEntity;
+	//	le = CG_AllocLocalEntity();
+	//	re = &le->refEntity;
 
-		velocity[0] = 60 + 60 * crandom();
-		if ( i == 0 ) {
-			velocity[1] = 40 + 10 * crandom();
-		} else {
-			velocity[1] = -40 + 10 * crandom();
-		}
-		velocity[2] = 100 + 50 * crandom();
+	//	velocity[0] = 60 + 60 * crandom();
+	//	if ( i == 0 ) {
+	//		velocity[1] = 40 + 10 * crandom();
+	//	} else {
+	//		velocity[1] = -40 + 10 * crandom();
+	//	}
+	//	velocity[2] = 100 + 50 * crandom();
 
-		le->leType = LE_FRAGMENT;
-		le->startTime = cg.time;
-		le->endTime = le->startTime + cg_brassTime.integer*3 + cg_brassTime.integer * random();
+	//	le->leType = LE_FRAGMENT;
+	//	le->startTime = cg.time;
+	//	le->endTime = le->startTime + cg_brassTime.integer*3 + cg_brassTime.integer * random();
 
-		le->pos.trType = TR_GRAVITY;
-		le->pos.trTime = cg.time;
+	//	le->pos.trType = TR_GRAVITY;
+	//	le->pos.trTime = cg.time;
 
-		AnglesToAxis( cent->lerpAngles, v );
+	//	AnglesToAxis( cent->lerpAngles, v );
 
-		offset[0] = 8;
-		offset[1] = 0;
-		offset[2] = 24;
+	//	offset[0] = 8;
+	//	offset[1] = 0;
+	//	offset[2] = 24;
 
-		xoffset[0] = offset[0] * v[0][0] + offset[1] * v[1][0] + offset[2] * v[2][0];
-		xoffset[1] = offset[0] * v[0][1] + offset[1] * v[1][1] + offset[2] * v[2][1];
-		xoffset[2] = offset[0] * v[0][2] + offset[1] * v[1][2] + offset[2] * v[2][2];
-		VectorAdd( cent->lerpOrigin, xoffset, re->origin );
-		VectorCopy( re->origin, le->pos.trBase );
-		if ( CG_PointContents( re->origin, -1 ) & CONTENTS_WATER ) {
-			waterScale = 0.10f;
-		}
+	//	xoffset[0] = offset[0] * v[0][0] + offset[1] * v[1][0] + offset[2] * v[2][0];
+	//	xoffset[1] = offset[0] * v[0][1] + offset[1] * v[1][1] + offset[2] * v[2][1];
+	//	xoffset[2] = offset[0] * v[0][2] + offset[1] * v[1][2] + offset[2] * v[2][2];
+	//	VectorAdd( cent->lerpOrigin, xoffset, re->origin );
+	//	VectorCopy( re->origin, le->pos.trBase );
+	//	if ( CG_PointContents( re->origin, -1 ) & CONTENTS_WATER ) {
+	//		waterScale = 0.10f;
+	//	}
 
-		xvelocity[0] = velocity[0] * v[0][0] + velocity[1] * v[1][0] + velocity[2] * v[2][0];
-		xvelocity[1] = velocity[0] * v[0][1] + velocity[1] * v[1][1] + velocity[2] * v[2][1];
-		xvelocity[2] = velocity[0] * v[0][2] + velocity[1] * v[1][2] + velocity[2] * v[2][2];
-		VectorScale( xvelocity, waterScale, le->pos.trDelta );
+	//	xvelocity[0] = velocity[0] * v[0][0] + velocity[1] * v[1][0] + velocity[2] * v[2][0];
+	//	xvelocity[1] = velocity[0] * v[0][1] + velocity[1] * v[1][1] + velocity[2] * v[2][1];
+	//	xvelocity[2] = velocity[0] * v[0][2] + velocity[1] * v[1][2] + velocity[2] * v[2][2];
+	//	VectorScale( xvelocity, waterScale, le->pos.trDelta );
 
-		AxisCopy( axisDefault, re->axis );
-		re->hModel = cgs.media.shotgunBrassModel;
-		le->bounceFactor = 0.3f;
+	//	AxisCopy( axisDefault, re->axis );
+	//	re->hModel = cgs.media.shotgunBrassModel;
+	//	le->bounceFactor = 0.3f;
 
-		le->angles.trType = TR_LINEAR;
-		le->angles.trTime = cg.time;
-		le->angles.trBase[0] = rand()&31;
-		le->angles.trBase[1] = rand()&31;
-		le->angles.trBase[2] = rand()&31;
-		le->angles.trDelta[0] = 1;
-		le->angles.trDelta[1] = 0.5;
-		le->angles.trDelta[2] = 0;
+	//	le->angles.trType = TR_LINEAR;
+	//	le->angles.trTime = cg.time;
+	//	le->angles.trBase[0] = rand()&31;
+	//	le->angles.trBase[1] = rand()&31;
+	//	le->angles.trBase[2] = rand()&31;
+	//	le->angles.trDelta[0] = 1;
+	//	le->angles.trDelta[1] = 0.5;
+	//	le->angles.trDelta[2] = 0;
 
-		le->leFlags = LEF_TUMBLE;
-		le->leBounceSoundType = LEBS_BRASS;
-		le->leMarkType = LEMT_NONE;
-	}
+	//	le->leFlags = LEF_TUMBLE;
+	//	le->leBounceSoundType = LEBS_BRASS;
+	//	le->leMarkType = LEMT_NONE;
+	//}
 }
 
 
@@ -427,36 +427,6 @@ void CG_ToggleItem_f()
 {
 	cg.iWeaponCommand = 7;
 	cg.iWeaponCommandSend = 0;
-}
-
-/*
-===============
-CG_Weapon_f
-===============
-*/
-void CG_Weapon_f( void ) {
-	int		num;
-
-	if ( !cg.snap ) {
-		return;
-	}
-	if ( cg.snap->ps.pm_flags & PMF_FOLLOW ) {
-		return;
-	}
-
-	num = atoi( CG_Argv( 1 ) );
-
-	if ( num < 1 || num > MAX_WEAPONS-1 ) {
-		return;
-	}
-
-	cg.weaponSelectTime = cg.time;
-
-	if ( ! ( cg.snap->ps.stats[STAT_WEAPONS] & ( 1 << num ) ) ) {
-		return;		// don't have the weapon
-	}
-
-	cg.weaponSelect = num;
 }
 
 // su44: encode current weapon command for MoHAA

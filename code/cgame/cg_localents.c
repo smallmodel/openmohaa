@@ -119,32 +119,32 @@ Leave expanding blood puffs behind gibs
 ================
 */
 void CG_BloodTrail( localEntity_t *le ) {
-	int		t;
-	int		t2;
-	int		step;
-	vec3_t	newOrigin;
-	localEntity_t	*blood;
+	//int		t;
+	//int		t2;
+	//int		step;
+	//vec3_t	newOrigin;
+	//localEntity_t	*blood;
 
-	step = 150;
-	t = step * ( (cg.time - cg.frametime + step ) / step );
-	t2 = step * ( cg.time / step );
+	//step = 150;
+	//t = step * ( (cg.time - cg.frametime + step ) / step );
+	//t2 = step * ( cg.time / step );
 
-	for ( ; t <= t2; t += step ) {
-		BG_EvaluateTrajectory( &le->pos, t, newOrigin );
+	//for ( ; t <= t2; t += step ) {
+	//	BG_EvaluateTrajectory( &le->pos, t, newOrigin );
 
-		blood = CG_SmokePuff( newOrigin, vec3_origin, 
-					  20,		// radius
-					  1, 1, 1, 1,	// color
-					  2000,		// trailTime
-					  t,		// startTime
-					  0,		// fadeInTime
-					  0,		// flags
-					  cgs.media.bloodTrailShader );
-		// use the optimized version
-		blood->leType = LE_FALL_SCALE_FADE;
-		// drop a total of 40 units over its lifetime
-		blood->pos.trDelta[2] = 40;
-	}
+	//	blood = CG_SmokePuff( newOrigin, vec3_origin, 
+	//				  20,		// radius
+	//				  1, 1, 1, 1,	// color
+	//				  2000,		// trailTime
+	//				  t,		// startTime
+	//				  0,		// fadeInTime
+	//				  0,		// flags
+	//				  cgs.media.bloodTrailShader );
+	//	// use the optimized version
+	//	blood->leType = LE_FALL_SCALE_FADE;
+	//	// drop a total of 40 units over its lifetime
+	//	blood->pos.trDelta[2] = 40;
+	//}
 }
 
 
@@ -154,24 +154,24 @@ CG_FragmentBounceMark
 ================
 */
 void CG_FragmentBounceMark( localEntity_t *le, trace_t *trace ) {
-	int			radius;
+	//int			radius;
 
-	if ( le->leMarkType == LEMT_BLOOD ) {
+	//if ( le->leMarkType == LEMT_BLOOD ) {
 
-		radius = 16 + (rand()&31);
-		CG_ImpactMark( cgs.media.bloodMarkShader, trace->endpos, trace->plane.normal, random()*360,
-			1,1,1,1, qtrue, radius, qfalse );
-	} else if ( le->leMarkType == LEMT_BURN ) {
+	//	radius = 16 + (rand()&31);
+	//	CG_ImpactMark( cgs.media.bloodMarkShader, trace->endpos, trace->plane.normal, random()*360,
+	//		1,1,1,1, qtrue, radius, qfalse );
+	//} else if ( le->leMarkType == LEMT_BURN ) {
 
-		radius = 8 + (rand()&15);
-		CG_ImpactMark( cgs.media.burnMarkShader, trace->endpos, trace->plane.normal, random()*360,
-			1,1,1,1, qtrue, radius, qfalse );
-	}
+	//	radius = 8 + (rand()&15);
+	//	CG_ImpactMark( cgs.media.burnMarkShader, trace->endpos, trace->plane.normal, random()*360,
+	//		1,1,1,1, qtrue, radius, qfalse );
+	//}
 
 
-	// don't allow a fragment to make multiple marks, or they
-	// pile up while settling
-	le->leMarkType = LEMT_NONE;
+	//// don't allow a fragment to make multiple marks, or they
+	//// pile up while settling
+	//le->leMarkType = LEMT_NONE;
 }
 
 /*
@@ -229,6 +229,18 @@ void CG_AddFragment( localEntity_t *le ) {
 	refEntity_t *e;
 	tiki_t *tiki;
 
+	// if that's a tiki, we need to animate it
+	if(le->tiki) {
+		float time = 0;
+		int anim = 0;
+		e = &le->refEntity;
+		tiki = le->tiki;
+		e->bones = trap_TIKI_GetBones(tiki->numBones);
+		trap_TIKI_AppendFrameBoundsAndRadius(tiki,anim,time,&e->radius,e->bounds);
+		trap_TIKI_SetChannels(tiki,anim,time,1,e->bones);
+		trap_TIKI_Animate(tiki,e->bones);
+	}
+
 	if ( le->pos.trType == TR_STATIONARY ) {
 		// sink into the ground if near the removal time
 		int		t;
@@ -266,17 +278,6 @@ void CG_AddFragment( localEntity_t *le ) {
 
 			BG_EvaluateTrajectory( &le->angles, cg.time, angles );
 			AnglesToAxis( angles, le->refEntity.axis );
-		}
-		// if that's a tiki, we need to animate it
-		if(le->tiki) {
-			float time = 0;
-			int anim = 0;
-			e = &le->refEntity;
-			tiki = le->tiki;
-			e->bones = trap_TIKI_GetBones(tiki->numBones);
-			trap_TIKI_AppendFrameBoundsAndRadius(tiki,anim,time,&e->radius,e->bounds);
-			trap_TIKI_SetChannels(tiki,anim,time,1,e->bones);
-			trap_TIKI_Animate(tiki,e->bones);
 		}
 		trap_R_AddRefEntityToScene( &le->refEntity );
 
@@ -537,82 +538,82 @@ CG_AddScorePlum
 #define NUMBER_SIZE		8
 
 void CG_AddScorePlum( localEntity_t *le ) {
-	refEntity_t	*re;
-	vec3_t		origin, delta, dir, vec, up = {0, 0, 1};
-	float		c, len;
-	int			i, score, digits[10], numdigits, negative;
+	//refEntity_t	*re;
+	//vec3_t		origin, delta, dir, vec, up = {0, 0, 1};
+	//float		c, len;
+	//int			i, score, digits[10], numdigits, negative;
 
-	re = &le->refEntity;
+	//re = &le->refEntity;
 
-	c = ( le->endTime - cg.time ) * le->lifeRate;
+	//c = ( le->endTime - cg.time ) * le->lifeRate;
 
-	score = le->radius;
-	if (score < 0) {
-		re->shaderRGBA[0] = 0xff;
-		re->shaderRGBA[1] = 0x11;
-		re->shaderRGBA[2] = 0x11;
-	}
-	else {
-		re->shaderRGBA[0] = 0xff;
-		re->shaderRGBA[1] = 0xff;
-		re->shaderRGBA[2] = 0xff;
-		if (score >= 50) {
-			re->shaderRGBA[1] = 0;
-		} else if (score >= 20) {
-			re->shaderRGBA[0] = re->shaderRGBA[1] = 0;
-		} else if (score >= 10) {
-			re->shaderRGBA[2] = 0;
-		} else if (score >= 2) {
-			re->shaderRGBA[0] = re->shaderRGBA[2] = 0;
-		}
+	//score = le->radius;
+	//if (score < 0) {
+	//	re->shaderRGBA[0] = 0xff;
+	//	re->shaderRGBA[1] = 0x11;
+	//	re->shaderRGBA[2] = 0x11;
+	//}
+	//else {
+	//	re->shaderRGBA[0] = 0xff;
+	//	re->shaderRGBA[1] = 0xff;
+	//	re->shaderRGBA[2] = 0xff;
+	//	if (score >= 50) {
+	//		re->shaderRGBA[1] = 0;
+	//	} else if (score >= 20) {
+	//		re->shaderRGBA[0] = re->shaderRGBA[1] = 0;
+	//	} else if (score >= 10) {
+	//		re->shaderRGBA[2] = 0;
+	//	} else if (score >= 2) {
+	//		re->shaderRGBA[0] = re->shaderRGBA[2] = 0;
+	//	}
 
-	}
-	if (c < 0.25)
-		re->shaderRGBA[3] = 0xff * 4 * c;
-	else
-		re->shaderRGBA[3] = 0xff;
+	//}
+	//if (c < 0.25)
+	//	re->shaderRGBA[3] = 0xff * 4 * c;
+	//else
+	//	re->shaderRGBA[3] = 0xff;
 
-	re->radius = NUMBER_SIZE / 2;
+	//re->radius = NUMBER_SIZE / 2;
 
-	VectorCopy(le->pos.trBase, origin);
-	origin[2] += 110 - c * 100;
+	//VectorCopy(le->pos.trBase, origin);
+	//origin[2] += 110 - c * 100;
 
-	VectorSubtract(cg.refdef.vieworg, origin, dir);
-	CrossProduct(dir, up, vec);
-	VectorNormalize(vec);
+	//VectorSubtract(cg.refdef.vieworg, origin, dir);
+	//CrossProduct(dir, up, vec);
+	//VectorNormalize(vec);
 
-	VectorMA(origin, -10 + 20 * sin(c * 2 * M_PI), vec, origin);
+	//VectorMA(origin, -10 + 20 * sin(c * 2 * M_PI), vec, origin);
 
-	// if the view would be "inside" the sprite, kill the sprite
-	// so it doesn't add too much overdraw
-	VectorSubtract( origin, cg.refdef.vieworg, delta );
-	len = VectorLength( delta );
-	if ( len < 20 ) {
-		CG_FreeLocalEntity( le );
-		return;
-	}
+	//// if the view would be "inside" the sprite, kill the sprite
+	//// so it doesn't add too much overdraw
+	//VectorSubtract( origin, cg.refdef.vieworg, delta );
+	//len = VectorLength( delta );
+	//if ( len < 20 ) {
+	//	CG_FreeLocalEntity( le );
+	//	return;
+	//}
 
-	negative = qfalse;
-	if (score < 0) {
-		negative = qtrue;
-		score = -score;
-	}
+	//negative = qfalse;
+	//if (score < 0) {
+	//	negative = qtrue;
+	//	score = -score;
+	//}
 
-	for (numdigits = 0; !(numdigits && !score); numdigits++) {
-		digits[numdigits] = score % 10;
-		score = score / 10;
-	}
+	//for (numdigits = 0; !(numdigits && !score); numdigits++) {
+	//	digits[numdigits] = score % 10;
+	//	score = score / 10;
+	//}
 
-	if (negative) {
-		digits[numdigits] = 10;
-		numdigits++;
-	}
+	//if (negative) {
+	//	digits[numdigits] = 10;
+	//	numdigits++;
+	//}
 
-	for (i = 0; i < numdigits; i++) {
-		VectorMA(origin, (float) (((float) numdigits / 2) - i) * NUMBER_SIZE, vec, re->origin);
-		re->customShader = cgs.media.numberShaders[digits[numdigits-1-i]];
-		trap_R_AddRefEntityToScene( re );
-	}
+	//for (i = 0; i < numdigits; i++) {
+	//	VectorMA(origin, (float) (((float) numdigits / 2) - i) * NUMBER_SIZE, vec, re->origin);
+	//	re->customShader = cgs.media.numberShaders[digits[numdigits-1-i]];
+	//	trap_R_AddRefEntityToScene( re );
+	//}
 }
 
 

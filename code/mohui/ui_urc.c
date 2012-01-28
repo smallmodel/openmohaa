@@ -403,6 +403,9 @@ qboolean UI_ParseMenuToken( const char *token, char **ptr, uiMenu_t *menu ) {
 			res->type = UI_RES_SLIDER;
 		else if ( !Q_strncmp( var, "FAKKServerList", 14 ) )
 			res->type = UI_RES_SERVERLIST;
+		else if ( !Q_strncmp( var, "FAKKBindList", 12 ) )
+			// su44: that's used in ui/controls.urc
+			res->type = UI_RES_BINDLIST; 
 		else if ( !Q_strncmp( var, "LANGameClass", 12 ) )
 			res->type = UI_RES_LANSERVERLIST;
 		else

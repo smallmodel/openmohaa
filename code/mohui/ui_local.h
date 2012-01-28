@@ -76,7 +76,8 @@ typedef enum uiResType_s {
 	UI_RES_SLIDER,
 	UI_RES_PULLDOWN,
 	UI_RES_SERVERLIST,
-	UI_RES_LANSERVERLIST
+	UI_RES_LANSERVERLIST,
+	UI_RES_BINDLIST,
 } uiResType_t;
 
 typedef enum uiSlidertype_s {

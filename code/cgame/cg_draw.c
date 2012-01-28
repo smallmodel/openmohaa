@@ -60,68 +60,6 @@ char teamChat1[256];
 char teamChat2[256];
 
 /*
-==============
-CG_DrawField
-
-Draws large numbers for status bar and powerups
-==============
-*/
-static void CG_DrawField (int x, int y, int width, int value) {
-	char	num[16], *ptr;
-	int		l;
-	int		frame;
-
-	if ( width < 1 ) {
-		return;
-	}
-
-	// draw number string
-	if ( width > 5 ) {
-		width = 5;
-	}
-
-	switch ( width ) {
-	case 1:
-		value = value > 9 ? 9 : value;
-		value = value < 0 ? 0 : value;
-		break;
-	case 2:
-		value = value > 99 ? 99 : value;
-		value = value < -9 ? -9 : value;
-		break;
-	case 3:
-		value = value > 999 ? 999 : value;
-		value = value < -99 ? -99 : value;
-		break;
-	case 4:
-		value = value > 9999 ? 9999 : value;
-		value = value < -999 ? -999 : value;
-		break;
-	}
-
-	Com_sprintf (num, sizeof(num), "%i", value);
-	l = strlen(num);
-	if (l > width)
-		l = width;
-	x += 2 + CHAR_WIDTH*(width - l);
-
-	ptr = num;
-	while (*ptr && l)
-	{
-		if (*ptr == '-')
-			frame = STAT_MINUS;
-		else
-			frame = *ptr -'0';
-
-		CG_DrawPic( x,y, CHAR_WIDTH, CHAR_HEIGHT, cgs.media.numberShaders[frame] );
-		x += CHAR_WIDTH;
-		ptr++;
-		l--;
-	}
-}
-
-
-/*
 ================
 CG_Draw3DModel
 
@@ -165,32 +103,6 @@ void CG_Draw3DModel( float x, float y, float w, float h, qhandle_t model, qhandl
 	trap_R_RenderScene( &refdef );
 }
 
-/*
-================
-CG_DrawTeamBackground
-
-================
-*/
-void CG_DrawTeamBackground( int x, int y, int w, int h, float alpha, int team )
-{
-	vec4_t		hcolor;
-
-	hcolor[3] = alpha;
-	if ( team == TEAM_RED ) {
-		hcolor[0] = 1;
-		hcolor[1] = 0;
-		hcolor[2] = 0;
-	} else if ( team == TEAM_BLUE ) {
-		hcolor[0] = 0;
-		hcolor[1] = 0;
-		hcolor[2] = 1;
-	} else {
-		return;
-	}
-	trap_R_SetColor( hcolor );
-	CG_DrawPic( x, y, w, h, cgs.media.teamStatusBar );
-	trap_R_SetColor( NULL );
-}
 
 /*
 ===========================================================================================
@@ -559,106 +471,6 @@ static void CG_DrawUpperRight( void ) {
 //#endif // MISSIONPACK
 
 //===========================================================================================
-
-/*
-=================
-CG_DrawTeamInfo
-=================
-*/
-#ifndef MISSIONPACK
-static void CG_DrawTeamInfo( void ) {
-	int w, h;
-	int i, len;
-	vec4_t		hcolor;
-	int		chatHeight;
-
-#define CHATLOC_Y 420 // bottom end
-#define CHATLOC_X 0
-
-	if (cg_teamChatHeight.integer < TEAMCHAT_HEIGHT)
-		chatHeight = cg_teamChatHeight.integer;
-	else
-		chatHeight = TEAMCHAT_HEIGHT;
-	if (chatHeight <= 0)
-		return; // disabled
-
-	if (cgs.teamLastChatPos != cgs.teamChatPos) {
-		if (cg.time - cgs.teamChatMsgTimes[cgs.teamLastChatPos % chatHeight] > cg_teamChatTime.integer) {
-			cgs.teamLastChatPos++;
-		}
-
-		h = (cgs.teamChatPos - cgs.teamLastChatPos) * TINYCHAR_HEIGHT;
-
-		w = 0;
-
-		for (i = cgs.teamLastChatPos; i < cgs.teamChatPos; i++) {
-			len = CG_DrawStrlen(cgs.teamChatMsgs[i % chatHeight]);
-			if (len > w)
-				w = len;
-		}
-		w *= TINYCHAR_WIDTH;
-		w += TINYCHAR_WIDTH * 2;
-
-		if ( cg.snap->ps.stats[STAT_TEAM] == TEAM_RED ) {
-			hcolor[0] = 1.0f;
-			hcolor[1] = 0.0f;
-			hcolor[2] = 0.0f;
-			hcolor[3] = 0.33f;
-		} else if ( cg.snap->ps.stats[STAT_TEAM] == TEAM_BLUE ) {
-			hcolor[0] = 0.0f;
-			hcolor[1] = 0.0f;
-			hcolor[2] = 1.0f;
-			hcolor[3] = 0.33f;
-		} else {
-			hcolor[0] = 0.0f;
-			hcolor[1] = 1.0f;
-			hcolor[2] = 0.0f;
-			hcolor[3] = 0.33f;
-		}
-
-		trap_R_SetColor( hcolor );
-		CG_DrawPic( CHATLOC_X, CHATLOC_Y - h, 640, h, cgs.media.teamStatusBar );
-		trap_R_SetColor( NULL );
-
-		hcolor[0] = hcolor[1] = hcolor[2] = 1.0f;
-		hcolor[3] = 1.0f;
-
-		for (i = cgs.teamChatPos - 1; i >= cgs.teamLastChatPos; i--) {
-			CG_DrawStringExt( CHATLOC_X + TINYCHAR_WIDTH, 
-				CHATLOC_Y - (cgs.teamChatPos - i)*TINYCHAR_HEIGHT, 
-				cgs.teamChatMsgs[i % chatHeight], hcolor, qfalse, qfalse,
-				TINYCHAR_WIDTH, TINYCHAR_HEIGHT, 0 );
-		}
-	}
-}
-#endif // MISSIONPACK
-
-/*
-===================
-CG_DrawHoldableItem
-===================
-*/
-#ifndef MISSIONPACK
-static void CG_DrawHoldableItem( void ) { 
-#if 0
-	int		value;
-	value = cg.snap->ps.stats[STAT_HOLDABLE_ITEM];
-	if ( value ) {
-		CG_RegisterItemVisuals( value );
-		CG_DrawPic( 640-ICON_SIZE, (SCREEN_HEIGHT-ICON_SIZE)/2, ICON_SIZE, ICON_SIZE, cg_items[ value ].icon );
-	}
-#endif
-}
-#endif // MISSIONPACK
-
-/*
-===================
-CG_DrawReward
-===================
-*/
-static void CG_DrawReward( void ) { 
-
-}
 
 
 /*
@@ -1174,81 +986,6 @@ static void CG_DrawCrosshair(void) {
 }
 
 
-
-/*
-=================
-CG_ScanForCrosshairEntity
-=================
-*/
-static void CG_ScanForCrosshairEntity( void ) {
-	trace_t		trace;
-	vec3_t		start, end;
-	int			content;
-
-	VectorCopy( cg.refdef.vieworg, start );
-	VectorMA( start, 131072, cg.refdef.viewaxis[0], end );
-
-	CG_Trace( &trace, start, vec3_origin, vec3_origin, end, 
-		cg.snap->ps.clientNum, CONTENTS_SOLID|CONTENTS_BODY );
-	if ( trace.entityNum >= MAX_CLIENTS ) {
-		return;
-	}
-
-	// if the player is in fog, don't show it
-	content = trap_CM_PointContents( trace.endpos, 0 );
-	if ( content & CONTENTS_FOG ) {
-		return;
-	}
-
-	// update the fade timer
-	cg.crosshairClientNum = trace.entityNum;
-	cg.crosshairClientTime = cg.time;
-}
-
-
-/*
-=====================
-CG_DrawCrosshairNames
-=====================
-*/
-static void CG_DrawCrosshairNames( void ) {
-	float		*color;
-	char		*name;
-	float		w;
-
-	if ( !cg_drawCrosshair.integer ) {
-		return;
-	}
-	if ( !cg_drawCrosshairNames.integer ) {
-		return;
-	}
-	if ( cg.renderingThirdPerson ) {
-		return;
-	}
-
-	// scan the known entities to see if the crosshair is sighted on one
-	CG_ScanForCrosshairEntity();
-
-	// draw the name of the player being looked at
-	color = CG_FadeColor( cg.crosshairClientTime, 1000 );
-	if ( !color ) {
-		trap_R_SetColor( NULL );
-		return;
-	}
-
-	name = cgs.clientinfo[ cg.crosshairClientNum ].name;
-#ifdef MISSIONPACK
-	color[3] *= 0.5f;
-	w = CG_Text_Width(name, 0.3f, 0);
-	CG_Text_Paint( 320 - w / 2, 190, 0.3f, color, name, 0, 0, ITEM_TEXTSTYLE_SHADOWED);
-#else
-	w = CG_DrawStrlen( name ) * BIGCHAR_WIDTH;
-	CG_DrawBigString( 320 - w / 2, 170, name, color[3] * 0.5f );
-#endif
-	trap_R_SetColor( NULL );
-}
-
-
 //==============================================================================
 
 /*
@@ -1259,70 +996,6 @@ CG_DrawSpectator
 static void CG_DrawSpectator(void) {
 	CG_DrawBigString(320 - 9 * 8, 440, "SPECTATOR", 1.0F);
 }
-
-/*
-=================
-CG_DrawVote
-=================
-*/
-static void CG_DrawVote(void) {
-	char	*s;
-	int		sec;
-
-	if ( !cgs.voteTime ) {
-		return;
-	}
-
-	// play a talk beep whenever it is modified
-	if ( cgs.voteModified ) {
-		cgs.voteModified = qfalse;
-		trap_S_StartLocalSound( cgs.media.talkSound, CHAN_LOCAL_SOUND );
-	}
-
-	sec = ( VOTE_TIME - ( cg.time - cgs.voteTime ) ) / 1000;
-	if ( sec < 0 ) {
-		sec = 0;
-	}
-
-	s = va("VOTE(%i):%s yes:%i no:%i", sec, cgs.voteString, cgs.voteYes, cgs.voteNo );
-	CG_DrawSmallString( 0, 58, s, 1.0F );
-}
-
-/*
-=================
-CG_DrawTeamVote
-=================
-*/
-static void CG_DrawTeamVote(void) {
-	char	*s;
-	int		sec, cs_offset;
-
-	if ( cgs.clientinfo->team == TEAM_RED )
-		cs_offset = 0;
-	else if ( cgs.clientinfo->team == TEAM_BLUE )
-		cs_offset = 1;
-	else
-		return;
-
-	if ( !cgs.teamVoteTime[cs_offset] ) {
-		return;
-	}
-
-	// play a talk beep whenever it is modified
-	if ( cgs.teamVoteModified[cs_offset] ) {
-		cgs.teamVoteModified[cs_offset] = qfalse;
-		trap_S_StartLocalSound( cgs.media.talkSound, CHAN_LOCAL_SOUND );
-	}
-
-	sec = ( VOTE_TIME - ( cg.time - cgs.teamVoteTime[cs_offset] ) ) / 1000;
-	if ( sec < 0 ) {
-		sec = 0;
-	}
-	s = va("TEAMVOTE(%i):%s yes:%i no:%i", sec, cgs.teamVoteString[cs_offset],
-							cgs.teamVoteYes[cs_offset], cgs.teamVoteNo[cs_offset] );
-	CG_DrawSmallString( 0, 90, s, 1.0F );
-}
-
 
 /*
 =================
@@ -1371,32 +1044,6 @@ static qboolean CG_DrawFollow( void ) {
 }
 
 
-
-/*
-=================
-CG_DrawAmmoWarning
-=================
-*/
-static void CG_DrawAmmoWarning( void ) {
-	const char	*s;
-	int			w;
-
-	if ( cg_drawAmmoWarning.integer == 0 ) {
-		return;
-	}
-
-	if ( !cg.lowAmmoWarning ) {
-		return;
-	}
-
-	if ( cg.lowAmmoWarning == 2 ) {
-		s = "OUT OF AMMO";
-	} else {
-		s = "LOW AMMO WARNING";
-	}
-	w = CG_DrawStrlen( s ) * BIGCHAR_WIDTH;
-	CG_DrawBigString(320 - w / 2, 64, s, 1.0F);
-}
 
 
 /*
@@ -1785,7 +1432,29 @@ drawOverlayLabel:
 		}
 	}
 }
+/*
+=================
+CG_DrawCrosshairPlayerInfo
+=================
+*/
+static void CG_DrawCrosshairPlayerInfo() {
+	int clientNum;
+	clientInfo_t *info;
 
+	clientNum = cg.snap->ps.stats[STAT_INFOCLIENT];
+	
+	if(clientNum == -1)
+		return;
+
+	info = &cgs.clientinfo[clientNum];
+
+	trap_R_SetColor(color_green);
+	trap_R_Text_Paint( &cgs.media.facfont, 64, 280, 1, 1, info->name, 1, 0, qfalse, qtrue );
+	trap_R_SetColor(color_green);
+	trap_R_Text_Paint( &cgs.media.facfont, 64, 296, 1, 1, va("%i",
+		cg.snap->ps.stats[STAT_INFOCLIENT_HEALTH]), 1, 0, qfalse, qtrue );
+
+}
 /*
 =================
 CG_Draw2D
@@ -1814,9 +1483,10 @@ void CG_Draw2D( int serverTime, stereoFrame_t stereoView, qboolean demoPlayback 
 	CG_HudDrawElements();
 	// su44: draw sniper rifles/binoculars zoom overlay
 	CG_DrawZoomOverlay();
+	// su44: draw info about the player local client is currently aiming at
+	CG_DrawCrosshairPlayerInfo();
 
-//	CG_DrawVote();
-//	CG_DrawTeamVote();
+
 
 	CG_DrawUpperRight();
 

@@ -100,7 +100,7 @@ void CG_NewClientInfo( int clientNum ) {
 	memset( &newInfo, 0, sizeof( newInfo ) );
 
 	// isolate the player's name
-	v = Info_ValueForKey(configstring, "n");
+	v = Info_ValueForKey(configstring, "name");
 	Q_strncpyz( newInfo.name, v, sizeof( newInfo.name ) );
 
 	// replace whatever was there with the new one
@@ -189,42 +189,12 @@ static void CG_PlayerSprites( centity_t *cent ) {
 		return;
 	}
 
-	if ( cent->currentState.eFlags & EF_AWARD_IMPRESSIVE ) {
-		CG_PlayerFloatSprite( cent, cgs.media.medalImpressive );
-		return;
-	}
-
-	if ( cent->currentState.eFlags & EF_AWARD_EXCELLENT ) {
-		CG_PlayerFloatSprite( cent, cgs.media.medalExcellent );
-		return;
-	}
-
-	if ( cent->currentState.eFlags & EF_AWARD_GAUNTLET ) {
-		CG_PlayerFloatSprite( cent, cgs.media.medalGauntlet );
-		return;
-	}
-
-	if ( cent->currentState.eFlags & EF_AWARD_DEFEND ) {
-		CG_PlayerFloatSprite( cent, cgs.media.medalDefend );
-		return;
-	}
-
-	if ( cent->currentState.eFlags & EF_AWARD_ASSIST ) {
-		CG_PlayerFloatSprite( cent, cgs.media.medalAssist );
-		return;
-	}
-
-	if ( cent->currentState.eFlags & EF_AWARD_CAP ) {
-		CG_PlayerFloatSprite( cent, cgs.media.medalCapture );
-		return;
-	}
-
 	team = cgs.clientinfo[ cent->currentState.clientNum ].team;
 	if ( !(cent->currentState.eFlags & EF_DEAD) &&
 		cg.snap->ps.stats[STAT_TEAM] == team &&
 		cgs.gametype >= GT_TEAM) {
 		if (cg_drawFriend.integer) {
-			CG_PlayerFloatSprite( cent, cgs.media.friendShader );
+			//CG_PlayerFloatSprite( cent, cgs.media.friendShader );
 		}
 		return;
 	}
@@ -291,83 +261,83 @@ Draw a mark at the water surface
 ===============
 */
 static void CG_PlayerSplash( centity_t *cent ) {
-	vec3_t		start, end;
-	trace_t		trace;
-	int			contents;
-	polyVert_t	verts[4];
+	//vec3_t		start, end;
+	//trace_t		trace;
+	//int			contents;
+	//polyVert_t	verts[4];
 
-	if ( !cg_shadows.integer ) {
-		return;
-	}
+	//if ( !cg_shadows.integer ) {
+	//	return;
+	//}
 
-	VectorCopy( cent->lerpOrigin, end );
-	end[2] -= 24;
+	//VectorCopy( cent->lerpOrigin, end );
+	//end[2] -= 24;
 
-	// if the feet aren't in liquid, don't make a mark
-	// this won't handle moving water brushes, but they wouldn't draw right anyway...
-	contents = trap_CM_PointContents( end, 0 );
-	if ( !( contents & ( CONTENTS_WATER | CONTENTS_SLIME | CONTENTS_LAVA ) ) ) {
-		return;
-	}
+	//// if the feet aren't in liquid, don't make a mark
+	//// this won't handle moving water brushes, but they wouldn't draw right anyway...
+	//contents = trap_CM_PointContents( end, 0 );
+	//if ( !( contents & ( CONTENTS_WATER | CONTENTS_SLIME | CONTENTS_LAVA ) ) ) {
+	//	return;
+	//}
 
-	VectorCopy( cent->lerpOrigin, start );
-	start[2] += 32;
+	//VectorCopy( cent->lerpOrigin, start );
+	//start[2] += 32;
 
-	// if the head isn't out of liquid, don't make a mark
-	contents = trap_CM_PointContents( start, 0 );
-	if ( contents & ( CONTENTS_SOLID | CONTENTS_WATER | CONTENTS_SLIME | CONTENTS_LAVA ) ) {
-		return;
-	}
+	//// if the head isn't out of liquid, don't make a mark
+	//contents = trap_CM_PointContents( start, 0 );
+	//if ( contents & ( CONTENTS_SOLID | CONTENTS_WATER | CONTENTS_SLIME | CONTENTS_LAVA ) ) {
+	//	return;
+	//}
 
-	// trace down to find the surface
-	trap_CM_BoxTrace( &trace, start, end, NULL, NULL, 0, ( CONTENTS_WATER | CONTENTS_SLIME | CONTENTS_LAVA ) );
+	//// trace down to find the surface
+	//trap_CM_BoxTrace( &trace, start, end, NULL, NULL, 0, ( CONTENTS_WATER | CONTENTS_SLIME | CONTENTS_LAVA ) );
 
-	if ( trace.fraction == 1.0 ) {
-		return;
-	}
+	//if ( trace.fraction == 1.0 ) {
+	//	return;
+	//}
 
-	// create a mark polygon
-	VectorCopy( trace.endpos, verts[0].xyz );
-	verts[0].xyz[0] -= 32;
-	verts[0].xyz[1] -= 32;
-	verts[0].st[0] = 0;
-	verts[0].st[1] = 0;
-	verts[0].modulate[0] = 255;
-	verts[0].modulate[1] = 255;
-	verts[0].modulate[2] = 255;
-	verts[0].modulate[3] = 255;
+	//// create a mark polygon
+	//VectorCopy( trace.endpos, verts[0].xyz );
+	//verts[0].xyz[0] -= 32;
+	//verts[0].xyz[1] -= 32;
+	//verts[0].st[0] = 0;
+	//verts[0].st[1] = 0;
+	//verts[0].modulate[0] = 255;
+	//verts[0].modulate[1] = 255;
+	//verts[0].modulate[2] = 255;
+	//verts[0].modulate[3] = 255;
 
-	VectorCopy( trace.endpos, verts[1].xyz );
-	verts[1].xyz[0] -= 32;
-	verts[1].xyz[1] += 32;
-	verts[1].st[0] = 0;
-	verts[1].st[1] = 1;
-	verts[1].modulate[0] = 255;
-	verts[1].modulate[1] = 255;
-	verts[1].modulate[2] = 255;
-	verts[1].modulate[3] = 255;
+	//VectorCopy( trace.endpos, verts[1].xyz );
+	//verts[1].xyz[0] -= 32;
+	//verts[1].xyz[1] += 32;
+	//verts[1].st[0] = 0;
+	//verts[1].st[1] = 1;
+	//verts[1].modulate[0] = 255;
+	//verts[1].modulate[1] = 255;
+	//verts[1].modulate[2] = 255;
+	//verts[1].modulate[3] = 255;
 
-	VectorCopy( trace.endpos, verts[2].xyz );
-	verts[2].xyz[0] += 32;
-	verts[2].xyz[1] += 32;
-	verts[2].st[0] = 1;
-	verts[2].st[1] = 1;
-	verts[2].modulate[0] = 255;
-	verts[2].modulate[1] = 255;
-	verts[2].modulate[2] = 255;
-	verts[2].modulate[3] = 255;
+	//VectorCopy( trace.endpos, verts[2].xyz );
+	//verts[2].xyz[0] += 32;
+	//verts[2].xyz[1] += 32;
+	//verts[2].st[0] = 1;
+	//verts[2].st[1] = 1;
+	//verts[2].modulate[0] = 255;
+	//verts[2].modulate[1] = 255;
+	//verts[2].modulate[2] = 255;
+	//verts[2].modulate[3] = 255;
 
-	VectorCopy( trace.endpos, verts[3].xyz );
-	verts[3].xyz[0] += 32;
-	verts[3].xyz[1] -= 32;
-	verts[3].st[0] = 1;
-	verts[3].st[1] = 0;
-	verts[3].modulate[0] = 255;
-	verts[3].modulate[1] = 255;
-	verts[3].modulate[2] = 255;
-	verts[3].modulate[3] = 255;
+	//VectorCopy( trace.endpos, verts[3].xyz );
+	//verts[3].xyz[0] += 32;
+	//verts[3].xyz[1] -= 32;
+	//verts[3].st[0] = 1;
+	//verts[3].st[1] = 0;
+	//verts[3].modulate[0] = 255;
+	//verts[3].modulate[1] = 255;
+	//verts[3].modulate[2] = 255;
+	//verts[3].modulate[3] = 255;
 
-	trap_R_AddPolyToScene( cgs.media.wakeMarkShader, 4, verts );
+	//trap_R_AddPolyToScene( cgs.media.wakeMarkShader, 4, verts );
 }
 
 /*

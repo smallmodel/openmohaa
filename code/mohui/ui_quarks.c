@@ -537,12 +537,16 @@ void UI_DrawMenu( uiMenu_t *menu, qboolean foreground ) {
 								float picH, baseOfs;
 								int c, i;
 
-								picH = res->rect[3] / playerState->stats[res->maxplayerstat];
-								c = playerState->stats[res->playerstat];
-								baseOfs = res->rect[1] + res->rect[3] - picH;
-								for(i = 0; i < c; i++) {
-									float ofs = baseOfs - i * picH;
-									UI_DrawHandlePic( res->rect[0], ofs, res->rect[2], picH, res->statbartileshader );
+								// avoid dividing by zero.... playerState->stats[res->maxplayerstat] is 0
+								// if player is using stationary MG42, available on mohdm6 (Stalingrad)
+								if(playerState->stats[res->maxplayerstat] != 0) {
+									picH = res->rect[3] / playerState->stats[res->maxplayerstat];
+									c = playerState->stats[res->playerstat];
+									baseOfs = res->rect[1] + res->rect[3] - picH;
+									for(i = 0; i < c; i++) {
+										float ofs = baseOfs - i * picH;
+										UI_DrawHandlePic( res->rect[0], ofs, res->rect[2], picH, res->statbartileshader );
+									}
 								}
 							}
 							break;

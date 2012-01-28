@@ -616,45 +616,45 @@ CG_DamageBlendBlob
 ===============
 */
 static void CG_DamageBlendBlob( void ) {
-	int			t;
-	int			maxTime;
-	refEntity_t		ent;
+	//int			t;
+	//int			maxTime;
+	//refEntity_t		ent;
 
-	if ( !cg.damageValue ) {
-		return;
-	}
-
-	//if (cg.cameraMode) {
+	//if ( !cg.damageValue ) {
 	//	return;
 	//}
 
-	// ragePro systems can't fade blends, so don't obscure the screen
-	if ( cgs.glconfig.hardwareType == GLHW_RAGEPRO ) {
-		return;
-	}
+	////if (cg.cameraMode) {
+	////	return;
+	////}
 
-	maxTime = DAMAGE_TIME;
-	t = cg.time - cg.damageTime;
-	if ( t <= 0 || t >= maxTime ) {
-		return;
-	}
+	//// ragePro systems can't fade blends, so don't obscure the screen
+	//if ( cgs.glconfig.hardwareType == GLHW_RAGEPRO ) {
+	//	return;
+	//}
+
+	//maxTime = DAMAGE_TIME;
+	//t = cg.time - cg.damageTime;
+	//if ( t <= 0 || t >= maxTime ) {
+	//	return;
+	//}
 
 
-	memset( &ent, 0, sizeof( ent ) );
-	ent.reType = RT_SPRITE;
-	ent.renderfx = RF_FIRST_PERSON;
+	//memset( &ent, 0, sizeof( ent ) );
+	//ent.reType = RT_SPRITE;
+	//ent.renderfx = RF_FIRST_PERSON;
 
-	VectorMA( cg.refdef.vieworg, 8, cg.refdef.viewaxis[0], ent.origin );
-	VectorMA( ent.origin, cg.damageX * -8, cg.refdef.viewaxis[1], ent.origin );
-	VectorMA( ent.origin, cg.damageY * 8, cg.refdef.viewaxis[2], ent.origin );
+	//VectorMA( cg.refdef.vieworg, 8, cg.refdef.viewaxis[0], ent.origin );
+	//VectorMA( ent.origin, cg.damageX * -8, cg.refdef.viewaxis[1], ent.origin );
+	//VectorMA( ent.origin, cg.damageY * 8, cg.refdef.viewaxis[2], ent.origin );
 
-	ent.radius = cg.damageValue * 3;
-	ent.customShader = cgs.media.viewBloodShader;
-	ent.shaderRGBA[0] = 255;
-	ent.shaderRGBA[1] = 255;
-	ent.shaderRGBA[2] = 255;
-	ent.shaderRGBA[3] = 200 * ( 1.0 - ((float)t / maxTime) );
-	trap_R_AddRefEntityToScene( &ent );
+	//ent.radius = cg.damageValue * 3;
+	//ent.customShader = cgs.media.viewBloodShader;
+	//ent.shaderRGBA[0] = 255;
+	//ent.shaderRGBA[1] = 255;
+	//ent.shaderRGBA[2] = 255;
+	//ent.shaderRGBA[3] = 200 * ( 1.0 - ((float)t / maxTime) );
+	//trap_R_AddRefEntityToScene( &ent );
 }
 
 
@@ -740,51 +740,6 @@ static int CG_CalcViewValues( void ) {
 	return CG_CalcFov();
 }
 
-
-/*
-=====================
-CG_PowerupTimerSounds
-=====================
-*/
-static void CG_PowerupTimerSounds( void ) {
-
-}
-
-/*
-=====================
-CG_AddBufferedSound
-=====================
-*/
-void CG_AddBufferedSound( sfxHandle_t sfx ) {
-	// wombat: we do it our own
-	return;
-	if ( !sfx )
-		return;
-	cg.soundBuffer[cg.soundBufferIn] = sfx;
-	cg.soundBufferIn = (cg.soundBufferIn + 1) % MAX_SOUNDBUFFER;
-	if (cg.soundBufferIn == cg.soundBufferOut) {
-		cg.soundBufferOut++;
-	}
-}
-
-/*
-=====================
-CG_PlayBufferedSounds
-=====================
-*/
-static void CG_PlayBufferedSounds( void ) {
-
-	return;
-	if ( cg.soundTime < cg.time ) {
-		if (cg.soundBufferOut != cg.soundBufferIn && cg.soundBuffer[cg.soundBufferOut]) {
-			trap_S_StartLocalSound(cg.soundBuffer[cg.soundBufferOut], CHAN_ANNOUNCER);
-			cg.soundBuffer[cg.soundBufferOut] = 0;
-			cg.soundBufferOut = (cg.soundBufferOut + 1) % MAX_SOUNDBUFFER;
-			cg.soundTime = cg.time + 750;
-		}
-	}
-}
-
 //=========================================================================
 
 /*
@@ -863,18 +818,12 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 
 	CG_AddViewWeapon( &cg.predictedPlayerState );
 
-	// add buffered sounds
-	CG_PlayBufferedSounds();
-
 	// finish up the rest of the refdef
 	if ( cg.testModelEntity.hModel ) {
 		CG_AddTestModel();
 	}
 	cg.refdef.time = cg.time;
 	memcpy( cg.refdef.areamask, cg.snap->areamask, sizeof( cg.refdef.areamask ) );
-
-	// warning sounds when powerup is wearing off
-	CG_PowerupTimerSounds();
 
 	// update audio positions
 	trap_S_Respatialize( cg.snap->ps.clientNum, cg.refdef.vieworg, cg.refdef.viewaxis, inwater );

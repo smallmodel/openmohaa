@@ -748,6 +748,8 @@ static void SV_TIKI_DumpBones_f( void ) {
 	char		*fname;
 	tiki_t		*tiki;
 	int i;
+	int filter = -1;
+
 	fname = Cmd_Argv(1);
 	tiki = TIKI_RegisterModel(fname);
 	if(tiki==0)
@@ -759,9 +761,18 @@ static void SV_TIKI_DumpBones_f( void ) {
 		if(!tiki)
 			return;
 	}
+	if(Cmd_Argc() > 2) {
+		filter = atoi(Cmd_Argv(2));
+		if(filter < 0 || filter > 6) {
+			filter = -1;
+		}
+	}
 	for(i = 0; i < tiki->numBones; i++) {
-		Com_Printf("Bone %i of %i - %s, type %i\n",i,tiki->numBones,
-			TIKI_GetBoneNameFromIndex(tiki->boneNames[i]),*((int*)tiki->bones[i]));
+		// *((int*)tiki->bones[i]) is a boneType
+		if(filter != -1 && *((int*)tiki->bones[i]) != filter)
+			continue;
+		Com_Printf("Bone %i of %i ",i,tiki->numBones);
+		TIKI_PrintBoneInfo(tiki,i);
 	}
 }
 
