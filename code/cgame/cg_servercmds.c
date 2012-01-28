@@ -69,11 +69,7 @@ static void CG_ParseWarmup( void ) {
 	if ( warmup == 0 && cg.warmup ) {
 
 	} else if ( warmup > 0 && cg.warmup <= 0 ) {
-#ifdef MISSIONPACK
-		if (cgs.gametype >= GT_CTF && cgs.gametype <= GT_HARVESTER) {
-			trap_S_StartLocalSound( cgs.media.countPrepareTeamSound, CHAN_ANNOUNCER );
-		} else
-#endif
+
 		{
 //			trap_S_StartLocalSound( cgs.media.countPrepareSound, CHAN_ANNOUNCER );
 		}
@@ -268,14 +264,7 @@ static void CG_MapRestart( void ) {
 //		trap_S_StartLocalSound( cgs.media.countFightSound, CHAN_ANNOUNCER );
 		CG_CenterPrint( "FIGHT!", 120, GIANTCHAR_WIDTH*2 );
 	}
-#ifdef MISSIONPACK
-	if (cg_singlePlayerActive.integer) {
-		trap_Cvar_Set("ui_matchStartTime", va("%i", cg.time));
-		if (cg_recordSPDemo.integer && cg_recordSPDemoName.string && *cg_recordSPDemoName.string) {
-			trap_SendConsoleCommand(va("set g_synchronousclients 1 ; record %s \n", cg_recordSPDemoName.string));
-		}
-	}
-#endif
+
 	trap_Cvar_Set("cg_thirdPerson", "0");
 }
 
@@ -577,6 +566,39 @@ void CG_StufftextCommand( const char *cmd ) {
 
 /*
 =================
+CG_AddGameMessage
+
+To be printed below the compass
+=================
+*/
+void CG_AddGameMessage( const char *cmd, serverMessageType_t smt ) {
+	switch ( smt ) {
+		case SMT_YELLOW:
+		case SMT_WHITE:
+			cg.gameMessagePtr = (cg.gameMessagePtr+1) % MAX_GAMEMESSAGES;
+			cg.gameMessageTimes[cg.gameMessagePtr] = cg.time;
+			cg.gameMessageTypes[cg.gameMessagePtr] = smt;
+			Q_strncpyz( cg.gameMessages[cg.gameMessagePtr], cmd, sizeof(cg.gameMessages[cg.gameMessagePtr]) );
+			CG_Printf( "Game Message: %s", cmd );
+			break;
+		case SMT_CHAT:
+			CG_Printf( "Chat: %s", cmd );
+		case SMT_DEATH:
+			cg.chatDeathMessagePtr = (cg.chatDeathMessagePtr+1) % MAX_CHATDEATHMESSAGES;
+			cg.chatDeathMessageTimes[cg.chatDeathMessagePtr] = cg.time;
+			cg.chatDeathMessageTypes[cg.chatDeathMessagePtr] = smt;
+			Q_strncpyz( cg.chatDeathMessages[cg.chatDeathMessagePtr], cmd, sizeof(cg.chatDeathMessages[cg.chatDeathMessagePtr]) );
+			if ( smt == SMT_DEATH )
+				CG_Printf( "Death: %s", cmd );
+			break;
+		case SMT_UNKNOWN:
+			CG_Printf( "Unknown Message: %s", cmd );
+			break;
+	}
+}
+
+/*
+=================
 CG_ServerCommand
 
 The string has been tokenized and can be retrieved with
@@ -643,26 +665,10 @@ static void CG_ServerCommand( void ) {
 		ptr = CG_Argv(1);
 		smt = (serverMessageType_t)*ptr;
 
-		switch ( smt ) {
-			case SMT_YELLOW:
-				CG_Printf( "Game Message: %s", ptr+1 );
-				break;
-			case SMT_CHAT:
-				CG_Printf( "Chat Message: %s", ptr+1 );
-				break;
-			case SMT_WHITE:
-				CG_Printf( "Game Message: %s", ptr+1 );
-				break;
-			case SMT_DEATH:
-				CG_Printf( "Game Message: %s", ptr+1 );
-				break;
-			case SMT_UNKNOWN:
-				CG_Printf( "Unknown Message: %s", ptr+1 );
-				break;
-			default:
-				CG_Printf( "%s", ptr );
-				break;
-		}
+		if ( smt < SMT_MAX )
+			CG_AddGameMessage( ptr + 1, smt );
+		else
+			CG_Printf( "%s", ptr );
 
 		return;
 	}

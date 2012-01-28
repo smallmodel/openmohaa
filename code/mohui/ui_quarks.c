@@ -1,6 +1,6 @@
 /*
 ===========================================================================
-Copyright (C) 2010-2011 Michael Rieder
+Copyright (C) 2010-2012 Michael Rieder
 
 This file is part of OpenMohaa source code.
 
@@ -228,6 +228,7 @@ void UI_RegisterMedia( void ) {
 	// HUD MENUS
 	UI_LoadURC( "hud_ammo_bar", &uis.hudMenus[HUD_AMMO] );
 	UI_LoadURC( "hud_compass", &uis.hudMenus[HUD_COMPASS] );
+	trap_Cvar_SetValue( "ui_compass_size", uis.hudMenus[HUD_COMPASS].size[0] );
 	UI_LoadURC( "hud_fraglimit", &uis.hudMenus[HUD_FRAGLIMIT] );
 	UI_LoadURC( "hud_health", &uis.hudMenus[HUD_HEALTH] );
 	UI_LoadURC( "hud_items", &uis.hudMenus[HUD_ITEMS] );
@@ -627,8 +628,24 @@ void UI_DrawMenu( uiMenu_t *menu, qboolean foreground ) {
 				if (res->pressed == qtrue) {
 					UI_DrawHandlePic( res->rect[0], res->rect[1], res->rect[2], res->rect[3], res->selmenushader );
 					UI_DrawBox( res->rect[0]+res->rect[2], res->rect[1], 128, 16 * res->selentries +3, qfalse, menu->size[0], menu->size[1] );
-					for (k=0;k<res->selentries;k++)
-						trap_R_Text_Paint( res->font, res->rect[0]+res->rect[2]+3,3+res->rect[1]+(k*16),1,1,res->linkstring1[k],0,0,qtrue,qtrue );
+
+					// draw selected with diff color
+					if ( uis.cursorx >= res->rect[0]+res->rect[2] && uis.cursorx <= res->rect[0]+res->rect[2]+128 ) {
+						if ( uis.cursory >= res->rect[1] && uis.cursory <= res->rect[1]+ 16*res->selentries ) {
+							for (k=0;k<res->selentries;k++) {
+								if (k == (uis.cursory-res->rect[1])/16) {
+									UI_SetColor( colorYellow );
+									trap_R_Text_Paint( res->font, res->rect[0]+res->rect[2]+3,3+res->rect[1]+(k*16),1,1,res->linkstring1[k],0,0,qtrue,qtrue );
+									UI_SetColor( NULL );
+								}
+								else
+									trap_R_Text_Paint( res->font, res->rect[0]+res->rect[2]+3,3+res->rect[1]+(k*16),1,1,res->linkstring1[k],0,0,qtrue,qtrue );
+							}
+						}
+					}
+					else
+						for (k=0;k<res->selentries;k++)
+							trap_R_Text_Paint( res->font, res->rect[0]+res->rect[2]+3,3+res->rect[1]+(k*16),1,1,res->linkstring1[k],0,0,qtrue,qtrue );
 				}
 				else {
 					UI_DrawHandlePic( res->rect[0], res->rect[1], res->rect[2], res->rect[3], res->menushader );

@@ -43,6 +43,12 @@ vec4_t color_transgreen		= {0.10f, 0.70f, 0.10f, 0.60f};
 vec4_t color_transgreendk	= {0.10f, 0.70f, 0.30f, 0.60f};
 vec4_t color_dkgreen		= {0.40f, 0.40f, 0.40f, 1.00f};
 
+// for printing game messages
+vec4_t	color_hud			= {0.70f, 0.60f, 0.05f, 1.00f};
+vec4_t	color_grey			= {0.75f, 0.75f, 0.75f, 1.00f};
+vec4_t	color_lightRed		= {0.70f, 0.50f, 0.50f, 1.00f};
+
+
 int drawTeamOverlayModificationCount = -1;
 
 
@@ -937,9 +943,6 @@ static void CG_DrawCenterString( void ) {
 	char	*start;
 	int		l;
 	int		x, y, w;
-#ifdef MISSIONPACK
-	int h;
-#endif
 	float	*color;
 
 	if ( !cg.centerPrintTime ) {
@@ -999,9 +1002,6 @@ static void CG_DrawLocationString( void ) {
 	char	*start;
 	int		l;
 	int		x, y, w;
-#ifdef MISSIONPACK
-	int h;
-#endif
 	float	*color;
 
 	if ( !cg.locationPrintTime ) {
@@ -1030,13 +1030,6 @@ static void CG_DrawLocationString( void ) {
 		}
 		linebuffer[l] = 0;
 
-#ifdef MISSIONPACK
-		w = CG_Text_Width(linebuffer, 0.5, 0);
-		h = CG_Text_Height(linebuffer, 0.5, 0);
-		x = (SCREEN_WIDTH - w) / 2;
-		CG_Text_Paint(x, y + h, 0.5, color, linebuffer, 0, 0, ITEM_TEXTSTYLE_SHADOWEDMORE);
-		y += h + 6;
-#else
 		w = cg.locationPrintCharWidth * CG_DrawStrlen( linebuffer );
 
 		x = ( SCREEN_WIDTH - w ) / 2;
@@ -1045,7 +1038,7 @@ static void CG_DrawLocationString( void ) {
 			cg.locationPrintCharWidth, (int)(cg.locationPrintCharWidth * 1.5), 0 );
 
 		y += cg.locationPrintCharWidth * 1.5;
-#endif
+
 		while ( *start && ( *start != '\n' ) ) {
 			start++;
 		}
@@ -1058,6 +1051,50 @@ static void CG_DrawLocationString( void ) {
 	trap_R_SetColor( NULL );
 }
 
+/*
+===================
+CG_DrawGameMessages
+===================
+*/
+static void CG_DrawGameMessages( void ) {
+	int i;
+
+	for (i=0;i<MAX_GAMEMESSAGES;i++) {
+		int ptr;
+		ptr = (i+cg.gameMessagePtr)%MAX_GAMEMESSAGES;
+
+		if ( cg.gameMessageTypes[ptr] == SMT_YELLOW )
+			trap_R_SetColor( color_hud );
+		else
+			trap_R_SetColor( color_white );
+		if ( cg.gameMessages[ptr] )
+			trap_R_Text_Paint( &cgs.media.facfont, 0, 128 + i*14, 1, 1, cg.gameMessages[ptr], 1, 0, qfalse, qtrue );
+	}
+	trap_R_SetColor( NULL );
+}
+
+/*
+===================
+CG_DrawChatDeathMessages
+===================
+*/
+static void CG_DrawChatDeathMessages( void ) {
+	int i;
+
+	for (i=0;i<MAX_CHATDEATHMESSAGES;i++) {
+		int ptr;
+		ptr = (i+cg.chatDeathMessagePtr)%MAX_CHATDEATHMESSAGES;
+
+		if ( cg.chatDeathMessageTypes[ptr] == SMT_DEATH )
+			trap_R_SetColor( color_lightRed );
+		else
+			trap_R_SetColor( color_grey );
+
+		if ( cg.chatDeathMessages[ptr] )
+			trap_R_Text_Paint( &cgs.media.facfont, 128, i*14, 1, 1, cg.chatDeathMessages[ptr], 1, 0, qfalse, qtrue );
+	}
+	trap_R_SetColor( NULL );
+}
 
 
 /*
@@ -1289,6 +1326,7 @@ static void CG_DrawIntermission( void ) {
 
 	if ( cgs.gametype == GT_SINGLE_PLAYER ) {
 		CG_DrawCenterString();
+		CG_DrawLocationString();
 		return;
 	}
 	cg.scoreFadeTime = cg.time;
@@ -1749,9 +1787,6 @@ Draws CG related 2D stuff on top of HUD
 */
 void CG_Draw2D( int serverTime, stereoFrame_t stereoView, qboolean demoPlayback ) {
 
-	CG_DrawLagometer();	
-	CG_DrawCenterString();
-
 	// if we are taking a levelshot for the menu, don't draw anything
 	if ( cg.levelShot ) {
 		return;
@@ -1760,6 +1795,10 @@ void CG_Draw2D( int serverTime, stereoFrame_t stereoView, qboolean demoPlayback 
 	if ( cg_draw2D.integer == 0 ) {
 		return;
 	}
+
+	CG_DrawLagometer();
+	CG_DrawGameMessages();
+	CG_DrawChatDeathMessages();
 
 	// su44: draw player's team icon (axis or allies)
 	CG_DrawPlayerTeam();
@@ -1771,16 +1810,11 @@ void CG_Draw2D( int serverTime, stereoFrame_t stereoView, qboolean demoPlayback 
 //	CG_DrawVote();
 //	CG_DrawTeamVote();
 
-	CG_DrawLagometer();
-
-
 	CG_DrawUpperRight();
-
 
 
 	//CG_DrawLowerRight();
 	//CG_DrawLowerLeft();
-
 
 /*	if ( !CG_DrawFollow() ) {
 		CG_DrawWarmup();
@@ -1789,6 +1823,7 @@ void CG_Draw2D( int serverTime, stereoFrame_t stereoView, qboolean demoPlayback 
 	// don't draw center string if scoreboard is up
 	if ( !cg.scoreBoardShowing) {
 		CG_DrawCenterString();
+		CG_DrawLocationString();
 	}
 	else
 		CG_DrawScores();

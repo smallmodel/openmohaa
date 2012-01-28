@@ -59,6 +59,7 @@ console_t	con;
 
 cvar_t		*con_conspeed;
 cvar_t		*con_notifytime;
+cvar_t		*con_drawnotify;
 
 #define	DEFAULT_CONSOLE_WIDTH	78
 
@@ -313,6 +314,7 @@ void Con_Init (void) {
 
 	con_notifytime = Cvar_Get ("con_notifytime", "3", 0);
 	con_conspeed = Cvar_Get ("scr_conspeed", "3", 0);
+	con_drawnotify = Cvar_Get ("con_drawnotify", "0", 0);
 
 	Field_Clear( &g_consoleField );
 	g_consoleField.widthInChars = g_console_field_width;
@@ -719,7 +721,7 @@ void Con_DrawConsole( void ) {
 		Con_DrawSolidConsole( con.displayFrac );
 	} else {
 		// draw notify lines
-		if ( cls.state == CA_ACTIVE ) {
+		if ( cls.state == CA_ACTIVE && con_drawnotify->integer ) {
 			Con_DrawNotify ();
 		}
 	}

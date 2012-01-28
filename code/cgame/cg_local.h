@@ -122,7 +122,8 @@ typedef enum  {
 	SMT_CHAT,		// right of compass, color grey
 	SMT_WHITE,		// below compass, color white
 	SMT_DEATH,		// right of compass, color red
-	SMT_UNKNOWN		// don't know if exists. observe with breakpoint
+	SMT_UNKNOWN,	// don't know if exists. observe with breakpoint
+	SMT_MAX
 } serverMessageType_t;
 
 //=================================================
@@ -425,6 +426,19 @@ typedef struct {
 	char		locationPrint[1024];
 	int			locationPrintLines;
 
+	// Game Messages
+#define MAX_GAMEMESSAGES		3
+#define MAX_CHATDEATHMESSAGES	7
+
+	int						gameMessageTimes[MAX_GAMEMESSAGES];
+	char					gameMessages[MAX_GAMEMESSAGES][MAX_QPATH];
+	serverMessageType_t		gameMessageTypes[MAX_GAMEMESSAGES];
+	int						gameMessagePtr;
+
+	int						chatDeathMessageTimes[MAX_CHATDEATHMESSAGES];
+	char					chatDeathMessages[MAX_CHATDEATHMESSAGES][MAX_QPATH];
+	serverMessageType_t		chatDeathMessageTypes[MAX_CHATDEATHMESSAGES];
+	int						chatDeathMessagePtr;
 	// low ammo warning state
 	int			lowAmmoWarning;		// 1 = low, 2 = empty
 

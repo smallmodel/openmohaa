@@ -215,12 +215,14 @@ static void CG_Camera_f( void ) {
 
 static void CG_LocationPrint_f() {
 	char buffer[512];
-	float x,y;
+	int x,y;
+
 	trap_Argv( 1, buffer, sizeof(buffer) );
-	x = atof(buffer);
-	trap_Argv( 1, buffer, sizeof(buffer) );
-	y = atof(buffer);
-	trap_Argv( 1, buffer, sizeof(buffer) );
+	x = atoi(buffer);
+	trap_Argv( 2, buffer, sizeof(buffer) );
+	y = atoi(buffer);
+	trap_Argv( 3, buffer, sizeof(buffer) );
+	buffer[511] = 0;
 	CG_LocationPrint(buffer,x,y,SMALLCHAR_WIDTH);
 }
 
