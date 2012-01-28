@@ -1463,7 +1463,6 @@ MPCGOBJ_ = \
   $(B)/missionpack/cgame/cg_snapshot.o \
   $(B)/missionpack/cgame/cg_view.o \
   $(B)/missionpack/cgame/cg_weapons.o \
-  $(B)/missionpack/ui/ui_shared.o \
   \
   $(B)/missionpack/qcommon/q_math.o \
   $(B)/missionpack/qcommon/q_shared.o
@@ -1619,7 +1618,6 @@ MPUIOBJ_ = \
   $(B)/missionpack/ui/ui_gameinfo.o \
   $(B)/missionpack/ui/ui_model.o \
   $(B)/missionpack/ui/ui_players.o \
-  $(B)/missionpack/ui/ui_shared.o \
   \
   $(B)/missionpack/game/bg_misc.o \
   $(B)/missionpack/game/bg_lib.o \

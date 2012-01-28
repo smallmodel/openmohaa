@@ -911,6 +911,8 @@ void RE_Text_Paint(fontInfo_t *font, float x, float y, float scale, float alpha,
 				count++;
 			}
 		}
-		RE_SetColor(NULL);
+		if(useColourCodes) {
+			RE_SetColor(NULL);
+		}
 	}
 }
