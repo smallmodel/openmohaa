@@ -657,6 +657,30 @@ void Cvar_SetA_f( void ) {
 
 /*
 ============
+Cvar_Add_f
+
+su44: Adds a value to a variable
+============
+*/
+void Cvar_Add_f( void ) {
+	cvar_t	*v;
+	float f;
+
+	if ( Cmd_Argc() != 3 ) {
+		Com_Printf ("usage: add <variable> <amount>\n");
+		return;
+	}
+	v = Cvar_FindVar( Cmd_Argv( 1 ) );
+	if ( !v ) {
+		Cvar_Set( Cmd_Argv( 1 ), Cmd_Argv( 2 ) );
+		return;
+	}
+	f = v->value;
+	f += atof(Cmd_Argv(2));
+	Cvar_Set(v->name,va("%f",f));
+}
+/*
+============
 Cvar_Reset_f
 ============
 */
@@ -957,4 +981,6 @@ void Cvar_Init (void) {
 	Cmd_AddCommand ("reset", Cvar_Reset_f);
 	Cmd_AddCommand ("cvarlist", Cvar_List_f);
 	Cmd_AddCommand ("cvar_restart", Cvar_Restart_f);
+	// su44: added for MoHAA
+	Cmd_AddCommand ("add", Cvar_Add_f);
 }
