@@ -365,6 +365,8 @@ void			trap_LAN_ClearPing( int n );
 void			trap_LAN_GetPing( int n, char *buf, int buflen, int *pingtime );
 void			trap_LAN_GetPingInfo( int n, char *buf, int buflen );
 int				trap_LAN_GetServerPing( int source, int n );
+void			trap_LAN_MarkServerVisible( int source, int n, qboolean visible );
+qboolean		trap_LAN_UpdateVisiblePings( int source );
 int				trap_MemoryRemaining( void );
 void			trap_GetCDKey( char *buf, int buflen );
 void			trap_SetCDKey( char *buf );

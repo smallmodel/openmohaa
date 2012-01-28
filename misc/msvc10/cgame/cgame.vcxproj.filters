@@ -87,9 +87,6 @@
     <ClCompile Include="..\..\..\code\qcommon\q_shared.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\code\ui\ui_shared.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\code\cgame\cg_viewmodelanim.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -132,9 +129,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\code\qcommon\qcommon.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\code\ui\ui_shared.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

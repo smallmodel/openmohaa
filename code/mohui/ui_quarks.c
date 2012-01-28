@@ -50,6 +50,14 @@ vec4_t text_color_highlight = {1.00f, 1.00f, 0.00f, 1.00f};	// bright yellow
 vec4_t listbar_color        = {1.00f, 0.43f, 0.00f, 0.30f};	// transluscent orange
 vec4_t text_color_status    = {1.00f, 1.00f, 1.00f, 1.00f};	// bright white
 
+static const char *gtstrings[] = {
+	"Single Player",	// single player ffa
+	"Free For All",				// free for all
+	"Team Deathmatch",			// team deathmatch
+	"Round-based Team",
+	"Objective Match"
+};
+
 void QDECL Com_Error( int level, const char *error, ... ) {
 	va_list		argptr;
 	char		text[1024];
@@ -675,9 +683,31 @@ void UI_DrawMenu( uiMenu_t *menu, qboolean foreground ) {
 					char buf[512];
 					int ping;
 
-					trap_LAN_GetServerPing( AS_LOCAL,i  );
+					trap_LAN_MarkServerVisible( AS_LOCAL,i,qtrue );
+					trap_LAN_UpdateVisiblePings(AS_LOCAL);
+					ping = trap_LAN_GetServerPing( AS_LOCAL,i  );
 					trap_LAN_GetServerInfo(AS_LOCAL,i,buf,sizeof(buf));
-					trap_R_Text_Paint( res->font, res->rect[0],res->rect[1]+14+i*14,1,1,buf,0,0,qfalse,qtrue );
+
+					if ( uis.cursorx >= res->rect[0] && uis.cursorx <= res->rect[0]+res->rect[2] ) {
+						if ( uis.cursory >= res->rect[1] && uis.cursory <= res->rect[1]+ 16*trap_LAN_GetServerCount(AS_LOCAL) ) {
+							if (i == (uis.cursory-res->rect[1])/16) {
+									UI_SetColor( NULL );
+									trap_R_Text_Paint( res->font, res->rect[0],res->rect[1]+14+i*14,1,1,Info_ValueForKey(buf,"hostname"),0,0,qfalse,qtrue );
+									trap_R_Text_Paint( res->font, res->rect[0]+128,res->rect[1]+14+i*14,1,1,Info_ValueForKey(buf,"mapname"),0,0,qfalse,qtrue );
+									trap_R_Text_Paint( res->font, res->rect[0]+256,res->rect[1]+14+i*14,1,1,va("%s / %s",Info_ValueForKey(buf,"clients"),Info_ValueForKey(buf,"sv_maxclients")),0,0,qfalse,qtrue );
+									trap_R_Text_Paint( res->font, res->rect[0]+384,res->rect[1]+14+i*14,1,1,gtstrings[atoi(Info_ValueForKey(buf,"gametype"))],0,0,qfalse,qtrue );
+									trap_R_Text_Paint( res->font, res->rect[0]+512,res->rect[1]+14+i*14,1,1,va("%i",ping),0,0,qfalse,qtrue );
+									UI_SetColor( colorYellow );
+							}
+						}
+					}
+					else {
+						trap_R_Text_Paint( res->font, res->rect[0],res->rect[1]+14+i*14,1,1,Info_ValueForKey(buf,"hostname"),0,0,qfalse,qtrue );
+						trap_R_Text_Paint( res->font, res->rect[0]+128,res->rect[1]+14+i*14,1,1,Info_ValueForKey(buf,"mapname"),0,0,qfalse,qtrue );
+						trap_R_Text_Paint( res->font, res->rect[0]+256,res->rect[1]+14+i*14,1,1,va("%s / %s",Info_ValueForKey(buf,"clients"),Info_ValueForKey(buf,"sv_maxclients")),0,0,qfalse,qtrue );
+						trap_R_Text_Paint( res->font, res->rect[0]+384,res->rect[1]+14+i*14,1,1,gtstrings[atoi(Info_ValueForKey(buf,"gametype"))],0,0,qfalse,qtrue );
+						trap_R_Text_Paint( res->font, res->rect[0]+512,res->rect[1]+14+i*14,1,1,va("%i",ping),0,0,qfalse,qtrue );
+					}
 				}
 				UI_SetColor( NULL );
 				break;
