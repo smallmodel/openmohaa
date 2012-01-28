@@ -163,6 +163,10 @@ typedef struct uiResource_s {
 	float				rotatorsize[2];
 	int					invmodelhand;
 	float				fadein;
+
+	// serverlist
+	int					hoverListEntry;
+	int					selectedListEntry;
 } uiResource_t;
 
 typedef struct uiMenu_s {

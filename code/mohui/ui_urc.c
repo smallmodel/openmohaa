@@ -406,8 +406,10 @@ qboolean UI_ParseMenuToken( const char *token, char **ptr, uiMenu_t *menu ) {
 		else if ( !Q_strncmp( var, "FAKKBindList", 12 ) )
 			// su44: that's used in ui/controls.urc
 			res->type = UI_RES_BINDLIST; 
-		else if ( !Q_strncmp( var, "LANGameClass", 12 ) )
+		else if ( !Q_strncmp( var, "LANGameClass", 12 ) ) {
 			res->type = UI_RES_LANSERVERLIST;
+			res->selectedListEntry = -1;
+		}
 		else
 			Com_Printf( "UI_ParseMenuToken: unknown menu resource type %s\n", var );
 
