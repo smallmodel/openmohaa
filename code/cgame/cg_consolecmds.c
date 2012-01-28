@@ -213,7 +213,7 @@ static void CG_Camera_f( void ) {
 }
 */
 
-static void CG_LocationPrint_f() {
+static void CG_LocationPrint_f(void) {
 	char buffer[512];
 	int x,y;
 
@@ -224,6 +224,44 @@ static void CG_LocationPrint_f() {
 	trap_Argv( 3, buffer, sizeof(buffer) );
 	buffer[511] = 0;
 	CG_LocationPrint(buffer,x,y,SMALLCHAR_WIDTH);
+}
+
+// su44: in MoHAA, "useweaponclass pistol/rifle/etc" 
+// commands are usually bound to 1,2,3,4,5,6 keys
+static void CG_UseWeaponClass_f(void) {
+	const char *name;
+
+	if(trap_Argc() < 2) {
+		CG_Printf("usage: useweaponclass <weaponclassname>\n");
+		return;
+	}
+
+	// get weapon classname
+	name = CG_Argv(1);
+	if(!Q_stricmp(name,"pistol")) {
+		cg.iWeaponCommand = 1;
+	} else if(!Q_stricmp(name,"rifle")) {
+		cg.iWeaponCommand = 2;
+	} else if(!Q_stricmp(name,"smg")) {
+		cg.iWeaponCommand = 3;
+	} else if(!Q_stricmp(name,"mg")) {
+		cg.iWeaponCommand = 4;
+	} else if(!Q_stricmp(name,"grenade")) {
+		cg.iWeaponCommand = 5;
+	} else if(!Q_stricmp(name,"heavy")) {
+		cg.iWeaponCommand = 6;
+	} else if(!Q_stricmp(name,"item2")) {
+		cg.iWeaponCommand = 8; // su44: AFAIK it's not used at all in MoHAA
+	} else if(!Q_stricmp(name,"item3")) {
+		cg.iWeaponCommand = 9; // su44: AFAIK it's not used at all in MoHAA
+	} else if(!Q_stricmp(name,"item4")) {
+		cg.iWeaponCommand = 10; // su44: AFAIK it's not used at all in MoHAA
+	} else if(!Q_stricmp(name,"item") || !Q_stricmp(name,"item1")) {
+		cg.iWeaponCommand = 7; // su44: I think it's used for "Papers" item
+	} else {
+		CG_Printf("useweaponclass: unknown weapon %s\n", name);
+	}
+	cg.iWeaponCommandSend = 0;
 }
 
 typedef struct {
@@ -263,6 +301,7 @@ static consoleCommand_t	commands[] = {
 	{ "holster", CG_HolsterWeapon_f },
 	{ "weapnext", CG_NextWeapon_f },
 	{ "weapprev", CG_PrevWeapon_f },
+	{ "useweaponclass", CG_UseWeaponClass_f },
 };
 
 
