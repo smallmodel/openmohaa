@@ -238,7 +238,9 @@ void UI_RegisterMedia( void ) {
 	UI_LoadURC( "hud_weapons", &uis.hudMenus[HUD_WEAPONS] );
 	
 	UI_LoadURC( "crosshair", &uis.crosshair );
+	// by default load deatmatch scoreboard. We might need to change it for "objective" game type.
 	UI_LoadURC( "dm_scoreboard", &uis.scoreboard );
+	uis.gameType = GT_TEAM;
 }
 
 /*
@@ -661,7 +663,7 @@ UI_DrawHUD
 =================
 */
 void UI_DrawHUD( playerState_t *ps ) {
-//	int i;
+	int gameType;
 	char path[MAX_QPATH];
 //for (i=0;i<STAT_LAST_STAT;i++){
 //	Com_Printf( "%i val: %i\n", i, stats[i] );
@@ -677,6 +679,18 @@ void UI_DrawHUD( playerState_t *ps ) {
 	if(Q_stricmp(uis.currentViewModelWeaponURC,path)) {
 		strcpy(uis.currentViewModelWeaponURC,path);
 		UI_LoadURC(path,&uis.hudMenus[HUD_AMMO]);
+	}
+	
+	// su44: check if server gameType has changed
+	//gameType = trap_Cvar_VariableIntegerValue("g_gameType");
+	gameType = trap_Cvar_VariableValue("g_gametype");
+	if(gameType != uis.gameType) {
+		uis.gameType = gameType;
+		if(gameType == GT_OBJECTIVE || gameType == GT_TEAM_ROUNDS) {
+			UI_LoadURC( "obj_scoreboard", &uis.scoreboard );
+		} else {
+			UI_LoadURC( "dm_scoreboard", &uis.scoreboard );
+		}
 	}
 
 	UI_DrawMenu( &uis.hudMenus[HUD_AMMO], qtrue );

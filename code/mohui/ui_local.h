@@ -260,6 +260,7 @@ typedef struct {
 	// su44
 	char				currentViewModelWeaponName[MAX_QPATH]; // eg BAR
 	char				currentViewModelWeaponURC[MAX_QPATH]; // eg hud_ammo_BAR
+	gametype_t			gameType;
 } uiStatic_t;
 
 
