@@ -235,9 +235,10 @@ EntityIsShooting
 ==================
 */
 qboolean EntityIsShooting(aas_entityinfo_t *entinfo) {
-	if (entinfo->flags & EF_FIRING) {
-		return qtrue;
-	}
+	//if (entinfo->flags & EF_FIRING) {
+	//	return qtrue;
+	//}
+	G_Printf("EntityIsShooting: TODO!\n");
 	return qfalse;
 }
 

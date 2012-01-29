@@ -654,6 +654,8 @@ intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 		return TIKI_RegisterBoneName(args[1]);
 	case CG_TIKI_GETANIMINDEX:
 		return TIKI_GetAnimIndex(args[1],VMA(2));
+	case CG_TIKI_GETBONEINDEX:
+		return TIKI_GetBoneIndex(args[1],VMA(2));
 	case CG_SETEYEINFO:
 		CL_SetEyeInfo(VMA(1),VMA(2));
 		return 0;

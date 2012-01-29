@@ -209,7 +209,7 @@ typedef struct localEntity_s {
 //======================================================================
 
 typedef struct {
-	int team;
+//	int team;
 	char name[64];
 } clientInfo_t;
 
@@ -762,6 +762,7 @@ void	CG_DrawStdBox( int x, int y, int w, int h, qboolean ctrCoord );
 // cg_player.c
 //
 void CG_Player( centity_t *cent );
+void CG_PlayerSprites( centity_t *cent );
 void CG_ResetPlayerEntity( centity_t *cent );
 void CG_NewClientInfo( int clientNum );
 sfxHandle_t	CG_CustomSound( int clientNum, const char *soundName );
@@ -1089,22 +1090,26 @@ int			trap_R_Text_Width(fontInfo_t *font, const char *text, int limit, qboolean 
 int			trap_R_Text_Height(fontInfo_t *font, const char *text, int limit, qboolean useColourCodes);
 void		trap_R_Text_Paint(fontInfo_t *font, float x, float y, float scale, float alpha, const char *text, float adjust, int limit, qboolean useColourCodes, qboolean is640);
 void		trap_R_Text_PaintChar(fontInfo_t *font, float x, float y, float scale, int c, qboolean is640);
-// su44
+// su44: MoHAA TIKI model system API
 tiki_t*		trap_TIKI_RegisterModel( const char *fname );
 bone_t*		trap_TIKI_GetBones( int numBones );
 void		trap_TIKI_SetChannels( struct tiki_s *tiki, int animIndex, float animTime, float animWeight, bone_t *bones );
 void		trap_TIKI_AppendFrameBoundsAndRadius( struct tiki_s *tiki, int animIndex, float animTime, float *outRadius, vec3_t outBounds[2] );
 void		trap_TIKI_Animate( struct tiki_s *tiki, bone_t *bones );
 int			trap_TIKI_GetBoneNameIndex( const char *boneName );
+int			trap_TIKI_GetAnimIndex( tiki_t *tiki, const char *animName ); // returns -1 if not found
+int			trap_TIKI_GetBoneIndex( tiki_t *tiki, const char *boneName ); // returns -1 if not found
 void		trap_SetEyeInfo( vec3_t origin, vec3_t angles );
+// su44: these are here only for cg_parsemsg.c
 int			trap_MSG_ReadBits( int bits );
 int			trap_MSG_ReadByte() ;
 int			trap_MSG_ReadShort();
 float		trap_MSG_ReadCoord();
 void		trap_MSG_ReadDir( vec3_t dir );
 char		*trap_MSG_ReadString();
-int			trap_R_GetShaderWidth(qhandle_t shader); // su44: I need these
-int			trap_R_GetShaderHeight(qhandle_t shader); // for cg_beam.c
+// su44: I need these for cg_beam.c
+int			trap_R_GetShaderWidth(qhandle_t shader);
+int			trap_R_GetShaderHeight(qhandle_t shader);
 
 typedef enum {
   SYSTEM_PRINT,

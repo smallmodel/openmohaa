@@ -146,6 +146,7 @@ Float a sprite over the player's head
 static void CG_PlayerFloatSprite( centity_t *cent, qhandle_t shader ) {
 	int				rf;
 	refEntity_t		ent;
+	int				b;
 
 	if ( cent->currentState.number == cg.snap->ps.clientNum && !cg.renderingThirdPerson ) {
 		rf = RF_THIRD_PERSON;		// only show in mirrors
@@ -154,11 +155,19 @@ static void CG_PlayerFloatSprite( centity_t *cent, qhandle_t shader ) {
 	}
 
 	memset( &ent, 0, sizeof( ent ) );
-	VectorCopy( cent->lerpOrigin, ent.origin );
-	ent.origin[2] += 48;
+	// su44: try to get "eyes bone" bone position and use it to position the sprite
+	if(cent->bones && cgs.gameTIKIs[cent->currentState.modelindex] &&
+		(b = trap_TIKI_GetBoneIndex(cgs.gameTIKIs[cent->currentState.modelindex],"eyes bone")) != -1) {
+		vec3_t dummy;
+		CG_BoneLocal2World(&cent->bones[b],cent->lerpOrigin,cent->lerpAngles,ent.origin,dummy);
+		ent.origin[2] += 24;
+	} else {
+		VectorCopy( cent->lerpOrigin, ent.origin );
+		ent.origin[2] += 98;
+	}
 	ent.reType = RT_SPRITE;
 	ent.customShader = shader;
-	ent.radius = 10;
+	ent.radius = 8;
 	ent.renderfx = rf;
 	ent.shaderRGBA[0] = 255;
 	ent.shaderRGBA[1] = 255;
@@ -176,27 +185,35 @@ CG_PlayerSprites
 Float sprites over the player's head
 ===============
 */
-static void CG_PlayerSprites( centity_t *cent ) {
-	int		team;
+void CG_PlayerSprites( centity_t *cent ) {
+	//int		team;
 
-	if ( cent->currentState.eFlags & EF_CONNECTION ) {
-		CG_PlayerFloatSprite( cent, cgs.media.connectionShader );
-		return;
-	}
+	//if ( cent->currentState.eFlags & EF_CONNECTION ) {
+	//	CG_PlayerFloatSprite( cent, cgs.media.connectionShader );
+	//	return;
+	//}
 
-	if ( cent->currentState.eFlags & EF_TALK ) {
-		CG_PlayerFloatSprite( cent, cgs.media.balloonShader );
-		return;
-	}
+	//if ( cent->currentState.eFlags & EF_TALK ) {
+	//	CG_PlayerFloatSprite( cent, cgs.media.balloonShader );
+	//	return;
+	//}
 
-	team = cgs.clientinfo[ cent->currentState.clientNum ].team;
-	if ( !(cent->currentState.eFlags & EF_DEAD) &&
-		cg.snap->ps.stats[STAT_TEAM] == team &&
-		cgs.gametype >= GT_TEAM) {
-		if (cg_drawFriend.integer) {
-			//CG_PlayerFloatSprite( cent, cgs.media.friendShader );
+	//team = cgs.clientinfo[ cent->currentState.clientNum ].team;
+	//if ( !(cent->currentState.eFlags & EF_DEAD) &&
+	//	cg.snap->ps.stats[STAT_TEAM] == team &&
+	//	cgs.gametype >= GT_TEAM) {
+	//	if (cg_drawFriend.integer) {
+	//		//CG_PlayerFloatSprite( cent, cgs.media.friendShader );
+	//	}
+	//	return;
+	//}
+
+	if(cgs.gametype >= GT_TEAM && !(cent->currentState.eFlags & EF_DEAD)) {
+		if(cent->currentState.eFlags & EF_AXIS && cg.snap->ps.stats[STAT_TEAM] == TEAM_AXIS) {
+			CG_PlayerFloatSprite(cent,trap_R_RegisterShader("textures/hud/axis.tga"));
+		} else if(cent->currentState.eFlags & EF_ALLIES && cg.snap->ps.stats[STAT_TEAM] == TEAM_ALLIES) {
+			CG_PlayerFloatSprite(cent,trap_R_RegisterShader("textures/hud/allies.tga"));
 		}
-		return;
 	}
 }
 

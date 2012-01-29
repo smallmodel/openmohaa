@@ -680,6 +680,17 @@ qboolean TIKI_HasBone(tiki_t *out, int globalBoneName) {
 	}
 	return qfalse;
 }
+int TIKI_GetBoneIndex(tiki_t *tiki, const char *boneName) {
+	int i;
+	int boneNameIndex = TIKI_RegisterBoneName(boneName);
+	for(i = 0; i < tiki->numBones; i++) {
+		if(tiki->boneNames[i] == boneNameIndex) {
+			return i;
+		}
+	}
+	return -1;
+}
+
 // what a mess!
 // but at least now it works...
 void TIKI_MergeSKD(tiki_t *out, char *fname) {

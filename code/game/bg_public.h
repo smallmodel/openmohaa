@@ -262,19 +262,20 @@ typedef enum {
 } persEnum_t;
 
 // entityState_t->eFlags
-#define	EF_DEAD				0x00000001		// don't draw a foe marker over players with EF_DEAD
-#ifdef MISSIONPACK
+// su44: eFlags used in MoHAA
+#define EF_TELEPORT			0x00000020		// su44: I'm not sure about this one
+#define EF_ALLIES			0x00000080		// su44: this player is in allies team
+#define EF_AXIS				0x00000100		// su44: this player is in axis team
+#define EF_DEAD				0x00000200		// don't draw a foe marker over players with EF_DEAD
+
+
+// su44: q3 remnants
 #define EF_TICKING			0x00000002		// used to make players play the prox mine ticking sound
-#endif
 #define	EF_TELEPORT_BIT		0x00000004		// toggled every time the origin abruptly changes
 #define	EF_AWARD_EXCELLENT	0x00000008		// draw an excellent sprite
 #define EF_PLAYER_EVENT		0x00000010
 #define	EF_BOUNCE			0x00000010		// for missiles
-#define	EF_BOUNCE_HALF		0x00000020		// for missiles
 #define	EF_AWARD_GAUNTLET	0x00000040		// draw a gauntlet sprite
-#define	EF_NODRAW			0x00000080		// may have an event, but no model (unspawned items)
-#define	EF_FIRING			0x00000100		// for lightning gun
-#define	EF_KAMIKAZE			0x00000200
 #define	EF_MOVER_STOP		0x00000400		// will push otherwise
 #define EF_AWARD_CAP		0x00000800		// draw the capture sprite
 #define	EF_TALK				0x00001000		// draw a talk balloon
@@ -285,7 +286,6 @@ typedef enum {
 #define	EF_AWARD_ASSIST		0x00020000		// draw a assist sprite
 #define EF_AWARD_DENIED		0x00040000		// denied
 #define EF_TEAMVOTED		0x00080000		// already cast a team vote
-
 
 // these defines could be deleted sometime when code/game/ is cleared of Q3A stuff
 #define TEAM_FREE 0

@@ -490,11 +490,17 @@ case ET_MOVER: // su44: ET_MOVER is used only if running a local openmohaa serve
 		CG_ModelAnim( cent );
 		//CG_General( cent );
 		break;
+	case ET_PLAYER:
 	case ET_VEHICLE:
 	case ET_ITEM:
 	case ET_MODELANIM:
-	case ET_PLAYER:
 		CG_ModelAnim( cent );
+		if( cent->currentState.number < cgs.maxclients ) {
+			// su44: draw axis/allies icon over player head.
+			// Function below must be called after CG_ModelAnim,
+			// because it might need to use centity_t::bones.
+			CG_PlayerSprites( cent ); 
+		}
 		break;
 	case ET_RAIN: // su44: ET_RAIN is used on dm/mohdm5 for snow effect
 		CG_Rain( cent );

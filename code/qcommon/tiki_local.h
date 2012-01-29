@@ -190,17 +190,7 @@ void TIKI_ClearUp();
 int	TIKI_RegisterBoneName(const char *boneName);
 qhandle_t RE_RegisterShader( const char *name );
 void TIKI_PrintBoneInfo(tiki_t *tiki, int boneNum);
-
-static ID_INLINE int TIKI_GetBoneIndex(tiki_t *tiki, const char *boneName) {
-	int i;
-	int boneNameIndex = TIKI_RegisterBoneName(boneName);
-	for(i = 0; i < tiki->numBones; i++) {
-		if(tiki->boneNames[i] == boneNameIndex) {
-			return i;
-		}
-	}
-	return -1;
-}
+int TIKI_GetBoneIndex(tiki_t *tiki, const char *boneName); // returns -1 if bone is not found
 
 static ID_INLINE int TIKI_GetSurfaceIndex(tiki_t *tiki, const char *surfName) {
 	int i;
