@@ -617,11 +617,10 @@ CL_GetEyeInfo
 Create a new usereyes_t structure for this frame
 =================
 */
-static vec3_t lastEyeAngles, lastEyeOrigin; // su44: soon I'll move it somewhere else...?
 void CL_GetEyeInfo(usereyes_t *info) {
-	info->angles[0] = lastEyeAngles[0];
-	info->angles[1] = lastEyeAngles[1];
-	VectorCopy(lastEyeOrigin,info->ofs);
+	info->angles[0] = cl.eyeAngles[0];
+	info->angles[1] = cl.eyeAngles[1];
+	VectorCopy(cl.eyeOrigin,info->ofs);
 }
 /*
 =================
@@ -629,8 +628,8 @@ CL_SetEyeInfo
 =================
 */
 void CL_SetEyeInfo(vec3_t origin, vec3_t angles) {
-	VectorCopy(angles,lastEyeAngles);
-	VectorCopy(origin,lastEyeOrigin);
+	VectorCopy(angles,cl.eyeAngles);
+	VectorCopy(origin,cl.eyeOrigin);
 }
 
 /*
@@ -724,8 +723,7 @@ void CL_WritePacket( void ) {
 	int			packetNum;
 	int			oldPacketNum;
 	int			count, key;
-	usereyes_t	eyeInfo, *oldeyeInfo;
-	usereyes_t	nulleyeInfo;
+	usereyes_t	eyeInfo;
 
 	// don't send anything if playing back a demo
 	if ( clc.demoplaying || cls.state == CA_CINEMATIC ) {
@@ -733,10 +731,7 @@ void CL_WritePacket( void ) {
 	}
 
 	Com_Memset( &nullcmd, 0, sizeof(nullcmd) );
-	oldcmd = &nullcmd;
-
-	Com_Memset( &nulleyeInfo, 0, sizeof(nulleyeInfo) );
-	oldeyeInfo = &nulleyeInfo;		
+	oldcmd = &nullcmd;		
 		
 	MSG_Init( &buf, data, sizeof(data) );
 
@@ -790,8 +785,8 @@ void CL_WritePacket( void ) {
 		// write the command count
 		MSG_WriteByte( &buf, count );
 
-		CL_GetEyeInfo(&eyeInfo);
-		MSG_WriteDeltaEyeInfo( &buf, oldeyeInfo, &eyeInfo );
+		CL_GetEyeInfo( &eyeInfo );
+		MSG_WriteDeltaEyeInfo( &buf, &cl.outPackets[ oldPacketNum ].p_eyeinfo, &eyeInfo );
 		// use the checksum feed in the key
 		key = clc.checksumFeed;
 		// also use the message acknowledge
@@ -815,6 +810,7 @@ void CL_WritePacket( void ) {
 	cl.outPackets[ packetNum ].p_realtime = cls.realtime;
 	cl.outPackets[ packetNum ].p_serverTime = oldcmd->serverTime;
 	cl.outPackets[ packetNum ].p_cmdNumber = cl.cmdNumber;
+	cl.outPackets[ packetNum ].p_eyeinfo = eyeInfo;
 	clc.lastPacketSentTime = cls.realtime;
 
 	if ( cl_showSend->integer ) {

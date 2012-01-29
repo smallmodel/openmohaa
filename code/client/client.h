@@ -79,6 +79,7 @@ typedef struct {
 	int		p_cmdNumber;		// cl.cmdNumber when packet was sent
 	int		p_serverTime;		// usercmd->serverTime when packet was sent
 	int		p_realtime;			// cls.realtime when packet was sent
+	usereyes_t p_eyeinfo;		// eyeInfo when packet was sent
 } outPacket_t;
 
 // the parseEntities array must be large enough to hold PACKET_BACKUP frames of
@@ -132,6 +133,9 @@ typedef struct {
 	// tracked view angles to account for standing on rotating objects,
 	// and teleport direction changes
 	vec3_t		viewangles;
+
+	vec3_t		eyeAngles;
+	vec3_t		eyeOrigin;
 
 	int			serverId;			// included in each client message so the server
 												// can tell if it is for a prior map_restart

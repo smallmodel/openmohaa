@@ -1290,8 +1290,8 @@ typedef struct server_sound_s {
 } server_sound_t;
 
 typedef struct usereyes_s {
-  signed char ofs[3];
-  float angles[2];
+	signed char ofs[3];
+	float angles[2];
 }usereyes_t;
 
 // bit field limits
