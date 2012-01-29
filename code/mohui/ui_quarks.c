@@ -355,6 +355,7 @@ void UI_KeyEvent( int key, int down ) {
 					case UI_RES_PULLDOWN:
 						res->pressed = qtrue;
 						break;
+					case UI_RES_SERVERLIST:
 					case UI_RES_LANSERVERLIST:
 						res->selectedListEntry = res->hoverListEntry;
 						break;
@@ -438,6 +439,7 @@ void UI_MouseEvent( int dx, int dy )
 			&& res->type != UI_RES_CHECKBOX
 			&& res->type != UI_RES_FIELD
 			&& res->type != UI_RES_PULLDOWN
+			&& res->type != UI_RES_SERVERLIST
 			&& res->type != UI_RES_LANSERVERLIST)
 			continue;
 		if (	uis.cursorx >= res->rect[0]
@@ -556,6 +558,7 @@ void UI_DrawMenu( uiMenu_t *menu, qboolean foreground ) {
 
 		switch ( res->type ) {
 			int i;
+			int source;
 
 			case UI_RES_LABEL:
 				if ( res->enablewithcvar == qtrue )
@@ -689,7 +692,18 @@ void UI_DrawMenu( uiMenu_t *menu, qboolean foreground ) {
 				}
 				else if ( res->linkcvarname && res->rendermodel == qfalse ) {
 						trap_Cvar_Update( &res->linkcvar );
-						trap_R_Text_Paint( res->font,res->rect[0],res->rect[1],1,0,res->linkcvar.string,1,0,qtrue,qtrue);
+						switch ( res->align ) {
+							case UI_ALIGN_LEFT:
+							trap_R_Text_Paint( res->font,res->rect[0],res->rect[1],1,0,res->linkcvar.string,1,0,qtrue,qtrue);
+							break;
+							case UI_ALIGN_NONE:
+							case UI_ALIGN_CENTER:
+							trap_R_Text_Paint( res->font,res->rect[0]+ (res->rect[2]-trap_R_Text_Width(res->font,res->linkcvar.string,64,qfalse))/2,res->rect[1],1,0,res->linkcvar.string,1,0,qtrue,qtrue);
+							break;
+							case UI_ALIGN_RIGHT:
+								trap_R_Text_Paint( res->font,res->rect[0]+res->rect[2]-trap_R_Text_Width(res->font,res->linkcvar.string,64,qfalse),res->rect[1],1,0,res->linkcvar.string,1,0,qtrue,qtrue);
+							break;
+						}
 					}
 				else {
 					if ( res->shader )
@@ -745,7 +759,11 @@ void UI_DrawMenu( uiMenu_t *menu, qboolean foreground ) {
 					UI_DrawHandlePic( res->rect[0], res->rect[1], res->rect[2], res->rect[3], res->menushader );
 				}
 				break;
+			case UI_RES_SERVERLIST:
+				source = AS_GLOBAL;
 			case UI_RES_LANSERVERLIST:
+				if ( res->type == UI_RES_LANSERVERLIST )
+					source = AS_LOCAL;
 				UI_DrawBox( res->rect[0], res->rect[1], res->rect[2], res->rect[3], qfalse, menu->size[0], menu->size[1] );
 				UI_SetColor( colorGreen );
 				trap_R_Text_Paint( res->font, res->rect[0],res->rect[1],1,1,"Server Name",0,0,qfalse,qtrue );
@@ -755,18 +773,18 @@ void UI_DrawMenu( uiMenu_t *menu, qboolean foreground ) {
 				trap_R_Text_Paint( res->font, res->rect[0]+512,res->rect[1],1,1,"Ping",0,0,qfalse,qtrue );
 				UI_SetColor( colorYellow );
 
-				for (i=0;i<trap_LAN_GetServerCount( AS_LOCAL );i++) {
+				for (i=0;i<trap_LAN_GetServerCount( source );i++) {
 					char buf[512];
 					int ping;
 
-					trap_LAN_MarkServerVisible( AS_LOCAL,i,qtrue );
-					trap_LAN_UpdateVisiblePings(AS_LOCAL);
-					ping = trap_LAN_GetServerPing( AS_LOCAL,i  );
-					trap_LAN_GetServerInfo(AS_LOCAL,i,buf,sizeof(buf));
+					trap_LAN_MarkServerVisible( source,i,qtrue );
+					trap_LAN_UpdateVisiblePings(source);
+					ping = trap_LAN_GetServerPing( source,i  );
+					trap_LAN_GetServerInfo(source,i,buf,sizeof(buf));
 
 					if ( uis.cursorx >= res->rect[0] && uis.cursorx <= res->rect[0]+res->rect[2]
-						&& uis.cursory >= res->rect[1]+16 && uis.cursory <= res->rect[1]+16+ 16*trap_LAN_GetServerCount(AS_LOCAL) ) {
-							if (i+1 == (uis.cursory-res->rect[1])/16) {
+						&& uis.cursory >= res->rect[1]+16 && uis.cursory <= res->rect[1]+16+ 16*trap_LAN_GetServerCount(source) ) {
+							if (i+1 == (uis.cursory-res->rect[1])/14) {
 								res->hoverListEntry = i;
 								UI_SetColor( NULL );
 								trap_R_Text_Paint( res->font, res->rect[0],res->rect[1]+14+i*14,1,1,Info_ValueForKey(buf,"hostname"),0,0,qfalse,qtrue );
@@ -812,16 +830,6 @@ void UI_DrawMenu( uiMenu_t *menu, qboolean foreground ) {
 					}
 				}
 				UI_SetColor( NULL );
-				break;
-				case UI_RES_SERVERLIST:
-				UI_DrawBox( res->rect[0], res->rect[1], res->rect[2], res->rect[3], qfalse, menu->size[0], menu->size[1] );
-				UI_SetColor( colorGreen );
-				trap_R_Text_Paint( res->font, res->rect[0],res->rect[1],1,1,"Server Name",0,0,qfalse,qtrue );
-				trap_R_Text_Paint( res->font, res->rect[0]+128,res->rect[1],1,1,"Map",0,0,qfalse,qtrue );
-				trap_R_Text_Paint( res->font, res->rect[0]+256,res->rect[1],1,1,"Players",0,0,qfalse,qtrue );
-				trap_R_Text_Paint( res->font, res->rect[0]+384,res->rect[1],1,1,"GameType",0,0,qfalse,qtrue );
-				trap_R_Text_Paint( res->font, res->rect[0]+512,res->rect[1],1,1,"Ping",0,0,qfalse,qtrue );
-				UI_SetColor( colorYellow );
 				break;
 		}
 	}
@@ -1007,7 +1015,8 @@ void UI_WidgetCommand( const char *widget, const char *command ) {
 					trap_Cmd_ExecuteText( EXEC_APPEND, "refreshserverlist\n" );
 				}
 				else if(!strcmp(command,"connect")) {
-					trap_Print( "connect\n" );
+					trap_LAN_GetServerAddressString(AS_GLOBAL,res->selectedListEntry,buf,sizeof(buf));
+					trap_Cmd_ExecuteText( EXEC_APPEND, va("connect %s\n", buf) );
 				}
 				else if(!strcmp(command,"cancelrefresh") ) {
 					trap_Print( "cancelrefresh\n" );

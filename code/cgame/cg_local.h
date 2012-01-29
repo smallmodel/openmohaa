@@ -332,18 +332,20 @@ typedef struct {
 	int			locationPrintLines;
 
 	// Game Messages
-#define MAX_GAMEMESSAGES		3
-#define MAX_CHATDEATHMESSAGES	7
+#define MAX_GAMEMESSAGES		4
+#define MAX_CHATDEATHMESSAGES	8
 
-	int						gameMessageTimes[MAX_GAMEMESSAGES];
+	int						gameMessageTime;
 	char					gameMessages[MAX_GAMEMESSAGES][MAX_QPATH];
 	serverMessageType_t		gameMessageTypes[MAX_GAMEMESSAGES];
-	int						gameMessagePtr;
+	int						gameMessagePtr1;
+	int						gameMessagePtr2;
 
-	int						chatDeathMessageTimes[MAX_CHATDEATHMESSAGES];
+	int						chatDeathMessageTime;
 	char					chatDeathMessages[MAX_CHATDEATHMESSAGES][MAX_QPATH];
 	serverMessageType_t		chatDeathMessageTypes[MAX_CHATDEATHMESSAGES];
-	int						chatDeathMessagePtr;
+	int						chatDeathMessagePtr1;
+	int						chatDeathMessagePtr2;
 
 	// kill timers for carnage reward
 	int			lastKillTime;

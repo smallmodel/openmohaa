@@ -344,24 +344,39 @@ To be printed below the compass
 =================
 */
 void CG_AddGameMessage( const char *cmd, serverMessageType_t smt ) {
+	ubersound_t *click;
+
+	click = CG_GetUbersound( "click" );
 	switch ( smt ) {
 		case SMT_YELLOW:
 		case SMT_WHITE:
-			cg.gameMessagePtr = (cg.gameMessagePtr+1) % MAX_GAMEMESSAGES;
-			cg.gameMessageTimes[cg.gameMessagePtr] = cg.time;
-			cg.gameMessageTypes[cg.gameMessagePtr] = smt;
-			Q_strncpyz( cg.gameMessages[cg.gameMessagePtr], cmd, sizeof(cg.gameMessages[cg.gameMessagePtr]) );
+			if ( cg.gameMessageTime == 0 )
+				cg.gameMessageTime = cg.time;
+			cg.gameMessageTypes[cg.gameMessagePtr2] = smt;
+			Q_strncpyz( cg.gameMessages[cg.gameMessagePtr2], cmd, sizeof(cg.gameMessages[cg.gameMessagePtr2]) );
 			CG_Printf( "Game Message: %s", cmd );
+			trap_S_StartLocalSound( click->sfxHandle, click->channel );
+			cg.gameMessagePtr2 = (cg.gameMessagePtr2+1) % MAX_GAMEMESSAGES;
+			if ( cg.gameMessagePtr2 == cg.gameMessagePtr1 ) {
+				cg.gameMessagePtr1 = (cg.gameMessagePtr1+1) % MAX_GAMEMESSAGES;
+				cg.gameMessageTime = cg.time;
+			}
 			break;
 		case SMT_CHAT:
 			CG_Printf( "Chat: %s", cmd );
+			trap_S_StartLocalSound( click->sfxHandle, click->channel );
 		case SMT_DEATH:
-			cg.chatDeathMessagePtr = (cg.chatDeathMessagePtr+1) % MAX_CHATDEATHMESSAGES;
-			cg.chatDeathMessageTimes[cg.chatDeathMessagePtr] = cg.time;
-			cg.chatDeathMessageTypes[cg.chatDeathMessagePtr] = smt;
-			Q_strncpyz( cg.chatDeathMessages[cg.chatDeathMessagePtr], cmd, sizeof(cg.chatDeathMessages[cg.chatDeathMessagePtr]) );
+			if ( cg.chatDeathMessageTime == 0 )
+				cg.chatDeathMessageTime = cg.time;
+			cg.chatDeathMessageTypes[cg.chatDeathMessagePtr2] = smt;
+			Q_strncpyz( cg.chatDeathMessages[cg.chatDeathMessagePtr2], cmd, sizeof(cg.chatDeathMessages[cg.chatDeathMessagePtr2]) );
 			if ( smt == SMT_DEATH )
 				CG_Printf( "Death: %s", cmd );
+			cg.chatDeathMessagePtr2 = (cg.chatDeathMessagePtr2+1) % MAX_CHATDEATHMESSAGES;
+			if (cg.chatDeathMessagePtr2 == cg.chatDeathMessagePtr1 ) {
+				cg.chatDeathMessagePtr1 = (cg.chatDeathMessagePtr1+1) % MAX_CHATDEATHMESSAGES;
+				cg.chatDeathMessageTime = cg.time;
+			}
 			break;
 		case SMT_UNKNOWN:
 			CG_Printf( "Unknown Message: %s", cmd );

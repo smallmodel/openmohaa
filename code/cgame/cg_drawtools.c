@@ -122,16 +122,15 @@ int CG_DrawStrlen( const char *str ) {
 	const char *s = str;
 	int count = 0;
 
-	while ( *s ) {
-		if ( Q_IsColorString( s ) ) {
-			s += 2;
-		} else {
-			count++;
-			s++;
-		}
-	}
-
-	return count;
+//	while ( *s ) {
+//		if ( Q_IsColorString( s ) ) {
+//			s += 2;
+//		} else {
+//			count++;
+//			s++;
+//		}
+//	}
+	return trap_R_Text_Width( &cgs.media.verdana, str, -1, qtrue );
 }
 
 /*

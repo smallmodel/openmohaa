@@ -868,22 +868,30 @@ static void CG_DrawLocationString( void ) {
 CG_DrawGameMessages
 ===================
 */
+#define CG_GAMEMESSAGETIMEOUT 4000
 static void CG_DrawGameMessages( void ) {
 	int i;
-	int line;
 
-	for (i=0, line=0;i<MAX_GAMEMESSAGES;i++) {
+	if ( cg.time - cg.gameMessageTime > CG_GAMEMESSAGETIMEOUT
+		&& cg.gameMessagePtr1 != cg.gameMessagePtr2 ) {
+		cg.gameMessagePtr1=(cg.gameMessagePtr1+1)%MAX_GAMEMESSAGES;
+		cg.gameMessageTime = cg.time;
+		if ( cg.gameMessagePtr1 == (cg.gameMessagePtr2+1)%MAX_GAMEMESSAGES )
+			cg.gameMessagePtr2 = (cg.gameMessagePtr2+1)%MAX_GAMEMESSAGES;
+	}
+	for (i=0;i<MAX_GAMEMESSAGES;i++) {
 		int ptr;
 
-		ptr = (i+cg.gameMessagePtr)%MAX_GAMEMESSAGES;
+		ptr = (i+cg.gameMessagePtr1)%MAX_GAMEMESSAGES;
+		if ( ptr == cg.gameMessagePtr2 )
+			break;
 
 		if ( cg.gameMessageTypes[ptr] == SMT_YELLOW )
 			trap_R_SetColor( color_hud );
 		else
 			trap_R_SetColor( color_white );
 		if ( cg.gameMessages[ptr] ) {
-			trap_R_Text_Paint( &cgs.media.facfont, 0, 128 + line*14, 1, 1, cg.gameMessages[ptr], 1, 0, qfalse, qtrue );
-			line++;
+			trap_R_Text_Paint( &cgs.media.facfont, 0, 128 + i*14, 1, 1, cg.gameMessages[ptr], 1, 0, qfalse, qtrue );
 		}
 	}
 	trap_R_SetColor( NULL );
@@ -896,12 +904,20 @@ CG_DrawChatDeathMessages
 */
 static void CG_DrawChatDeathMessages( void ) {
 	int i;
-	int line;
 
-	for (i=0, line=0;i<MAX_CHATDEATHMESSAGES;i++) {
+	if ( cg.time - cg.chatDeathMessageTime > CG_GAMEMESSAGETIMEOUT
+		&& cg.chatDeathMessagePtr1 != cg.chatDeathMessagePtr2 ) {
+		cg.chatDeathMessagePtr1 = (cg.chatDeathMessagePtr1+1)%MAX_CHATDEATHMESSAGES;
+		cg.chatDeathMessageTime = cg.time;
+		if ( cg.chatDeathMessagePtr1 == (cg.chatDeathMessagePtr2+1)%MAX_CHATDEATHMESSAGES )
+			cg.chatDeathMessagePtr2 = (cg.chatDeathMessagePtr2+1)%MAX_CHATDEATHMESSAGES;
+	}
+	for (i=0;i<MAX_CHATDEATHMESSAGES;i++) {
 		int ptr;
 
-		ptr = (i+cg.chatDeathMessagePtr)%MAX_CHATDEATHMESSAGES;
+		ptr = (i+cg.chatDeathMessagePtr1)%MAX_CHATDEATHMESSAGES;
+		if ( ptr == cg.chatDeathMessagePtr2 )
+			break;
 
 		if ( cg.chatDeathMessageTypes[ptr] == SMT_DEATH )
 			trap_R_SetColor( color_lightRed );
@@ -909,8 +925,7 @@ static void CG_DrawChatDeathMessages( void ) {
 			trap_R_SetColor( color_grey );
 
 		if ( cg.chatDeathMessages[ptr] ) {
-			trap_R_Text_Paint( &cgs.media.facfont, 128, line*14, 1, 1, cg.chatDeathMessages[ptr], 1, 0, qfalse, qtrue );
-			line++;
+			trap_R_Text_Paint( &cgs.media.facfont, 128, i*14, 1, 1, cg.chatDeathMessages[ptr], 1, 0, qfalse, qtrue );
 		}
 	}
 	trap_R_SetColor( NULL );

@@ -222,43 +222,11 @@ qboolean Sys_StringToAdr( const char *s, netadr_t *a ) {
 }
 
 //=============================================================================
-
-// Wombat: I'm adding TCP code here for gamespy master server communication
-// might be buggy!
-#define GS_MOHAAKEY			"M5Fdwc"
-#define GS_GAMENAME			"mohaa"
-#define GS_GAMEVER			"1.6"
-#define GS_MASTER_SERVER	"master.gamespy.com"
-int tcpsock;
-
-qboolean	NETGS_CreateMasterSocket( void ){
-	struct sockaddr_in master_addr;
-	struct hostent *h;
-
-	tcpsock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
-
-	if ( tcpsock == -1 )
-		return qfalse;
-
-	master_addr.sin_family		= AF_INET;
-	master_addr.sin_port		= htons( 28900 );
-	master_addr.sin_addr.s_addr	= inet_addr( GS_MASTER_SERVER );
-	memset( master_addr.sin_zero, 0, sizeof(master_addr.sin_zero) );
-
-	h = gethostbyname( GS_MASTER_SERVER );
-	if (!h) {
-		close( tcpsock );
-		return qfalse;
-	}
-	master_addr.sin_addr = *((struct in_addr *)h->h_addr);
-
-	if ( connect(tcpsock, (struct sockaddr *)&master_addr, sizeof master_addr) == -1 ) {
-		close( tcpsock );
-		return qfalse;
-	}
-
-	return qtrue;
-}
+/*
+===============================
+GameSpy master server query
+===============================
+*/
 
 // wombat: some gamespy "encryption" ;-)
 // i had already begun reversing the algorithm,
@@ -449,7 +417,51 @@ unsigned char *gsseckey(
     return(dst);
 }
 
+#define GS_MOHAAKEY			"M5Fdwc"
+#define GS_GAMENAME			"mohaa"
+#define GS_GAMEVER			"1.6"
+#define GS_MASTER_SERVER	"master.gamespy.com"
+int tcpsock;
 
+/*
+==================
+NETGS_CreateMasterSocket
+==================
+*/
+qboolean	NETGS_CreateMasterSocket( void ){
+	struct sockaddr_in master_addr;
+	struct hostent *h;
+
+	tcpsock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
+
+	if ( tcpsock == -1 )
+		return qfalse;
+
+	master_addr.sin_family		= AF_INET;
+	master_addr.sin_port		= htons( 28900 );
+	master_addr.sin_addr.s_addr	= inet_addr( GS_MASTER_SERVER );
+	memset( master_addr.sin_zero, 0, sizeof(master_addr.sin_zero) );
+
+	h = gethostbyname( GS_MASTER_SERVER );
+	if (!h) {
+		close( tcpsock );
+		return qfalse;
+	}
+	master_addr.sin_addr = *((struct in_addr *)h->h_addr);
+
+	if ( connect(tcpsock, (struct sockaddr *)&master_addr, sizeof master_addr) == -1 ) {
+		close( tcpsock );
+		return qfalse;
+	}
+
+	return qtrue;
+}
+
+/*
+==================
+NETGS_SendMasterRequest
+==================
+*/
 qboolean	NETGS_SendMasterRequest( void ) {
 	char buffer[255];
 	char requestString[255];
@@ -491,6 +503,11 @@ qboolean	NETGS_SendMasterRequest( void ) {
 	return qtrue;
 }
 
+/*
+==================
+NETGS_ReceiveMasterResponse
+==================
+*/
 int	NETGS_ReceiveMasterResponse( char *buffer, int size ) {
 	struct timeval timeout;
 	fd_set readfds;

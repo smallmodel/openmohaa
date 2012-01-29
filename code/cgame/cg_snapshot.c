@@ -242,6 +242,8 @@ static void CG_TransitionSnapshot( void ) {
 
 	for ( i=0;i<cg.snap->number_of_sounds;i++ ) {
 		snd = &cg.snap->sounds[i];
+		if ( snd->sound_index == 0 )	// wombat: we get these sometimes, no clue why
+			continue;
 		if (snd->stop_flag) {
 			trap_S_StopLoopingSound( snd->entity_number );
 		}

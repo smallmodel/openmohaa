@@ -662,7 +662,9 @@ void CG_ParseCGMessage() {
 				}
 				//CG_Printf("Case 37: iTemp %i, i %i, s %s\n",iTemp,i,s);
 				// play an aliased sound from uberdialog.scr
-				CG_PlaySound(s,vecStart,5,-1.0,-1.0,-1.0,0);
+				// wombat: only if there is a sound to be played
+				if ( *s )
+					CG_PlaySound(s,vecStart,5,-1.0,-1.0,-1.0,0);
 				break;
 		}
 	} while ( trap_MSG_ReadBits(1) );

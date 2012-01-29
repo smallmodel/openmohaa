@@ -1595,7 +1595,7 @@ typedef struct qtime_s {
 #define AS_MPLAYER			99
 #define AS_GLOBAL			2
 #define AS_FAVORITES		3
-#define AS_GAMESPY			1
+#define AS_GAMESPY			1	// wombat: right now we use AS_GLOBAL for GS, too
 
 
 // cinematic states

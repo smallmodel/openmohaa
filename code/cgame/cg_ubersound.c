@@ -66,7 +66,7 @@ ubersound_t*	CG_GetUbersound( const char *name ) {
 	snd = US_Find( name );
 
 	if ( !snd ) {
-		CG_Printf( "CG_GetUbersound: sound %s not found.\n", name );
+		CG_Printf( "CG_GetUbersound: sound \"%s\" not found.\n", name );
 		return NULL;
 	}
 	// if there are more than one version, choose randomly
