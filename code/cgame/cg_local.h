@@ -209,7 +209,7 @@ typedef struct localEntity_s {
 //======================================================================
 
 typedef struct {
-//	int team;
+	int team;
 	char name[64];
 } clientInfo_t;
 
@@ -763,6 +763,7 @@ void	CG_DrawStdBox( int x, int y, int w, int h, qboolean ctrCoord );
 //
 void CG_Player( centity_t *cent );
 void CG_PlayerSprites( centity_t *cent );
+void CG_ExtractPlayerTeam( centity_t *cent );
 void CG_ResetPlayerEntity( centity_t *cent );
 void CG_NewClientInfo( int clientNum );
 sfxHandle_t	CG_CustomSound( int clientNum, const char *soundName );

@@ -176,7 +176,33 @@ static void CG_PlayerFloatSprite( centity_t *cent, qhandle_t shader ) {
 	trap_R_AddRefEntityToScene( &ent );
 }
 
+/*
+===============
+CG_ExtractPlayerTeam
 
+su44: extract player team from entityState_t::eFlags
+and save it to cg.clientinfo
+===============
+*/
+void CG_ExtractPlayerTeam( centity_t *cent ) {
+	clientInfo_t *ci;
+	if( cent->currentState.number >= cgs.maxclients ) {
+		CG_Error("CG_ExtractPlayerTeam on non-client entity (%i)", cent->currentState.number );
+	}
+
+	ci = &cgs.clientinfo[cent->currentState.number];
+
+	// MoHAA sends ET_PLAYER team in entityFlags
+	if(cent->currentState.eFlags & EF_AXIS) {
+		ci->team = TEAM_AXIS;
+	} else if(cent->currentState.eFlags & EF_ALLIES) {
+		ci->team = TEAM_ALLIES;
+	//} else if(cent->currentState.eFlags & EF_SPECTATOR) {
+	//	ci->team = TEAM_SPECTATOR;
+	} else {
+		ci->team = TEAM_FREEFORALL;
+	}
+}
 
 /*
 ===============

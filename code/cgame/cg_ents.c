@@ -496,6 +496,8 @@ case ET_MOVER: // su44: ET_MOVER is used only if running a local openmohaa serve
 	case ET_MODELANIM:
 		CG_ModelAnim( cent );
 		if( cent->currentState.number < cgs.maxclients ) {
+			// su44: save player team to clientInfo_t
+			CG_ExtractPlayerTeam( cent );
 			// su44: draw axis/allies icon over player head.
 			// Function below must be called after CG_ModelAnim,
 			// because it might need to use centity_t::bones.

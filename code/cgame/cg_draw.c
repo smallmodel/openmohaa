@@ -116,34 +116,38 @@ void CG_Draw3DModel( float x, float y, float w, float h, qhandle_t model, qhandl
 ================
 CG_DrawAttacker
 
+su44: draw attacker client name and team
+flag in the left down corner of the screen
 ================
 */
-static float CG_DrawAttacker( float y ) {
-	int			t;
-	int			clientNum;
+#define ATTACKER_X 80
+#define ATTACKER_Y 400
+static float CG_DrawAttacker() {
+	int clientNum;
+	clientInfo_t *info;
+	qhandle_t handle;
 
-	if ( cg.predictedPlayerState.stats[STAT_HEALTH] <= 0 ) {
-		return y;
-	}
-
-	if ( !cg.attackerTime ) {
-		return y;
-	}
+	if ( cg_drawAttacker.integer == 0)
+		return;
 
 	clientNum = cg.predictedPlayerState.stats[STAT_ATTACKERCLIENT];
 	if ( clientNum < 0 || clientNum >= MAX_CLIENTS || clientNum == cg.snap->ps.clientNum ) {
-		return y;
-	}
-
-	t = cg.time - cg.attackerTime;
-	if ( t > ATTACKER_HEAD_TIME ) {
-		cg.attackerTime = 0;
-		return y;
+		return;
 	}
 	
-	// TODO
+	info = &cgs.clientinfo[clientNum];
 
-	return y;
+	trap_R_SetColor( color_red );
+	trap_R_Text_Paint(&cgs.media.verdana, ATTACKER_X,ATTACKER_Y,1,0,info->name,0,0,qfalse,qtrue);
+	trap_R_SetColor( NULL );
+
+	if(info->team == TEAM_AXIS) {
+		handle = trap_R_RegisterShader("textures/hud/axis");
+		CG_DrawPic(ATTACKER_X-30,ATTACKER_Y-4,24,24,handle);
+	} else if(info->team == TEAM_ALLIES) {
+		handle = trap_R_RegisterShader("textures/hud/allies");
+		CG_DrawPic(ATTACKER_X-30,ATTACKER_Y-4,24,24,handle);
+	}
 }
 
 /*
@@ -433,10 +437,6 @@ static void CG_DrawUpperRight( void ) {
 	if ( cg_drawTimer.integer ) {
 		y = CG_DrawTimer( y );
 	}
-	if ( cg_drawAttacker.integer ) {
-		y = CG_DrawAttacker( y );
-	}
-
 }
 
 /*
@@ -1485,6 +1485,9 @@ void CG_Draw2D( int serverTime, stereoFrame_t stereoView, qboolean demoPlayback 
 	CG_DrawZoomOverlay();
 	// su44: draw info about the player local client is currently aiming at
 	CG_DrawCrosshairPlayerInfo();
+	// su44: draw attacker client name and team flag in the left down corner of the screen
+	CG_DrawAttacker();
+
 
 
 

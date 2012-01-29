@@ -1015,6 +1015,9 @@ void ClientSpawn(gentity_t *ent) {
 
 	Com_Memset (client, 0, sizeof(*client));
 
+	client->ps.stats[STAT_ATTACKERCLIENT] = -1;
+	client->ps.stats[STAT_INFOCLIENT] = -1;
+
 	client->pers = saved;
 	client->sess = savedSess;
 	client->ps.ping = savedPing;
