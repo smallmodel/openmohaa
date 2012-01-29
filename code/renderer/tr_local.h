@@ -1399,6 +1399,7 @@ void		R_ShaderList_f( void );
 void    R_RemapShader(const char *oldShader, const char *newShader, const char *timeOffset);
 int		RE_GetShaderWidth(qhandle_t shader);
 int		RE_GetShaderHeight(qhandle_t shader);
+const char *RE_GetShaderName(qhandle_t shader);
 
 /*
 ====================================================================

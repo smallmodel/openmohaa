@@ -1123,6 +1123,10 @@ intptr_t CL_UISystemCalls( intptr_t *args ) {
 		return 0;
 	case UI_TIKI_GETBONENAMEINDEX:
 		return TIKI_RegisterBoneName(args[1]);
+	case UI_GETSHADERNAME:
+		return re.GetShaderName(args[1]);
+
+		
 
 	default:
 		Com_Error( ERR_DROP, "Bad UI system trap: %ld", (long int) args[0] );

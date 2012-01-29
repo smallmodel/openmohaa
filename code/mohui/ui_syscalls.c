@@ -446,3 +446,7 @@ void trap_TIKI_Animate( tiki_t *tiki, bone_t *bones ) {
 int	trap_TIKI_GetBoneNameIndex( const char *boneName ) {
 	return syscall(UI_TIKI_GETBONENAMEINDEX, boneName);
 }
+
+const char *trap_R_GetShaderName( qhandle_t handle ) {
+	return syscall(UI_GETSHADERNAME, handle);
+}

@@ -136,6 +136,9 @@ vmCvar_t	loadingbar;
 vmCvar_t	ui_disp_playermodel;
 vmCvar_t	ui_disp_playergermanmodel;
 
+// su44: an utility cvar that shows info about
+// resource which is currently under mouse cursos
+vmCvar_t	ui_showInfo;
 
 static cvarTable_t		cvarTable[] = {
 	{ &ui_mohui, "ui_mohui", "1", CVAR_ROM },
@@ -165,7 +168,8 @@ static cvarTable_t		cvarTable[] = {
 	{ &cg_scoreboardpic, "cg_scoreboardpic", "mohdm1", CVAR_TEMP },
 	{ &loadingbar, "loadingbar", "0.5", CVAR_TEMP },
 	{ &ui_disp_playermodel, "ui_disp_playermodel", "models/player/american_army.tik", CVAR_TEMP },
-	{ &ui_disp_playergermanmodel, "ui_disp_playergermanmodel", "models/player/german_wehrmacht_soldier.tik", CVAR_TEMP }
+	{ &ui_disp_playergermanmodel, "ui_disp_playergermanmodel", "models/player/german_wehrmacht_soldier.tik", CVAR_TEMP },
+	{ &ui_showInfo, "ui_showInfo", "0", CVAR_CHEAT }
 };
 
 static int cvarTableSize = sizeof(cvarTable) / sizeof(cvarTable[0]);
@@ -449,6 +453,72 @@ void UI_MouseEvent( int dx, int dy )
 		else {
 			res->active = qfalse;
 			res->lastState = qfalse;
+		}
+	}
+}
+
+/*
+========================
+UI_DrawDebugString
+========================
+*/
+void UI_DrawDebugString(fontInfo_t *font, float x, float y, const char *s) {
+	int len;
+	int end;
+
+	len = trap_R_Text_Width(font,s,0,qfalse);
+
+	// ensure that string will be drawn entirely on screen
+	end = len + x;
+	end += 8; // some extra offset
+	if(end > 640) {
+		x += 640 - end;
+	}
+	trap_R_Text_Paint(font,x,y,1,0,s,0,0,qfalse,qtrue);
+}
+/*
+========================
+UI_ShowInfo
+
+su44: an utility tool for debuging menus
+========================
+*/
+void UI_ShowInfo() {
+	uiMenu_t *menu;
+	int i;
+	uiResource_t *res;
+	const char *s;
+	int x, y;
+
+	// region test the active menu items
+	menu = uis.stack[uis.MSP];
+
+	for (i=0; i<=menu->resPtr;i++) {
+		res = &menu->resources[i];
+		if (res->type != UI_RES_BUTTON
+			&& res->type != UI_RES_CHECKBOX
+			&& res->type != UI_RES_FIELD
+			&& res->type != UI_RES_PULLDOWN
+			&& res->type != UI_RES_LANSERVERLIST)
+			continue;
+		if (uis.cursorx >= res->rect[0]
+			&& uis.cursorx <= res->rect[2]+res->rect[0]
+			&& uis.cursory >= res->rect[1]
+			&& uis.cursory <= res->rect[3]+res->rect[1] ) {
+			// su44: print some informations about this menu
+			x = uis.cursorx;
+			y = uis.cursory;
+			y += 28;
+			if((y+16) >= 480) {
+				y -= 64; // dont draw outside screen
+			}
+			trap_R_SetColor( 0 );
+			s = va("Menu \"%s\", resource \"%s\"",menu->name,res->name);
+			UI_DrawDebugString(res->font,x,y,s);
+			y += 18;
+			s = va("Shader \"%s\"",trap_R_GetShaderName(res->shader));
+			UI_DrawDebugString(res->font,x,y,s);	
+			return; // show info only about one menu at time
 		}
 	}
 }
@@ -844,6 +914,11 @@ void UI_Refresh( int realtime )
 	// draw cursor
 	UI_SetColor( NULL );
 	UI_DrawHandlePic( uis.cursorx, uis.cursory, 32, 32, uis.cursor);
+
+	// su44: draw info about menu which is under cursor
+	if(ui_showInfo.integer) {
+		UI_ShowInfo();
+	}
 
 	if ( first == qtrue ) {
 		// play main theme

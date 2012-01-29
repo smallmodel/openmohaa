@@ -1301,6 +1301,7 @@ refexport_t *GetRefAPI ( int apiVersion, refimport_t *rimp ) {
 	// su44
 	re.GetShaderHeight = RE_GetShaderHeight;
 	re.GetShaderWidth = RE_GetShaderWidth;
+	re.GetShaderName = RE_GetShaderName;
 
 	return &re;
 }

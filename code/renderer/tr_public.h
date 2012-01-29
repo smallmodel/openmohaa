@@ -112,6 +112,7 @@ typedef struct {
 	// su44
 	int		(*GetShaderWidth)(qhandle_t shader);
 	int		(*GetShaderHeight)(qhandle_t shader);
+	const char *(*GetShaderName)(qhandle_t shader);
 } refexport_t;
 
 //

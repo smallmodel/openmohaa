@@ -524,11 +524,11 @@ int	NETGS_ReceiveMasterResponse( char *buffer, int size ) {
 		// well, this may be not the optimal solution...
 		recvdNum = recv( tcpsock, buffer + bufPtr, size - bufPtr, 0 );
 		if ( recvdNum == -1 ) {
-			close( tcpsock );
+			closesocket( tcpsock );
 			return 0;
 		}
 		if (!recvdNum) {
-			close( tcpsock );
+			closesocket( tcpsock );
 			final = qtrue;
 		}
 		bufPtr += recvdNum;

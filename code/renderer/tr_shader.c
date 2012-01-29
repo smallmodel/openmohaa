@@ -925,7 +925,7 @@ static qboolean ParseStage( shaderStage_t *stage, char **text )
 			}
 			else if ( !Q_stricmp( token, "global" ) )
 			{
-				stage->rgbGen = CGEN_IDENTITY;
+				stage->rgbGen = CGEN_GLOBAL_COLOR;
 			}
 			else if ( !Q_stricmp( token, "static" ) )
 			{
@@ -3362,4 +3362,8 @@ int RE_GetShaderWidth(qhandle_t shader) {
 
 int RE_GetShaderHeight(qhandle_t shader) {
 	return tr.shaders[shader]->stages[0]->bundle[0].image[0]->height;
+}
+
+const char *RE_GetShaderName(qhandle_t shader) {
+	return tr.shaders[shader]->name;
 }

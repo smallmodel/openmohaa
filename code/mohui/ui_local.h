@@ -392,4 +392,6 @@ void trap_TIKI_AppendFrameBoundsAndRadius( struct tiki_s *tiki, int animIndex, f
 void trap_TIKI_Animate( tiki_t *tiki, bone_t *bones );
 int	trap_TIKI_GetBoneNameIndex( const char *boneName );
 
+const char *trap_R_GetShaderName( qhandle_t shader );
+
 #endif

@@ -718,6 +718,9 @@ void CL_ShutdownAll(void) {
 	// shutdown UI
 	CL_ShutdownUI();
 
+	// su44: shutdown TIKI system, because it's dependent on renderer
+	TIKI_ClearUp();
+
 	// shutdown the renderer
 	if ( re.Shutdown ) {
 		re.Shutdown( qfalse );		// don't destroy window or context
@@ -1864,7 +1867,7 @@ void CL_InitServerInfo( serverInfo_t *server, serverAddress_t *address ) {
 	server->netType = 0;
 }
 
-#define MAX_SERVERSPERPACKET	256
+#define MAX_SERVERSPERPACKET	1024 // 256 is not enough for MoHAA
 
 /*
 ===================
@@ -3444,7 +3447,7 @@ void CL_GamespyServers_f( void ) {
 		// wombat: in the Com_DPrintf the port is printed wrong (wrong byte-order) somehow...
 		addresses[numservers].port = (*buffptr++)<<8;
 		addresses[numservers].port += (*buffptr++);
-		addresses[numservers].port = BigShort( addresses[numservers].port );
+		//addresses[numservers].port = BigShort( addresses[numservers].port );
 
 		Com_DPrintf( "server: %d ip: %d.%d.%d.%d:%d\n",numservers,
 				addresses[numservers].ip[0],
