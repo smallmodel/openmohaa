@@ -231,7 +231,7 @@ qboolean Sys_StringToAdr( const char *s, netadr_t *a ) {
 #define GS_MASTER_SERVER	"master.gamespy.com"
 int tcpsock;
 
-qboolean	NET_CreateMasterSocket( void ){
+qboolean	NETGS_CreateMasterSocket( void ){
 	struct sockaddr_in master_addr;
 	struct hostent *h;
 
@@ -260,10 +260,10 @@ qboolean	NET_CreateMasterSocket( void ){
 	return qtrue;
 }
 
-// some gamespy "encryption" ;-)
-// wombat: i had already begun reversing the algorithm, then i found this code by luigi
-// it is GPL so everything's fine
-// saves me a little time (although reversing it myself would have been much more exciting :-/)
+// wombat: some gamespy "encryption" ;-)
+// i had already begun reversing the algorithm,
+// then i found this GPL code by Luigi
+
 /*
 
 GSMSALG 0.3.2
@@ -450,7 +450,7 @@ unsigned char *gsseckey(
 }
 
 
-qboolean	NET_SendMasterRequest( void ) {
+qboolean	NETGS_SendMasterRequest( void ) {
 	char buffer[255];
 	char requestString[255];
 	char *ptr;
@@ -491,10 +491,10 @@ qboolean	NET_SendMasterRequest( void ) {
 	return qtrue;
 }
 
-int	NET_ReceiveMasterResponse( char *buffer, int size ) {
+int	NETGS_ReceiveMasterResponse( char *buffer, int size ) {
 	struct timeval timeout;
 	fd_set readfds;
-	qboolean final=0;
+	qboolean final=qfalse;
 	int bufPtr=0;
 	int count=0;
 
@@ -503,7 +503,7 @@ int	NET_ReceiveMasterResponse( char *buffer, int size ) {
 	timeout.tv_sec	= 0;
 	timeout.tv_usec	= 0;
 
-	while ( !final ) {
+	while ( final == qfalse ) {
 		int recvdNum;
 
 		FD_ZERO(&readfds);
@@ -515,7 +515,7 @@ int	NET_ReceiveMasterResponse( char *buffer, int size ) {
 			//Com_DPrintf( "GS: select...\n" );
 			count++;
 			if ( count == 100 ){
-				Com_DPrintf( "No GS Master Response after 5 seconds\n" );
+				Com_Printf( "No GS Master Response after 5 seconds\n" );
 				break;
 			}
 			continue;
@@ -525,7 +525,7 @@ int	NET_ReceiveMasterResponse( char *buffer, int size ) {
 		recvdNum = recv( tcpsock, buffer + bufPtr, size - bufPtr, 0 );
 		if ( recvdNum == -1 ) {
 			close( tcpsock );
-			return qfalse;
+			return 0;
 		}
 		if (!recvdNum) {
 			close( tcpsock );

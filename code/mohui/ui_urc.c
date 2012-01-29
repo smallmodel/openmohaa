@@ -401,8 +401,10 @@ qboolean UI_ParseMenuToken( const char *token, char **ptr, uiMenu_t *menu ) {
 			res->type = UI_RES_PULLDOWN;
 		else if ( !Q_strncmp( var, "Slider", 6 ) )
 			res->type = UI_RES_SLIDER;
-		else if ( !Q_strncmp( var, "FAKKServerList", 14 ) )
+		else if ( !Q_strncmp( var, "FAKKServerList", 14 ) ) {
 			res->type = UI_RES_SERVERLIST;
+			res->selectedListEntry = -1;
+		}
 		else if ( !Q_strncmp( var, "FAKKBindList", 12 ) )
 			// su44: that's used in ui/controls.urc
 			res->type = UI_RES_BINDLIST; 

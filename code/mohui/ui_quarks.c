@@ -683,6 +683,7 @@ void UI_DrawMenu( uiMenu_t *menu, qboolean foreground ) {
 				trap_R_Text_Paint( res->font, res->rect[0]+256,res->rect[1],1,1,"Players",0,0,qfalse,qtrue );
 				trap_R_Text_Paint( res->font, res->rect[0]+384,res->rect[1],1,1,"GameType",0,0,qfalse,qtrue );
 				trap_R_Text_Paint( res->font, res->rect[0]+512,res->rect[1],1,1,"Ping",0,0,qfalse,qtrue );
+				UI_SetColor( colorYellow );
 
 				for (i=0;i<trap_LAN_GetServerCount( AS_LOCAL );i++) {
 					char buf[512];
@@ -741,6 +742,16 @@ void UI_DrawMenu( uiMenu_t *menu, qboolean foreground ) {
 					}
 				}
 				UI_SetColor( NULL );
+				break;
+				case UI_RES_SERVERLIST:
+				UI_DrawBox( res->rect[0], res->rect[1], res->rect[2], res->rect[3], qfalse, menu->size[0], menu->size[1] );
+				UI_SetColor( colorGreen );
+				trap_R_Text_Paint( res->font, res->rect[0],res->rect[1],1,1,"Server Name",0,0,qfalse,qtrue );
+				trap_R_Text_Paint( res->font, res->rect[0]+128,res->rect[1],1,1,"Map",0,0,qfalse,qtrue );
+				trap_R_Text_Paint( res->font, res->rect[0]+256,res->rect[1],1,1,"Players",0,0,qfalse,qtrue );
+				trap_R_Text_Paint( res->font, res->rect[0]+384,res->rect[1],1,1,"GameType",0,0,qfalse,qtrue );
+				trap_R_Text_Paint( res->font, res->rect[0]+512,res->rect[1],1,1,"Ping",0,0,qfalse,qtrue );
+				UI_SetColor( colorYellow );
 				break;
 		}
 	}
@@ -913,10 +924,30 @@ void UI_WidgetCommand( const char *widget, const char *command ) {
 					trap_LAN_GetServerAddressString(AS_LOCAL,res->selectedListEntry,buf,sizeof(buf));
 					trap_Cmd_ExecuteText( EXEC_APPEND, va("connect %s\n", buf) );
 				}
+				else
+					trap_Print( va("UI_WidgetCommand: command %s not found for widget %s.\n", command, widget) );
+				break;
+				case UI_RES_SERVERLIST:
+				if(!strcmp(command,"refreshserverlist")) {
+					trap_Cmd_ExecuteText( EXEC_APPEND, "refreshserverlist\n" );
+				}
+				else if(!strcmp(command,"connect")) {
+					trap_Print( "connect\n" );
+				}
+				else if(!strcmp(command,"cancelrefresh") ) {
+					trap_Print( "cancelrefresh\n" );
+				}
+				else if(!strcmp(command,"updateserver") ) {
+					trap_Print( "updateserver\n" );
+				}
+				else
+					trap_Print( va("UI_WidgetCommand: command %s not found for widget %s.\n", command, widget) );
 				break;
 			}
+			return;
 		}
 	}
+	trap_Print( va("UI_WidgetCommand: widget %s not found.\n", widget) );
 }
 
 /*
@@ -926,6 +957,8 @@ UI_ConsoleCommand
 */
 qboolean UI_ConsoleCommand( int realTime ) {
 	char	*cmd;
+	char	arg1[64];
+	char	arg2[64];
 
 	cmd = UI_Argv( 0 );
 
@@ -965,8 +998,11 @@ qboolean UI_ConsoleCommand( int realTime ) {
 		return qtrue;
 	}
 	else if ( Q_stricmp (cmd, "widgetcommand") == 0 ) {
-		if ( UI_Argc() == 3 )
-			UI_WidgetCommand( va("%s",UI_Argv(1)), va("%s",UI_Argv(2)) );
+		if ( UI_Argc() == 3 ) {
+			Q_strncpyz( arg1, UI_Argv(1), sizeof(arg1) );
+			Q_strncpyz( arg2, UI_Argv(2), sizeof(arg2) );
+			UI_WidgetCommand( arg1, arg2 );
+		}
 		else Com_Printf( "Usage: widgetcommand <widgetname> <command>\n" );
 		return qtrue;
 	}

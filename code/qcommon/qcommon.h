@@ -171,9 +171,9 @@ typedef struct {
 } netadr_t;
 
 // wombat: gamespy tcp code
-qboolean	NET_CreateMasterSocket( void );
-qboolean	NET_SendMasterRequest( void );
-int			NET_ReceiveMasterResponse( char *buffer, int size );
+qboolean	NETGS_CreateMasterSocket( void );
+qboolean	NETGS_SendMasterRequest( void );
+int			NETGS_ReceiveMasterResponse( char *buffer, int size );
 
 void		NET_Init( void );
 void		NET_Shutdown( void );

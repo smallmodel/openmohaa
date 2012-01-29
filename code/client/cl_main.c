@@ -2891,7 +2891,7 @@ void CL_Init( void ) {
 	Cmd_AddCommand ("localservers", CL_LocalServers_f);
 	Cmd_AddCommand ("globalservers", CL_GlobalServers_f);
 	// wombat: gamespy
-	Cmd_AddCommand ("gamespyservers", CL_GamespyServers_f);
+	Cmd_AddCommand ("refreshserverlist", CL_GamespyServers_f);
 	Cmd_AddCommand ("rcon", CL_Rcon_f);
 	Cmd_AddCommand ("setenv", CL_Setenv_f );
 	Cmd_AddCommand ("ping", CL_Ping_f );
@@ -2959,7 +2959,7 @@ void CL_Shutdown( void ) {
 	Cmd_RemoveCommand ("connect");
 	Cmd_RemoveCommand ("localservers");
 	Cmd_RemoveCommand ("globalservers");
-	Cmd_RemoveCommand ("gamespyservers");
+	Cmd_RemoveCommand ("refreshserverlist");
 	Cmd_RemoveCommand ("rcon");
 	Cmd_RemoveCommand ("setenv");
 	Cmd_RemoveCommand ("ping");
@@ -3365,7 +3365,7 @@ void CL_LocalServers_f( void ) {
 // wombat: this Gamespy stuff must be revised as soon as we actually need it...
 /*
 ==================
-CL_GlobalServers_f
+CL_GamespyServers_f
 ==================
 */
 // currently about 1000 mohaa servers at a time. when set higher, buffer must be increased!
@@ -3388,7 +3388,8 @@ void CL_GamespyServers_f( void ) {
 
 	cls.masterNum = 0;
 
-	Com_Printf( "Requesting servers from the GameSpy master...\n");
+	Com_Printf( "Requesting servers from the GameSpy master...\n" );
+	Cvar_Set( "dm_serverstatus", "Getting List.");
 
 	// reset the list, waiting for response
 	// -1 is used to distinguish a "no response"
@@ -3396,17 +3397,17 @@ void CL_GamespyServers_f( void ) {
 	cls.numglobalservers = -1;
 	cls.pingUpdateSource = AS_GLOBAL;
 
-	if (!NET_CreateMasterSocket()) {
-		Com_DPrintf( "GS: could not create socket.\n" );
+	if (!NETGS_CreateMasterSocket()) {
+		Com_Printf( "CL_GamespyServers_f: could not create socket.\n" );
 		return;
 	}
-	if (!NET_SendMasterRequest()) {
-		Com_DPrintf( "GS: could not send master request.\n" );
+	if (!NETGS_SendMasterRequest()) {
+		Com_Printf( "CL_GamespyServers_f: could not send master request.\n" );
 		return;
 	}
-	bytesRead = NET_ReceiveMasterResponse( buffer, sizeof(buffer) );
+	bytesRead = NETGS_ReceiveMasterResponse( buffer, sizeof(buffer) );
 	if (!bytesRead) {
-		Com_DPrintf( "GS: Error in Response.\n" );
+		Com_Printf( "CL_GamespyServers_f: Error in Response.\n" );
 		return;
 	}
 	// now we should have gotten the mohaa server list from gamespy in buffer :-)
