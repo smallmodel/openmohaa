@@ -3252,7 +3252,20 @@ static void Field_CompleteCommand( char *cmd,
 						Field_CompleteCommand( p, qtrue, qtrue );
 				}
 			}
+			// su44: spawn command can be used only in non-dedicated build
+			else if( !Q_stricmp( baseCmd, "spawn" ) && completionArgument == 2 )
+			{
+				Field_CompleteFilename( "models", "tik", qfalse );
+			}
 #endif
+			// su44: these commands can be used in dedicated build as well
+			else if( ( !Q_stricmp( baseCmd, "tiki" ) ||
+						!Q_stricmp( baseCmd, "tiki_dumpbones" ) ||
+						!Q_stricmp( baseCmd, "tiki_info" ) ) &&
+					completionArgument == 2 )
+			{
+				Field_CompleteFilename( "models", "tik", qfalse );
+			}
 		}
 	}
 	else
