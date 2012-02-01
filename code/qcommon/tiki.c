@@ -960,6 +960,9 @@ void TIKI_AppendSKD(tiki_t *out, char *fname) {
 				 fname, header->ident, SKD_IDENT);
 		return;
 	}
+	if(header->ofsBones != sizeof(skdHeader_t)) {
+		Com_Printf( "TIKI_AppendSKD: strange ofsBones %i in %s\n", header->ofsBones, fname);
+	}
 	//Com_Printf("SKD file %s data, ident %i, v %i, nae %s, nbones %i, surfs %i ",fname, header->ident,header->version,header->name,header->numBones, header->numSurfaces);
 	//Com_Printf("ofs bones %i , surfaces %i, boxes %i, end %i, lods %i, morpgh %i",header->ofsBones, header->ofsSurfaces, header->ofsBoxes,header->ofsEnd,header->ofsLODs, header->ofsMorphTargets);
 
@@ -968,6 +971,11 @@ void TIKI_AppendSKD(tiki_t *out, char *fname) {
 	bone = (skdBone_t *) ( (byte *)header + header->ofsBones );
 	for ( i = 0 ; i < header->numBones ; i++) {
 		out->boneNames[i] = TIKI_RegisterBoneName(bone->name);
+#if 1
+		if(bone->ofsValues != sizeof(skdBone_t)) {
+			Com_Error(ERR_DROP,"TIKI_AppendSKD: strange bone->ofsValues %i in model %s\n",bone->ofsValues,fname);
+		}
+#endif
 //		Com_Printf("TIKI_RegisterBoneName returned %i for bone name %s\n",out->boneNames[i],bone->name);
 		bone = (skdBone_t *)( (byte *)bone + bone->ofsEnd );
 	}
@@ -1092,6 +1100,14 @@ void TIKI_AppendSKD(tiki_t *out, char *fname) {
 	memcpy(out->surfs,( ((byte *)header) + header->ofsSurfaces ),header->ofsBoxes-header->ofsSurfaces);
 	surf = out->surfs;
 	for ( i = 0 ; i < header->numSurfaces ; i++) {
+#if 1
+		if(surf->staticSurfProcessed != 0) {
+			Com_DPrintf("Surface %s of %s has staticSurfProcessed %i\n",surf->name,fname,surf->staticSurfProcessed);
+		}
+		if(surf->ofsTriangles != sizeof(skdSurface_t)) {
+			Com_Error(ERR_DROP,"TIKI_AppendSKD: strange surf->ofsTriangles %i in model %s\n",surf->ofsTriangles,fname);
+		}
+#endif
 		surf->ident = 12; //SF_SKD;
 		vert = (skdVertex_t *) ( (byte *)surf + surf->ofsVerts );
 		for ( j = 0 ; j < surf->numVerts ; j++) {
@@ -1140,7 +1156,7 @@ tikiAnim_t *TIKI_CacheAnim(char *fname, float scale) {
 	}
 
 	anim = Hunk_Alloc( sizeof(*anim),h_high);
-	strcpy(anim->fname,fname);
+	strcpy(anim->fname,fname); 
 	anim->frameTime = header->frameTime;
 	anim->numFrames = header->numFrames;
 
@@ -1200,6 +1216,11 @@ tikiAnim_t *TIKI_CacheAnim(char *fname, float scale) {
 	frame = (skcFrame_t *)( (byte *)header + sizeof(*header) );
 	for(i = 0; i < header->numFrames; i++) {
 		float *values = (float*)((byte *)header+frame->ofsValues);
+
+		//if(frame->unknown != 0.f) {
+		//	Com_DPrintf("frame->unknown != 0 (its %f) in skc file %s\n",frame->unknown,fname);
+		//}
+
 		anim->numPosChannels = 0;
 		anim->numRotChannels = 0;
 		anim->numRotFKChannels = 0;

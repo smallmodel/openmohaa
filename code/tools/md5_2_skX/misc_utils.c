@@ -1,0 +1,124 @@
+/*
+===========================================================================
+Copyright (C) 2012 su44
+
+This file is part of md5_2_skX source code.
+
+md5_2_skX source code is free software; you can redistribute it
+and/or modify it under the terms of the GNU General Public License as
+published by the Free Software Foundation; either version 2 of the License,
+or (at your option) any later version.
+
+md5_2_skX source code is distributed in the hope that it will be
+useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with md5_2_skX source code; if not, write to the Free Software
+Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+===========================================================================
+*/
+
+#include "md5_2_skX.h"
+
+// ===========================================================================
+
+void T_Printf(const char *format, ...) {
+	char	buffer[4096];
+	va_list	argptr;
+
+	va_start(argptr, format);
+	vsprintf(buffer, format, argptr);
+	va_end(argptr);
+
+	printf(buffer);
+}
+
+void T_VerbPrintf(const char *format, ...) {
+	char	buffer[4096];
+	va_list	argptr;
+
+	if(verbose == qfalse)
+		return;
+
+	va_start(argptr, format);
+	vsprintf(buffer, format, argptr);
+	va_end(argptr);
+
+	T_Printf(buffer);
+}
+
+void T_Error(const char *format, ...) {
+	char	buffer[4096];
+	va_list	argptr;
+
+	va_start(argptr, format);
+	vsprintf(buffer, format, argptr);
+	va_end(argptr);
+
+	T_Printf("ERROR:");
+	T_Printf(buffer);
+	T_Printf("\n");
+	system("pause");
+	exit(-1);
+}
+
+// ===========================================================================
+
+// su44: this is only here so functions used in q_shared.c and q_math.c can link
+void QDECL Com_Error ( int level, const char *error, ... ) {
+	va_list		argptr;
+	char		text[1024];
+
+	va_start (argptr, error);
+	vsprintf (text, error, argptr);
+	va_end (argptr);
+
+	T_Error( "%s", text);
+}
+
+void QDECL Com_Printf( const char *msg, ... ) {
+	va_list		argptr;
+	char		text[1024];
+
+	va_start (argptr, msg);
+	vsprintf (text, msg, argptr);
+	va_end (argptr);
+
+	T_Printf ("%s", text);
+}
+
+// ===========================================================================
+
+int F_LoadBuf(const char *fname, byte **out) {
+	FILE *f;
+	int len;
+	byte *buf;
+
+	f = fopen(fname,"rb");
+
+	if(f == 0) {
+		*out = 0;
+		return -1; // failed
+	}
+
+	fseek(f, 0, SEEK_END);
+	len = ftell(f);
+	fseek(f, 0, SEEK_SET);
+
+	buf = malloc(len+1);
+	fread(buf,1,len,f);
+	// ensure that there is a trailing zero for text files
+	buf[len] = 0; 
+
+	*out = buf;
+
+	// done.
+	fclose(f);
+	return len;
+}
+
+void F_FreeBuf(byte *b) {
+	free(b);
+}

@@ -18,6 +18,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "renderer_null", "renderer_n
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "renderer_gl3", "renderer_gl3.vcproj", "{90070596-E26A-4100-99CA-20FE4515F55D}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "md5_2_skX", "md5_2_skX.vcproj", "{1EE70807-3FEE-44F5-AE40-E5D4B6AD2FF4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug TA|Win32 = Debug TA|Win32
@@ -132,6 +134,18 @@ Global
 		{90070596-E26A-4100-99CA-20FE4515F55D}.Release TA|Win32.Build.0 = Release|Win32
 		{90070596-E26A-4100-99CA-20FE4515F55D}.Release|Win32.ActiveCfg = Release|Win32
 		{90070596-E26A-4100-99CA-20FE4515F55D}.Release|Win32.Build.0 = Release|Win32
+		{1EE70807-3FEE-44F5-AE40-E5D4B6AD2FF4}.Debug TA|Win32.ActiveCfg = Debug|Win32
+		{1EE70807-3FEE-44F5-AE40-E5D4B6AD2FF4}.Debug TA|Win32.Build.0 = Debug|Win32
+		{1EE70807-3FEE-44F5-AE40-E5D4B6AD2FF4}.Debug_Dedicated|Win32.ActiveCfg = Debug|Win32
+		{1EE70807-3FEE-44F5-AE40-E5D4B6AD2FF4}.Debug_Dedicated|Win32.Build.0 = Debug|Win32
+		{1EE70807-3FEE-44F5-AE40-E5D4B6AD2FF4}.Debug_PlugableRenderer|Win32.ActiveCfg = Debug|Win32
+		{1EE70807-3FEE-44F5-AE40-E5D4B6AD2FF4}.Debug_PlugableRenderer|Win32.Build.0 = Debug|Win32
+		{1EE70807-3FEE-44F5-AE40-E5D4B6AD2FF4}.Debug|Win32.ActiveCfg = Debug|Win32
+		{1EE70807-3FEE-44F5-AE40-E5D4B6AD2FF4}.Debug|Win32.Build.0 = Debug|Win32
+		{1EE70807-3FEE-44F5-AE40-E5D4B6AD2FF4}.Release TA|Win32.ActiveCfg = Release|Win32
+		{1EE70807-3FEE-44F5-AE40-E5D4B6AD2FF4}.Release TA|Win32.Build.0 = Release|Win32
+		{1EE70807-3FEE-44F5-AE40-E5D4B6AD2FF4}.Release|Win32.ActiveCfg = Release|Win32
+		{1EE70807-3FEE-44F5-AE40-E5D4B6AD2FF4}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
