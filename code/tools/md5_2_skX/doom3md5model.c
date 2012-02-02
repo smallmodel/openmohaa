@@ -20,9 +20,17 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ===========================================================================
 */
 
-// doom3md5model.c - Doom3 md5mesh and md5anim loading
+// doom3md5model.c - Doom3 md5mesh and md5anim loading and animation code
 
 #include "md5_2_skX.h"
+
+/*
+====================================================================
+
+Doom3 md5mesh/md5anim LOADING
+
+====================================================================
+*/
 
 tModel_t *loadMD5Mesh(const char *fname) {
 	int i,j,k;
@@ -701,3 +709,144 @@ tAnim_t *loadMD5Anim(const char *fname) {
 	T_Printf("Succesfully loaded %s\n",fname);
 	return out;
 }
+
+
+/*
+====================================================================
+
+Doom3 md5mesh/md5anim ANIMATION code
+
+====================================================================
+*/
+
+enum
+{
+	COMPONENT_BIT_TX = 1 << 0,
+	COMPONENT_BIT_TY = 1 << 1,
+	COMPONENT_BIT_TZ = 1 << 2,
+	COMPONENT_BIT_QX = 1 << 3,
+	COMPONENT_BIT_QY = 1 << 4,
+	COMPONENT_BIT_QZ = 1 << 5
+};
+
+bone_t *setupMD5AnimBones(tAnim_t *a, int frameNum) {
+	static bone_t bones[256];
+	tFrame_t *f;
+	int i;
+	bone_t *baseBone;
+	bone_t *out;
+	tAnimBone_t *boneDef;
+
+	if(a->numFrames <= frameNum) {
+		T_Error("Frame index out of range (frame %i, numFrames %i, anim file %s\n",
+			frameNum,a->numFrames,a->fname);
+	}
+
+	f = a->frames + frameNum;
+
+	for(i = 0, baseBone = a->baseFrame, boneDef = a->boneData, out = bones;
+		i < a->numBones; i++, baseBone++,boneDef++, out++) {
+		vec3_t p;
+		quat_t q;
+		int componentsApplied;
+
+		// set baseframe values
+		VectorCopy(baseBone->p, p);
+		QuatCopy(baseBone->q, q);
+
+		componentsApplied = 0;
+
+		// update tranlation bits
+		if(boneDef->componentBits & COMPONENT_BIT_TX) {
+			p[0] = f->components[boneDef->firstComponent + componentsApplied];
+			componentsApplied++;
+		}
+
+		if(boneDef->componentBits & COMPONENT_BIT_TY) {
+			p[1] = f->components[boneDef->firstComponent + componentsApplied];
+			componentsApplied++;
+		}
+
+		if(boneDef->componentBits & COMPONENT_BIT_TZ) {
+			p[2] = f->components[boneDef->firstComponent + componentsApplied];
+			componentsApplied++;
+		}
+
+		// update quaternion rotation bits
+		if(boneDef->componentBits & COMPONENT_BIT_QX) {
+			((vec_t *) q)[0] = f->components[boneDef->firstComponent + componentsApplied];
+			componentsApplied++;
+		}
+
+		if(boneDef->componentBits & COMPONENT_BIT_QY) {
+			((vec_t *) q)[1] = f->components[boneDef->firstComponent + componentsApplied];
+			componentsApplied++;
+		}
+
+		if(boneDef->componentBits & COMPONENT_BIT_QZ) {
+			((vec_t *) q)[2] = f->components[boneDef->firstComponent + componentsApplied];
+		}
+
+		// calculate quaternion W value, as it isnt stored in md5 anim
+		QuatCalcW(q);
+		QuatNormalize(q);
+		
+		// copy out results
+		VectorCopy(p,out->p);
+		QuatCopy(q,out->q);
+	}
+
+	return bones;
+}
+
+
+bone_t *setupMD5MeshBones(tModel_t *mod) {
+	static bone_t bones[256];
+	int i;
+	bone_t *out;
+	bone_t *baseBone;
+	tBone_t *bone;
+
+	for(i = 0, bone = mod->bones, baseBone = mod->baseFrame, out = bones;
+		i < mod->numBones; i++, bone++, baseBone++, out++) {
+		matrix_t m;
+		matrix_t pM;
+		bone_t *baseParent;
+
+		if(bone->parent == -1) {
+			continue; // nothing to do.
+		}
+
+		baseParent = &mod->baseFrame[bone->parent];
+
+		//
+		// calculate bone position in local space
+		// (relative to parent)
+		//
+
+		// get transformation matrix of this bone
+		//MatrixFromQuat(m,baseBone->q);
+		MatrixSetupTransformFromQuat(m,baseBone->q,baseBone->p);
+
+		// get the inverse transform matrix of parent bone
+		MatrixSetupTransformFromQuat(pM,baseParent->q,baseParent->p);
+		MatrixInverse(pM);
+
+		// multiple them
+		MatrixMultiply2(m,pM);
+
+		// convert result matrix back to quaternion and vector
+		QuatFromMatrix(out->q,m);
+		VectorCopy(&m[12],out->p);
+	}
+
+	return bones;
+}
+
+
+
+
+
+
+
+
