@@ -112,6 +112,8 @@ extern char outTIKI[MAX_TOOLPATH];
 // doom3md5model.c
 tModel_t *loadMD5Mesh(const char *fname);
 tAnim_t *loadMD5Anim(const char *fname);
+bone_t *setupMD5AnimBones(tAnim_t *a, int frameNum);
+bone_t *setupMD5MeshBones(tModel_t *mod);
 
 // misc_utils.c
 void T_Printf(const char *format, ...);

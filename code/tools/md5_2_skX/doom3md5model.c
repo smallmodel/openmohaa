@@ -791,6 +791,9 @@ bone_t *setupMD5AnimBones(tAnim_t *a, int frameNum) {
 		QuatCalcW(q);
 		QuatNormalize(q);
 		
+		// inverse quat for MoHAA
+		QuatInverse(q);
+		
 		// copy out results
 		VectorCopy(p,out->p);
 		QuatCopy(q,out->q);
