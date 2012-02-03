@@ -175,6 +175,10 @@
 				RelativePath="..\..\code\tools\md5_2_skX\misc_utils.c"
 				>
 			</File>
+			<File
+				RelativePath="..\..\code\tools\md5_2_skX\writeskl.c"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"

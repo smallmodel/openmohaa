@@ -115,6 +115,9 @@ tAnim_t *loadMD5Anim(const char *fname);
 bone_t *setupMD5AnimBones(tAnim_t *a, int frameNum);
 bone_t *setupMD5MeshBones(tModel_t *mod);
 
+// writeskl.c
+void writeSKL(tModel_t *m, tAnim_t *a, const char *outFName);
+
 // misc_utils.c
 void T_Printf(const char *format, ...);
 void T_VerbPrintf(const char *format, ...);

@@ -389,7 +389,7 @@ tAnim_t *loadMD5Anim(const char *fname) {
 	len = F_LoadBuf(fname,(byte**)&txt);
 
 	if(len == -1) {
-		T_Error("Cannot open %s\n",fname);
+		T_Printf("Cannot open %s\n",fname);
 		return 0;
 	}
 
@@ -812,12 +812,16 @@ bone_t *setupMD5MeshBones(tModel_t *mod) {
 
 	for(i = 0, bone = mod->bones, baseBone = mod->baseFrame, out = bones;
 		i < mod->numBones; i++, bone++, baseBone++, out++) {
-		matrix_t m;
 		matrix_t pM;
+		matrix_t m;
 		bone_t *baseParent;
 
 		if(bone->parent == -1) {
-			continue; // nothing to do.
+			//QuatSet(out->q,0,0,0,1);
+			// that's a hack which should be fixed soon...
+			QuatFromAngles(out->q,0,0,-90);
+			VectorSet(out->p,0,0,0);
+			continue; // nothing else to do.
 		}
 
 		baseParent = &mod->baseFrame[bone->parent];
@@ -828,19 +832,23 @@ bone_t *setupMD5MeshBones(tModel_t *mod) {
 		//
 
 		// get transformation matrix of this bone
-		//MatrixFromQuat(m,baseBone->q);
+		//MatrixFromQuat(pM,baseBone->q);
 		MatrixSetupTransformFromQuat(m,baseBone->q,baseBone->p);
 
 		// get the inverse transform matrix of parent bone
 		MatrixSetupTransformFromQuat(pM,baseParent->q,baseParent->p);
+		QuatFromMatrix(baseParent->q,pM);
 		MatrixInverse(pM);
 
 		// multiple them
-		MatrixMultiply2(m,pM);
+		MatrixMultiply2(pM,m);
 
 		// convert result matrix back to quaternion and vector
-		QuatFromMatrix(out->q,m);
-		VectorCopy(&m[12],out->p);
+		QuatFromMatrix(out->q,pM);
+		QuatInverse(out->q);
+
+		T_Printf("Q: %f %f %f %f\n",out->q[0],out->q[1],out->q[2],out->q[3]);
+		VectorCopy(&pM[12],out->p);
 	}
 
 	return bones;

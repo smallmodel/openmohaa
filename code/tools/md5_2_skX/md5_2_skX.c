@@ -25,6 +25,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 qboolean verbose = qfalse;
 qboolean noLimits = qfalse;
 qboolean createTIK = qfalse;
+qboolean createSKL = qfalse;
+qboolean renameBones = qfalse;
 char inMD5Mesh[MAX_TOOLPATH];
 int numAnims = 0;
 char inMD5Anim[MAX_TOOLPATH][256];
@@ -105,6 +107,82 @@ void ConvertAnimation(tAnim_t *a, const char *outFName) {
 	}
 	fclose(out);
 }
+void ConvertModelBaseFrameToAnim(tModel_t *m, const char *outFName) {
+	int i,j;
+	skcHeader_t h;
+	FILE *out;
+	bone_t *b;
+	tBone_t *bd;
+	char name[SKC_MAX_CHANNEL_CHARS];
+	int ofsChannelNames;
+
+	out = fopen(outFName,"wb");
+	if(out == 0) {
+		T_Error("ConvertModelBaseFrameToAnim: Cannot open %s\n",outFName);
+	}
+
+	memset(&h,0,sizeof(h));
+	h.ident = SKC_IDENT;
+	h.version = SKC_VERSION;
+	h.numFrames = 1;
+	h.frameTime = 0.033333335;
+	h.numChannels = m->numBones * 2;
+
+	fwrite(&h,sizeof(h),1,out);
+
+	// write single frame
+	{
+		skcFrame_t outFrame;
+		VectorSet(outFrame.bounds[0],-128,-128,-128);
+		VectorSet(outFrame.bounds[1],128,128,128);
+		//VectorCopy(f->mins,outFrame.bounds[0]);
+		//VectorCopy(f->maxs,outFrame.bounds[1]);
+		outFrame.radius = RadiusFromBounds(outFrame.bounds[0],outFrame.bounds[1]);
+		VectorSet(outFrame.delta,0,0,0);
+		outFrame.unknown = 0;
+		outFrame.ofsValues = sizeof(h) + sizeof(skcFrame_t) * /*a->numFrames */ 1
+			+ (m->numBones * sizeof(float)*8) * 0/*i*/;
+
+		fwrite(&outFrame,sizeof(outFrame),1,out);
+	}
+	// done.
+
+	// write channel values
+	{
+		bone_t *bones;
+
+		bones = setupMD5MeshBones(m);
+
+		for(j = 0, b = bones; j < m->numBones; j++, b++) {
+			// first quat
+			fwrite(&b->q[0],sizeof(quat_t),1,out);
+			// then pos
+			fwrite(&b->p[0],sizeof(vec3_t),1,out);
+			fwrite(&null,sizeof(int),1,out);
+		}
+	}
+	ofsChannelNames = ftell(out);
+	// write channel names
+	for(i = 0, bd = m->bones; i < m->numBones; i++, bd++) {
+		Q_strncpyz(name,bd->name,SKC_MAX_CHANNEL_CHARS-4);
+		strcat(name," rot");
+		fwrite(name,SKC_MAX_CHANNEL_CHARS,1,out);
+		Q_strncpyz(name,bd->name,SKC_MAX_CHANNEL_CHARS-4);
+		strcat(name," pos");
+		fwrite(name,SKC_MAX_CHANNEL_CHARS,1,out);
+
+	}
+
+	// reupdate the header
+	h.ofsEnd = ftell(out);
+	h.ofsChannels = ofsChannelNames;
+	fseek(out,0,SEEK_SET);
+	fwrite(&h,sizeof(h),1,out);
+	if(ftell(out) != sizeof(h)) {
+		T_Error("Fatal file write error\n");
+	}
+	fclose(out);
+}
 void SplitSurfaces(tModel_t *m);
 int countVertBytes(tSurf_t *sf) {
 	int i;
@@ -127,12 +205,6 @@ void ConvertModel(tModel_t *m, const char *outFName) {
 	out = fopen(outFName,"wb");
 	if(out == 0) {
 		T_Error("ConvertModel: Cannot open %s\n",outFName);
-	}
-
-	if(noLimits == qfalse) {
-		// ensure that there are no surfaces with
-		// numVerts >= 1000 or numTris >= 2000
-		SplitSurfaces(m);
 	}
 
 	memset(&h,0,sizeof(h));
@@ -387,6 +459,7 @@ void stripExt(char *s) {
 void Convert() {
 	char fname[MAX_TOOLPATH];
 	int i;
+	int numValidAnims;
 	tModel_t *m;
 	tAnim_t *a;
 	
@@ -396,18 +469,52 @@ void Convert() {
 		T_Error("Couldn't load %s\n",inMD5Mesh);
 	}
 
-	strcpy(fname,inMD5Mesh);
-	stripExt(fname);
-	strcat(fname,".skd");
-	ConvertModel(m,fname);
+	if(noLimits == qfalse) {
+		// ensure that there are no surfaces with
+		// numVerts >= 1000 or numTris >= 2000
+		SplitSurfaces(m);
+	}
+
+	if(renameBones == qtrue) {
+		for(i = 0; i < m->numBones; i++) {
+			sprintf(m->bones[i].name,"Bone%i",i);
+		}
+	}
 
 	// load animations
+	numValidAnims = 0;
 	for(i = 0; i < numAnims; i++) {
 		a = loadMD5Anim(inMD5Anim[i]);
 		if(a == 0) {
 			T_Printf("Failed to load: %s\n",inMD5Anim[i]);
 		}
 		md5Anims[i] = a;
+		if(a)
+			numValidAnims++;
+	}
+	
+	if(createSKL) {
+		strcpy(fname,inMD5Mesh);
+		stripExt(fname);
+		strcat(fname,".skl");
+		// fixme!
+		writeSKL(m,md5Anims[0],fname);
+		return;
+	}
+
+	strcpy(fname,inMD5Mesh);
+	stripExt(fname);
+	strcat(fname,".skd");
+	ConvertModel(m,fname);
+
+	// if there are no animation files specified,
+	// extract base frame from md5mesh and
+	// save it to skc file
+	if(numValidAnims == 0) {
+		stripExt(fname);
+		strcat(fname,".skc");
+		ConvertModelBaseFrameToAnim(m,fname);
+		return;
 	}
 
 	// converts animations
@@ -444,6 +551,10 @@ int main(int argc, const char **argv) {
 			// get mesh filename
 			i++;
 			strcpy(inMD5Mesh,argv[i]);
+		} else if(!Q_stricmp(argv[i], "-skl")) {
+			createSKL = qtrue;
+		} else if(!Q_stricmp(argv[i], "-renameBones")) {
+			renameBones = qtrue;
 		} else if(strstr(argv[i], "md5mesh")) {
 			// that's a mesh filename
 			strcpy(inMD5Mesh,argv[i]);
