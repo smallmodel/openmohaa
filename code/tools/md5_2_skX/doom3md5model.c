@@ -802,6 +802,32 @@ bone_t *setupMD5AnimBones(tAnim_t *a, int frameNum) {
 	return bones;
 }
 
+void md5AnimateBones(tModel_t *m, bone_t *bones) {
+	int i;
+	tBone_t *b;
+	bone_t *bo;
+
+	for(i = 0, b = m->bones, bo = bones; i < m->numBones; i++, b++, bo++) {
+		quat_t	pos,res,temp;
+		if(b->parent == -1) {
+			QuatInverse(bo->q);
+			continue;
+		}
+		VectorCopy(bo->p,pos);
+		pos[3]=0;
+		QuaternionMultiply(temp,pos,bones[b->parent].q);
+		QuatInverse(bones[b->parent].q);
+		QuaternionMultiply(res,bones[b->parent].q,temp);
+		QuatInverse(bones[b->parent].q);
+		bones[i].p[0] = res[0] +bones[b->parent].p[0];
+		bones[i].p[1] = res[1] +bones[b->parent].p[1];
+		bones[i].p[2] = res[2] +bones[b->parent].p[2];
+		QuatCopy(bones[i].q,temp);
+		QuatInverse(temp);
+		QuaternionMultiply(bones[i].q,temp,bones[b->parent].q);
+		QuatNormalize(bones[i].q);
+	}
+}
 
 bone_t *setupMD5MeshBones(tModel_t *mod) {
 	static bone_t bones[256];

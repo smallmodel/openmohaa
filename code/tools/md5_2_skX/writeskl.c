@@ -144,6 +144,7 @@ void writeSKL(tModel_t *m, tAnim_t *a, const char *outFName) {
 		bone_t *bones, *b;
 		
 		bones = b = setupMD5AnimBones(a,i);
+		md5AnimateBones(m,bones); 
 		f = a->frames + i;
 		fprintf(out,"\nFRAME %i\n",i);
 		for(j = 0; j < a->numBones; j++,b++) {
