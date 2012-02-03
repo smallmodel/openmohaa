@@ -31,7 +31,7 @@ char inMD5Anim[MAX_TOOLPATH][256];
 tAnim_t *md5Anims[256];
 char outTIKI[MAX_TOOLPATH];
 
-static int null = 0;
+static float null = 0;
 void ConvertAnimation(tAnim_t *a, const char *outFName) {
 	int i,j;
 	tFrame_t *f;
@@ -62,7 +62,7 @@ void ConvertAnimation(tAnim_t *a, const char *outFName) {
 		VectorCopy(f->maxs,outFrame.bounds[1]);
 		outFrame.radius = RadiusFromBounds(f->mins,f->maxs);
 		VectorSet(outFrame.delta,0,0,0);
-		outFrame.unknown = 0.f;
+		outFrame.unknown = 0;
 		outFrame.ofsValues = sizeof(h) + sizeof(skcFrame_t) * a->numFrames 
 			+ (a->numBones * sizeof(float)*8) * i;
 
@@ -76,22 +76,23 @@ void ConvertAnimation(tAnim_t *a, const char *outFName) {
 		bones = setupMD5AnimBones(a,i);
 
 		for(j = 0, b = bones; j < a->numBones; j++, b++) {
-			// first pos
+			// first quat
+			fwrite(&b->q[0],sizeof(quat_t),1,out);
+			// then pos
 			fwrite(&b->p[0],sizeof(vec3_t),1,out);
 			fwrite(&null,sizeof(int),1,out);
-			// then quat
-			fwrite(&b->q[0],sizeof(quat_t),1,out);
 		}
 	}
 	ofsChannelNames = ftell(out);
 	// write channel names
 	for(i = 0, bd = a->boneData; i < a->numBones; i++, bd++) {
 		Q_strncpyz(name,bd->name,SKC_MAX_CHANNEL_CHARS-4);
-		strcat(name," pos");
-		fwrite(name,SKC_MAX_CHANNEL_CHARS,1,out);
-		Q_strncpyz(name,bd->name,SKC_MAX_CHANNEL_CHARS-4);
 		strcat(name," rot");
 		fwrite(name,SKC_MAX_CHANNEL_CHARS,1,out);
+		Q_strncpyz(name,bd->name,SKC_MAX_CHANNEL_CHARS-4);
+		strcat(name," pos");
+		fwrite(name,SKC_MAX_CHANNEL_CHARS,1,out);
+
 	}
 
 	// reupdate the header
@@ -103,6 +104,15 @@ void ConvertAnimation(tAnim_t *a, const char *outFName) {
 		T_Error("Fatal file write error\n");
 	}
 	fclose(out);
+}
+void SplitSurfaces(tModel_t *m);
+int countVertBytes(tSurf_t *sf) {
+	int i;
+	int r = sf->numVerts * sizeof(skdVertex_t);
+	for(i = 0; i < sf->numVerts; i++) {
+		r += (sizeof(skdWeight_t) * sf->verts[i].numWeights);
+	}
+	return r;
 }
 void ConvertModel(tModel_t *m, const char *outFName) {
 	skdHeader_t h;
@@ -117,6 +127,12 @@ void ConvertModel(tModel_t *m, const char *outFName) {
 	out = fopen(outFName,"wb");
 	if(out == 0) {
 		T_Error("ConvertModel: Cannot open %s\n",outFName);
+	}
+
+	if(noLimits == qfalse) {
+		// ensure that there are no surfaces with
+		// numVerts >= 1000 or numTris >= 2000
+		SplitSurfaces(m);
 	}
 
 	memset(&h,0,sizeof(h));
@@ -170,8 +186,11 @@ void ConvertModel(tModel_t *m, const char *outFName) {
 		VectorSet(values,1.f,1.f,1.f);
 		fwrite(&values,sizeof(values),1,out);	
 		// write channel names 
- 		fwrite(chanPos,strlen(chanPos)+1,1,out);
+		// su44 NOTE: ROT MUST GO FIRST.
+		// (it will NOT work in MoHAA other way!)
 		fwrite(chanRot,strlen(chanRot)+1,1,out);
+		// .. then pos channel.
+		fwrite(chanPos,strlen(chanPos)+1,1,out);
 	}
 
 	afterBones = ftell(out);
@@ -182,8 +201,9 @@ void ConvertModel(tModel_t *m, const char *outFName) {
 		int numVertBytes;
 
 		numTriBytes = s->numTris * sizeof(skdTriangle_t);
-		numVertBytes = s->numWeights * sizeof(skdWeight_t) +
-			s->numVerts * sizeof(skdVertex_t);
+		//numVertBytes = s->numWeights * sizeof(skdWeight_t) +
+		//	s->numVerts * sizeof(skdVertex_t);
+		numVertBytes = countVertBytes(s);
 
 		memset(&sf,0,sizeof(sf));
 		sf.ident = SKD_SURFACE_IDENT;
@@ -231,6 +251,124 @@ void ConvertModel(tModel_t *m, const char *outFName) {
 	}
 	fclose(out);
 }
+
+int verts[8192];
+tTri_t tris[8192];
+int numVerts;
+int numTris;
+int regVert(int v) {
+	int i;
+	for(i = 0; i < numVerts; i++) {
+		if(verts[i] == v)
+			return i;
+	}
+	verts[numVerts] = v;
+	numVerts++;
+	return i;
+}
+void addTri(tTri_t t) {
+	tTri_t n;
+
+	n.indexes[0] = regVert(t.indexes[0]);
+	n.indexes[1] = regVert(t.indexes[1]);
+	n.indexes[2] = regVert(t.indexes[2]);
+
+	tris[numTris] = n;
+
+	numTris++;
+}
+void SplitSurfaces(tModel_t *m) {
+	int i,j,k;
+	tSurf_t *sf, *nsf, *oldSurfs;
+	int oldNumSurfs;
+	int add;
+	int realNewSurfacesCount;
+
+	sf = m->surfs;
+	add = 0;
+
+	for(i = 0; i < m->numSurfaces; i++, sf++) {
+		int vertSplits;
+		int triSplits;
+
+		vertSplits = 0;
+		triSplits = 0;
+
+		// MoHAA cant handle more than 1000 vertices
+		if(sf->numVerts > 1000) {
+			int tmp = sf->numVerts;
+			while(tmp > 1000) {
+				vertSplits++;
+				tmp -= 1000;
+			}
+		}
+		// or more than 2000 triangles
+		if(sf->numTris > 2000) {
+			int tmp = sf->numTris;
+			while(tmp > 2000) {
+				triSplits++;
+				tmp -= 2000;
+			}
+		}
+		add += (vertSplits + triSplits);
+	}
+
+	if(add == 0)
+		return;
+	oldNumSurfs = m->numSurfaces;
+	oldSurfs = m->surfs;
+
+	realNewSurfacesCount = 0;
+
+	m->numSurfaces += add;
+	m->surfs = malloc(m->numSurfaces * sizeof(tSurf_t));
+	memset(m->surfs,0,sizeof(tSurf_t)*m->numSurfaces);
+	sf = oldSurfs;
+	nsf = m->surfs;
+	for(i = 0; i < oldNumSurfs; i++, sf++,nsf++,realNewSurfacesCount++) {
+		if(sf->numVerts > 1000 || sf->numTris > 2000) {
+			numTris = 0;
+			numVerts = 0;
+			// iterate all the tris while performing the splits
+			for(j = 0; j < sf->numTris; j++) {
+				addTri(sf->tris[j]);
+				if(numVerts + 3 >= 1000 || numTris + 1 >= 2000) {
+					// copy out existing data and continue splitting
+					strcpy(nsf->name,sf->name);
+					nsf->numTris = numTris;
+					nsf->tris = malloc(sizeof(tTri_t)*numTris);
+					memcpy(nsf->tris,tris,sizeof(tTri_t)*numTris);
+					nsf->numVerts = numVerts;
+					nsf->verts = malloc(sizeof(tVert_t)*numVerts);
+					for(k = 0; k < numVerts; k++) {
+						nsf->verts[k] = sf->verts[verts[k]];
+					}
+					realNewSurfacesCount++;
+					nsf++; // next new surface
+					numVerts = 0;
+					numTris = 0;
+				}
+			}
+			// copy out remaining data
+			assert(numTris);
+			assert(numVerts);
+			strcpy(nsf->name,sf->name);
+			nsf->numTris = numTris;
+			nsf->tris = malloc(sizeof(tTri_t)*numTris);
+			memcpy(nsf->tris,tris,sizeof(tTri_t)*numTris);
+			nsf->numVerts = numVerts;
+			nsf->verts = malloc(sizeof(tVert_t)*numVerts);
+			for(k = 0; k < numVerts; k++) {
+				nsf->verts[k] = sf->verts[verts[k]];
+			}
+			continue;
+		}
+		*nsf = *sf;
+	}
+	
+	m->numSurfaces = realNewSurfacesCount;
+ }
+
 void stripExt(char *s) {
 	int l;
 	char *p;
@@ -313,6 +451,9 @@ int main(int argc, const char **argv) {
 			// that's a anim filename
 			strcpy(inMD5Anim[numAnims],argv[i]);
 			numAnims++;
+		} else {
+			T_Printf("Unknown argument \"%s\"\n",argv[i]);
+			// TODO: print help
 		}
 	}
 
