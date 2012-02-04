@@ -89,8 +89,8 @@ void writeSKL(tModel_t *m, tAnim_t *a, const char *outFName) {
 		vt = sf->verts;
 		for(j = 0; j < sf->numVerts; j++,v++,vt++) {
 			fprintf(out,"VERT %i\n",v);
-			//fprintf(out,"NORMAL %f %f %f\n",vt->normal[0],vt->normal[1],vt->normal[2]);
-			fprintf(out,"NORMAL 1 0 0\n");
+			fprintf(out,"NORMAL %f %f %f\n",vt->normal[0],vt->normal[1],vt->normal[2]);
+			//fprintf(out,"NORMAL 1 0 0\n");
 			fprintf(out,"BONES %i\n",vt->numWeights);
 			for(k = 0; k < vt->numWeights; k++) {
 				fprintf(out,"BONE %i %f %f %f %f\n",vt->weights[k].boneNum,vt->weights[k].boneWeight,

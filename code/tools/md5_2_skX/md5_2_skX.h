@@ -31,7 +31,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define MD5_2_SKX_VERSION "0.1"
 
 // maximum size of file path used in this tool
-#define MAX_TOOLPATH 256
+#define MAX_TOOLPATH 512
 
 // tool model data
 typedef struct tBone_s {
@@ -52,7 +52,7 @@ typedef struct {
 
 typedef struct {
 	vec2_t texCoords;
-	//vec3_t normal; // TODO
+	vec3_t normal;
 	int firstWeight;
 	int numWeights;
 	tWeight_t *weights;
@@ -108,6 +108,13 @@ extern qboolean verbose;
 extern qboolean noLimits;
 extern qboolean createTIK;
 extern char outTIKI[MAX_TOOLPATH];
+extern char outSKDMesh[MAX_TOOLPATH];
+extern char outSKCAnim[MAX_TOOLPATH][256];
+extern int numAnims;
+extern tAnim_t *md5Anims[256];
+
+// globals
+extern tModel_t *md5Mesh;
 
 // doom3md5model.c
 tModel_t *loadMD5Mesh(const char *fname);
@@ -127,5 +134,11 @@ int F_LoadBuf(const char *fname, byte **out);
 void F_FreeBuf(byte *b);
 
 
+void stripExt(char *s);
+const char *strchr_r(const char *s, char c, char c2);
+// this will change all '\' to '/'
+void backSlashesToSlashes(char *s);
+const char *getGamePath(const char *s);
+const char *getFName(const char *s);
 
 #endif // __MD5_2_SKX_H__

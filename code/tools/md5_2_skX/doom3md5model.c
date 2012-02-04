@@ -367,8 +367,14 @@ tModel_t *loadMD5Mesh(const char *fname) {
 				v->weights[k] = surf->weights[v->firstWeight + k];
 			}
 		}
+		
+		// TODO: precalculate normals
+		for(j = 0, v = surf->verts; j < surf->numVerts; j++, v++) {
+			VectorSet(v->normal,0,0,1);
+		}
+
 	}
-	T_Printf("Succesfully loaded %s\n",fname);
+	T_Printf("Succesfully loaded Doom3 model %s\n",fname);
 	return out;
 }
 
@@ -706,7 +712,7 @@ tAnim_t *loadMD5Anim(const char *fname) {
 		
 	}
 
-	T_Printf("Succesfully loaded %s\n",fname);
+	T_Printf("Succesfully loaded Doom3 animation %s\n",fname);
 	return out;
 }
 

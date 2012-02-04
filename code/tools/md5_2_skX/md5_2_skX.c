@@ -28,10 +28,15 @@ qboolean createTIK = qfalse;
 qboolean createSKL = qfalse;
 qboolean renameBones = qfalse;
 char inMD5Mesh[MAX_TOOLPATH];
+char outSKDMesh[MAX_TOOLPATH];
+tModel_t *md5Mesh;
 int numAnims = 0;
 char inMD5Anim[MAX_TOOLPATH][256];
+char outSKCAnim[MAX_TOOLPATH][256];
 tAnim_t *md5Anims[256];
 char outTIKI[MAX_TOOLPATH];
+// that's a path where skc/skd files should be put
+char modelDataDir[MAX_TOOLPATH];
 
 static float null = 0;
 void ConvertAnimation(tAnim_t *a, const char *outFName) {
@@ -106,6 +111,7 @@ void ConvertAnimation(tAnim_t *a, const char *outFName) {
 		T_Error("Fatal file write error\n");
 	}
 	fclose(out);
+	T_Printf("Wrote MoHAA animation %s\n",outFName);
 }
 void ConvertModelBaseFrameToAnim(tModel_t *m, const char *outFName) {
 	int i,j;
@@ -182,6 +188,7 @@ void ConvertModelBaseFrameToAnim(tModel_t *m, const char *outFName) {
 		T_Error("Fatal file write error\n");
 	}
 	fclose(out);
+	T_Printf("Wrote MoHAA animation %s\n",outFName);
 }
 void SplitSurfaces(tModel_t *m);
 int countVertBytes(tSurf_t *sf) {
@@ -322,6 +329,7 @@ void ConvertModel(tModel_t *m, const char *outFName) {
 		T_Error("Fatal file write error\n");
 	}
 	fclose(out);
+	T_Printf("Wrote MoHAA model %s\n",outFName);
 }
 
 int verts[8192];
@@ -439,21 +447,30 @@ void SplitSurfaces(tModel_t *m) {
 	}
 	
 	m->numSurfaces = realNewSurfacesCount;
- }
+}
 
-void stripExt(char *s) {
-	int l;
-	char *p;
+void constructPath(char *out, const char *source, const char *ext) {
+	assert(ext[0] == '.');
+	if(modelDataDir[0] == 0) {
+		strcpy(out,source);
+		stripExt(out);
+		strcat(out,ext);
+		return;
+	} else {
+		const char *dataPath;
+		const char *p;
+	
+		dataPath = extractTIKIDataPath(modelDataDir);
+		strcpy(out,dataPath);
 
-	l = strlen(s);
+		p = strchr_r(source,'/','\\');
 
-	p = s + l;
-	while(p != s) {
-		if(*p == '.') {
-			*p = 0;
-			return;
-		}
-		p--;
+		p++;
+
+		strcat(out,p);
+		stripExt(out);
+		strcat(out,ext);
+		return;
 	}
 }
 void Convert() {
@@ -464,7 +481,7 @@ void Convert() {
 	tAnim_t *a;
 	
 	// load bone defs and surfaces
-	m = loadMD5Mesh(inMD5Mesh);
+	md5Mesh = m = loadMD5Mesh(inMD5Mesh);
 	if(m == 0) {
 		T_Error("Couldn't load %s\n",inMD5Mesh);
 	}
@@ -502,18 +519,15 @@ void Convert() {
 		return;
 	}
 
-	strcpy(fname,inMD5Mesh);
-	stripExt(fname);
-	strcat(fname,".skd");
-	ConvertModel(m,fname);
+	constructPath(outSKDMesh,inMD5Mesh,".skd");
+	ConvertModel(m,outSKDMesh);
 
 	// if there are no animation files specified,
 	// extract base frame from md5mesh and
 	// save it to skc file
 	if(numValidAnims == 0) {
-		stripExt(fname);
-		strcat(fname,".skc");
-		ConvertModelBaseFrameToAnim(m,fname);
+		constructPath(outSKCAnim[0],inMD5Mesh,".skc");
+		ConvertModelBaseFrameToAnim(m,outSKCAnim[0]);
 		return;
 	}
 
@@ -523,25 +537,39 @@ void Convert() {
 		if(a == 0) {
 			continue;
 		}
-		strcpy(fname,inMD5Anim[i]);
-		stripExt(fname);
-		strcat(fname,".skc");
-		ConvertAnimation(a,fname);
+		constructPath(outSKCAnim[i],inMD5Anim[i],".skc");
+		ConvertAnimation(a,outSKCAnim[i]);
 	}
 }
 int main(int argc, const char **argv) {
 	int i;
 
+	printf("=================================================\n");
+	printf("\n");
 	printf("md5_2_skX - v" MD5_2_SKX_VERSION " (c) 2012 su44.\n");
+	printf("\n");
+	printf("=================================================\n");
+
+	printf("\n");
 
 	// parse arguments list
 	for(i = 1; i < argc; i++) {
 		if(!Q_stricmp(argv[i], "-v")) {
+			// print more info
 			verbose = qtrue;
 		} else if(!Q_stricmp(argv[i], "-nolimit") || !Q_stricmp(argv[i], "-nolimits")) {
+			// dont split surfaces that exceed MoHAA limits
+			// MoHAA will not load models created with that option.
 			noLimits = qtrue;
 		} else if(!Q_stricmp(argv[i], "-tik")) {
+			// generate TIKI file as well.
+			// This will ALSO set modelDataDir path (-outdir option)
 			createTIK = qtrue;
+			if(i+1 < argc && argv[i+1][0] != '-') {
+				i++;
+				strcpy(outTIKI,argv[i]);
+				strcpy(modelDataDir,argv[i]);
+			}
 		} else if(!Q_stricmp(argv[i], "-anim")) {
 			// get anim filename
 			i++;
@@ -554,6 +582,7 @@ int main(int argc, const char **argv) {
 		} else if(!Q_stricmp(argv[i], "-skl")) {
 			createSKL = qtrue;
 		} else if(!Q_stricmp(argv[i], "-renameBones")) {
+			// rename bones with their numbers, needed to avoid original skl_2_skx asserts 
 			renameBones = qtrue;
 		} else if(strstr(argv[i], "md5mesh")) {
 			// that's a mesh filename
@@ -562,13 +591,30 @@ int main(int argc, const char **argv) {
 			// that's a anim filename
 			strcpy(inMD5Anim[numAnims],argv[i]);
 			numAnims++;
+		} else if(!Q_stricmp(argv[i], "-to") || !Q_stricmp(argv[i], "-outdir")) {
+			i++;
+			// that's a path where generated skc/skd files should be put
+			strcpy(modelDataDir,argv[i]);
 		} else {
 			T_Printf("Unknown argument \"%s\"\n",argv[i]);
 			// TODO: print help
 		}
 	}
 
+	T_Printf("Arguments parsed, beginning conversion...\n");
+
 	Convert();
+	if(createTIK) {
+		char fname[MAX_TOOLPATH];
+		if(outTIKI[0]) {
+			strcpy(fname,outTIKI);
+		} else {
+			strcpy(fname,inMD5Mesh);
+			stripExt(fname);
+			strcat(fname,".tik");
+		}
+		writeTIKI(fname);
+	}
 
 	printf("Done.\n");
 	// let the user see the results

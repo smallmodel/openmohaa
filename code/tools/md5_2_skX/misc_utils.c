@@ -122,3 +122,72 @@ int F_LoadBuf(const char *fname, byte **out) {
 void F_FreeBuf(byte *b) {
 	free(b);
 }
+
+// ===========================================================================
+
+void stripExt(char *s) {
+	int l;
+	char *p;
+
+	l = strlen(s);
+
+	p = s + l;
+	while(p != s) {
+		if(*p == '.') {
+			*p = 0;
+			return;
+		}
+		p--;
+	}
+}
+const char *strchr_r(const char *s, char c, char c2) {
+	const char *p = s + strlen(s);
+	while(p != s) {
+		if(*p == c || *p == c2)
+			return p;
+		p--;
+	}
+	return 0;
+}
+// this will change all '\' to '/'
+void backSlashesToSlashes(char *s) {
+	while(*s) {
+		if(*s == '\\') {
+			*s = '/';
+		}
+		s++;
+	}
+}
+const char *getGamePath(const char *s) {
+	char buf[MAX_TOOLPATH];
+	const char *p;
+
+	strcpy(buf,s);
+	backSlashesToSlashes(buf);
+	p = buf;
+
+	while(*p) {
+		// this will also work with expansion packs "maintt" (BT) and "mainta" (SH) directories
+		if(!Q_stricmpn(p,"/main",strlen("/main"))) {
+			const char *r;
+			r = strchr(p+1,'/');
+			r++;
+			return r;
+		}
+		p++;
+	}
+	return 0;
+}
+
+const char *getFName(const char *s) {
+	const char *p;
+
+	p = strchr_r(s,'/','\\');
+
+	if(p == 0)
+		return s;
+
+	p++;
+
+	return p;
+}

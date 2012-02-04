@@ -35,7 +35,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #endif
 
 // surface geometry should not exceed these limits
-#define	SHADER_MAX_VERTEXES		1000
+#define	SHADER_MAX_VERTEXES		2048 // 1000 su44: I've increased it a bit...
 #define	SHADER_MAX_INDEXES		(6*SHADER_MAX_VERTEXES)
 #define	SHADER_MAX_TRIANGLES	(2*SHADER_MAX_VERTEXES)
 
@@ -579,10 +579,10 @@ typedef struct {
 
 	float		frameTime;
 
-	int			i3;
-	int			i4;
-	int			i5;
-	int			i6;
+	// su44: what are these?
+	float		dummy1; // 40, -40, etc (so certainly NOT totalTime)
+	float		dummy[3]; // totalDelta ?
+
 	int			numChannels;
 	int			ofsChannels;
 	int			numFrames;
