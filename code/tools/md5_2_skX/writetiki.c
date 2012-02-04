@@ -71,6 +71,8 @@ void writeTIKI(const char *outFName) {
 	fprintf(out,"//\n");
 	fprintf(out,"//////////////////////////////////////////////////////////////////////////\n");
 fprintf(out,"\n");
+	fprintf(out,"TIKI\n");
+fprintf(out,"\n");
 	fprintf(out,"setup\n");
 	fprintf(out,"{\n");
 		fprintf(out,"\tscale 1.0\n");

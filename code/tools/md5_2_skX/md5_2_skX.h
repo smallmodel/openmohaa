@@ -103,6 +103,16 @@ typedef struct {
 	tFrame_t *frames;
 } tAnim_t;
 
+enum
+{
+	COMPONENT_BIT_TX = 1 << 0,
+	COMPONENT_BIT_TY = 1 << 1,
+	COMPONENT_BIT_TZ = 1 << 2,
+	COMPONENT_BIT_QX = 1 << 3,
+	COMPONENT_BIT_QY = 1 << 4,
+	COMPONENT_BIT_QZ = 1 << 5
+};
+
 // command line parameters
 extern qboolean verbose;
 extern qboolean noLimits;
@@ -125,6 +135,13 @@ bone_t *setupMD5MeshBones(tModel_t *mod);
 // writeskl.c
 void writeSKL(tModel_t *m, tAnim_t *a, const char *outFName);
 
+// writetiki.c
+void writeTIKI(const char *outFName);
+
+// readtiki.c
+tModel_t *readSKD(const char *fname, float scale);
+tAnim_t *appendSKC(tModel_t *m, const char *fname, float scale);
+
 // misc_utils.c
 void T_Printf(const char *format, ...);
 void T_VerbPrintf(const char *format, ...);
@@ -140,5 +157,7 @@ const char *strchr_r(const char *s, char c, char c2);
 void backSlashesToSlashes(char *s);
 const char *getGamePath(const char *s);
 const char *getFName(const char *s);
+// returns cleared memory
+void *T_Malloc(unsigned int size);
 
 #endif // __MD5_2_SKX_H__

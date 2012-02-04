@@ -22,6 +22,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 // writeskl.c - .skl model export
 
+// NOTE: ".skl" files exported by this code are now 
+// compatible with skl_2_skX tool from Spearhead SDK.
+
 #include "md5_2_skX.h"
 
 int getTotalVertCount(tModel_t *m) {

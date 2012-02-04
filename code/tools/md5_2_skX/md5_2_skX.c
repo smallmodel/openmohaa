@@ -552,6 +552,23 @@ int main(int argc, const char **argv) {
 
 	printf("\n");
 
+#if 0
+	{
+		tModel_t *m;
+		tAnim_t *a;
+
+		// rewrite some skc/skd files in order to validate
+		// md5_2_skX export/import code...
+
+		m = readSKD("E:/openmohaa/build/main/models/omtests/copyofsarge/body.skd",1.f);
+		a = appendSKC(m,"E:/openmohaa/build/main/models/omtests/copyofsarge/run.skc",1.f);
+
+		ConvertModel(m,"E:/openmohaa/build/main/models/omtests/sarge/body.skd");
+		ConvertAnimation(a,"E:/openmohaa/build/main/models/omtests/sarge/run.skc");
+
+		return;
+	}
+#endif
 	// parse arguments list
 	for(i = 1; i < argc; i++) {
 		if(!Q_stricmp(argv[i], "-v")) {

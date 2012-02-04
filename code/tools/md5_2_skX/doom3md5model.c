@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 // doom3md5model.c - Doom3 md5mesh and md5anim loading and animation code
+// See: http://www.modwiki.net/wiki/MD5_(file_format)
 
 #include "md5_2_skX.h"
 
@@ -724,16 +725,6 @@ Doom3 md5mesh/md5anim ANIMATION code
 
 ====================================================================
 */
-
-enum
-{
-	COMPONENT_BIT_TX = 1 << 0,
-	COMPONENT_BIT_TY = 1 << 1,
-	COMPONENT_BIT_TZ = 1 << 2,
-	COMPONENT_BIT_QX = 1 << 3,
-	COMPONENT_BIT_QY = 1 << 4,
-	COMPONENT_BIT_QZ = 1 << 5
-};
 
 bone_t *setupMD5AnimBones(tAnim_t *a, int frameNum) {
 	static bone_t bones[256];

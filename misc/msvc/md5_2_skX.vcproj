@@ -168,6 +168,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\code\tools\md5_2_skX\loadtiki.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\code\tools\md5_2_skX\md5_2_skX.c"
 				>
 			</File>

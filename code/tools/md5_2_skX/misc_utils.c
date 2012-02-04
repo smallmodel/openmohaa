@@ -191,3 +191,14 @@ const char *getFName(const char *s) {
 
 	return p;
 }
+
+// ===========================================================================
+
+void *T_Malloc(unsigned int size) {
+	void *r = malloc(size);
+	memset(r,0,size);
+	return r;
+}
+
+// ===========================================================================
+
