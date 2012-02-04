@@ -487,6 +487,8 @@ tAnim_t *loadMD5Anim(const char *fname) {
 	// output animation. Still, it will be fried if any error occur
 	out = malloc(sizeof(tAnim_t));
 	
+	strcpy(out->fname,fname);
+
 	out->numAnimatedComponents = tmpNumAnimatedComponents;
 	out->numBones = tmpNumJoints;
 	out->frameRate = tmpFrameRate;
@@ -717,6 +719,147 @@ tAnim_t *loadMD5Anim(const char *fname) {
 	return out;
 }
 
+
+/*
+====================================================================
+
+Doom3 md5mesh/md5anim WRITING
+
+====================================================================
+*/
+
+void writeMD5Mesh(tModel_t *m, const char *outFName) {
+	FILE *out;
+	int i,j,k;
+	tBone_t *boneDef;
+	tVert_t *v;
+	tWeight_t *w;
+	tSurf_t *sf;
+	tTri_t *tri;
+
+	out = fopen(outFName,"w");
+
+	//fprintf(out,"//////////////////////////////////////////////////////////////////////////\n");
+	//fprintf(out,"//\n");
+	//fprintf(out,"// Exported by md5_2_skX\n");
+	//fprintf(out,"//\n");
+	//fprintf(out,"//////////////////////////////////////////////////////////////////////////\n");
+	//fprintf(out,"\n");
+	
+	fprintf(out,"MD5Version 10\n");
+	fprintf(out,"commandline \"\"\n");
+	fprintf(out,"\n");
+	fprintf(out,"numJoints %i\n",m->numBones);
+	fprintf(out,"numMeshes %i\n",m->numSurfaces);
+	fprintf(out,"\n");
+	// write joints block
+	fprintf(out,"joints {\n");
+
+	boneDef = m->bones;
+	for(i = 0; i < m->numBones; i++, boneDef++) {
+		fprintf(out,"\t\"%s\" %i ( 0 0 0 ) ( 0 0 0 )\n",
+			boneDef->name,boneDef->parent);
+	}
+	fprintf(out,"}\n\n");
+
+	// write meshes
+	sf = m->surfs;
+	for(i = 0; i < m->numSurfaces; i++,sf++) {
+		int weightCount;
+		fprintf(out,"mesh {\n");
+		fprintf(out,"\tshader %s\n",sf->name);
+		fprintf(out,"\n");
+		// write vertices
+		fprintf(out,"\tnumverts %i\n",sf->numVerts);
+		weightCount = 0;
+		for(j = 0, v = sf->verts; j < sf->numVerts; j++, v++) {
+			fprintf(out,"\tvert %i ( %f %f ) %i %i\n",
+				j,v->texCoords[0],v->texCoords[1],weightCount,v->numWeights);
+
+			weightCount += v->numWeights;
+		}
+		fprintf(out,"\n");
+		// write triangles
+		fprintf(out,"\tnumtris %i\n",sf->numTris);
+		for(j = 0, tri = sf->tris; j < sf->numTris; j++, tri++) {
+			fprintf(out,"\ttri %i %i %i %i\n",
+				j,tri->indexes[0],tri->indexes[1],tri->indexes[2]);
+		}
+		fprintf(out,"\n");
+		// write weights
+		fprintf(out,"\tnumweights %i\n",weightCount);
+		weightCount = 0;
+		for(j = 0, v = sf->verts; j < sf->numVerts; j++, v++) {
+			for(k = 0, w = v->weights; k < v->numWeights; k++,w++) {
+				fprintf(out,"\tweight %i %i %f ( %f %f %f )\n",
+					weightCount,w->boneNum,w->boneWeight,w->offset[0],w->offset[1],w->offset[2]);
+				weightCount++;
+			}
+		}
+		fprintf(out,"}\n");
+		fprintf(out,"\n");
+	}
+	fclose(out);
+}
+
+#define COMPONENTS_PER_LINE 6
+
+void writeMD5Anim(tAnim_t *a, const char *outFName) {
+	FILE *out;
+	int i,j,k;
+	tAnimBone_t *ab;
+	tFrame_t *f;
+	bone_t *b;
+
+	out = fopen(outFName,"w");
+	
+	fprintf(out,"MD5Version 10\n");
+	fprintf(out,"commandline \"\"\n");
+	fprintf(out,"\n");
+	fprintf(out,"numFrames %i\n",a->numFrames);
+	fprintf(out,"numJoints %i\n",a->numBones);
+	fprintf(out,"frameRate %f\n",a->frameRate);
+	fprintf(out,"numAnimatedComponents %i\n",a->numAnimatedComponents);
+	fprintf(out,"\n");
+	// write joint hierarchy
+	fprintf(out,"hierarchy {\n");
+	for(i = 0, ab = a->boneData; i < a->numBones; i++, ab++) {
+		fprintf(out,"\t\"%s\" %i %i %i\n",
+			ab->name,ab->parent,
+			ab->componentBits,ab->firstComponent);
+	}
+	fprintf(out,"}\n");
+	// write frame bounds
+	fprintf(out,"\nbounds {\n");
+	for(i = 0, f = a->frames; i < a->numFrames; i++, f++) {
+		fprintf(out,"\t( %f %f %f ) ( %f %f %f )\n",
+			f->mins[0],f->mins[1],f->mins[2],f->maxs[0],f->maxs[1],f->maxs[2]);
+	}
+	fprintf(out,"}\n");
+	// write baseframe
+	fprintf(out,"\nbaseframe {\n");
+	for(i = 0, b = a->baseFrame; i < a->numBones; i++, b++) {
+		fprintf(out,"\t( %f %f %f ) ( %f %f %f )\n",
+			b->p[0],b->p[1],b->p[2],b->q[0],b->q[1],b->q[2]);
+	}
+	fprintf(out,"}\n");
+
+	// write separate frames
+	for(i = 0, f = a->frames; i < a->numFrames; i++, f++) {
+		fprintf(out,"\nframe %i {",i);
+		// write frame components
+		for(j = 0; j < a->numAnimatedComponents; j++) {
+			if(j % COMPONENTS_PER_LINE == 0)
+				fprintf(out,"\n\t");
+			fprintf(out,"%f ",f->components[j]);
+		}
+		if(j % COMPONENTS_PER_LINE != 0)
+			fprintf(out,"\n");
+		fprintf(out,"}\n\n");
+	}
+
+	fclose(out);
+}
 
 /*
 ====================================================================

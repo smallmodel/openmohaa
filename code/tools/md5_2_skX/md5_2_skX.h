@@ -121,7 +121,7 @@ extern char outTIKI[MAX_TOOLPATH];
 extern char outSKDMesh[MAX_TOOLPATH];
 extern char outSKCAnim[MAX_TOOLPATH][256];
 extern int numAnims;
-extern tAnim_t *md5Anims[256];
+extern tAnim_t *anims[256];
 
 // globals
 extern tModel_t *md5Mesh;
@@ -129,6 +129,8 @@ extern tModel_t *md5Mesh;
 // doom3md5model.c
 tModel_t *loadMD5Mesh(const char *fname);
 tAnim_t *loadMD5Anim(const char *fname);
+void writeMD5Mesh(tModel_t *m, const char *outFName);
+void writeMD5Anim(tAnim_t *m, const char *outFName);
 bone_t *setupMD5AnimBones(tAnim_t *a, int frameNum);
 bone_t *setupMD5MeshBones(tModel_t *mod);
 
@@ -136,7 +138,7 @@ bone_t *setupMD5MeshBones(tModel_t *mod);
 void writeSKL(tModel_t *m, tAnim_t *a, const char *outFName);
 
 // writetiki.c
-void writeTIKI(const char *outFName);
+void writeTIKI(tModel_t *m, const char *outFName);
 
 // readtiki.c
 tModel_t *readSKD(const char *fname, float scale);

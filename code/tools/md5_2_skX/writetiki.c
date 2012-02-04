@@ -47,16 +47,13 @@ char *extractTIKIDataPath(const char *tikiName) {
 	return out;
 }
 
-void writeTIKI(const char *outFName) {
+void writeTIKI(tModel_t *m,const char *outFName) {
 	FILE *out;
 	int i;
 	char path[MAX_TOOLPATH];
 	const char *skelmodel;
 	const char *p;
-	tModel_t *m;
 	
-	m = md5Mesh;
-
 	p = extractTIKIDataPath(outFName);
 	p = getGamePath(p);
 	strcpy(path,p);
@@ -102,7 +99,7 @@ fprintf(out,"\n");
 		for(i = 0; i < numAnims; i++) {
 			char alias[MAX_TOOLPATH];
 
-			if(md5Anims[i] == 0) {
+			if(anims[i] == 0) {
 				// something failed to load
 				continue;
 			}
