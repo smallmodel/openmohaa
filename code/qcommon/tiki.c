@@ -1154,7 +1154,11 @@ tikiAnim_t *TIKI_CacheAnim(char *fname, float scale) {
 				 fname, header->ident, SKC_IDENT);
 		return 0;
 	}
-
+	if(header->type != 0) {
+		//	32 in "models/human/animation/weapon_pistol/walks_runs/pistol_alert_walk_forward.skc"
+		// "models/human/animation/weapon_pistol/walks_runs/pistol_alert_walk_backwards.skc"
+		Com_Printf("Unusual skc type/flags %i in %s\n",header->type,fname);
+	}
 	anim = Hunk_Alloc( sizeof(*anim),h_high);
 	strcpy(anim->fname,fname); 
 	anim->frameTime = header->frameTime;
@@ -1341,7 +1345,11 @@ again:
 			token = COM_ParseExt(&text, qtrue);
 			strcpy(tmp,token);
 			includes[out->numIncludes] = TIKI_RegisterModel(tmp);
-			out->numIncludes++;
+			if(includes[out->numIncludes]) {
+				out->numIncludes++;
+			} else {
+				Com_Printf("TIKI_Load: failed to include %s in %s\n",tmp,fname);
+			}
 			goto again;
 		}
 		else if(!Q_stricmp(token, "includes")) {

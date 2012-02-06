@@ -268,6 +268,10 @@ void CG_Beam( centity_t *cent ) {
 	for ( i=0;i<4;i++ )
 		modulate[i] = cent->color[i] * 255;
 
+#if 0
+	memset(&modulate,0xff,4);
+#endif
+
 	if ( s1->beam_entnum != ENTITYNUM_NONE ) {
 		centity_t *parent;
 		parent = &cg_entities[s1->beam_entnum];

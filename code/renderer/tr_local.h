@@ -478,6 +478,11 @@ typedef struct {
 	byte		areamask[MAX_MAP_AREA_BYTES];
 	qboolean	areamaskModified;	// qtrue if areamask changed since last scene
 
+	// su44: MoHAA fog
+	float		farplane_distance;
+	float		farplane_color[3];
+	qboolean	farplane_cull;
+
 	float		floatTime;			// tr.refdef.time / 1000.0
 
 	// text messages for deform text shaders

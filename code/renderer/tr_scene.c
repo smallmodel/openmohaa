@@ -321,6 +321,11 @@ void RE_RenderScene( const refdef_t *fd ) {
 	tr.refdef.time = fd->time;
 	tr.refdef.rdflags = fd->rdflags;
 
+	// copy fog data
+	VectorCopy( fd->farplane_color, tr.refdef.farplane_color );
+	tr.refdef.farplane_cull = fd->farplane_cull;
+	tr.refdef.farplane_distance = fd->farplane_distance;
+
 	// su44
 	//if(r_drawstaticmodels->integer && tr.world && ! (tr.refdef.rdflags & RDF_NOWORLDMODEL)) {
 	//	R_AddStaticModelEntities();

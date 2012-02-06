@@ -119,6 +119,9 @@ static void CG_ConfigStringModified( void ) {
 		CG_ParseWarmup();
 	} else if( num >= CS_RAIN_DENSITY && num <= CS_RAIN_NUMSHADERS) {
 		CG_RainCSUpdated(num,str);
+	} else if ( num == CS_FOGINFO ) {
+		sscanf(str, "%d %f %f %f %f", &cg.farplane_cull, &cg.farplane_distance,
+			&cg.farplane_color[0], &cg.farplane_color[1], &cg.farplane_color[2]);
 	} else if ( num == CS_LEVEL_START_TIME ) {
 		cgs.levelStartTime = atoi( str );
 	} else if ( num >= CS_MODELS && num < CS_MODELS+MAX_MODELS ) {

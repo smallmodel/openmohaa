@@ -532,6 +532,7 @@ This function may execute for a couple of minutes with a slow disk.
 */
 static void CG_RegisterGraphics( void ) {
 	int			i;
+	const char	*str;
 
 	// clear any references to old media
 	memset( &cg.refdef, 0, sizeof( cg.refdef ) );
@@ -599,10 +600,12 @@ static void CG_RegisterGraphics( void ) {
 		}
 	}
 	for( i = CS_RAIN_DENSITY; i != (CS_RAIN_NUMSHADERS+1); i++) {
-		const char		*str;
 		str = CG_ConfigString( i );
 		CG_RainCSUpdated(i,str);
 	}
+	str = CG_ConfigString( CS_FOGINFO );
+	sscanf(str, "%d %f %f %f %f", &cg.farplane_cull, &cg.farplane_distance,
+		&cg.farplane_color[0], &cg.farplane_color[1], &cg.farplane_color[2]);
 
 	CG_ClearParticles ();
 /*

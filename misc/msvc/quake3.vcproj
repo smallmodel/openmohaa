@@ -1063,6 +1063,13 @@
 				RelativePath="..\..\code\sys\con_passive.c"
 				>
 				<FileConfiguration
+					Name="Debug_PlugableRenderer|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Debug_Dedicated|Win32"
 					ExcludedFromBuild="true"
 					>
@@ -1551,13 +1558,6 @@
 			<File
 				RelativePath="..\..\code\client\qal.c"
 				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-					/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\code\sys\sys_main.c"
@@ -1566,13 +1566,6 @@
 			<File
 				RelativePath="..\..\code\sys\sys_win32.c"
 				>
-				<FileConfiguration
-					Name="Debug_Dedicated|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-					/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\code\qcommon\tiki.c"

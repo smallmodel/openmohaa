@@ -225,6 +225,7 @@ static consoleCommand_t	commands[] = {
 	{ "testgun", CG_TestGun_f },
 	{ "testmodel", CG_TestModel_f },
 	{ "testmodelanim", CG_TestModelAnim_f },
+	{ "testmodelanimspeedscale", CG_TestModelAnimSpeedScale_f },
 	{ "nextframe", CG_TestModelNextFrame_f },
 	{ "prevframe", CG_TestModelPrevFrame_f },
 	{ "nextskin", CG_TestModelNextSkin_f },

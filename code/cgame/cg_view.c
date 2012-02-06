@@ -109,6 +109,10 @@ void CG_TestModelAnim_f (void) {
 	Q_strncpyz (cg.testModelAnim, CG_Argv( 1 ), MAX_QPATH );
 }
 
+void CG_TestModelAnimSpeedScale_f(void) {
+	cg.testModelAnimSpeedScale = atof(CG_Argv(1));
+}
+
 /*
 =================
 CG_TestGun_f
@@ -183,7 +187,10 @@ static void CG_AddTestModel (void) {
 
 		animIndex = trap_TIKI_GetAnimIndex(tiki,cg.testModelAnim);
 		if(cg.testModelAnim[0]) {
-			float t = cg.time / 100.f;
+			float t = cg.time / 1000.f;
+			if(cg.testModelAnimSpeedScale != 0.f) {
+				t *= cg.testModelAnimSpeedScale;
+			}
 			trap_TIKI_AppendFrameBoundsAndRadius(tiki,animIndex,t,&cg.testModelEntity.radius,cg.testModelEntity.bounds);
 			trap_TIKI_SetChannels(tiki,animIndex,t,1,cg.testModelEntity.bones);
 		} else {
@@ -669,6 +676,11 @@ static int CG_CalcViewValues( void ) {
 	playerState_t	*ps;
 
 	memset( &cg.refdef, 0, sizeof( cg.refdef ) );
+
+	// su44: copy MoHAA fog data
+	VectorCopy(cg.farplane_color,cg.refdef.farplane_color);
+	cg.refdef.farplane_cull = cg.farplane_cull;
+	cg.refdef.farplane_distance = cg.farplane_distance;
 
 	// strings for in game rendering
 	// Q_strncpyz( cg.refdef.text[0], "Park Ranger", sizeof(cg.refdef.text[0]) );

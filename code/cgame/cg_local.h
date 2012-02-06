@@ -114,7 +114,7 @@ typedef struct centity_s {
 
 	bone_t			*bones; // su44: for tiki models
 
-	vec3_t			color;
+	vec4_t			color;
 
 	int				bFootOnGround_Right;
 	int				bFootOnGround_Left;
@@ -395,6 +395,11 @@ typedef struct {
 	float fCurrentViewBobAmp;
 	float fCurrentViewBobPhase;
 
+	// su44: MoHAA fog
+	float		farplane_distance;
+	float		farplane_color[3];
+	qboolean	farplane_cull;
+
 	crain_t rain;
 
 	int iWeaponCommand;
@@ -408,6 +413,7 @@ typedef struct {
 	char			testModelName[MAX_QPATH];
 	char			testModelAnim[MAX_QPATH]; // su44: for testing TIKI model animations
 	qboolean		testGun;
+	float			testModelAnimSpeedScale;
 
 } cg_t;
 
@@ -692,6 +698,7 @@ void CG_TestModelPrevFrame_f (void);
 void CG_TestModelNextSkin_f (void);
 void CG_TestModelPrevSkin_f (void);
 void CG_TestModelAnim_f (void);
+void CG_TestModelAnimSpeedScale_f (void);
 void CG_ZoomDown_f( void );
 void CG_ZoomUp_f( void );
 void CG_AddBufferedSound( sfxHandle_t sfx);

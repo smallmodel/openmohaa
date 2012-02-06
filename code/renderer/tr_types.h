@@ -183,6 +183,11 @@ typedef struct {
 	// 1 bits will prevent the associated area from rendering at all
 	byte		areamask[MAX_MAP_AREA_BYTES];
 
+	// su44: MoHAA fog
+	float		farplane_distance;
+	float		farplane_color[3];
+	qboolean	farplane_cull;
+
 	// text messages for deform text shaders
 	char		text[MAX_RENDER_STRINGS][MAX_RENDER_STRING_LENGTH];
 } refdef_t;
