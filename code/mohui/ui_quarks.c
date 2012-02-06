@@ -1090,6 +1090,34 @@ qboolean UI_ConsoleCommand( int realTime ) {
 		else Com_Printf( "Usage: widgetcommand <widgetname> <command>\n" );
 		return qtrue;
 	}
+	else if ( Q_stricmp (cmd, "ui_startdmmap") == 0 ) {
+		char mapname[64];
+		char maxClients[8];
+		char dedicated[8];
+
+		trap_Cvar_VariableStringBuffer("ui_dmmap",mapname,sizeof(mapname));
+		trap_Cvar_VariableStringBuffer("ui_dedicated",dedicated,sizeof(dedicated));
+		trap_Cvar_VariableStringBuffer("ui_maxclients",maxClients,sizeof(maxClients));
+
+		Com_Printf("ui_startdmmap: map %s, maxClients %s, dedicated %s\n",mapname,maxClients,dedicated);
+
+		if(atoi(maxClients) > MAX_CLIENTS)
+			sprintf(maxClients,"%i",MAX_CLIENTS);
+		
+		trap_Cmd_ExecuteText(EXEC_APPEND,va("set sv_maxclients %s; set dedicated %s; wait; map %s",
+			maxClients,dedicated,mapname));
+
+		return qtrue;
+	}
+	else if ( Q_stricmp (cmd, "menuconnect") == 0 ) {
+		char ip[32];
+
+		trap_Cvar_VariableStringBuffer("ui_connectip",ip,sizeof(ip));
+		
+		trap_Cmd_ExecuteText(EXEC_APPEND,va("connect %s",ip));
+
+		return qtrue;		
+	}
 
 	return qfalse;
 }
