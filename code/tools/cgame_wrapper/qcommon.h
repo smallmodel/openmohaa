@@ -225,6 +225,7 @@ typedef struct skelAnimStoreFrameList_s { /* size 776 id 851 */
 } skelAnimStoreFrameList_c;
 
 typedef struct skelBone_Base { /* size 64 vtable self  id 855 */
+  void *vptr; // su44: IMHO vtable is at the beginning of the struct, not at the end
 // public:
   qboolean m_isDirty; /* bitsize 32, bitpos 0 */
 // protected:
@@ -234,7 +235,7 @@ typedef struct skelBone_Base { /* size 64 vtable self  id 855 */
   float *m_controller; /* bitsize 32, bitpos 448 */
 // private:
 //  __vtbl_ptr_type *_vptr$; /* bitpos 480 */
-  void *vptr;
+  //void *ptr;
 } skelBone_Base_c;
 
 typedef struct skeletor_s { /* size 1268 id 2016 */
@@ -279,6 +280,93 @@ typedef struct dtiki_s { /* size 476 id 19 */
 
 //short int dummy;
 } dtiki_t;
+
+typedef struct trajectory_s { /* size 16 */
+  int trTime; /* bitsize 32, bitpos 0 */
+  float trDelta[3]; /* bitsize 96, bitpos 32 */
+} trajectory_t;
+
+typedef struct entityState_s { /* size 612 id 7 */
+  int number; /* bitsize 32, bitpos 0 */
+  int eType; /* bitsize 32, bitpos 32 */
+  int eFlags; /* bitsize 32, bitpos 64 */
+  trajectory_t pos; /* bitsize 128, bitpos 96 */
+  float netorigin[3]; /* bitsize 96, bitpos 224 */
+  float origin[3]; /* bitsize 96, bitpos 320 */
+  float origin2[3]; /* bitsize 96, bitpos 416 */
+  float netangles[3]; /* bitsize 96, bitpos 512 */
+  float angles[3]; /* bitsize 96, bitpos 608 */
+  int constantLight; /* bitsize 32, bitpos 704 */
+  int loopSound; /* bitsize 32, bitpos 736 */
+  float loopSoundVolume; /* bitsize 32, bitpos 768 */
+  float loopSoundMinDist; /* bitsize 32, bitpos 800 */
+  float loopSoundMaxDist; /* bitsize 32, bitpos 832 */
+  float loopSoundPitch; /* bitsize 32, bitpos 864 */
+  int loopSoundFlags; /* bitsize 32, bitpos 896 */
+  int parent; /* bitsize 32, bitpos 928 */
+  int tag_num; /* bitsize 32, bitpos 960 */
+  qboolean attach_use_angles; /* bitsize 32, bitpos 992 */
+  float attach_offset[3]; /* bitsize 96, bitpos 1024 */
+  int beam_entnum; /* bitsize 32, bitpos 1120 */
+  int modelindex; /* bitsize 32, bitpos 1152 */
+  int usageIndex; /* bitsize 32, bitpos 1184 */
+  int skinNum; /* bitsize 32, bitpos 1216 */
+  int wasframe; /* bitsize 32, bitpos 1248 */
+  frameInfo_t frameInfo[16]; /* bitsize 1536, bitpos 1280 */
+  float actionWeight; /* bitsize 32, bitpos 2816 */
+  int bone_tag[5]; /* bitsize 160, bitpos 2848 */
+  float bone_angles[5][3]; /* bitsize 480, bitpos 3008 */
+  float bone_quat[5][4]; /* bitsize 640, bitpos 3488 */
+  unsigned char surfaces[32]; /* bitsize 256, bitpos 4128 */
+  int clientNum; /* bitsize 32, bitpos 4384 */
+  int groundEntityNum; /* bitsize 32, bitpos 4416 */
+  int solid; /* bitsize 32, bitpos 4448 */
+  float scale; /* bitsize 32, bitpos 4480 */
+  float alpha; /* bitsize 32, bitpos 4512 */
+  int renderfx; /* bitsize 32, bitpos 4544 */
+  float shader_data[2]; /* bitsize 64, bitpos 4576 */
+  float shader_time; /* bitsize 32, bitpos 4640 */
+  float quat[4]; /* bitsize 128, bitpos 4672 */
+  float eyeVector[3]; /* bitsize 96, bitpos 4800 */
+} entityState_t;
+
+typedef struct centity_s { /* size 1632 id 6 */
+  entityState_t /* id 7 */ currentState; /* bitsize 4896, bitpos 0 */
+  entityState_t /* id 7 */ nextState; /* bitsize 4896, bitpos 4896 */
+  int teleported; /* bitsize 32, bitpos 9792 */
+  int interpolate; /* bitsize 32, bitpos 9824 */
+  int currentValid; /* bitsize 32, bitpos 9856 */
+  int miscTime; /* bitsize 32, bitpos 9888 */
+  int snapShotTime; /* bitsize 32, bitpos 9920 */
+  int errorTime; /* bitsize 32, bitpos 9952 */
+  float errorOrigin[3]; /* bitsize 96, bitpos 9984 */
+  float errorAngles[3]; /* bitsize 96, bitpos 10080 */
+  int extrapolated; /* bitsize 32, bitpos 10176 */
+  float rawOrigin[3]; /* bitsize 96, bitpos 10208 */
+  float rawAngles[3]; /* bitsize 96, bitpos 10304 */
+  float beamEnd[3]; /* bitsize 96, bitpos 10400 */
+  float lerpOrigin[3]; /* bitsize 96, bitpos 10496 */
+  float lerpAngles[3]; /* bitsize 96, bitpos 10592 */
+  int tikiLoopSound; /* bitsize 32, bitpos 10688 */
+  float tikiLoopSoundVolume; /* bitsize 32, bitpos 10720 */
+  float tikiLoopSoundMinDist; /* bitsize 32, bitpos 10752 */
+  float tikiLoopSoundMaxDist; /* bitsize 32, bitpos 10784 */
+  float tikiLoopSoundPitch; /* bitsize 32, bitpos 10816 */
+  int tikiLoopSoundFlags; /* bitsize 32, bitpos 10848 */
+  float color[4]; /* bitsize 128, bitpos 10880 */
+  float client_color[4]; /* bitsize 128, bitpos 11008 */
+  int clientFlags; /* bitsize 32, bitpos 11136 */
+  int splash_last_spawn_time; /* bitsize 32, bitpos 11168 */
+  int splash_still_count; /* bitsize 32, bitpos 11200 */
+  float bone_quat[5][4]; /* bitsize 640, bitpos 11232 */
+  float animLastTimes[16]; /* bitsize 512, bitpos 11872 */
+  int animLast[16]; /* bitsize 512, bitpos 12384 */
+  int animLastWeight; /* bitsize 32, bitpos 12896 */
+  int usageIndexLast; /* bitsize 32, bitpos 12928 */
+  int bFootOnGround_Right; /* bitsize 32, bitpos 12960 */
+  int bFootOnGround_Left; /* bitsize 32, bitpos 12992 */
+  int iNextLandTime; /* bitsize 32, bitpos 13024 */
+} centity_t;
 
 typedef struct clientGameImport_s { /* size 684 */
   int apiversion; /* bitsize 32, bitpos 0 */
@@ -369,7 +457,7 @@ typedef struct clientGameImport_s { /* size 684 */
   qhandle_t (*R_RegisterSkin) (/* unknown */); /* bitsize 32, bitpos 2720 */
   qhandle_t (*R_RegisterShader) (/* unknown */); /* bitsize 32, bitpos 2752 */
   qhandle_t (*R_RegisterShaderNoMip) (/* unknown */); /* bitsize 32, bitpos 2784 */
-  void (*R_AddRefEntityToScene) (/* unknown */); /* bitsize 32, bitpos 2816 */
+  void (*R_AddRefEntityToScene) ( refEntity_t *r ); /* bitsize 32, bitpos 2816 */
   void (*R_AddRefSpriteToScene) (/* unknown */); /* bitsize 32, bitpos 2848 */
   void (*R_AddLightToScene) (/* unknown */); /* bitsize 32, bitpos 2880 */
   qboolean (*R_AddPolyToScene) (/* unknown */); /* bitsize 32, bitpos 2912 */

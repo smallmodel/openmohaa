@@ -28,6 +28,26 @@ HMODULE cg_dll;
 // interface function
 typedef clientGameExport_t* (*cgapi)();
 
+// su44: we need to access skeletor_c class somehow
+void R_AddRefEntityToScene(refEntity_t *ent) {
+	skeletor_c *skel;
+	
+	if(ent->tiki) {
+		// su44: to get entity skeletor pointer, we need to know
+		// its TIKI pointer and entityNumber (the one send 
+		// through entityState_t). Bad things happen if TIKI
+		// pointer passed to TIKI_GetSkeletor is NULL.
+		skel = cgi.TIKI_GetSkeletor(ent->tiki,ent->entityNumber);
+		// got it
+
+	} else {
+		skel = 0;
+	}
+
+
+	cgi.R_AddRefEntityToScene(ent);
+
+}
 
 // cgame definitions
 clientGameExport_t cge;
@@ -45,6 +65,7 @@ void CG_Init( clientGameImport_t *imported, int serverMessageNum, int serverComm
 	cgi_out.R_RegisterModel = R_RegisterModel;
 	cgi_out.TIKI_FindTiki = TIKI_FindTiki;
 	cgi_out.R_Model_GetHandle = R_Model_GetHandle;
+	cgi_out.R_AddRefEntityToScene = R_AddRefEntityToScene;
 
 	// Call original function
 	cge.CG_Init(&cgi_out, serverMessageNum, serverCommandSequence, clientNum);
