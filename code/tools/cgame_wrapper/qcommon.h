@@ -27,6 +27,17 @@ typedef enum {
 	qtrue
 } qboolean;
 
+typedef float vec_t;
+typedef float vec2_t[2];
+typedef float vec3_t[3];
+typedef float vec4_t[4];
+typedef float vec5_t[5];
+typedef vec3_t SkelVec3;
+
+typedef struct SkelMat4 { /* size 48 id 162 */
+  float val[4][3]; /* bitsize 384, bitpos 0 */
+} SkelMat4_t;
+
 typedef int qhandle_t;
 typedef int sfxHandle_t;
 typedef int fileHandle_t;
@@ -200,10 +211,60 @@ typedef struct skelChannelList_s { /* size 408 id 126 */
   short int m_chanGlobalFromLocal[200]; /* bitsize 3200, bitpos 64 */
 } skelChannelList_c;
 
+typedef struct skanBlendInfo_s { /* size 12 */
+  float weight; /* bitsize 32, bitpos 0 */
+  struct skelAnimDataGameHeader_s /* id 848 */ *pAnimationData; /* bitsize 32, bitpos 32 */
+  int frame; /* bitsize 32, bitpos 64 */
+} skanBlendInfo;
+
+typedef struct skelAnimStoreFrameList_s { /* size 776 id 851 */
+  short int numMovementFrames; /* bitsize 16, bitpos 0 */
+  short int numActionFrames; /* bitsize 16, bitpos 16 */
+  float actionWeight; /* bitsize 32, bitpos 32 */
+  skanBlendInfo m_blendInfo[64]; /* bitsize 6144, bitpos 64 */
+} skelAnimStoreFrameList_c;
+
+typedef struct skelBone_Base { /* size 64 vtable self  id 855 */
+// public:
+  qboolean m_isDirty; /* bitsize 32, bitpos 0 */
+// protected:
+  struct skelBone_Base /* id 855 */ *m_parent; /* bitsize 32, bitpos 32 */
+  struct SkelMat4 /* id 183 */ m_cachedValue; /* bitsize 384, bitpos 64 */
+// public:
+  float *m_controller; /* bitsize 32, bitpos 448 */
+// private:
+//  __vtbl_ptr_type *_vptr$; /* bitpos 480 */
+  void *vptr;
+} skelBone_Base_c;
+
+typedef struct skeletor_s { /* size 1268 id 2016 */
+// public:
+  struct dtiki_s /* id 104 */ *m_Tiki; /* bitsize 32, bitpos 0 */
+
+// private:
+  SkelVec3 m_frameBounds[2]; /* bitsize 192, bitpos 32 */
+  float m_frameRadius; /* bitsize 32, bitpos 224 */
+  skelAnimStoreFrameList_c m_frameList; /* bitsize 6208, bitpos 256 */
+  short int m_targetLookLeft; /* bitsize 16, bitpos 6464 */
+  short int m_targetLookRight; /* bitsize 16, bitpos 6480 */
+  short int m_targetLookUp; /* bitsize 16, bitpos 6496 */
+  short int m_targetLookDown; /* bitsize 16, bitpos 6512 */
+  short int m_targetLookCrossed; /* bitsize 16, bitpos 6528 */
+  short int m_targetBlink; /* bitsize 16, bitpos 6544 */
+  short int m_timeNextBlink; /* bitsize 16, bitpos 6560 */
+  short int m_headBoneIndex; /* bitsize 16, bitpos 6576 */
+  float m_eyeTargetPos[3]; /* bitsize 96, bitpos 6592 */
+  float m_eyePrevTargetPos[3]; /* bitsize 96, bitpos 6688 */
+  struct skelBone_Base /* id 855 */ *m_leftFoot; /* bitsize 32, bitpos 6784 */
+  struct skelBone_Base /* id 855 */ *m_rightFoot; /* bitsize 32, bitpos 6816 */
+  skelChannelList_c m_morphTargetList; /* bitsize 3264, bitpos 6848 */
+  struct skelBone_Base /* id 855 */ **m_bone; /* bitsize 32, bitpos 10112 */
+} skeletor_c;
+
 typedef struct dtiki_s { /* size 476 id 19 */
   char *name; /* bitsize 32, bitpos 0 */
   dtikianim_t *a; /* bitsize 32, bitpos 32 */
-  void *skeletor; /* bitsize 32, bitpos 64 */
+  skeletor_c *skeletor; /* bitsize 32, bitpos 64 */
   int num_surfaces; /* bitsize 32, bitpos 96 */
   struct dtikisurface_s /* id 130 */ *surfaces; /* bitsize 32, bitpos 128 */
   float load_scale; /* bitsize 32, bitpos 160 */
@@ -216,7 +277,7 @@ typedef struct dtiki_s { /* size 476 id 19 */
   int numMeshes; /* bitsize 32, bitpos 3744 */
   short int mesh[1]; /* bitsize 16, bitpos 3776 */
 
-short int dummy;
+//short int dummy;
 } dtiki_t;
 
 typedef struct clientGameImport_s { /* size 684 */
@@ -360,7 +421,7 @@ typedef struct clientGameImport_s { /* size 684 */
   int (*TIKI_NumAnims) ( dtiki_t *pmdl );
   void (*TIKI_CalculateBounds) ( dtiki_t *pmdl, float scale, float *mins, float *maxs );
   char *(*TIKI_Name) ( dtiki_t *pmdl );
-  void *(*TIKI_GetSkeletor) ( dtiki_t *tiki, int entnum );
+  skeletor_c *(*TIKI_GetSkeletor) ( dtiki_t *tiki, int entnum );
   void (*TIKI_SetEyeTargetPos) ( dtiki_t *tiki, int entnum, float *pos );
   char *(*Anim_NameForNum) ( dtiki_t *pmdl, int animnum );
   int (*Anim_NumForName) ( dtiki_t *pmdl, char *name );
