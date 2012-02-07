@@ -35,29 +35,6 @@ qhandle_t R_RegisterModel ( char *name ) {
 	return ret;
 }
 
-// su44: we need to access skeletor_c class somehow
-void R_AddRefEntityToScene(refEntity_t *ent) {
-	skeletor_c *skel;
-	
-	if(ent->tiki) {
-		vec3_t	end;
-		// su44: to get entity skeletor pointer, we need to know
-		// its TIKI pointer and entityNumber (the one send 
-		// through entityState_t). Bad things happen if TIKI
-		// pointer passed to TIKI_GetSkeletor is NULL.
-		skel = cgi.TIKI_GetSkeletor(ent->tiki,ent->entityNumber);
-		// got it
-		VectorCopy( ent->origin, end );
-		end[2] += 50;
-		cgi.R_DebugLine( ent->origin, end, 1, 1, 1, 1 );
-	} else {
-		skel = 0;
-	}
-
-
-	cgi.R_AddRefEntityToScene(ent);
-
-}
 
 void CG_Draw2D() {
 	cge.CG_Draw2D();

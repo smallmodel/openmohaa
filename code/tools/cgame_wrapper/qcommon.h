@@ -487,7 +487,7 @@ typedef struct clientGameImport_s { /* size 684 */
   void (*Error) (/* unknown */); /* bitsize 32, bitpos 192 */
   int (*Milliseconds) (/* unknown */); /* bitsize 32, bitpos 224 */
   char *(*LV_ConvertString) (/* unknown */); /* bitsize 32, bitpos 256 */
-  cvar_t *(*Cvar_Get) (/* unknown */); /* bitsize 32, bitpos 288 */
+  cvar_t *(*Cvar_Get) ( const char *var_name, const char *value, int flags ); /* bitsize 32, bitpos 288 */
   void (*Cvar_Set) (/* unknown */); /* bitsize 32, bitpos 320 */
   int (*Argc) ( );
   char *(*Argv) ( int arg );
@@ -713,3 +713,7 @@ extern snapshot_t	*snapshot;
 // cg_tiki.c
 struct dtiki_s *R_Model_GetHandle ( qhandle_t handle );
 struct dtiki_s *TIKI_FindTiki ( char *path );
+
+// cg_skeletor.c
+void CG_InitSkeletorCvarsAndCmds();
+

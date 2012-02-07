@@ -53,6 +53,9 @@ void CG_Init( clientGameImport_t *imported, int serverMessageNum, int serverComm
 	// Call original function
 	cge.CG_Init(&cgi_out, serverMessageNum, serverCommandSequence, clientNum);
 
+	// su44: init cvars from cg_skeletor.c
+	CG_InitSkeletorCvarsAndCmds();
+
 	cgi.Printf( "\n" );
 	cgi.Printf( "=============================================\n" );
 	cgi.Printf( "MOHAA cgame wrapper loaded successfully.\n" );
