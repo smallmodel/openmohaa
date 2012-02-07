@@ -28,32 +28,14 @@ HMODULE cg_dll;
 // interface function
 typedef clientGameExport_t* (*cgapi)();
 
-// su44: we need to access skeletor_c class somehow
-void R_AddRefEntityToScene(refEntity_t *ent) {
-	skeletor_c *skel;
-	
-	if(ent->tiki) {
-		// su44: to get entity skeletor pointer, we need to know
-		// its TIKI pointer and entityNumber (the one send 
-		// through entityState_t). Bad things happen if TIKI
-		// pointer passed to TIKI_GetSkeletor is NULL.
-		skel = cgi.TIKI_GetSkeletor(ent->tiki,ent->entityNumber);
-		// got it
-
-	} else {
-		skel = 0;
-	}
-
-
-	cgi.R_AddRefEntityToScene(ent);
-
-}
-
 // cgame definitions
 clientGameExport_t cge;
 clientGameExport_t cge_out;
 clientGameImport_t cgi;
 clientGameImport_t cgi_out;
+
+snapshot_t	emptySnap;
+snapshot_t	*snapshot = &emptySnap;
 
 void CG_Init( clientGameImport_t *imported, int serverMessageNum, int serverCommandSequence, int clientNum ) {
 	memcpy( &cgi, imported, sizeof(cgi) );
@@ -62,10 +44,11 @@ void CG_Init( clientGameImport_t *imported, int serverMessageNum, int serverComm
 	facfont = cgi.R_LoadFont( "facfont-20" );
 
 	// Reroute import functions
-	cgi_out.R_RegisterModel = R_RegisterModel;
-	cgi_out.TIKI_FindTiki = TIKI_FindTiki;
-	cgi_out.R_Model_GetHandle = R_Model_GetHandle;
-	cgi_out.R_AddRefEntityToScene = R_AddRefEntityToScene;
+	cgi_out.R_RegisterModel			= R_RegisterModel;
+	cgi_out.TIKI_FindTiki			= TIKI_FindTiki;
+	cgi_out.R_Model_GetHandle		= R_Model_GetHandle;
+	cgi_out.R_AddRefEntityToScene	= R_AddRefEntityToScene;
+	cgi_out.GetSnapshot				= GetSnapshot;
 
 	// Call original function
 	cge.CG_Init(&cgi_out, serverMessageNum, serverCommandSequence, clientNum);
@@ -106,6 +89,7 @@ __declspec(dllexport) clientGameExport_t *GetCGameAPI() {
 	// reroute exported functions
 	cge_out.CG_Init				= CG_Init;
 	cge_out.CG_Draw2D			= CG_Draw2D;
+	cge_out.CG_DrawActiveFrame	= CG_DrawActiveFrame;
 	cge_out.CG_ConsoleCommand	= CG_ConsoleCommand;
 	cge_out.CG_Shutdown			= CG_Shutdown;
 

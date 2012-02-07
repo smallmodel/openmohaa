@@ -34,6 +34,13 @@ typedef float vec4_t[4];
 typedef float vec5_t[5];
 typedef vec3_t SkelVec3;
 
+#define DotProduct(x,y)			((x)[0]*(y)[0]+(x)[1]*(y)[1]+(x)[2]*(y)[2])
+#define VectorSubtract(a,b,c)	((c)[0]=(a)[0]-(b)[0],(c)[1]=(a)[1]-(b)[1],(c)[2]=(a)[2]-(b)[2])
+#define VectorAdd(a,b,c)		((c)[0]=(a)[0]+(b)[0],(c)[1]=(a)[1]+(b)[1],(c)[2]=(a)[2]+(b)[2])
+#define VectorCopy(a,b)			((b)[0]=(a)[0],(b)[1]=(a)[1],(b)[2]=(a)[2])
+#define	VectorScale(v, s, o)	((o)[0]=(v)[0]*(s),(o)[1]=(v)[1]*(s),(o)[2]=(v)[2]*(s))
+#define	VectorMA(v, s, b, o)	((o)[0]=(v)[0]+(b)[0]*(s),(o)[1]=(v)[1]+(b)[1]*(s),(o)[2]=(v)[2]+(b)[2]*(s))
+
 typedef struct SkelMat4 { /* size 48 id 162 */
   float val[4][3]; /* bitsize 384, bitpos 0 */
 } SkelMat4_t;
@@ -368,6 +375,108 @@ typedef struct centity_s { /* size 1632 id 6 */
   int iNextLandTime; /* bitsize 32, bitpos 13024 */
 } centity_t;
 
+typedef struct gameState_s { /* size 42948 */
+  int stringOffsets[2736]; /* bitsize 87552, bitpos 0 */
+  char stringData[32000]; /* bitsize 256000, bitpos 87552 */
+  int dataCount; /* bitsize 32, bitpos 343552 */
+} gameState_t;
+
+typedef struct server_sound_s {
+	float origin[3];
+	int entity_number;
+	int channel;
+	short int sound_index;
+	float volume;
+	float min_dist;
+	float maxDist;
+	float pitch;
+	qboolean stop_flag;
+	qboolean streamed;
+} server_sound_t;
+
+typedef struct cplane_s { /* size 20 id 32 */
+  float normal[3]; /* bitsize 96, bitpos 0 */
+  float dist; /* bitsize 32, bitpos 96 */
+  byte type; /* bitsize 8, bitpos 128 */
+  byte signbits; /* bitsize 8, bitpos 136 */
+  unsigned char pad[2]; /* bitsize 16, bitpos 144 */
+} cplane_t;
+
+typedef struct trace_s { /* size 68 */
+  qboolean allsolid; /* bitsize 32, bitpos 0 */
+  qboolean startsolid; /* bitsize 32, bitpos 32 */
+  float fraction; /* bitsize 32, bitpos 64 */
+  float endpos[3]; /* bitsize 96, bitpos 96 */
+  cplane_t plane; /* bitsize 160, bitpos 192 */
+  int surfaceFlags; /* bitsize 32, bitpos 352 */
+  int shaderNum; /* bitsize 32, bitpos 384 */
+  int contents; /* bitsize 32, bitpos 416 */
+  int entityNum; /* bitsize 32, bitpos 448 */
+  int location; /* bitsize 32, bitpos 480 */
+  struct gentity_s /* id 0 */ *ent; /* bitsize 32, bitpos 512 */
+} trace_t;
+
+typedef struct playerState_s { /* size 672 id 16 */
+  int commandTime; /* bitsize 32, bitpos 0 */
+  int pm_type; /* bitsize 32, bitpos 32 */
+  int bobCycle; /* bitsize 32, bitpos 64 */
+  int pm_flags; /* bitsize 32, bitpos 96 */
+  int pm_runtime; /* bitsize 32, bitpos 128 */
+  float origin[3]; /* bitsize 96, bitpos 160 */
+  float velocity[3]; /* bitsize 96, bitpos 256 */
+  int gravity; /* bitsize 32, bitpos 352 */
+  int speed; /* bitsize 32, bitpos 384 */
+  int delta_angles[3]; /* bitsize 96, bitpos 416 */
+  int groundEntityNum; /* bitsize 32, bitpos 512 */
+  qboolean walking; /* bitsize 32, bitpos 544 */
+  qboolean groundPlane; /* bitsize 32, bitpos 576 */
+  int feetfalling; /* bitsize 32, bitpos 608 */
+  float falldir[3]; /* bitsize 96, bitpos 640 */
+  trace_t groundTrace; /* bitsize 544, bitpos 736 */
+  int clientNum; /* bitsize 32, bitpos 1280 */
+  float viewangles[3]; /* bitsize 96, bitpos 1312 */
+  int viewheight; /* bitsize 32, bitpos 1408 */
+  float fLeanAngle; /* bitsize 32, bitpos 1440 */
+  int iViewModelAnim; /* bitsize 32, bitpos 1472 */
+  int iViewModelAnimChanged; /* bitsize 32, bitpos 1504 */
+  int stats[32]; /* bitsize 1024, bitpos 1536 */
+  int activeItems[8]; /* bitsize 256, bitpos 2560 */
+  int ammo_name_index[16]; /* bitsize 512, bitpos 2816 */
+  int ammo_amount[16]; /* bitsize 512, bitpos 3328 */
+  int max_ammo_amount[16]; /* bitsize 512, bitpos 3840 */
+  int current_music_mood; /* bitsize 32, bitpos 4352 */
+  int fallback_music_mood; /* bitsize 32, bitpos 4384 */
+  float music_volume; /* bitsize 32, bitpos 4416 */
+  float music_volume_fade_time; /* bitsize 32, bitpos 4448 */
+  int reverb_type; /* bitsize 32, bitpos 4480 */
+  float reverb_level; /* bitsize 32, bitpos 4512 */
+  float blend[4]; /* bitsize 128, bitpos 4544 */
+  float fov; /* bitsize 32, bitpos 4672 */
+  float camera_origin[3]; /* bitsize 96, bitpos 4704 */
+  float camera_angles[3]; /* bitsize 96, bitpos 4800 */
+  float camera_time; /* bitsize 32, bitpos 4896 */
+  float camera_offset[3]; /* bitsize 96, bitpos 4928 */
+  float camera_posofs[3]; /* bitsize 96, bitpos 5024 */
+  int camera_flags; /* bitsize 32, bitpos 5120 */
+  float damage_angles[3]; /* bitsize 96, bitpos 5152 */
+  int ping; /* bitsize 32, bitpos 5248 */
+  float vEyePos[3]; /* bitsize 96, bitpos 5280 */
+} playerState_t;
+
+typedef struct snapshot_s { /* size 630492 */
+  int snapFlags; /* bitsize 32, bitpos 0 */
+  int ping; /* bitsize 32, bitpos 32 */
+  int serverTime; /* bitsize 32, bitpos 64 */
+  unsigned char areamask[32]; /* bitsize 256, bitpos 96 */
+  playerState_t ps; /* bitsize 5376, bitpos 352 */
+  int numEntities; /* bitsize 32, bitpos 5728 */
+  entityState_t entities[1024]; /* bitsize 5013504, bitpos 5760 */
+  int numServerCommands; /* bitsize 32, bitpos 5019264 */
+  int serverCommandSequence; /* bitsize 32, bitpos 5019296 */
+  int number_of_sounds; /* bitsize 32, bitpos 5019328 */
+  server_sound_t sounds[64]; /* bitsize 24576, bitpos 5019360 */
+} snapshot_t;
+
 typedef struct clientGameImport_s { /* size 684 */
   int apiversion; /* bitsize 32, bitpos 0 */
   void (*Printf) ( char *fmt );
@@ -457,12 +566,12 @@ typedef struct clientGameImport_s { /* size 684 */
   qhandle_t (*R_RegisterSkin) (/* unknown */); /* bitsize 32, bitpos 2720 */
   qhandle_t (*R_RegisterShader) (/* unknown */); /* bitsize 32, bitpos 2752 */
   qhandle_t (*R_RegisterShaderNoMip) (/* unknown */); /* bitsize 32, bitpos 2784 */
-  void (*R_AddRefEntityToScene) ( refEntity_t *r ); /* bitsize 32, bitpos 2816 */
+  void (*R_AddRefEntityToScene) ( refEntity_t *r );
   void (*R_AddRefSpriteToScene) (/* unknown */); /* bitsize 32, bitpos 2848 */
   void (*R_AddLightToScene) (/* unknown */); /* bitsize 32, bitpos 2880 */
   qboolean (*R_AddPolyToScene) (/* unknown */); /* bitsize 32, bitpos 2912 */
   void (*R_AddTerrainMarkToScene) (/* unknown */); /* bitsize 32, bitpos 2944 */
-  void (*R_SetColor) (/* unknown */); /* bitsize 32, bitpos 2976 */
+  void (*R_SetColor) ( vec_t *rgba );
   void (*R_DrawStretchPic) (/* unknown */); /* bitsize 32, bitpos 3008 */
   fontheader_t *(*R_LoadFont) ( char *name );
   void (*R_DrawString) (fontheader_t *font, char *text, float x, float y, int maxlen, qboolean bVirtualScreen );
@@ -470,7 +579,7 @@ typedef struct clientGameImport_s { /* size 684 */
   void (*R_ModelBounds) (/* unknown */); /* bitsize 32, bitpos 3136 */
   float (*R_ModelRadius) (/* unknown */); /* bitsize 32, bitpos 3168 */
   float (*R_Noise) (/* unknown */); /* bitsize 32, bitpos 3200 */
-  void (*R_DebugLine) (/* unknown */); /* bitsize 32, bitpos 3232 */
+  void (*R_DebugLine) (vec_t *start, vec_t *end, float r, float g, float b, float alpha );
   baseshader_t *(*GetShader) (/* unknown */); /* bitsize 32, bitpos 3264 */
   void (*R_SwipeBegin) (/* unknown */); /* bitsize 32, bitpos 3296 */
   void (*R_SwipePoint) (/* unknown */); /* bitsize 32, bitpos 3328 */
@@ -478,8 +587,8 @@ typedef struct clientGameImport_s { /* size 684 */
   int (*R_GetShaderWidth) (/* unknown */); /* bitsize 32, bitpos 3392 */
   int (*R_GetShaderHeight) (/* unknown */); /* bitsize 32, bitpos 3424 */
   void (*R_DrawBox) (/* unknown */); /* bitsize 32, bitpos 3456 */
-  void (*GetGameState) (/* unknown */); /* bitsize 32, bitpos 3488 */
-  int (*GetSnapshot) (/* unknown */); /* bitsize 32, bitpos 3520 */
+  void (*GetGameState) ( gameState_t *gs );
+  int (*GetSnapshot) ( int snapshotNumber, snapshot_t *snap );
   int (*GetServerStartTime) (/* unknown */); /* bitsize 32, bitpos 3552 */
   void (*SetTime) (/* unknown */); /* bitsize 32, bitpos 3584 */
   void (*GetCurrentSnapshotNumber) (/* unknown */); /* bitsize 32, bitpos 3616 */
@@ -586,14 +695,20 @@ typedef struct clientGameExport_s { /* size 120 */
 qboolean CG_ConsoleCommand( void );
 
 // cg_draw.c
+extern fontheader_t *facfont;
+
+void CG_Draw2D();
+void CG_DrawActiveFrame ( int serverTime, int frametime, stereoFrame_t stereoView, qboolean demoPlayback );
+qhandle_t R_RegisterModel ( char *name );
+void R_AddRefEntityToScene(refEntity_t *ent);
+int GetSnapshot ( int snapshotNumber, snapshot_t *snap );
+
+// cg_main.c
 extern clientGameExport_t cge;
 extern clientGameExport_t cge_out;
 extern clientGameImport_t cgi;
 extern clientGameImport_t cgi_out;
-extern fontheader_t *facfont;
-
-void CG_Draw2D();
-qhandle_t R_RegisterModel ( char *name );
+extern snapshot_t	*snapshot;
 
 // cg_tiki.c
 struct dtiki_s *R_Model_GetHandle ( qhandle_t handle );
