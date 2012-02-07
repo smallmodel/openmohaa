@@ -23,6 +23,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 fontheader_t *facfont;
 
+qhandle_t R_RegisterModel ( char *name ) {
+	qhandle_t ret;
+
+	ret = cgi.R_RegisterModel( name );
+	return ret;
+}
+
 void CG_Draw2D() {
 	cge.CG_Draw2D();
 

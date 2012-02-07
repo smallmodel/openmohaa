@@ -19,6 +19,7 @@ along with OpenMohaa source code; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ===========================================================================
 */
+#include <string.h>
 
 typedef unsigned char byte;
 typedef enum {
@@ -30,6 +31,12 @@ typedef int qhandle_t;
 typedef int sfxHandle_t;
 typedef int fileHandle_t;
 typedef int clipHandle_t;
+
+typedef enum {
+	STEREO_CENTER,
+	STEREO_LEFT,
+	STEREO_RIGHT
+} stereoFrame_t;
 
 typedef struct cvar_s { /* size 44 id 30 */
   char *name; /* bitsize 32, bitpos 0 */
@@ -183,33 +190,16 @@ typedef struct tiki_cmd_s { /* size 1028 */
   tiki_singlecmd_t cmds[128]; /* bitsize 8192, bitpos 32 */
 } tiki_cmd_t;
 
-#if 0
-class skelChannelList_s { /* size 408 id 126 */
- public:
+typedef struct skelChannelList_s { /* size 408 id 126 */
+// public:
   short int m_numChannels; /* bitsize 16, bitpos 0 */
- private:
+// private:
   short int m_numLocalFromGlobal; /* bitsize 16, bitpos 16 */
   short int *m_chanLocalFromGlobal; /* bitsize 32, bitpos 32 */
- public:
+// public:
   short int m_chanGlobalFromLocal[200]; /* bitsize 3200, bitpos 64 */
-  class skelChannelList_s /* id 126 */ &class skelChannelList_s /* id 126 */::__as (class skelChannelList_s /* id 126 */ const &) /* __as__17skelChannelList_sRC17skelChannelList_s  */;
-  class skelChannelList_s /* id 126 */ *class skelChannelList_s /* id 126 */::skelChannelList_s (class skelChannelList_s /* id 126 */ const &) /* __17skelChannelList_sRC17skelChannelList_s  */;
-  class skelChannelList_s /* id 126 */ *class skelChannelList_s /* id 126 */::skelChannelList_s () /* __17skelChannelList_s  */;
-  short int class skelChannelList_s /* id 126 */::NumChannels () const /* NumChannels__C17skelChannelList_s  */;
-  void class skelChannelList_s /* id 126 */::ZeroChannels () /* ZeroChannels__17skelChannelList_s  */;
-  void class skelChannelList_s /* id 126 */::PackChannels () /* PackChannels__17skelChannelList_s  */;
-  void class skelChannelList_s /* id 126 */::InitChannels () /* InitChannels__17skelChannelList_s  */;
-  void class skelChannelList_s /* id 126 */::CleanUpChannels () /* CleanUpChannels__17skelChannelList_s  */;
-  short int class skelChannelList_s /* id 126 */::GlobalChannel (short int) const /* GlobalChannel__C17skelChannelList_ss  */;
-  short int class skelChannelList_s /* id 126 */::LocalChannel (short int) const /* LocalChannel__C17skelChannelList_ss  */;
-  short int class skelChannelList_s /* id 126 */::GetLocalFromGlobal (int) const /* GetLocalFromGlobal__C17skelChannelList_si  */;
-  void class skelChannelList_s /* id 126 */::SetLocalFromGlobal (int, short int) /* SetLocalFromGlobal__17skelChannelList_sis  */;
-  qboolean class skelChannelList_s /* id 126 */::HasChannel (struct ChannelNameTable /* id 0 */ *, char const *) const /* HasChannel__C17skelChannelList_sP16ChannelNameTablePCc  */;
-  qboolean class skelChannelList_s /* id 126 */::HasChannel (short int) const /* HasChannel__C17skelChannelList_ss  */;
-  short int class skelChannelList_s /* id 126 */::AddChannel (short int) /* AddChannel__17skelChannelList_ss  */;
-  char *class skelChannelList_s /* id 126 */::ChannelName (struct ChannelNameTable /* id 0 */ *, short int) const /* ChannelName__C17skelChannelList_sP16ChannelNameTables  */;
 } skelChannelList_c;
-#endif
+
 typedef struct dtiki_s { /* size 476 id 19 */
   char *name; /* bitsize 32, bitpos 0 */
   dtikianim_t *a; /* bitsize 32, bitpos 32 */
@@ -222,12 +212,11 @@ typedef struct dtiki_s { /* size 476 id 19 */
   float light_offset[3]; /* bitsize 96, bitpos 256 */
   float load_origin[3]; /* bitsize 96, bitpos 352 */
   float radius; /* bitsize 32, bitpos 448 */
-  int dummy[102];//skelChannelList_c m_boneList; /* bitsize 3264, bitpos 480 */
+  skelChannelList_c m_boneList; /* bitsize 3264, bitpos 480 */
   int numMeshes; /* bitsize 32, bitpos 3744 */
   short int mesh[1]; /* bitsize 16, bitpos 3776 */
 
-int dummy2;//  int class dtiki_s /* id 19 */::GetBoneNumFromName (char const *) /* GetBoneNumFromName__7dtiki_sPCc  */;
-int dummy3;//  char *class dtiki_s /* id 19 */::GetBoneNameFromNum (int) const /* GetBoneNameFromNum__C7dtiki_si  */;
+short int dummy;
 } dtiki_t;
 
 typedef struct clientGameImport_s { /* size 684 */
@@ -242,10 +231,10 @@ typedef struct clientGameImport_s { /* size 684 */
   char *(*LV_ConvertString) (/* unknown */); /* bitsize 32, bitpos 256 */
   cvar_t *(*Cvar_Get) (/* unknown */); /* bitsize 32, bitpos 288 */
   void (*Cvar_Set) (/* unknown */); /* bitsize 32, bitpos 320 */
-  int (*Argc) (/* unknown */); /* bitsize 32, bitpos 352 */
-  char *(*Argv) (/* unknown */); /* bitsize 32, bitpos 384 */
-  char *(*Args) (/* unknown */); /* bitsize 32, bitpos 416 */
-  void (*AddCommand) (/* unknown */); /* bitsize 32, bitpos 448 */
+  int (*Argc) ( );
+  char *(*Argv) ( int arg );
+  char *(*Args) ( );
+  void (*AddCommand) ( char *cmdName );
   void (*Cmd_Stuff) (/* unknown */); /* bitsize 32, bitpos 480 */
   void (*Cmd_Execute) (/* unknown */); /* bitsize 32, bitpos 512 */
   void (*Cmd_TokenizeString) (/* unknown */); /* bitsize 32, bitpos 544 */
@@ -312,7 +301,7 @@ typedef struct clientGameImport_s { /* size 684 */
   void (*R_PrintBSPFileSizes) (/* unknown */); /* bitsize 32, bitpos 2496 */
   int (*MapVersion) (/* unknown */); /* bitsize 32, bitpos 2528 */
   int (*R_MapVersion) (/* unknown */); /* bitsize 32, bitpos 2560 */
-  qhandle_t (*R_RegisterModel) (/* unknown */); /* bitsize 32, bitpos 2592 */
+  qhandle_t (*R_RegisterModel) ( char *name );
   qhandle_t (*R_SpawnEffectModel) (/* unknown */); /* bitsize 32, bitpos 2624 */
   qhandle_t (*R_RegisterServerModel) (/* unknown */); /* bitsize 32, bitpos 2656 */
   void (*R_UnregisterServerModel) (/* unknown */); /* bitsize 32, bitpos 2688 */
@@ -413,11 +402,11 @@ typedef struct clientGameImport_s { /* size 684 */
 
 typedef struct clientGameExport_s { /* size 120 */
   void (*CG_Init) ( clientGameImport_t *imported, int serverMessageNum, int serverCommandSequence, int clientNum );
-  void (*CG_Shutdown) (/* unknown */); /* bitsize 32, bitpos 32 */
-  void (*CG_DrawActiveFrame) (/* unknown */); /* bitsize 32, bitpos 64 */
-  qboolean (*CG_ConsoleCommand) (/* unknown */); /* bitsize 32, bitpos 96 */
+  void (*CG_Shutdown) ( );
+  void (*CG_DrawActiveFrame) ( int serverTime, int frametime, stereoFrame_t stereoView, qboolean demoPlayback );
+  qboolean (*CG_ConsoleCommand) ( );
   void (*CG_GetRendererConfig) (/* unknown */); /* bitsize 32, bitpos 128 */
-  void (*CG_Draw2D) (/* unknown */); /* bitsize 32, bitpos 160 */
+  void (*CG_Draw2D) ( );
   void (*CG_EyePosition) (/* unknown */); /* bitsize 32, bitpos 192 */
   void (*CG_EyeOffset) (/* unknown */); /* bitsize 32, bitpos 224 */
   void (*CG_EyeAngles) (/* unknown */); /* bitsize 32, bitpos 256 */
@@ -444,13 +433,19 @@ typedef struct clientGameExport_s { /* size 120 */
   qboolean (*CG_Command_ProcessFile) (/* unknown */); /* bitsize 32, bitpos 928 */
 } clientGameExport_t;
 
+// cg_consolecmds.c
+qboolean CG_ConsoleCommand( void );
+
 // cg_draw.c
 extern clientGameExport_t cge;
 extern clientGameExport_t cge_out;
 extern clientGameImport_t cgi;
 extern clientGameImport_t cgi_out;
 extern fontheader_t *facfont;
+
 void CG_Draw2D();
+qhandle_t R_RegisterModel ( char *name );
+
 // cg_tiki.c
 struct dtiki_s *R_Model_GetHandle ( qhandle_t handle );
 struct dtiki_s *TIKI_FindTiki ( char *path );

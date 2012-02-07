@@ -22,7 +22,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "qcommon.h"
 
 struct dtiki_s *R_Model_GetHandle ( qhandle_t handle ) {
-	return cgi.R_Model_GetHandle( handle );
+	struct dtiki_s *ret;
+
+	ret = cgi.R_Model_GetHandle( handle );
+	if ( ret )
+		return ret;
+	else
+		return ret;
 }
 
 struct dtiki_s *TIKI_FindTiki ( char *path ) {

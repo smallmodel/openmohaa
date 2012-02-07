@@ -23,8 +23,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "qcommon.h"
 #include <Windows.h>
 
+// original cgame dll
+HMODULE cg_dll;
 // interface function
 typedef clientGameExport_t* (*cgapi)();
+
 
 // cgame definitions
 clientGameExport_t cge;
@@ -39,6 +42,7 @@ void CG_Init( clientGameImport_t *imported, int serverMessageNum, int serverComm
 	facfont = cgi.R_LoadFont( "facfont-20" );
 
 	// Reroute import functions
+	cgi_out.R_RegisterModel = R_RegisterModel;
 	cgi_out.TIKI_FindTiki = TIKI_FindTiki;
 	cgi_out.R_Model_GetHandle = R_Model_GetHandle;
 
@@ -52,11 +56,14 @@ void CG_Init( clientGameImport_t *imported, int serverMessageNum, int serverComm
 	cgi.Printf( "\n" );
 }
 
+void CG_Shutdown () {
+	cge.CG_Shutdown();
+	FreeLibrary( cg_dll );
+}
+
 __declspec(dllexport) clientGameExport_t *GetCGameAPI() {
-	HMODULE		cg_dll;
 	cgapi		cg_dll_proc;
 	DWORD		err;
-	clientGameExport_t *ret;
 
 	// Load original DLL
 	cg_dll = LoadLibrary( "main\\cgamex86mohaa.dll" );
@@ -76,8 +83,10 @@ __declspec(dllexport) clientGameExport_t *GetCGameAPI() {
 	memcpy( &cge_out, &cge, sizeof(cge) );
 
 	// reroute exported functions
-	cge_out.CG_Init		= CG_Init;
-	cge_out.CG_Draw2D	= CG_Draw2D;
+	cge_out.CG_Init				= CG_Init;
+	cge_out.CG_Draw2D			= CG_Draw2D;
+	cge_out.CG_ConsoleCommand	= CG_ConsoleCommand;
+	cge_out.CG_Shutdown			= CG_Shutdown;
 
 	return &cge_out;
 }
