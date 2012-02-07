@@ -33,6 +33,7 @@ typedef float vec3_t[3];
 typedef float vec4_t[4];
 typedef float vec5_t[5];
 typedef vec3_t SkelVec3;
+typedef vec_t matrix_t[16];
 
 #define DotProduct(x,y)			((x)[0]*(y)[0]+(x)[1]*(y)[1]+(x)[2]*(y)[2])
 #define VectorSubtract(a,b,c)	((c)[0]=(a)[0]-(b)[0],(c)[1]=(a)[1]-(b)[1],(c)[2]=(a)[2]-(b)[2])
@@ -195,7 +196,7 @@ typedef struct dtikianim_s { /* size 80 id 127 */
   char *headmodels; /* bitsize 32, bitpos 512 */
   char *headskins; /* bitsize 32, bitpos 544 */
   qboolean bIsCharacter; /* bitsize 32, bitpos 576 */
-  struct dtikianimdef_s /* id 129 */ *animdefs[1]; /* bitsize 32, bitpos 608 */
+  struct dtikianimdef_s /* id 129 */ *animdefs[/*1*/512]; /* bitsize 32, bitpos 608 */
 } dtikianim_t;
 
 typedef struct tiki_singlecmd_s { /* size 8 */
@@ -232,7 +233,7 @@ typedef struct skelAnimStoreFrameList_s { /* size 776 id 851 */
 } skelAnimStoreFrameList_c;
 
 typedef struct skelBone_Base { /* size 64 vtable self  id 855 */
-  void *vptr; // su44: IMHO vtable is at the beginning of the struct, not at the end
+  void **vptr; // su44: IMHO vtable is at the beginning of the struct, not at the end
 // public:
   qboolean m_isDirty; /* bitsize 32, bitpos 0 */
 // protected:
@@ -242,7 +243,6 @@ typedef struct skelBone_Base { /* size 64 vtable self  id 855 */
   float *m_controller; /* bitsize 32, bitpos 448 */
 // private:
 //  __vtbl_ptr_type *_vptr$; /* bitpos 480 */
-  //void *ptr;
 } skelBone_Base_c;
 
 typedef struct skeletor_s { /* size 1268 id 2016 */
@@ -269,6 +269,15 @@ typedef struct skeletor_s { /* size 1268 id 2016 */
   struct skelBone_Base /* id 855 */ **m_bone; /* bitsize 32, bitpos 10112 */
 } skeletor_c;
 
+typedef struct dtikisurface_s { /* size 348 id 151 */
+  char name[64]; /* bitsize 512, bitpos 0 */
+  char shader[4][64]; /* bitsize 2048, bitpos 512 */
+  int hShader[4]; /* bitsize 128, bitpos 2560 */
+  int numskins; /* bitsize 32, bitpos 2688 */
+  int flags; /* bitsize 32, bitpos 2720 */
+  float damage_multiplier; /* bitsize 32, bitpos 2752 */
+} dtikisurface_t;
+
 typedef struct dtiki_s { /* size 476 id 19 */
   char *name; /* bitsize 32, bitpos 0 */
   dtikianim_t *a; /* bitsize 32, bitpos 32 */
@@ -283,7 +292,7 @@ typedef struct dtiki_s { /* size 476 id 19 */
   float radius; /* bitsize 32, bitpos 448 */
   skelChannelList_c m_boneList; /* bitsize 3264, bitpos 480 */
   int numMeshes; /* bitsize 32, bitpos 3744 */
-  short int mesh[1]; /* bitsize 16, bitpos 3776 */
+  short int mesh[/*1*/16]; /* bitsize 16, bitpos 3776 */
 
 //short int dummy;
 } dtiki_t;
@@ -698,6 +707,7 @@ qboolean CG_ConsoleCommand( void );
 extern fontheader_t *facfont;
 
 void CG_MakeCross( vec_t *point );
+void CG_DrawAxisAtPoint(vec3_t p, vec3_t axis[3]);
 void CG_Draw2D();
 void CG_DrawActiveFrame ( int serverTime, int frametime, stereoFrame_t stereoView, qboolean demoPlayback );
 qhandle_t R_RegisterModel ( char *name );

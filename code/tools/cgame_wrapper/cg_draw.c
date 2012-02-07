@@ -50,6 +50,19 @@ void CG_MakeCross( vec_t *point ) {
 	cgi.R_DebugLine( start, end, 0, 0, 1, 1 );
 }
 
+// su44: used for drawing bone orientations
+#define AX_LEN 4.f
+void CG_DrawAxisAtPoint(vec3_t p, vec3_t axis[3]) {
+	vec3_t f,r,u;
+	VectorMA(p,AX_LEN,axis[0],f);
+	VectorMA(p,AX_LEN,axis[1],r);
+	VectorMA(p,AX_LEN,axis[2],u);
+
+	cgi.R_DebugLine( p, f, 1, 0, 0, 1 );
+	cgi.R_DebugLine( p, r, 0, 1, 0, 1 );
+	cgi.R_DebugLine( p, u, 0, 0, 1, 1 );
+}
+
 int GetSnapshot ( int snapshotNumber, snapshot_t *snap ) {
 	snapshot = snap;
 	return cgi.GetSnapshot( snapshotNumber, snap );

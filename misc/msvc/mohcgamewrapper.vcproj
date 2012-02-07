@@ -57,7 +57,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="..\..\build\tools\mohcgamewrapper\cgamex86.dll"
+				OutputFile="E:\MoHAA\main\cgamex86.dll"
 				GenerateDebugInformation="true"
 				TargetMachine="1"
 			/>
@@ -176,7 +176,23 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\code\tools\cgame_wrapper\cg_skeletor.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\code\tools\cgame_wrapper\cg_tiki.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\code\qcommon\q_math.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\code\qcommon\q_shared.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\code\qcommon\q_shared.h"
 				>
 			</File>
 			<File

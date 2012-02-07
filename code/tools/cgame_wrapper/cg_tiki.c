@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 struct dtiki_s *R_Model_GetHandle ( qhandle_t handle ) {
 	struct dtiki_s *ret;
-	int i = sizeof(dtiki_t);
 
 	ret = cgi.R_Model_GetHandle( handle );
 	if ( ret )
