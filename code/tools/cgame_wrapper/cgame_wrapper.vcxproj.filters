@@ -27,6 +27,9 @@
     <ClCompile Include="cg_consolecmds.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="cg_skeletor.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="qcommon.h">

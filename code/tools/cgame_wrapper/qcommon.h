@@ -697,6 +697,7 @@ qboolean CG_ConsoleCommand( void );
 // cg_draw.c
 extern fontheader_t *facfont;
 
+void CG_MakeCross( vec_t *point );
 void CG_Draw2D();
 void CG_DrawActiveFrame ( int serverTime, int frametime, stereoFrame_t stereoView, qboolean demoPlayback );
 qhandle_t R_RegisterModel ( char *name );

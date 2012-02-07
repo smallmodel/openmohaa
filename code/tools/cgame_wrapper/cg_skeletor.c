@@ -40,9 +40,7 @@ void CG_TIKISkeletor(refEntity_t *ent, skeletor_c *skel) {
 
 
 	if(cg_skel_show->integer) {
-		VectorCopy( ent->origin, end );
-		end[2] += 50;
-		cgi.R_DebugLine( ent->origin, end, 1, 1, 1, 1 );
+		CG_MakeCross( ent->origin );
 	}
 
 	if(cg_skel_printBoneDirty->integer) {

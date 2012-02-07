@@ -23,6 +23,33 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 fontheader_t *facfont;
 
+#define CROSS_LINE_LEN	10
+void CG_MakeCross( vec_t *point ) {
+	vec3_t start;
+	vec3_t end;
+
+	// X
+	VectorCopy( point, start );
+	VectorCopy( point, end );
+	start[0]	-= CROSS_LINE_LEN;
+	end[0]		+= CROSS_LINE_LEN;
+	cgi.R_DebugLine( start, end, 1, 0, 0, 1 );
+
+	// Y
+	VectorCopy( point, start );
+	VectorCopy( point, end );
+	start[1]	-= CROSS_LINE_LEN;
+	end[1]		+= CROSS_LINE_LEN;
+	cgi.R_DebugLine( start, end, 0, 1, 0, 1 );
+
+	// Z
+	VectorCopy( point, start );
+	VectorCopy( point, end );
+	start[2]	-= CROSS_LINE_LEN;
+	end[2]		+= CROSS_LINE_LEN;
+	cgi.R_DebugLine( start, end, 0, 0, 1, 1 );
+}
+
 int GetSnapshot ( int snapshotNumber, snapshot_t *snap ) {
 	snapshot = snap;
 	return cgi.GetSnapshot( snapshotNumber, snap );

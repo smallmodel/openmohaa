@@ -68,6 +68,7 @@
     <ClCompile Include="cg_consolecmds.c" />
     <ClCompile Include="cg_draw.c" />
     <ClCompile Include="cg_main.c" />
+    <ClCompile Include="cg_skeletor.c" />
     <ClCompile Include="cg_tiki.c" />
   </ItemGroup>
   <ItemGroup>
