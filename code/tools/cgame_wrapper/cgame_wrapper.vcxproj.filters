@@ -18,6 +18,12 @@
     <ClCompile Include="cg_main.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="cg_tiki.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="cg_draw.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="qcommon.h">

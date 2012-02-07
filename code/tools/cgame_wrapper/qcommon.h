@@ -1,4 +1,30 @@
-typedef int qboolean;
+/*
+===========================================================================
+Copyright (C) 2012 Michael Rieder
+
+This file is part of OpenMohaa source code.
+
+OpenMohaa source code is free software; you can redistribute it
+and/or modify it under the terms of the GNU General Public License as
+published by the Free Software Foundation; either version 2 of the License,
+or (at your option) any later version.
+
+OpenMohaa source code is distributed in the hope that it will be
+useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with OpenMohaa source code; if not, write to the Free Software
+Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+===========================================================================
+*/
+
+typedef unsigned char byte;
+typedef enum {
+	qfalse,
+	qtrue
+} qboolean;
 
 typedef int qhandle_t;
 typedef int sfxHandle_t;
@@ -128,6 +154,82 @@ typedef struct orientation_s { /* size 48 id 34 */
   float axis[3][3]; /* bitsize 288, bitpos 96 */
 } orientation_t;
 
+typedef struct dtikianim_s { /* size 80 id 127 */
+  char *name; /* bitsize 32, bitpos 0 */
+  int num_anims; /* bitsize 32, bitpos 32 */
+  void *alias_list; /* bitsize 32, bitpos 64 */
+  int num_client_initcmds; /* bitsize 32, bitpos 96 */
+  struct dtikicmd_s /* id 128 */ *client_initcmds; /* bitsize 32, bitpos 128 */
+  int num_server_initcmds; /* bitsize 32, bitpos 160 */
+  struct dtikicmd_s /* id 128 */ *server_initcmds; /* bitsize 32, bitpos 192 */
+  byte *modelData; /* bitsize 32, bitpos 224 */
+  int modelDataSize; /* bitsize 32, bitpos 256 */
+  float mins[3]; /* bitsize 96, bitpos 288 */
+  float maxs[3]; /* bitsize 96, bitpos 384 */
+  short int *m_aliases; /* bitsize 32, bitpos 480 */
+  char *headmodels; /* bitsize 32, bitpos 512 */
+  char *headskins; /* bitsize 32, bitpos 544 */
+  qboolean bIsCharacter; /* bitsize 32, bitpos 576 */
+  struct dtikianimdef_s /* id 129 */ *animdefs[1]; /* bitsize 32, bitpos 608 */
+} dtikianim_t;
+
+typedef struct tiki_singlecmd_s { /* size 8 */
+  int num_args; /* bitsize 32, bitpos 0 */
+  char **args; /* bitsize 32, bitpos 32 */
+} tiki_singlecmd_t;
+
+typedef struct tiki_cmd_s { /* size 1028 */
+  int num_cmds; /* bitsize 32, bitpos 0 */
+  tiki_singlecmd_t cmds[128]; /* bitsize 8192, bitpos 32 */
+} tiki_cmd_t;
+
+#if 0
+class skelChannelList_s { /* size 408 id 126 */
+ public:
+  short int m_numChannels; /* bitsize 16, bitpos 0 */
+ private:
+  short int m_numLocalFromGlobal; /* bitsize 16, bitpos 16 */
+  short int *m_chanLocalFromGlobal; /* bitsize 32, bitpos 32 */
+ public:
+  short int m_chanGlobalFromLocal[200]; /* bitsize 3200, bitpos 64 */
+  class skelChannelList_s /* id 126 */ &class skelChannelList_s /* id 126 */::__as (class skelChannelList_s /* id 126 */ const &) /* __as__17skelChannelList_sRC17skelChannelList_s  */;
+  class skelChannelList_s /* id 126 */ *class skelChannelList_s /* id 126 */::skelChannelList_s (class skelChannelList_s /* id 126 */ const &) /* __17skelChannelList_sRC17skelChannelList_s  */;
+  class skelChannelList_s /* id 126 */ *class skelChannelList_s /* id 126 */::skelChannelList_s () /* __17skelChannelList_s  */;
+  short int class skelChannelList_s /* id 126 */::NumChannels () const /* NumChannels__C17skelChannelList_s  */;
+  void class skelChannelList_s /* id 126 */::ZeroChannels () /* ZeroChannels__17skelChannelList_s  */;
+  void class skelChannelList_s /* id 126 */::PackChannels () /* PackChannels__17skelChannelList_s  */;
+  void class skelChannelList_s /* id 126 */::InitChannels () /* InitChannels__17skelChannelList_s  */;
+  void class skelChannelList_s /* id 126 */::CleanUpChannels () /* CleanUpChannels__17skelChannelList_s  */;
+  short int class skelChannelList_s /* id 126 */::GlobalChannel (short int) const /* GlobalChannel__C17skelChannelList_ss  */;
+  short int class skelChannelList_s /* id 126 */::LocalChannel (short int) const /* LocalChannel__C17skelChannelList_ss  */;
+  short int class skelChannelList_s /* id 126 */::GetLocalFromGlobal (int) const /* GetLocalFromGlobal__C17skelChannelList_si  */;
+  void class skelChannelList_s /* id 126 */::SetLocalFromGlobal (int, short int) /* SetLocalFromGlobal__17skelChannelList_sis  */;
+  qboolean class skelChannelList_s /* id 126 */::HasChannel (struct ChannelNameTable /* id 0 */ *, char const *) const /* HasChannel__C17skelChannelList_sP16ChannelNameTablePCc  */;
+  qboolean class skelChannelList_s /* id 126 */::HasChannel (short int) const /* HasChannel__C17skelChannelList_ss  */;
+  short int class skelChannelList_s /* id 126 */::AddChannel (short int) /* AddChannel__17skelChannelList_ss  */;
+  char *class skelChannelList_s /* id 126 */::ChannelName (struct ChannelNameTable /* id 0 */ *, short int) const /* ChannelName__C17skelChannelList_sP16ChannelNameTables  */;
+} skelChannelList_c;
+#endif
+typedef struct dtiki_s { /* size 476 id 19 */
+  char *name; /* bitsize 32, bitpos 0 */
+  dtikianim_t *a; /* bitsize 32, bitpos 32 */
+  void *skeletor; /* bitsize 32, bitpos 64 */
+  int num_surfaces; /* bitsize 32, bitpos 96 */
+  struct dtikisurface_s /* id 130 */ *surfaces; /* bitsize 32, bitpos 128 */
+  float load_scale; /* bitsize 32, bitpos 160 */
+  float lod_scale; /* bitsize 32, bitpos 192 */
+  float lod_bias; /* bitsize 32, bitpos 224 */
+  float light_offset[3]; /* bitsize 96, bitpos 256 */
+  float load_origin[3]; /* bitsize 96, bitpos 352 */
+  float radius; /* bitsize 32, bitpos 448 */
+  int dummy[102];//skelChannelList_c m_boneList; /* bitsize 3264, bitpos 480 */
+  int numMeshes; /* bitsize 32, bitpos 3744 */
+  short int mesh[1]; /* bitsize 16, bitpos 3776 */
+
+int dummy2;//  int class dtiki_s /* id 19 */::GetBoneNumFromName (char const *) /* GetBoneNumFromName__7dtiki_sPCc  */;
+int dummy3;//  char *class dtiki_s /* id 19 */::GetBoneNameFromNum (int) const /* GetBoneNameFromNum__C7dtiki_si  */;
+} dtiki_t;
+
 typedef struct clientGameImport_s { /* size 684 */
   int apiversion; /* bitsize 32, bitpos 0 */
   void (*Printf) ( char *fmt );
@@ -224,8 +326,8 @@ typedef struct clientGameImport_s { /* size 684 */
   void (*R_AddTerrainMarkToScene) (/* unknown */); /* bitsize 32, bitpos 2944 */
   void (*R_SetColor) (/* unknown */); /* bitsize 32, bitpos 2976 */
   void (*R_DrawStretchPic) (/* unknown */); /* bitsize 32, bitpos 3008 */
-  fontheader_t *(*R_LoadFont) (/* unknown */); /* bitsize 32, bitpos 3040 */
-  void (*R_DrawString) (/* unknown */); /* bitsize 32, bitpos 3072 */
+  fontheader_t *(*R_LoadFont) ( char *name );
+  void (*R_DrawString) (fontheader_t *font, char *text, float x, float y, int maxlen, qboolean bVirtualScreen );
   refEntity_t *(*R_GetRenderEntity) (/* unknown */); /* bitsize 32, bitpos 3104 */
   void (*R_ModelBounds) (/* unknown */); /* bitsize 32, bitpos 3136 */
   float (*R_ModelRadius) (/* unknown */); /* bitsize 32, bitpos 3168 */
@@ -263,37 +365,44 @@ typedef struct clientGameImport_s { /* size 684 */
   int (*Key_StringToKeynum) (/* unknown */); /* bitsize 32, bitpos 4192 */
   char *(*Key_KeynumToBindString) (/* unknown */); /* bitsize 32, bitpos 4224 */
   void (*Key_GetKeysForCommand) (/* unknown */); /* bitsize 32, bitpos 4256 */
-  struct dtiki_s /* id 19 */ *(*R_Model_GetHandle) (/* unknown */); /* bitsize 32, bitpos 4288 */
-  int (*TIKI_NumAnims) (/* unknown */); /* bitsize 32, bitpos 4320 */
-  void (*TIKI_CalculateBounds) (/* unknown */); /* bitsize 32, bitpos 4352 */
-  char *(*TIKI_Name) (/* unknown */); /* bitsize 32, bitpos 4384 */
-  void *(*TIKI_GetSkeletor) (/* unknown */); /* bitsize 32, bitpos 4416 */
-  void (*TIKI_SetEyeTargetPos) (/* unknown */); /* bitsize 32, bitpos 4448 */
-  char *(*Anim_NameForNum) (/* unknown */); /* bitsize 32, bitpos 4480 */
-  int (*Anim_NumForName) (/* unknown */); /* bitsize 32, bitpos 4512 */
-  int (*Anim_Random) (/* unknown */); /* bitsize 32, bitpos 4544 */
-  int (*Anim_NumFrames) (/* unknown */); /* bitsize 32, bitpos 4576 */
-  float (*Anim_Time) (/* unknown */); /* bitsize 32, bitpos 4608 */
-  float (*Anim_Frametime) (/* unknown */); /* bitsize 32, bitpos 4640 */
-  void (*Anim_Delta) (/* unknown */); /* bitsize 32, bitpos 4672 */
-  int (*Anim_Flags) (/* unknown */); /* bitsize 32, bitpos 4704 */
-  int (*Anim_FlagsSkel) (/* unknown */); /* bitsize 32, bitpos 4736 */
-  float (*Anim_CrossblendTime) (/* unknown */); /* bitsize 32, bitpos 4768 */
-  qboolean (*Anim_HasCommands) (/* unknown */); /* bitsize 32, bitpos 4800 */
-  qboolean (*Frame_Commands) (/* unknown */); /* bitsize 32, bitpos 4832 */
-  qboolean (*Frame_CommandsTime) (/* unknown */); /* bitsize 32, bitpos 4864 */
-  int (*Surface_NameToNum) (/* unknown */); /* bitsize 32, bitpos 4896 */
-  int (*Tag_NumForName) (/* unknown */); /* bitsize 32, bitpos 4928 */
-  char *(*Tag_NameForNum) (/* unknown */); /* bitsize 32, bitpos 4960 */
-  void (*ForceUpdatePose) (/* unknown */); /* bitsize 32, bitpos 4992 */
-  orientation_t (*TIKI_Orientation) (/* unknown */); /* bitsize 32, bitpos 5024 */
-  qboolean (*TIKI_IsOnGround) (/* unknown */); /* bitsize 32, bitpos 5056 */
-  void (*UI_ShowScoreBoard) (/* unknown */); /* bitsize 32, bitpos 5088 */
-  void (*UI_HideScoreBoard) (/* unknown */); /* bitsize 32, bitpos 5120 */
-  void (*UI_SetScoreBoardItem) (/* unknown */); /* bitsize 32, bitpos 5152 */
-  void (*UI_DeleteScoreBoardItems) (/* unknown */); /* bitsize 32, bitpos 5184 */
-  void (*UI_ToggleDMMessageConsole) (/* unknown */); /* bitsize 32, bitpos 5216 */
-  struct dtiki_s /* id 19 */ *(*TIKI_FindTiki) (/* unknown */); /* bitsize 32, bitpos 5248 */
+
+  // TIKI stuff
+  struct dtiki_s *(*R_Model_GetHandle) ( qhandle_t handle );
+  int (*TIKI_NumAnims) ( dtiki_t *pmdl );
+  void (*TIKI_CalculateBounds) ( dtiki_t *pmdl, float scale, float *mins, float *maxs );
+  char *(*TIKI_Name) ( dtiki_t *pmdl );
+  void *(*TIKI_GetSkeletor) ( dtiki_t *tiki, int entnum );
+  void (*TIKI_SetEyeTargetPos) ( dtiki_t *tiki, int entnum, float *pos );
+  char *(*Anim_NameForNum) ( dtiki_t *pmdl, int animnum );
+  int (*Anim_NumForName) ( dtiki_t *pmdl, char *name );
+  int (*Anim_Random) ( dtiki_t *pmdl, char *name );
+  int (*Anim_NumFrames) ( dtiki_t *pmdl, int animnum );
+  float (*Anim_Time) ( dtiki_t *pmdl, int animnum );
+  float (*Anim_Frametime) ( dtiki_t *pmdl, int animnum );
+  // WARNING: Anim_Delta might be NULL pointer in MOHAA
+  void (*Anim_Delta) ( dtiki_t *pmdl, int animnum, float *delta );
+  int (*Anim_Flags) ( dtiki_t *pmdl, int animnum );
+  int (*Anim_FlagsSkel) ( dtiki_t *pmdl, int animnum );
+  float (*Anim_CrossblendTime) ( dtiki_t *pmdl, int animnum );
+  qboolean (*Anim_HasCommands) ( dtiki_t *pmdl, int animnum );
+  qboolean (*Frame_Commands) ( dtiki_t *pmdl, int animnum, int framenum, tiki_cmd_t *tiki_cmd );
+  qboolean (*Frame_CommandsTime) ( dtiki_t *pmdl, int animnum, float start, float end, tiki_cmd_t *tiki_cmd );
+  int (*Surface_NameToNum) ( dtiki_t *pmdl, char *name );
+  int (*Tag_NumForName) ( dtiki_t *pmdl, char *name );
+  char *(*Tag_NameForNum) ( dtiki_t *pmdl, int iTagNum );
+  void (*ForceUpdatePose) ( refEntity_t *model );
+  orientation_t (*TIKI_Orientation) ( refEntity_t *model, int tagnum );
+  qboolean (*TIKI_IsOnGround) ( refEntity_t *model, int tagnum, float threshold );
+
+  void (*UI_ShowScoreBoard) ();
+  void (*UI_HideScoreBoard) ();
+  void (*UI_SetScoreBoardItem) ();
+  void (*UI_DeleteScoreBoardItems) ();
+  void (*UI_ToggleDMMessageConsole) ();
+
+  struct dtiki_s *(*TIKI_FindTiki) ( char *path );
+  // end of TIKI stuff
+
   void (*LoadResource) (/* unknown */); /* bitsize 32, bitpos 5280 */
   void (*FS_CanonicalFilename) (/* unknown */); /* bitsize 32, bitpos 5312 */
   cvar_t *fs_debug; /* bitsize 32, bitpos 5344 */
@@ -334,3 +443,14 @@ typedef struct clientGameExport_s { /* size 120 */
   struct prof_cgame_s /* id 116 */ *prof_struct; /* bitsize 32, bitpos 896 */
   qboolean (*CG_Command_ProcessFile) (/* unknown */); /* bitsize 32, bitpos 928 */
 } clientGameExport_t;
+
+// cg_draw.c
+extern clientGameExport_t cge;
+extern clientGameExport_t cge_out;
+extern clientGameImport_t cgi;
+extern clientGameImport_t cgi_out;
+extern fontheader_t *facfont;
+void CG_Draw2D();
+// cg_tiki.c
+struct dtiki_s *R_Model_GetHandle ( qhandle_t handle );
+struct dtiki_s *TIKI_FindTiki ( char *path );

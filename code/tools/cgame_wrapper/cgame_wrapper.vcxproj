@@ -65,7 +65,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="cg_draw.c" />
     <ClCompile Include="cg_main.c" />
+    <ClCompile Include="cg_tiki.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="qcommon.h" />
