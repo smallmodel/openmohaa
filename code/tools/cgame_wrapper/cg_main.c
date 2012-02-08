@@ -21,10 +21,15 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 #include "qcommon.h"
+#ifndef __linux__
 #include <Windows.h>
-
 // original cgame dll
 HMODULE cg_dll;
+#else
+#include <dlfcn.h>
+void	*cg_so;
+#endif
+
 // interface function
 typedef clientGameExport_t* (*cgapi)();
 
@@ -65,12 +70,18 @@ void CG_Init( clientGameImport_t *imported, int serverMessageNum, int serverComm
 
 void CG_Shutdown () {
 	cge.CG_Shutdown();
+#ifndef __linux__
 	FreeLibrary( cg_dll );
+#else
+	dlclose(cg_so);
+#endif
 }
 
+#ifndef __linux__
 __declspec(dllexport) clientGameExport_t *GetCGameAPI() {
-	cgapi		cg_dll_proc;
-	DWORD		err;
+	cgapi				cg_dll_proc;
+	DWORD				err;
+	clientGameExport_t	*ret;
 
 	// Load original DLL
 	cg_dll = LoadLibrary( "main\\cgamex86mohaa.dll" );
@@ -85,8 +96,32 @@ __declspec(dllexport) clientGameExport_t *GetCGameAPI() {
 		return NULL;
 	}
 
+	ret = cg_dll_proc();
+#else
+clientGameExport_t *GetCGameAPI() {
+	cgapi				cg_so_proc;
+	char				*err;
+	clientGameExport_t	*ret;
+
+	cg_so = dlopen("cgame.so", RTLD_LAZY);
+	if (cg_so == NULL) {
+		err = dlerror();
+		return NULL;
+	}
+
+	dlerror();
+
+	cg_so_proc = dlsym( cg_so, "GetCGameAPI" );
+	err = dlerror();
+	if (err != NULL) {
+		return NULL;
+	}
+
+	ret = cg_so_proc();
+#endif
+
 	// Call original GetCGameAPI to get the pointers
-	memcpy( &cge, cg_dll_proc(), sizeof(cge) );
+	memcpy( &cge, ret, sizeof(cge) );
 	memcpy( &cge_out, &cge, sizeof(cge) );
 
 	// reroute exported functions
@@ -120,3 +155,4 @@ void Com_Printf( const char *msg, ... ) {
 
 	cgi.Printf ("%s", text);
 }
+
