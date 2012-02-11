@@ -371,8 +371,8 @@ void UI_KeyEvent( int key, int down ) {
 					continue;
 				if (res->type == UI_RES_FIELD) {
 					int len;
-					trap_Cvar_VariableStringBuffer(res->linkcvarname, buffer,64);
-					len = strnlen(buffer,64);
+					trap_Cvar_VariableStringBuffer(res->linkcvarname, buffer,sizeof(buffer));
+					len = strnlen(buffer,sizeof(buffer));
 					if(len > 0) {
 						buffer[len-1] = 0;
 						trap_Cvar_Set( res->linkcvarname, buffer );
@@ -390,10 +390,18 @@ void UI_KeyEvent( int key, int down ) {
 				if (res->active ==qfalse)
 					continue;
 				if (res->type == UI_RES_FIELD) {
-					trap_Cvar_VariableStringBuffer(res->linkcvarname, buffer,64);
+					trap_Cvar_VariableStringBuffer(res->linkcvarname, buffer,sizeof(buffer));
 					if ( (key >= 'a'&&key <= 'z') || (key >= '0'&&key <= '9')) {
-						buffer[strnlen(buffer,64)] = key;
-						buffer[strnlen(buffer,64)+1] = 0;
+						int len = strnlen(buffer,sizeof(buffer));
+						// su44: we dont want buffer overflow errors...
+						if(len != sizeof(buffer) - 1) {
+							buffer[len] = key;
+							buffer[len+1] = 0;
+						} else {
+							// su44: someone could change it to DPrintf, but right now there is no DPrintf in UI
+							Com_Printf("UI_KeyEvent: maximum buffer size (%i) reached for editfield '%s' of menu '%s' (buffer text: '%s')\n",
+								sizeof(buffer),res->name,menu->name,buffer);
+						}
 					}
 					trap_Cvar_Set( res->linkcvarname, buffer );
 				}
