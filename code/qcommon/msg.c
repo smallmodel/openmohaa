@@ -428,9 +428,9 @@ float MSG_ReadCoord( msg_t *msg ) {
 	float	rtn;
 
 	read = MSG_ReadBits( msg, 19 );
-	if ( read & 262144 )
+	if ( read & 262144 )	// the 19th bit is the sign
 		sign = -1.0f;
-	read &= 4294705151;
+	read &= ~262144; //  uint=4294705151
 	rtn =  sign * read /16.0f;
 	
 	return rtn;	
@@ -1315,8 +1315,8 @@ void MSG_ReadSounds (msg_t *msg, server_sound_t *sounds, int *snapshot_number_of
 						sounds[i].origin[2] = MSG_ReadFloat( msg );
 					} else {
 						sounds[i].origin[0] = 0;
+						sounds[i].origin[1] = 0;
 						sounds[i].origin[2] = 0;
-						sounds[i].origin[3] = 0;
 					}
 					sounds[i].entity_number = MSG_ReadBits(msg, 11 );
 					sounds[i].channel = MSG_ReadBits(msg, 7 );
@@ -1596,17 +1596,17 @@ void MSG_ReadDeltaEntity( msg_t *msg, entityState_t *from, entityState_t *to,
 				case 6:
 					tmp = 1.0f;
 					bits = MSG_ReadBits( msg, 19 );
-					if ( bits & 262144 ) // test for 1 bit
+					if ( bits & 262144 ) // test for 19th bit
 						tmp = -1.0f;
-					bits &= 4294705151;	// remove that bit
+					bits &= ~262144;	// remove that bit
 					*(float *)toF = tmp * bits / 16.0f;
 					break;
 				case 7:
 					tmp = 1.0f;
 					bits = MSG_ReadBits( msg, 17 );
-					if ( bits & 65536 ) // test for 1 bit
+					if ( bits & 65536 ) // test for 17th bit
 						tmp = -1.0f;
-					bits &= 4294901759;	// remove that bit
+					bits &= ~65536; // remove that bit
 					*(float *)toF = tmp * bits / 8.0f;
 					break;
 				default:
@@ -2100,17 +2100,17 @@ void MSG_ReadDeltaPlayerstate (msg_t *msg, playerState_t *from, playerState_t *t
 				case 6:
 					tmp = 1.0f;
 					bits = MSG_ReadBits( msg, 19 );
-					if ( bits & 262144 ) // test for 1 bit
+					if ( bits & 262144 ) // test for 19th bit
 						tmp = -1.0f;
-					bits &= 4294705151;	// remove that bit
+					bits &= ~262144; // 4294705151;	// remove that bit
 					*(float *)toF = tmp * bits / 16.0f;
 					break;
 				case 7:
 					tmp = 1.0f;
 					bits = MSG_ReadBits( msg, 17 );
-					if ( bits & 65536 ) // test for 1 bit
+					if ( bits & 65536 ) // test for 17th bit
 						tmp = -1.0f;
-					bits &= 4294901759;	// remove that bit
+					bits &= ~65536; // 4294901759;	// remove that bit
 					*(float *)toF = tmp * bits / 8.0f;
 					break;
 				default:
