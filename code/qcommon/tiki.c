@@ -139,7 +139,7 @@ void TIKI_PrintBoneInfo(tiki_t *tiki, int boneNum) {
 		}
 		break;
 		default:
-			Com_Error(ERR_DROP,"TIKI_PrintBoneInfo: unsupported bone type %boneNum",*((int**)tiki->bones)[boneNum]);
+			Com_Error(ERR_DROP,"TIKI_PrintBoneInfo: unsupported bone type %d boneNum",*((int**)tiki->bones)[boneNum]);
 		break;
 	}
 }
@@ -695,7 +695,7 @@ int TIKI_GetBoneIndex(tiki_t *tiki, const char *boneName) {
 // but at least now it works...
 void TIKI_MergeSKD(tiki_t *out, char *fname) {
 	int				filesize;
-	char			*buf;
+	char			*buf = NULL;
 	skdHeader_t		*header;
 	skdBone_t		*bone;
 	skdSurface_t	*surf, *outSurfs;
@@ -717,7 +717,7 @@ void TIKI_MergeSKD(tiki_t *out, char *fname) {
 	byte				notInBoneList[128];
 	int					headerBoneNames[128];
 	int *newBoneNames;
-	int	*newBoneList;
+	intptr_t *newBoneList;
 
 	//Com_Printf("TIKI_MergeSKD for %s, skd name  %s\n", out->name, fname);
 	filesize = FS_ReadFile(fname, (void **)&buf);
@@ -732,7 +732,7 @@ void TIKI_MergeSKD(tiki_t *out, char *fname) {
 		return;
 	}
 	if (header->ident != SKD_IDENT) {
-		Com_Printf( "TIKI_MergeSKD: %s has wrong ident (%s should be %s)\n",
+		Com_Printf( "TIKI_MergeSKD: %s has wrong ident (%d should be %d)\n",
 				 fname, header->ident, SKD_IDENT);
 		return;
 	}
@@ -750,14 +750,14 @@ void TIKI_MergeSKD(tiki_t *out, char *fname) {
 		bone = (skdBone_t *)( (byte *)bone + bone->ofsEnd );
 	}
 	if(numAddBones) {
-		newBoneNames = Z_TagMalloc((numAddBones + out->numBones)*4,TAG_TIKI);
-		memcpy(newBoneNames,out->boneNames,out->numBones*4);
-		memcpy(&newBoneNames[out->numBones],addBonesIndexes,numAddBones*4);
+		newBoneNames = Z_TagMalloc((numAddBones + out->numBones) * sizeof(int),TAG_TIKI);
+		memcpy(newBoneNames,out->boneNames,out->numBones * sizeof(int));
+		memcpy(&newBoneNames[out->numBones],addBonesIndexes,numAddBones * sizeof(int));
 		Z_Free(out->boneNames);
 		out->boneNames = newBoneNames;
 
-		newBoneList = Z_TagMalloc((out->numBones + numAddBones)*4,TAG_TIKI);
-		memcpy(newBoneList,out->bones,out->numBones*4);
+		newBoneList = Z_TagMalloc((out->numBones + numAddBones) * sizeof(intptr_t),TAG_TIKI);
+		memcpy(newBoneList,out->bones,out->numBones * sizeof(intptr_t));
 		Z_Free(out->bones);
 		out->bones = (void**)newBoneList;
 		newBoneList+=out->numBones;
@@ -769,7 +769,7 @@ void TIKI_MergeSKD(tiki_t *out, char *fname) {
 				switch(bone->jointType)	{
 					case JT_ROTATION:
 					{
-						*newBoneList = (int*)Hunk_Alloc(sizeof(tikiBoneRotation_t),h_low);
+						*newBoneList = (intptr_t)Hunk_Alloc(sizeof(tikiBoneRotation_t),h_low);
 						rot = (tikiBoneRotation_t*)*newBoneList;
 						rot->type=bone->jointType;
 						rot->parentIndex = TIKI_GetLocalBoneIndex(out,bone->parent);
@@ -779,7 +779,7 @@ void TIKI_MergeSKD(tiki_t *out, char *fname) {
 					break;
 					case JT_POSROT_SKC:
 					{
-						*newBoneList = (int*)Hunk_Alloc(sizeof(tikiBonePosRot_t),h_low);
+						*newBoneList = (intptr_t)Hunk_Alloc(sizeof(tikiBonePosRot_t),h_low);
 						posrot = (tikiBonePosRot_t*)*newBoneList;
 						posrot->type=bone->jointType;
 						posrot->parentIndex = TIKI_GetLocalBoneIndex(out,bone->parent);
@@ -787,7 +787,7 @@ void TIKI_MergeSKD(tiki_t *out, char *fname) {
 					break;
 					case JT_SHOULDER:
 					{
-						*newBoneList = Hunk_Alloc(sizeof(tikiBoneShoulder_t),h_low);
+						*newBoneList = (intptr_t)Hunk_Alloc(sizeof(tikiBoneShoulder_t),h_low);
 						should = (tikiBoneShoulder_t*)*newBoneList;
 						should->type=bone->jointType;
 						should->parentIndex = TIKI_GetLocalBoneIndex(out,bone->parent);
@@ -798,7 +798,7 @@ void TIKI_MergeSKD(tiki_t *out, char *fname) {
 					break;
 					case JT_ELBOW:
 					{
-						*newBoneList = Hunk_Alloc(sizeof(tikiBoneElbow_t),h_low);
+						*newBoneList = (intptr_t)Hunk_Alloc(sizeof(tikiBoneElbow_t),h_low);
 						elbow = (tikiBoneElbow_t*)*newBoneList;
 						elbow->type=bone->jointType;
 						elbow->parentIndex = TIKI_GetLocalBoneIndex(out,bone->parent);
@@ -809,7 +809,7 @@ void TIKI_MergeSKD(tiki_t *out, char *fname) {
 					break;
 					case JT_WRIST:
 					{
-						*newBoneList = Hunk_Alloc(sizeof(tikiBoneWrist_t),h_low);
+						*newBoneList = (intptr_t)Hunk_Alloc(sizeof(tikiBoneWrist_t),h_low);
 						wrist = (tikiBoneWrist_t*)*newBoneList;
 						wrist->type=bone->jointType;
 						wrist->parentIndex = TIKI_GetLocalBoneIndex(out,bone->parent);
@@ -819,8 +819,7 @@ void TIKI_MergeSKD(tiki_t *out, char *fname) {
 					break;
 					case JT_HOSEROT:
 					{
-						char*txt;
-						*newBoneList = Hunk_Alloc(sizeof(tikiBoneHoseRot_t),h_low);
+						*newBoneList = (intptr_t)Hunk_Alloc(sizeof(tikiBoneHoseRot_t),h_low);
 						hose = (tikiBoneHoseRot_t*)*newBoneList;
 						hose->type=bone->jointType;
 						hose->parentIndex = TIKI_GetLocalBoneIndex(out,bone->parent);
@@ -841,15 +840,14 @@ void TIKI_MergeSKD(tiki_t *out, char *fname) {
 //						Com_Printf("HOSEROT hoseRotType %i \n",*(int*)ptr);
 						hose->hoseRotType = *(hoseRotType_t*)ptr;
 						ptr++;
-						txt = (char*)ptr;
-						//Com_Printf("\n HOSEref <%s>\n",txt);
-						hose->targetIndex = TIKI_GetLocalBoneIndex(out,txt);
+						//Com_Printf("\n HOSEref <%s>\n", (char *)ptr);
+						hose->targetIndex = TIKI_GetLocalBoneIndex(out, (char *)ptr);
 					}
 					break;
 					case JT_AVROT: //
 					{
-						int size;
-						*newBoneList = (int*)Hunk_Alloc(sizeof(tikiBoneAVRot_t),h_low);
+						//intptr_t size;
+						*newBoneList = (intptr_t)Hunk_Alloc(sizeof(tikiBoneAVRot_t),h_low);
 						av = (tikiBoneAVRot_t*)*newBoneList;
 						av->type=bone->jointType;
 						av->parentIndex = TIKI_GetLocalBoneIndex(out,bone->parent);
@@ -861,7 +859,7 @@ void TIKI_MergeSKD(tiki_t *out, char *fname) {
 						VectorCopy(ptr,av->const_offset);
 						ptr+=3;
 						ptr+=3; //skip 1 1 1
-						size = (int)bone + (int)bone->ofsEnd - (int)ptr;
+						//size = (intptr_t)bone + bone->ofsEnd - (intptr_t)ptr;
 						//Com_Printf("reference 1 %s ",(char*)ptr);
 						bytePtr = (char*)ptr;
 						av->m_reference1 = TIKI_GetLocalBoneIndex(out,bytePtr); 
@@ -956,7 +954,7 @@ void TIKI_AppendSKD(tiki_t *out, char *fname) {
 		return;
 	}
 	if (header->ident != SKD_IDENT) {
-		Com_Printf( "TIKI_AppendSKD: %s has wrong ident (%s should be %s)\n",
+		Com_Printf( "TIKI_AppendSKD: %s has wrong ident (%d should be %d)\n",
 				 fname, header->ident, SKD_IDENT);
 		return;
 	}
@@ -967,7 +965,7 @@ void TIKI_AppendSKD(tiki_t *out, char *fname) {
 	//Com_Printf("ofs bones %i , surfaces %i, boxes %i, end %i, lods %i, morpgh %i",header->ofsBones, header->ofsSurfaces, header->ofsBoxes,header->ofsEnd,header->ofsLODs, header->ofsMorphTargets);
 
 	//names array
-	out->boneNames = Z_TagMalloc(header->numBones*4,TAG_TIKI);//Hunk_Alloc((header->numBones*4),h_high);
+	out->boneNames = Z_TagMalloc(header->numBones * sizeof(int),TAG_TIKI);//Hunk_Alloc((header->numBones * sizeof(int)),h_high);
 	bone = (skdBone_t *) ( (byte *)header + header->ofsBones );
 	for ( i = 0 ; i < header->numBones ; i++) {
 		out->boneNames[i] = TIKI_RegisterBoneName(bone->name);
@@ -981,7 +979,7 @@ void TIKI_AppendSKD(tiki_t *out, char *fname) {
 	}
 
 	out->numBones = header->numBones;
-	out->bones = Z_TagMalloc(header->numBones*sizeof(int),TAG_TIKI);//Hunk_Alloc(header->numBones*sizeof(int),h_high);
+	out->bones = Z_TagMalloc(header->numBones*sizeof(int *),TAG_TIKI);//Hunk_Alloc(header->numBones*sizeof(int *),h_high);
 	bone = (skdBone_t *) ( (byte *)header + header->ofsBones );
 	for ( i = 0 ; i < header->numBones ; i++) {
 		switch(bone->jointType)	{
@@ -1036,7 +1034,6 @@ void TIKI_AppendSKD(tiki_t *out, char *fname) {
 			break;
 			case JT_HOSEROT:
 			{
-				char*txt;
 				out->bones[i] = Hunk_Alloc(sizeof(tikiBoneHoseRot_t),h_low);
 				hose = (tikiBoneHoseRot_t*)out->bones[i];
 				hose->type=bone->jointType;
@@ -1058,14 +1055,13 @@ void TIKI_AppendSKD(tiki_t *out, char *fname) {
 //				Com_Printf("HOSEROT hoseRotType %i \n",*(int*)ptr);
 				hose->hoseRotType = *(hoseRotType_t*)ptr;
 				ptr++;
-				txt = (char*)ptr;
-				//Com_Printf("\n HOSEref <%s>\n",txt);
-				hose->targetIndex = TIKI_GetLocalBoneIndex(out,txt);
+				//Com_Printf("\n HOSEref <%s>\n",(char *)ptr);
+				hose->targetIndex = TIKI_GetLocalBoneIndex(out, (char *)ptr);
 			}
 			break;
 			case JT_AVROT: //
 			{
-				int size;
+				//intptr_t size;
 				out->bones[i] = Hunk_Alloc(sizeof(tikiBoneAVRot_t),h_low);
 				av = (tikiBoneAVRot_t*)out->bones[i];
 				av->type=bone->jointType;
@@ -1077,7 +1073,7 @@ void TIKI_AppendSKD(tiki_t *out, char *fname) {
 				VectorScale(ptr,out->scale,av->const_offset);
 				ptr+=3;
 				ptr+=3; //skip 1 1 1
-				size = (int)bone + (int)bone->ofsEnd - (int)ptr;
+				//size = (intptr_t)bone + bone->ofsEnd - (intptr_t)ptr;
 	//			Com_Printf("reference 1 %s ",(char*)ptr);
 				bytePtr = (char*)ptr;
 				av->m_reference1 = TIKI_GetLocalBoneIndex(out,bytePtr); 
@@ -1089,7 +1085,7 @@ void TIKI_AppendSKD(tiki_t *out, char *fname) {
 			}
 			break;
 			default:
-				Com_Error(1,"unkwno nbone type %i",bone->jointType);
+				Com_Error(1,"unknown nbone type %i",bone->jointType);
 			break;
 		}
 		bone = (skdBone_t *)( (byte *)bone + bone->ofsEnd );
@@ -1164,7 +1160,7 @@ tikiAnim_t *TIKI_CacheAnim(char *fname, float scale) {
 	anim->frameTime = header->frameTime;
 	anim->numFrames = header->numFrames;
 
-	c = ( (byte *)header + header->ofsChannels );
+	c = (char *) ( (byte *)header + header->ofsChannels );
 	for(i = 0; i < header->numChannels; i++) {
 		int len = strlen(c);
 		if(!memcmp((c+(len-3)),"pos",3)) {
