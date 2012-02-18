@@ -33,6 +33,7 @@ typedef float vec3_t[3];
 typedef float vec4_t[4];
 typedef float vec5_t[5];
 typedef vec3_t SkelVec3;
+typedef vec4_t SkelQuat;
 typedef vec_t matrix_t[16];
 
 #define DotProduct(x,y)			((x)[0]*(y)[0]+(x)[1]*(y)[1]+(x)[2]*(y)[2])
@@ -244,6 +245,22 @@ typedef struct skelBone_Base { /* size 64 vtable self  id 855 */
 // private:
 //  __vtbl_ptr_type *_vptr$; /* bitpos 480 */
 } skelBone_Base_c;
+
+typedef struct skelBone_HoseRot /*: public skelBone_Base*/ { /* size 108 vtable skelBone_Base  id 1229 */
+	// inherited from base
+  void **vptr; // su44: IMHO vtable is at the beginning of the struct, not at the end
+  qboolean m_isDirty; /* bitsize 32, bitpos 0 */
+  struct skelBone_Base /* id 855 */ *m_parent; /* bitsize 32, bitpos 32 */
+  struct SkelMat4 /* id 183 */ m_cachedValue; /* bitsize 384, bitpos 64 */
+  float *m_controller; /* bitsize 32, bitpos 448 */
+	// hoserot specific
+  SkelVec3 /* id 1221 */ m_basePos; /* bitsize 96, bitpos 512 */
+  SkelQuat /* id 1226 */ m_cachedQuat; /* bitsize 128, bitpos 608 */
+  skelBone_Base_c /* id 855 */ *m_target; /* bitsize 32, bitpos 736 */
+  float m_bendRatio; /* bitsize 32, bitpos 768 */
+  float m_bendMax; /* bitsize 32, bitpos 800 */
+  float m_spinRatio; /* bitsize 32, bitpos 832 */
+} skelBone_HoseRot_c;
 
 typedef struct skeletor_s { /* size 1268 id 2016 */
 // public:
@@ -488,7 +505,7 @@ typedef struct snapshot_s { /* size 630492 */
 
 typedef struct clientGameImport_s { /* size 684 */
   int apiversion; /* bitsize 32, bitpos 0 */
-  void (*Printf) ( char *fmt );
+  void (*Printf) ( const char *fmt, ... );
   void (*DPrintf) (/* unknown */); /* bitsize 32, bitpos 64 */
   void (*DebugPrintf) (/* unknown */); /* bitsize 32, bitpos 96 */
   void *(*Malloc) (/* unknown */); /* bitsize 32, bitpos 128 */
