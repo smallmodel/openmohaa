@@ -510,7 +510,7 @@ typedef struct clientGameImport_s { /* size 684 */
   void (*DebugPrintf) (/* unknown */); /* bitsize 32, bitpos 96 */
   void *(*Malloc) (/* unknown */); /* bitsize 32, bitpos 128 */
   void (*Free) (/* unknown */); /* bitsize 32, bitpos 160 */
-  void (*Error) (/* unknown */); /* bitsize 32, bitpos 192 */
+  void (*Error) ( int level, const char *fmt, ... ); /* bitsize 32, bitpos 192 */
   int (*Milliseconds) (/* unknown */); /* bitsize 32, bitpos 224 */
   char *(*LV_ConvertString) (/* unknown */); /* bitsize 32, bitpos 256 */
   cvar_t *(*Cvar_Get) ( const char *var_name, const char *value, int flags ); /* bitsize 32, bitpos 288 */

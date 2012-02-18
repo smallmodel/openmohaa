@@ -97,8 +97,9 @@ void CG_Skel_ExtractVPTRs(skeletor_c *skel) {
 				if(boneVPtrs[bt->type] == 0) {
 					boneVPtrs[bt->type] = (void*)b->vptr;
 				} else {
-					if(boneVPtrs[bt->type] != (void*)b->vptr)
-						__asm int 3
+					if(boneVPtrs[bt->type] != (void*)b->vptr) {
+						cgi.Error(0,"CG_Skel_ExtractVPTRs: this should never happen; ask su44 why\n");
+					}
 				}
 
 			}
@@ -164,7 +165,7 @@ int CG_Bone_GetType(skelBone_Base_c *b) {
 	int i;
 
 	for(i = 0; i < 16; i++) {
-		if(b->vptr = boneVPtrs[i])
+		if(b->vptr == boneVPtrs[i])
 			return i;
 	}
 	return -1;
