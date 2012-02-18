@@ -103,7 +103,7 @@ void TIKI_PrintBoneInfo(tiki_t *tiki, int boneNum) {
 		case JT_ELBOW:
 		{
 			elbow = (tikiBoneElbow_t*)tiki->bones[boneNum];
-			Com_Printf("%s, parent %i, type 2 - JT_ELBOW, const offset %f %f %f\n",
+			Com_Printf("%s, parent %i, type 3 - JT_ELBOW, const offset %f %f %f\n",
 				TIKI_GetBoneNameFromIndex(tiki->boneNames[boneNum]),elbow->parentIndex,elbow->const_offset[0],
 				elbow->const_offset[1],elbow->const_offset[2]);
 
@@ -133,7 +133,7 @@ void TIKI_PrintBoneInfo(tiki_t *tiki, int boneNum) {
 		case JT_AVROT:
 		{
 			av = (tikiBoneAVRot_t*) tiki->bones[boneNum];
-			Com_Printf("%s, parent %i, type 5 - JT_AVROT, const offset %f %f %f, ref1 %i, ref2 %i, bone2weight %f\n",
+			Com_Printf("%s, parent %i, type 6 - JT_AVROT, const offset %f %f %f, ref1 %i, ref2 %i, bone2weight %f\n",
 				TIKI_GetBoneNameFromIndex(tiki->boneNames[boneNum]),av->parentIndex,av->const_offset[0],
 				av->const_offset[1],av->const_offset[2],av->m_reference1,av->m_reference2,av->m_bone2weight);
 		}
