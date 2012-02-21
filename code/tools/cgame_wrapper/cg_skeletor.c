@@ -29,6 +29,7 @@ cvar_t *cg_skel_show;
 cvar_t *cg_skel_printBoneDirty;
 cvar_t *cg_skel_printBonePos;
 cvar_t *cg_skel_printHoseParms;
+cvar_t *cg_skel_printIKChainParms;
 cvar_t *cg_skel_drawBones;
 cvar_t *cg_skel_su44;
 cvar_t *cheats;
@@ -39,6 +40,7 @@ void CG_InitSkeletorCvarsAndCmds() {
 	cg_skel_printBonePos = cgi.Cvar_Get("cg_skel_printBonePos","0",0);
 	cg_skel_drawBones = cgi.Cvar_Get("cg_skel_drawBones","0",0);
 	cg_skel_printHoseParms = cgi.Cvar_Get("cg_skel_printHoseParms","0",0);
+	cg_skel_printIKChainParms = cgi.Cvar_Get("cg_skel_printIKChainParms","0",0);
 	cg_skel_su44 = cgi.Cvar_Get("cg_skel_su44","0",0);
 	// hack, force some cvars to their usefull values
 	cheats = cgi.Cvar_Get("cheats","0",0);
@@ -187,6 +189,51 @@ int CG_Skel_BoneIndexForPointer(skelBone_Base_c *bone, skeletor_c *skel) {
 	}
 	return -1;
 }
+void CG_PrintfBone_Shoulder(skelBone_Base_c *b, skeletor_c *skel, int i) {
+	skelBone_IKshoulder_c *s;
+	int myWristIndex;
+	int parentIndex;
+
+	s = (skelBone_IKshoulder_c*)b;
+	parentIndex = CG_Skel_BoneIndexForPointer(s->m_parent,skel);
+	myWristIndex = CG_Skel_BoneIndexForPointer(s->m_wrist,skel);
+
+	// su44: it seems that s->m_cosElbowAngle is calculated on the fly
+	cgi.Printf("Bone %i of %i is a shoulder, name %s, parent %s, wrist %s, lowerLen %f, upperLen %f, cosElbowAngle %f\n",
+		i,skel->m_Tiki->m_boneList.m_numChannels,cgi.Tag_NameForNum(skel->m_Tiki,i),
+		cgi.Tag_NameForNum(skel->m_Tiki,parentIndex),cgi.Tag_NameForNum(skel->m_Tiki,myWristIndex),
+		s->m_lowerLength,s->m_upperLength,s->m_cosElbowAngle
+	);
+	
+}
+void CG_PrintfBone_Elbow(skelBone_Base_c *b, skeletor_c *skel, int i) {
+	skelBone_IKelbow_c *e;
+	int myShoulderIndex;
+	int parentIndex;
+
+	e = (skelBone_IKelbow_c*)b;
+	parentIndex = CG_Skel_BoneIndexForPointer(e->m_parent,skel);
+	myShoulderIndex = CG_Skel_BoneIndexForPointer(e->m_shoulder,skel);
+
+	cgi.Printf("Bone %i of %i is a elbow, name %s, parent %s, shoulder %s\n",
+		i,skel->m_Tiki->m_boneList.m_numChannels,cgi.Tag_NameForNum(skel->m_Tiki,i),
+		cgi.Tag_NameForNum(skel->m_Tiki,parentIndex),cgi.Tag_NameForNum(skel->m_Tiki,myShoulderIndex)
+	);
+}
+void CG_PrintfBone_Wrist(skelBone_Base_c *b, skeletor_c *skel, int i) {
+	skelBone_IKwrist_c *w;
+	int myShoulderIndex;
+	int parentIndex;
+
+	w = (skelBone_IKwrist_c*)b;
+	parentIndex = CG_Skel_BoneIndexForPointer(w->m_parent,skel);
+	myShoulderIndex = CG_Skel_BoneIndexForPointer(w->m_shoulder,skel);
+
+	cgi.Printf("Bone %i of %i is a wrist, name %s, parent %s, shoulder %s\n",
+		i,skel->m_Tiki->m_boneList.m_numChannels,cgi.Tag_NameForNum(skel->m_Tiki,i),
+		cgi.Tag_NameForNum(skel->m_Tiki,parentIndex),cgi.Tag_NameForNum(skel->m_Tiki,myShoulderIndex)
+	);
+}
 // su44: this is called for *every* entity with valid TIKI and skel pointers
 qboolean CG_TIKISkeletor(refEntity_t *ent, skeletor_c *skel) {
 	vec3_t end;
@@ -227,14 +274,28 @@ qboolean CG_TIKISkeletor(refEntity_t *ent, skeletor_c *skel) {
 				h = (skelBone_HoseRot_c*)b;
 
 				cgi.Printf("Bone %i of %i is a hoserot, name %s, model %s bendMax %f bendRatio %f spinRatio %f\n",
-				i,skel->m_Tiki->m_boneList.m_numChannels,cgi.Tag_NameForNum(skel->m_Tiki,i),
-				ent->tiki->name,
-				h->m_bendMax,h->m_bendRatio,h->m_spinRatio
+					i,skel->m_Tiki->m_boneList.m_numChannels,cgi.Tag_NameForNum(skel->m_Tiki,i),
+					ent->tiki->name,
+					h->m_bendMax,h->m_bendRatio,h->m_spinRatio
 				);
 			}
 		}	
 	}
 
+
+	if(cg_skel_printIKChainParms->integer && vPtrsExtracted) {
+		for(i = 0; i < skel->m_Tiki->m_boneList.m_numChannels; i++) {
+			skelBone_Base_c *b = skel->m_bone[i];
+
+			if(CG_Bone_IsElbow(b)) {
+				CG_PrintfBone_Elbow(b,skel,i);
+			} else if(CG_Bone_IsShoulder(b)) {
+				CG_PrintfBone_Shoulder(b,skel,i);
+			} else if(CG_Bone_IsWrist(b)) {
+				CG_PrintfBone_Wrist(b,skel,i);
+			}
+		}	
+	}
 
 
 	if(cg_skel_drawBones->integer) {
@@ -276,7 +337,8 @@ qboolean CG_TIKISkeletor(refEntity_t *ent, skeletor_c *skel) {
 		return qfalse;
 	}
 	if(cg_skel_su44->integer) {
-		for(i = 0; i <= skel->m_headBoneIndex; i++) {
+#if 0
+		for(i = 0; i skel->m_Tiki->m_boneList.m_numChannels; i++) {
 			GetTransformFunc GetDirtyTransform;
 			skelBone_Base_c *b;
 			int **v;
@@ -299,6 +361,23 @@ qboolean CG_TIKISkeletor(refEntity_t *ent, skeletor_c *skel) {
 
 			cgi.Printf("t.");
 		}	
+#else
+		if(vPtrsExtracted) {
+			for(i = 0; i < skel->m_Tiki->m_boneList.m_numChannels; i++) {
+				skelBone_Base_c *b = skel->m_bone[i];
+
+				if(CG_Bone_IsHoseRot(b)) {
+					skelBone_HoseRot_c *h;
+
+					h = (skelBone_HoseRot_c*)b;
+
+				//	h->m_bendMax = 90;
+				//	h->m_bendRatio = 100;
+					h->m_spinRatio = 1;
+				}
+			}	
+		}
+#endif
 	}
 	return qtrue;
 

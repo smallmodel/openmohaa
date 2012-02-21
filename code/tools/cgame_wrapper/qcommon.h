@@ -262,6 +262,76 @@ typedef struct skelBone_HoseRot /*: public skelBone_Base*/ { /* size 108 vtable 
   float m_spinRatio; /* bitsize 32, bitpos 832 */
 } skelBone_HoseRot_c;
 
+typedef struct skelBone_IKshoulder /*: public skelBone_Base*/ { /* size 120 vtable skelBone_Base  id 1224 */
+// public:
+	// inherited from base
+  void **vptr; // su44: IMHO vtable is at the beginning of the struct, not at the end
+  qboolean m_isDirty; /* bitsize 32, bitpos 0 */
+  struct skelBone_Base /* id 855 */ *m_parent; /* bitsize 32, bitpos 32 */
+  struct SkelMat4 /* id 183 */ m_cachedValue; /* bitsize 384, bitpos 64 */
+  float *m_controller; /* bitsize 32, bitpos 448 */
+	// shoulder specific
+  struct skelBone_IKwrist /* id 1225 */ *m_wrist; /* bitsize 32, bitpos 512 */
+  float m_upperLength; /* bitsize 32, bitpos 544 */
+  float m_lowerLength; /* bitsize 32, bitpos 576 */
+  SkelVec3 /* id 1221 */ m_baseValue; /* bitsize 96, bitpos 608 */
+  float m_cosElbowAngle; /* bitsize 32, bitpos 704 */
+  SkelVec3 /* id 1221 */ m_wristPos; /* bitsize 96, bitpos 736 */
+  SkelQuat /* id 1226 */ m_wristAngle; /* bitsize 128, bitpos 832 */
+  //class skelBone_IKshoulder /* id 1224 */ &class skelBone_IKshoulder /* id 1224 */::__as (class skelBone_IKshoulder /* id 1224 */ const &) /* __as__19skelBone_IKshoulderRC19skelBone_IKshoulder  */;
+  //class skelBone_IKshoulder /* id 1224 */ *class skelBone_IKshoulder /* id 1224 */::skelBone_IKshoulder (class skelBone_IKshoulder /* id 1224 */ const &) /* __19skelBone_IKshoulderRC19skelBone_IKshoulder  */;
+  //class skelBone_IKshoulder /* id 1224 */ *class skelBone_IKshoulder /* id 1224 */::skelBone_IKshoulder () /* __19skelBone_IKshoulder  */;
+  //class SkelMat4 /* id 183 */ *class skelBone_IKshoulder /* id 1224 */::GetDirtyTransform (class skelAnimStoreFrameList_c /* id 1218 */ const *) /* GetDirtyTransform__19skelBone_IKshoulderPC24skelAnimStoreFrameList_c context skelBone_Base voffset 2 */;
+  //void class skelBone_IKshoulder /* id 1224 */::SetBaseValue (class boneData_s /* id 158 */ *) /* SetBaseValue__19skelBone_IKshoulderP10boneData_s context skelBone_Base voffset 3 */;
+  //int class skelBone_IKshoulder /* id 1224 */::GetChannelIndex (int) /* GetChannelIndex__19skelBone_IKshoulderi context skelBone_Base voffset 4 */;
+  //class skelBone_Base /* id 855 */ *class skelBone_IKshoulder /* id 1224 */::GetBoneRef (int) /* GetBoneRef__19skelBone_IKshoulderi context skelBone_Base voffset 5 */;
+  //void class skelBone_IKshoulder /* id 1224 */::SetElbowValue (float) /* SetElbowValue__19skelBone_IKshoulderf  */;
+  //void class skelBone_IKshoulder /* id 1224 */::SetWristValue (float) /* SetWristValue__19skelBone_IKshoulderf  */;
+  //void class skelBone_IKshoulder /* id 1224 */::SetWristBone (class skelBone_IKwrist /* id 1225 */ *) /* SetWristBone__19skelBone_IKshoulderP16skelBone_IKwrist  */;
+  //float class skelBone_IKshoulder /* id 1224 */::GetUpperLength () /* GetUpperLength__19skelBone_IKshoulder  */;
+  //float class skelBone_IKshoulder /* id 1224 */::GetLowerLength () /* GetLowerLength__19skelBone_IKshoulder  */;
+} skelBone_IKshoulder_c;
+
+typedef struct skelBone_IKelbow/* : public skelBone_Base*/ { /* size 68 vtable skelBone_Base  id 1227 */
+	// inherited from base
+  void **vptr; // su44: IMHO vtable is at the beginning of the struct, not at the end
+  qboolean m_isDirty; /* bitsize 32, bitpos 0 */
+  struct skelBone_Base /* id 855 */ *m_parent; /* bitsize 32, bitpos 32 */
+  struct SkelMat4 /* id 183 */ m_cachedValue; /* bitsize 384, bitpos 64 */
+  float *m_controller; /* bitsize 32, bitpos 448 */
+	// elbow specific
+  skelBone_IKshoulder_c *m_shoulder; /* bitsize 32, bitpos 512 */
+  //class skelBone_IKelbow /* id 1227 */ &class skelBone_IKelbow /* id 1227 */::__as (class skelBone_IKelbow /* id 1227 */ const &) /* __as__16skelBone_IKelbowRC16skelBone_IKelbow  */;
+  //class skelBone_IKelbow /* id 1227 */ *class skelBone_IKelbow /* id 1227 */::skelBone_IKelbow (class skelBone_IKelbow /* id 1227 */ const &) /* __16skelBone_IKelbowRC16skelBone_IKelbow  */;
+  //class skelBone_IKelbow /* id 1227 */ *class skelBone_IKelbow /* id 1227 */::skelBone_IKelbow () /* __16skelBone_IKelbow  */;
+  //class SkelMat4 /* id 183 */ *class skelBone_IKelbow /* id 1227 */::GetDirtyTransform (class skelAnimStoreFrameList_c /* id 1218 */ const *) /* GetDirtyTransform__16skelBone_IKelbowPC24skelAnimStoreFrameList_c context skelBone_Base voffset 2 */;
+  //void class skelBone_IKelbow /* id 1227 */::SetBoneRefs (skelBone_IKshoulder *) /* SetBoneRefs__16skelBone_IKelbowP19skelBone_IKshoulder  */;
+  //void class skelBone_IKelbow /* id 1227 */::SetBaseValue (class boneData_s /* id 158 */ *) /* SetBaseValue__16skelBone_IKelbowP10boneData_s context skelBone_Base voffset 3 */;
+  //int class skelBone_IKelbow /* id 1227 */::GetChannelIndex (int) /* GetChannelIndex__16skelBone_IKelbowi context skelBone_Base voffset 4 */;
+  //class skelBone_Base /* id 855 */ *class skelBone_IKelbow /* id 1227 */::GetBoneRef (int) /* GetBoneRef__16skelBone_IKelbowi context skelBone_Base voffset 5 */;
+} skelBone_IKelbow_c;
+typedef struct skelBone_IKwrist /* : public skelBone_Base*/ { /* size 76 vtable skelBone_Base  id 1225 */
+	// inherited from base
+  void **vptr; // su44: IMHO vtable is at the beginning of the struct, not at the end
+  qboolean m_isDirty; /* bitsize 32, bitpos 0 */
+  struct skelBone_Base /* id 855 */ *m_parent; /* bitsize 32, bitpos 32 */
+  struct SkelMat4 /* id 183 */ m_cachedValue; /* bitsize 384, bitpos 64 */
+  float *m_controller; /* bitsize 32, bitpos 448 */
+	// wrist specific
+  skelBone_IKshoulder_c *m_shoulder; /* bitsize 32, bitpos 512 */
+  int m_quatChannel; /* bitsize 32, bitpos 544 */
+  int m_offsetChannel; /* bitsize 32, bitpos 576 */
+  //class skelBone_IKwrist /* id 1225 */ &class skelBone_IKwrist /* id 1225 */::__as (class skelBone_IKwrist /* id 1225 */ const &) /* __as__16skelBone_IKwristRC16skelBone_IKwrist  */;
+  //class skelBone_IKwrist /* id 1225 */ *class skelBone_IKwrist /* id 1225 */::skelBone_IKwrist (class skelBone_IKwrist /* id 1225 */ const &) /* __16skelBone_IKwristRC16skelBone_IKwrist  */;
+  //class skelBone_IKwrist /* id 1225 */ *class skelBone_IKwrist /* id 1225 */::skelBone_IKwrist () /* __16skelBone_IKwrist  */;
+  //class SkelMat4 /* id 183 */ *class skelBone_IKwrist /* id 1225 */::GetDirtyTransform (class skelAnimStoreFrameList_c /* id 1218 */ const *) /* GetDirtyTransform__16skelBone_IKwristPC24skelAnimStoreFrameList_c context skelBone_Base voffset 2 */;
+  //void class skelBone_IKwrist /* id 1225 */::SetChannels (int, int) /* SetChannels__16skelBone_IKwristii  */;
+  //void class skelBone_IKwrist /* id 1225 */::SetBoneRefs (skelBone_IKshoulder *) /* SetBoneRefs__16skelBone_IKwristP19skelBone_IKshoulder  */;
+  //void class skelBone_IKwrist /* id 1225 */::SetBaseValue (class boneData_s /* id 158 */ *) /* SetBaseValue__16skelBone_IKwristP10boneData_s context skelBone_Base voffset 3 */;
+  //int class skelBone_IKwrist /* id 1225 */::GetChannelIndex (int) /* GetChannelIndex__16skelBone_IKwristi context skelBone_Base voffset 4 */;
+  //class skelBone_Base /* id 855 */ *class skelBone_IKwrist /* id 1225 */::GetBoneRef (int) /* GetBoneRef__16skelBone_IKwristi context skelBone_Base voffset 5 */;
+} skelBone_IKwrist_c;
+
 typedef struct skeletor_s { /* size 1268 id 2016 */
 // public:
   struct dtiki_s /* id 104 */ *m_Tiki; /* bitsize 32, bitpos 0 */
