@@ -42,6 +42,7 @@ typedef vec_t matrix_t[16];
 #define VectorCopy(a,b)			((b)[0]=(a)[0],(b)[1]=(a)[1],(b)[2]=(a)[2])
 #define	VectorScale(v, s, o)	((o)[0]=(v)[0]*(s),(o)[1]=(v)[1]*(s),(o)[2]=(v)[2]*(s))
 #define	VectorMA(v, s, b, o)	((o)[0]=(v)[0]+(b)[0]*(s),(o)[1]=(v)[1]+(b)[1]*(s),(o)[2]=(v)[2]+(b)[2]*(s))
+#define VectorSet(v, x, y, z)	((v)[0]=(x), (v)[1]=(y), (v)[2]=(z))
 
 typedef struct SkelMat4 { /* size 48 id 162 */
   float val[4][3]; /* bitsize 384, bitpos 0 */
@@ -220,6 +221,42 @@ typedef struct skelChannelList_s { /* size 408 id 126 */
   short int m_chanGlobalFromLocal[200]; /* bitsize 3200, bitpos 64 */
 } skelChannelList_c;
 
+typedef struct skelAnimGameFrame_s { /* size 48 */
+    SkelVec3 bounds[2]; /* bitsize 192, bitpos 0 */
+    float radius; /* bitsize 32, bitpos 192 */
+    SkelVec3 delta; /* bitsize 96, bitpos 224 */
+    float angleDelta; /* bitsize 32, bitpos 320 */
+    float (*pChannels)[4]; /* bitsize 32, bitpos 352 */
+} skelAnimGameFrame_t;
+
+typedef struct skanGameFrame_s { /* size 20 */
+  short int nFrameNum; /* bitsize 16, bitpos 0 */
+  short int nPrevFrameIndex; /* bitsize 16, bitpos 16 */
+  float pChannelData[4]; /* bitsize 128, bitpos 32 */
+} skanGameFrame;
+
+typedef struct skanChannelHdr_s { /* size 8 */
+  short int nFramesInChannel; /* bitsize 16, bitpos 0 */
+  skanGameFrame *ary_frames; /* bitsize 32, bitpos 32 */
+} skanChannelHdr;
+
+typedef struct skelAnimDataGameHeader_s { /* size 484 id 1242 */
+  int flags; /* bitsize 32, bitpos 0 */
+  int nBytesUsed; /* bitsize 32, bitpos 32 */
+  byte bHasDelta; /* bitsize 8, bitpos 64 */
+  byte bHasMorph; /* bitsize 8, bitpos 72 */
+  byte bHasUpper; /* bitsize 8, bitpos 80 */
+  int numFrames; /* bitsize 32, bitpos 96 */
+  SkelVec3 totalDelta; /* bitsize 96, bitpos 128 */
+  float totalAngleDelta; /* bitsize 32, bitpos 224 */
+  float frameTime; /* bitsize 32, bitpos 256 */
+  skelChannelList_c /* id 146 */ channelList; /* bitsize 3264, bitpos 288 */
+  SkelVec3 bounds[2]; /* bitsize 192, bitpos 3552 */
+  skelAnimGameFrame_t *m_frame; /* bitsize 32, bitpos 3744 */
+  short int nTotalChannels; /* bitsize 16, bitpos 3776 */
+  skanChannelHdr ary_channels[1]; /* bitsize 64, bitpos 3808 */
+} skelAnimDataGameHeader_t;
+
 typedef struct skanBlendInfo_s { /* size 12 */
   float weight; /* bitsize 32, bitpos 0 */
   struct skelAnimDataGameHeader_s /* id 848 */ *pAnimationData; /* bitsize 32, bitpos 32 */
@@ -233,8 +270,21 @@ typedef struct skelAnimStoreFrameList_s { /* size 776 id 851 */
   skanBlendInfo m_blendInfo[64]; /* bitsize 6144, bitpos 64 */
 } skelAnimStoreFrameList_c;
 
+// su44: these are indexes in skelBone_c class vtable
+// they might be different in different builds of MOH
+typedef enum skelBoneVTBLFuncType_e {
+	BONEFUNC_GETDIRTYTRANFORM,
+	BONEFUNC_SETBASEVAL,
+	BONEFUNC_GETCHANNELINDEX,
+	BONEFUNC_GETBONEREF,
+} skelBoneVTBLFuncType_t;
+
+typedef struct {
+	int funcs[16];
+} skelBoneVTable_t;
+
 typedef struct skelBone_Base { /* size 64 vtable self  id 855 */
-  void **vptr; // su44: IMHO vtable is at the beginning of the struct, not at the end
+ skelBoneVTable_t *vptr; // su44: IMHO vtable is at the beginning of the struct, not at the end
 // public:
   qboolean m_isDirty; /* bitsize 32, bitpos 0 */
 // protected:
@@ -248,7 +298,7 @@ typedef struct skelBone_Base { /* size 64 vtable self  id 855 */
 
 typedef struct skelBone_HoseRot /*: public skelBone_Base*/ { /* size 108 vtable skelBone_Base  id 1229 */
 	// inherited from base
-  void **vptr; // su44: IMHO vtable is at the beginning of the struct, not at the end
+ skelBoneVTable_t *vptr; // su44: IMHO vtable is at the beginning of the struct, not at the end
   qboolean m_isDirty; /* bitsize 32, bitpos 0 */
   struct skelBone_Base /* id 855 */ *m_parent; /* bitsize 32, bitpos 32 */
   struct SkelMat4 /* id 183 */ m_cachedValue; /* bitsize 384, bitpos 64 */
@@ -265,7 +315,7 @@ typedef struct skelBone_HoseRot /*: public skelBone_Base*/ { /* size 108 vtable 
 typedef struct skelBone_IKshoulder /*: public skelBone_Base*/ { /* size 120 vtable skelBone_Base  id 1224 */
 // public:
 	// inherited from base
-  void **vptr; // su44: IMHO vtable is at the beginning of the struct, not at the end
+ skelBoneVTable_t *vptr; // su44: IMHO vtable is at the beginning of the struct, not at the end
   qboolean m_isDirty; /* bitsize 32, bitpos 0 */
   struct skelBone_Base /* id 855 */ *m_parent; /* bitsize 32, bitpos 32 */
   struct SkelMat4 /* id 183 */ m_cachedValue; /* bitsize 384, bitpos 64 */
@@ -294,7 +344,7 @@ typedef struct skelBone_IKshoulder /*: public skelBone_Base*/ { /* size 120 vtab
 
 typedef struct skelBone_IKelbow/* : public skelBone_Base*/ { /* size 68 vtable skelBone_Base  id 1227 */
 	// inherited from base
-  void **vptr; // su44: IMHO vtable is at the beginning of the struct, not at the end
+ skelBoneVTable_t *vptr; // su44: IMHO vtable is at the beginning of the struct, not at the end
   qboolean m_isDirty; /* bitsize 32, bitpos 0 */
   struct skelBone_Base /* id 855 */ *m_parent; /* bitsize 32, bitpos 32 */
   struct SkelMat4 /* id 183 */ m_cachedValue; /* bitsize 384, bitpos 64 */
@@ -312,7 +362,7 @@ typedef struct skelBone_IKelbow/* : public skelBone_Base*/ { /* size 68 vtable s
 } skelBone_IKelbow_c;
 typedef struct skelBone_IKwrist /* : public skelBone_Base*/ { /* size 76 vtable skelBone_Base  id 1225 */
 	// inherited from base
-  void **vptr; // su44: IMHO vtable is at the beginning of the struct, not at the end
+ skelBoneVTable_t *vptr; // su44: IMHO vtable is at the beginning of the struct, not at the end
   qboolean m_isDirty; /* bitsize 32, bitpos 0 */
   struct skelBone_Base /* id 855 */ *m_parent; /* bitsize 32, bitpos 32 */
   struct SkelMat4 /* id 183 */ m_cachedValue; /* bitsize 384, bitpos 64 */
@@ -331,7 +381,21 @@ typedef struct skelBone_IKwrist /* : public skelBone_Base*/ { /* size 76 vtable 
   //int class skelBone_IKwrist /* id 1225 */::GetChannelIndex (int) /* GetChannelIndex__16skelBone_IKwristi context skelBone_Base voffset 4 */;
   //class skelBone_Base /* id 855 */ *class skelBone_IKwrist /* id 1225 */::GetBoneRef (int) /* GetBoneRef__16skelBone_IKwristi context skelBone_Base voffset 5 */;
 } skelBone_IKwrist_c;
-
+typedef struct boneData_s { /* size 56 id 158 */
+  short int channel; /* bitsize 16, bitpos 0 */
+  int type; /* bitsize 32, bitpos 32 */
+  short int parent; /* bitsize 16, bitpos 64 */
+  short int numChannels; /* bitsize 16, bitpos 80 */
+  short int numRefs; /* bitsize 16, bitpos 96 */
+  short int channelIndex[2]; /* bitsize 32, bitpos 112 */
+  short int refIndex[2]; /* bitsize 32, bitpos 144 */
+  float offset[3]; /* bitsize 96, bitpos 192 */
+  float length; /* bitsize 32, bitpos 288 */
+  float weight; /* bitsize 32, bitpos 320 */
+  float bendRatio; /* bitsize 32, bitpos 352 */
+  float bendMax; /* bitsize 32, bitpos 384 */
+  float spinRatio; /* bitsize 32, bitpos 416 */
+} boneData_t;
 typedef struct skeletor_s { /* size 1268 id 2016 */
 // public:
   struct dtiki_s /* id 104 */ *m_Tiki; /* bitsize 32, bitpos 0 */
@@ -814,4 +878,16 @@ struct dtiki_s *TIKI_FindTiki ( char *path );
 
 // cg_skeletor.c
 void CG_InitSkeletorCvarsAndCmds();
+
+
+// this is only here so the functions in q_shared.c and bg_*.c can link
+void	Com_Error( int level, const char *error, ... );
+void	Com_Printf( const char *msg, ... );
+void	Com_DPrintf( const char *msg, ... );
+
+void            Matrix4x4Multiply(const matrix_t a, const matrix_t b, matrix_t out);
+void            MatrixSetupTransformFromVectorsFLU(matrix_t m, const vec3_t forward, const vec3_t left, const vec3_t up, const vec3_t origin);
+void            MatrixToVectorsFLU(const matrix_t m, vec3_t forward, vec3_t left, vec3_t up);
+
+
 
