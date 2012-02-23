@@ -52,6 +52,36 @@ void CG_Init( clientGameImport_t *imported, int serverMessageNum, int serverComm
 	cgi_out.R_RegisterModel			= R_RegisterModel;
 	cgi_out.TIKI_FindTiki			= TIKI_FindTiki;
 	cgi_out.R_Model_GetHandle		= R_Model_GetHandle;
+	// su44: extra TIKI function detours, not really needed, but usefull for debugging
+#if 1
+	cgi_out.TIKI_NumAnims = TIKI_NumAnims;
+	cgi_out.TIKI_CalculateBounds = TIKI_CalculateBounds;
+	cgi_out.TIKI_Name = TIKI_Name;
+	cgi_out.TIKI_GetSkeletor = TIKI_GetSkeletor;
+	cgi_out.TIKI_SetEyeTargetPos = TIKI_SetEyeTargetPos;
+	cgi_out.Anim_NameForNum = Anim_NameForNum;
+	cgi_out.Anim_NumForName = Anim_NumForName;
+	cgi_out.Anim_Random = Anim_Random;
+	cgi_out.Anim_NumFrames = Anim_NumFrames;
+	cgi_out.Anim_Time = Anim_Time;
+	cgi_out.Anim_Frametime = Anim_Frametime;
+// WARNING: Anim_Delta might be NULL pointer in MOHAA
+	if(cgi.Anim_Delta) {
+		cgi_out.Anim_Delta = Anim_Delta;
+	}
+	cgi_out.Anim_Flags = Anim_Flags;
+	cgi_out.Anim_FlagsSkel = Anim_FlagsSkel;
+	cgi_out.Anim_CrossblendTime = Anim_CrossblendTime;
+	cgi_out.Anim_HasCommands = Anim_HasCommands;
+	cgi_out.Frame_Commands = Frame_Commands;
+	cgi_out.Frame_CommandsTime = Frame_CommandsTime;
+	cgi_out.Surface_NameToNum = Surface_NameToNum;
+	cgi_out.Tag_NumForName = Tag_NumForName;
+	cgi_out.Tag_NameForNum = Tag_NameForNum;
+	cgi_out.ForceUpdatePose = ForceUpdatePose;
+	cgi_out.TIKI_Orientation = TIKI_Orientation;
+	cgi_out.TIKI_IsOnGround = TIKI_IsOnGround;
+#endif
 	cgi_out.R_AddRefEntityToScene	= R_AddRefEntityToScene;
 	cgi_out.GetSnapshot				= GetSnapshot;
 

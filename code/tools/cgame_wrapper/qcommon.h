@@ -33,7 +33,6 @@ typedef float vec3_t[3];
 typedef float vec4_t[4];
 typedef float vec5_t[5];
 typedef vec3_t SkelVec3;
-typedef vec4_t SkelQuat;
 typedef vec_t matrix_t[16];
 
 #define DotProduct(x,y)			((x)[0]*(y)[0]+(x)[1]*(y)[1]+(x)[2]*(y)[2])
@@ -47,6 +46,10 @@ typedef vec_t matrix_t[16];
 typedef struct SkelMat4 { /* size 48 id 162 */
   float val[4][3]; /* bitsize 384, bitpos 0 */
 } SkelMat4_t;
+
+typedef struct SkelQuat_t {
+	float val[4];
+} SkelQuat;
 
 typedef int qhandle_t;
 typedef int sfxHandle_t;
@@ -807,7 +810,7 @@ typedef struct clientGameImport_s { /* size 684 */
   void (*UI_DeleteScoreBoardItems) ();
   void (*UI_ToggleDMMessageConsole) ();
 
-  struct dtiki_s *(*TIKI_FindTiki) ( char *path );
+  struct dtiki_s *(*TIKI_FindTiki) ( const char *path );
   // end of TIKI stuff
 
   void (*LoadResource) (/* unknown */); /* bitsize 32, bitpos 5280 */
@@ -825,9 +828,9 @@ typedef struct clientGameExport_s { /* size 120 */
   qboolean (*CG_ConsoleCommand) ( );
   void (*CG_GetRendererConfig) (/* unknown */); /* bitsize 32, bitpos 128 */
   void (*CG_Draw2D) ( );
-  void (*CG_EyePosition) (/* unknown */); /* bitsize 32, bitpos 192 */
-  void (*CG_EyeOffset) (/* unknown */); /* bitsize 32, bitpos 224 */
-  void (*CG_EyeAngles) (/* unknown */); /* bitsize 32, bitpos 256 */
+  void (*CG_EyePosition) (vec3_t *o_vPos); /* bitsize 32, bitpos 192 */
+  void (*CG_EyeOffset) (vec3_t *o_vOfs); /* bitsize 32, bitpos 224 */
+  void (*CG_EyeAngles) (vec3_t *o_vAngles); /* bitsize 32, bitpos 256 */
   float (*CG_SensitivityScale) (/* unknown */); /* bitsize 32, bitpos 288 */
   void (*CG_ParseCGMessage) (/* unknown */); /* bitsize 32, bitpos 320 */
   void (*CG_RefreshHudDrawElements) (/* unknown */); /* bitsize 32, bitpos 352 */
@@ -838,8 +841,8 @@ typedef struct clientGameExport_s { /* size 120 */
   int (*CG_PermanentMark) (/* unknown */); /* bitsize 32, bitpos 512 */
   int (*CG_PermanentTreadMarkDecal) (/* unknown */); /* bitsize 32, bitpos 544 */
   int (*CG_PermanentUpdateTreadMark) (/* unknown */); /* bitsize 32, bitpos 576 */
-  void (*CG_ProcessInitCommands) (/* unknown */); /* bitsize 32, bitpos 608 */
-  void (*CG_EndTiki) (/* unknown */); /* bitsize 32, bitpos 640 */
+  void (*CG_ProcessInitCommands) (dtiki_t *tiki, refEntity_t *ent); /* bitsize 32, bitpos 608 */
+  void (*CG_EndTiki) (dtiki_t *tiki); /* bitsize 32, bitpos 640 */
   char *(*CG_GetColumnName) (/* unknown */); /* bitsize 32, bitpos 672 */
   void (*CG_GetScoreBoardColor) (/* unknown */); /* bitsize 32, bitpos 704 */
   void (*CG_GetScoreBoardFontColor) (/* unknown */); /* bitsize 32, bitpos 736 */
@@ -875,6 +878,31 @@ extern snapshot_t	*snapshot;
 // cg_tiki.c
 struct dtiki_s *R_Model_GetHandle ( qhandle_t handle );
 struct dtiki_s *TIKI_FindTiki ( char *path );
+int TIKI_NumAnims( dtiki_t *pmdl );
+void TIKI_CalculateBounds( dtiki_t *pmdl, float scale, float *mins, float *maxs );
+char *TIKI_Name( dtiki_t *pmdl );
+skeletor_c *TIKI_GetSkeletor( dtiki_t *tiki, int entnum );
+void TIKI_SetEyeTargetPos( dtiki_t *tiki, int entnum, float *pos );
+char *Anim_NameForNum( dtiki_t *pmdl, int animnum );
+int Anim_NumForName( dtiki_t *pmdl, char *name );
+int Anim_Random( dtiki_t *pmdl, char *name );
+int Anim_NumFrames( dtiki_t *pmdl, int animnum );
+float Anim_Time( dtiki_t *pmdl, int animnum );
+float Anim_Frametime( dtiki_t *pmdl, int animnum );
+// WARNING: Anim_Delta might be NULL pointer in MOHAA
+void Anim_Delta( dtiki_t *pmdl, int animnum, float *delta );
+int Anim_Flags( dtiki_t *pmdl, int animnum );
+int Anim_FlagsSkel( dtiki_t *pmdl, int animnum );
+float Anim_CrossblendTime( dtiki_t *pmdl, int animnum );
+qboolean Anim_HasCommands( dtiki_t *pmdl, int animnum );
+qboolean Frame_Commands( dtiki_t *pmdl, int animnum, int framenum, tiki_cmd_t *tiki_cmd );
+qboolean Frame_CommandsTime( dtiki_t *pmdl, int animnum, float start, float end, tiki_cmd_t *tiki_cmd );
+int Surface_NameToNum( dtiki_t *pmdl, char *name );
+int Tag_NumForName( dtiki_t *pmdl, char *name );
+char *Tag_NameForNum( dtiki_t *pmdl, int iTagNum );
+void ForceUpdatePose( refEntity_t *model );
+orientation_t TIKI_Orientation( refEntity_t *model, int tagnum );
+qboolean TIKI_IsOnGround( refEntity_t *model, int tagnum, float threshold );
 
 // cg_skeletor.c
 void CG_InitSkeletorCvarsAndCmds();

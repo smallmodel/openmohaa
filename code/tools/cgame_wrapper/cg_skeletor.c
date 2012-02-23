@@ -513,6 +513,9 @@ int numBonesOnStack = 0;
 int maxNumBonesOnStack = 0;
 
 // su44: getDirtyTransform should return &this->m_cachedValue
+// This might be called trought cgi.TIKI_Orientation,
+// cgi.TIKI_SetEyeTargetPos or cgi.Anim_Time (why ?)
+// (see our cg_tiki.c for detours of those functions)
 void __declspec(naked) getDirtyTransform() {
 	// get "this" pointer which is stored in ecx register
 	__asm mov This, ecx; 
