@@ -123,6 +123,45 @@ void F_FreeBuf(byte *b) {
 	free(b);
 }
 
+void MakeDirSafe(const char *fpath) {
+	char buf[MAX_TOOLPATH];
+	char fixed[MAX_TOOLPATH];
+	const char *p;
+	// first fix slashes
+	strcpy(fixed,fpath);
+	backSlashesToSlashes(fixed);
+
+	// then ensure that all needed directories are created
+	p = fixed;
+	while(*p) {
+		if(*p == '/') {
+			memcpy(buf,fixed,p - fixed);
+			buf[p-fixed] = 0;
+			_mkdir(buf);
+		}
+		p++;
+	}
+}
+
+FILE *F_Open(const char *fname, const char *mode) {
+	FILE *r;
+	MakeDirSafe(fname);
+	r = fopen(fname,mode);
+	return r;
+}
+
+qboolean F_Exists(const char *fname) {
+	FILE *f;
+
+	f = fopen(fname,"rb");
+
+	if(f == 0)
+		return qfalse;
+
+	fclose(f);
+	return qtrue;
+}
+
 // ===========================================================================
 
 void stripExt(char *s) {
@@ -137,6 +176,8 @@ void stripExt(char *s) {
 			*p = 0;
 			return;
 		}
+		if(*p == '/' || *p == '\\')
+			return;
 		p--;
 	}
 }
@@ -202,3 +243,9 @@ void *T_Malloc(unsigned int size) {
 
 // ===========================================================================
 
+void PrintBoneOr(bone_t *b) {
+	//vec3_t a;
+	//QuatToAngles(b->q,a);
+	//T_Printf("pos %f %f %f, quat %f %f %f %f, angles %f %f %f\n",
+	//	b->p[0],);
+}

@@ -56,7 +56,7 @@ void writeSKL(tModel_t *m, tAnim_t *a, const char *outFName) {
 	FILE *out;
 	int i, j, k, v, t, addVerts;
 
-	out = fopen(outFName,"wb");
+	out = F_Open(outFName,"wb");
 
 	fprintf(out,"//////////////////////////////////////////////////////////////////////////\n");
 	fprintf(out,"//\n");

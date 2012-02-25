@@ -152,7 +152,10 @@ int getChannelIndexInternal(skcHeader_t *h, const char *channelName) {
 
 	return -1;
 }
+static vec4_t vecBuf[512];
+static int vecIndex = 0;
 float *getChannelValue(skcHeader_t *h, const char *name, int frameNum) {
+
 	int channelIndex;
 	skcFrame_t *f;
 	float *values;
@@ -166,7 +169,15 @@ float *getChannelValue(skcHeader_t *h, const char *name, int frameNum) {
 
 	values = (float*)((byte *)h+f->ofsValues);
 
-	return &values[4 * channelIndex];
+	values += (4 * channelIndex);
+
+	vecIndex++;
+	if(vecIndex >= sizeof(vecBuf) / sizeof(vecBuf[0])) {
+		vecIndex = 0;
+	}
+
+	QuatCopy(values, vecBuf[vecIndex]);
+	return vecBuf[vecIndex];
 }
 float *findPosChannel(skcHeader_t *h, const char *name, int frameNum) {
 	char channelName[32];
@@ -174,7 +185,13 @@ float *findPosChannel(skcHeader_t *h, const char *name, int frameNum) {
 	strcat(channelName," pos");
 	return getChannelValue(h,channelName,frameNum);
 }
-float *findRotChannel(skcHeader_t *h, const char *name, int frameNum) {
+float *findRotChannel_raw(skcHeader_t *h, const char *name, int frameNum) {
+	char channelName[32];
+	strcpy(channelName,name);
+	strcat(channelName," rot");
+	return getChannelValue(h,channelName,frameNum);
+}
+float *findRotChannel(skcHeader_t *h, const char *name, int frameNum, int parentIndex) {
 #if 0
 	char channelName[32];
 	strcpy(channelName,name);
@@ -182,31 +199,34 @@ float *findRotChannel(skcHeader_t *h, const char *name, int frameNum) {
 	return getChannelValue(h,channelName,frameNum);
 #else
 static int i = 0;
-	static quat_t qs[256];
+	static quat_t qs[1024];
 	float *q;
 	char channelName[32];
 	float *f;
+	float len;
 	
 	i++;
-	i %= 256;
+	i %= 1024;
 	q = qs[i];
 
 	strcpy(channelName,name);
 	strcat(channelName," rot");
 	f = getChannelValue(h,channelName,frameNum);
-	QuatCopy(f,q);
-	QuatInverse(q); // inverse quaterion for Doom 3
-#if 1
-	// make sure that we will get the same 
-	// quaternion if we recalculate W component...
-	{
-		quat_t copy;
-		QuatCopy(q,copy);
-		QuatCalcW(q);
-		if(abs(q[3] - copy[3]) > 0.1) {
-			__asm int 3
-		}
+	if(f == 0) {
+		//return quat_identity;
+		QuatSet(q,0,0,0,-1);
+	} else {
+		QuatCopy(f,q);
 	}
+	//QuatInverse(q);
+	////if(parentIndex == -1)
+	//	QuatInverse(q);
+	len = QuatNormalize(q);
+	if(abs(len-1.f) > 0.1) {
+		T_Error("Non-normalized quat in skc file (%f)\n",len);
+	}
+#if 1
+	FixQuatForMD5_P(q);
 #endif
 	return q;
 #endif
@@ -259,9 +279,11 @@ tAnim_t *appendSKC(tModel_t *m, const char *fname, float scale) {
 		if(basePos == 0) {
 			VectorSet(baseFrame[j].p,0,0,0);
 		} else {
+			VectorScale(basePos,scale,basePos);
 			VectorCopy(basePos,baseFrame[j].p);
 			for(i = 1; i < h->numFrames; i++) {
 				testPos = findPosChannel(h,m->bones[j].name,i);
+				VectorScale(testPos,scale,testPos);
 				// detect X change
 				if(testPos[0] != basePos[0]) {
 					cFlags[j] |= COMPONENT_BIT_TX;
@@ -277,13 +299,13 @@ tAnim_t *appendSKC(tModel_t *m, const char *fname, float scale) {
 			}	
 		}
 
-		baseRot = findRotChannel(h,m->bones[j].name,0);
+		baseRot = findRotChannel(h,m->bones[j].name,0,m->bones[j].parent);
 		if(baseRot == 0) {
-			QuatSet(baseFrame[j].q,0,0,0,1);
+			QuatSet(baseFrame[j].q,0,0,0,-1);
 		} else {
 			QuatCopy(baseRot,baseFrame[j].q);
 			for(i = 1; i < h->numFrames; i++) {
-				testRot = findRotChannel(h,m->bones[j].name,i);
+				testRot = findRotChannel(h,m->bones[j].name,i,m->bones[j].parent);
 				// detect X change
 				if(testRot[0] != baseRot[0]) {
 					cFlags[j] |= COMPONENT_BIT_QX;
@@ -338,47 +360,107 @@ tAnim_t *appendSKC(tModel_t *m, const char *fname, float scale) {
 			float *pos, *rot;
 
 			pos = findPosChannel(h,m->bones[j].name,i);
-			// write X change
-			if(cFlags[j] & COMPONENT_BIT_TX) {
-				*cp = pos[0];
-				cp++;
-			}
-			// write Y change
-			if(cFlags[j] & COMPONENT_BIT_TY) {
-				*cp = pos[1];
-				cp++;
-			}
-			// write Z change
-			if(cFlags[j] & COMPONENT_BIT_TZ) {
-				*cp = pos[2];
-				cp++;
+			if(pos) {
+				VectorScale(pos,scale,pos);
+				// write X change
+				if(cFlags[j] & COMPONENT_BIT_TX) {
+					*cp = pos[0];
+					cp++;
+				}
+				// write Y change
+				if(cFlags[j] & COMPONENT_BIT_TY) {
+					*cp = pos[1];
+					cp++;
+				}
+				// write Z change
+				if(cFlags[j] & COMPONENT_BIT_TZ) {
+					*cp = pos[2];
+					cp++;
+				}
 			}
 
-			rot = findRotChannel(h,m->bones[j].name,i);
-			// write X change
-			if(cFlags[j] & COMPONENT_BIT_QX) {
-				*cp = rot[0];
-				cp++;
+			rot = findRotChannel(h,m->bones[j].name,i,m->bones[j].parent);
+			if(rot) {
+				// write X change
+				if(cFlags[j] & COMPONENT_BIT_QX) {
+					*cp = rot[0];
+					cp++;
+				}
+				// write Y change
+				if(cFlags[j] & COMPONENT_BIT_QY) {
+					*cp = rot[1];
+					cp++;
+				}
+				// write Z change
+				if(cFlags[j] & COMPONENT_BIT_QZ) {
+					*cp = rot[2];
+					cp++;
+				}	
 			}
-			// write Y change
-			if(cFlags[j] & COMPONENT_BIT_QY) {
-				*cp = rot[1];
-				cp++;
-			}
-			// write Z change
-			if(cFlags[j] & COMPONENT_BIT_QZ) {
-				*cp = rot[2];
-				cp++;
-			}				
 		}
 
 		c = cp - of->components;
 		assert(c == numAnimatedComponents);
 	}
 
+#if 0
+	// validate generated tAnim_t components
+	for(i = 0; i < out->numFrames; i++) {
+		bone_t *b = setupMD5AnimBones(out,0); 
+		for(j = 0; j < m->numBones; j++, b++) {
+			float *o;
+			o = findRotChannel_raw(h,m->bones[j].name,i,m->bones[j].parent);
+			if(o) {
+				T_Printf("Generated: %f %f %f %f, original %f %f %f %f\n",b->q[0],b->q[1],b->q[2],b->q[3],
+					o[0],o[1],o[2],o[3]);
+			} else {
+				T_Printf("Generated: %f %f %f %f, original <none>\n",b->q[0],b->q[1],b->q[2],b->q[3]);
+			}
+
+			
+		}
+	}
+
+#endif
+
+	// generate baseFrame, but only once,
+	// from the first appended SKC
+	if(m->baseFrame == 0) {
+#if 0
+		// FIXME!
+		bone_t *b = setupMD5AnimBones(out,0); 
+		//for(i = 0; i < m->numBones; i++) {
+		//	QuatInverse(b[i].q);
+		//}
+#else
+		bone_t b[512];
+		for(i = 0; i < m->numBones; i++) {
+			float *p, *q;
+			
+			p = findPosChannel(h,m->bones[i].name,0);
+			if(p) {
+				VectorScale(p,scale,b[i].p);
+			} else {
+				VectorSet(b[i].p,0,0,0);
+			}
+
+			q = findRotChannel(h,m->bones[i].name,0,m->bones[i].parent);
+			if(q) {
+				QuatCopy(q,b[i].q);
+			} else {
+				QuatSet(b[i].q,0,0,0,1);
+			}
+		}
+#endif
+		md5AnimateBones(m,b);
+		m->baseFrame = T_Malloc(m->numBones*sizeof(bone_t));
+		memcpy(m->baseFrame,b,m->numBones*sizeof(bone_t));
+	}
+
 	F_FreeBuf((byte*)h);
 
 	T_Printf("Succesfully loaded MoHAA animation %s\n",fname);
+
 
 	return out;
 }
@@ -388,9 +470,101 @@ tAnim_t *appendSKC(tModel_t *m, const char *fname, float scale) {
 // we need to load setup and animation section.
 // Include keywords are currently ignored.
 
+const char *fixPath(const char *fname, const char *path, const char *tikiFilePath) {
+	static char tmp[MAX_TOOLPATH];
+	static char tmp2[MAX_TOOLPATH];
+	const char *main, *p, *models;
+	int l;
+
+	if(F_Exists(fname)) {
+		return fname;
+	}
+	strcpy(tmp,path);
+	backSlashesToSlashes(tmp);
+	if(tmp[strlen(tmp)-1] != '/') {
+		strcat(tmp,"/");	
+	}
+	strcat(tmp,fname);
+	if(F_Exists(fname)) {
+		return tmp;
+	}
+	// try to extract path to MoHAA's main/mainta/maintt directory
+	main = strstr(tikiFilePath,"main");
+	if(main) {
+		p = strchr(main,'/');
+		l = (p-tikiFilePath)+1;
+		memcpy(tmp2,tikiFilePath,l);
+		tmp2[l] = 0;
+		strcat(tmp2,tmp);
+		if(F_Exists(tmp2)) {
+			return tmp2;
+		}
+	}
+	// if everything else fail, try to extract "models" path
+	models = strstr(tikiFilePath,"models/");
+	if(main) {
+		l = (models-tikiFilePath)+strlen("models/");
+		strncpy(tmp2,tikiFilePath,l);
+		tmp2[l] = 0;
+		p = strstr(tmp,"models/");
+		if(p) {
+			strcat(tmp2,p+strlen("models/"));
+		} else {
+			strcat(tmp2,tmp);
+		}
+		if(F_Exists(tmp2)) {
+			return tmp2;
+		}
+	}
+	return tmp;
+}
 void loadTIKI(const char *fname) {
+	int len;
+	char *txt;
+	char *p, *fixedPath;
+	const char *token;
+	char path[MAX_TOOLPATH];
+	float scale;
 
+	len = F_LoadBuf(fname,(byte**)&txt);
 
+	if(len == -1) {
+		T_Error("loadTIKI: Cannot open %s\n",fname);
+		return 0;
+	}
+
+	path[0] = 0;
+	scale = 1.f;
+
+	// NOTE: this will not open the "fname" file!
+	COM_BeginParseSession(fname);
+
+	p = txt;
+	token = COM_ParseExt(&p, qtrue);
+	while(token[0]) {
+		if (!Q_stricmp(token, "path") || !Q_stricmp(token, "$path")) {
+			token = COM_ParseExt(&p, qtrue);
+			strcpy(path,token);
+		} else if (!Q_stricmp(token, "scale")) {
+			token = COM_ParseExt(&p, qtrue);
+			scale = atof(token);
+		} else if (!Q_stricmp(token, "skelmodel")) {
+			token = COM_ParseExt(&p, qtrue);
+			mainModel = readSKD(fixPath(token,path,fname),scale);
+		} else if(strstr(token,".skc")) {
+			tAnim_t *a;
+			fixedPath = fixPath(token,path,fname);
+			a = appendSKC(mainModel,fixedPath,scale);
+			if(a) {
+				strcpy(inAnimFNames[numAnims],fixedPath);
+				anims[numAnims] = a;
+				numAnims++;
+			}
+		}
+		token = COM_ParseExt(&p, qtrue);
+	}
+
+	F_FreeBuf(txt);
 }
 
 

@@ -120,11 +120,11 @@ extern qboolean createTIK;
 extern char outTIKI[MAX_TOOLPATH];
 extern char outSKDMesh[MAX_TOOLPATH];
 extern char outSKCAnim[MAX_TOOLPATH][256];
+// globals
 extern int numAnims;
 extern tAnim_t *anims[256];
-
-// globals
-extern tModel_t *md5Mesh;
+char inAnimFNames[MAX_TOOLPATH][256];
+extern tModel_t *mainModel;
 
 // doom3md5model.c
 tModel_t *loadMD5Mesh(const char *fname);
@@ -133,6 +133,12 @@ void writeMD5Mesh(tModel_t *m, const char *outFName);
 void writeMD5Anim(tAnim_t *m, const char *outFName);
 bone_t *setupMD5AnimBones(tAnim_t *a, int frameNum);
 bone_t *setupMD5MeshBones(tModel_t *mod);
+void md5AnimateBones(tModel_t *m, bone_t *bones);
+// converts quat to MD5-friendly format (positive W)
+// This won't change rotation represented by quat,
+// (... unless there's a bug).
+// NOTE: given quat must be normalized!
+qboolean FixQuatForMD5_P(quat_t q); // returns true if quaternion was changed
 
 // writeskl.c
 void writeSKL(tModel_t *m, tAnim_t *a, const char *outFName);
@@ -143,6 +149,7 @@ void writeTIKI(tModel_t *m, const char *outFName);
 // readtiki.c
 tModel_t *readSKD(const char *fname, float scale);
 tAnim_t *appendSKC(tModel_t *m, const char *fname, float scale);
+void loadTIKI(const char *fname);
 
 // misc_utils.c
 void T_Printf(const char *format, ...);
@@ -151,7 +158,8 @@ void T_Error(const char *format, ...);
 
 int F_LoadBuf(const char *fname, byte **out);
 void F_FreeBuf(byte *b);
-
+FILE *F_Open(const char *fname, const char *mode);
+qboolean F_Exists(const char *fname);
 
 void stripExt(char *s);
 const char *strchr_r(const char *s, char c, char c2);

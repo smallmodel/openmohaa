@@ -25,6 +25,34 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "md5_2_skX.h"
 
+// ensure that quaternions W component is negative,
+// leaving the rotation unchanged
+qboolean FixQuatForMD5_N(quat_t q) {
+	// make sure that we will get the same 
+	// quaternion if we recalculate W component...
+	quat_t copy;
+
+	if(q[3] > 0) {
+		QuatAntipodal(q);
+		return qtrue; // quat "changed"!
+	}
+	return qfalse; // didnt change quat
+}
+
+// ensure that quaternions W component is positive,
+// leaving the rotation unchanged
+qboolean FixQuatForMD5_P(quat_t q) {
+	// make sure that we will get the same 
+	// quaternion if we recalculate W component...
+	quat_t copy;
+
+	if(q[3] < 0) {
+		QuatAntipodal(q);
+		return qtrue; // quat "changed"!
+	}
+	return qfalse; // didnt change quat
+}
+
 /*
 ====================================================================
 
@@ -736,8 +764,11 @@ void writeMD5Mesh(tModel_t *m, const char *outFName) {
 	tWeight_t *w;
 	tSurf_t *sf;
 	tTri_t *tri;
+	bone_t *b;
 
-	out = fopen(outFName,"w");
+	T_Printf("Writing Doom3 md5mesh file %s...\n",outFName);
+
+	out = F_Open(outFName,"w");
 
 	//fprintf(out,"//////////////////////////////////////////////////////////////////////////\n");
 	//fprintf(out,"//\n");
@@ -756,9 +787,27 @@ void writeMD5Mesh(tModel_t *m, const char *outFName) {
 	fprintf(out,"joints {\n");
 
 	boneDef = m->bones;
-	for(i = 0; i < m->numBones; i++, boneDef++) {
-		fprintf(out,"\t\"%s\" %i ( 0 0 0 ) ( 0 0 0 )\n",
-			boneDef->name,boneDef->parent);
+	b = m->baseFrame;
+	for(i = 0; i < m->numBones; i++, boneDef++,b++) {
+#if 1
+		// ensure that md5 loader
+		// will be able to recalculate
+		// W component correctly
+		qboolean changed = FixQuatForMD5_N(b->q);
+		if(changed) {
+			T_Printf("WriteMD5Mesh: fixed q of bone %i\n",i);
+		} else {
+
+		}
+#endif
+		fprintf(out,"\t\"%s\" %i ( %f %f %f ) ( %f %f %f )",
+			boneDef->name,boneDef->parent,
+			b->p[0],b->p[1],b->p[2],b->q[0],b->q[1],b->q[2]);
+		fprintf(out," //");
+		if(boneDef->parent != -1) {
+			fprintf(out," %s",m->bones[boneDef->parent].name);
+		}
+		fprintf(out,"\n");
 	}
 	fprintf(out,"}\n\n");
 
@@ -767,7 +816,7 @@ void writeMD5Mesh(tModel_t *m, const char *outFName) {
 	for(i = 0; i < m->numSurfaces; i++,sf++) {
 		int weightCount;
 		fprintf(out,"mesh {\n");
-		fprintf(out,"\tshader %s\n",sf->name);
+		fprintf(out,"\tshader \"%s\"\n",sf->name);
 		fprintf(out,"\n");
 		// write vertices
 		fprintf(out,"\tnumverts %i\n",sf->numVerts);
@@ -800,6 +849,7 @@ void writeMD5Mesh(tModel_t *m, const char *outFName) {
 		fprintf(out,"\n");
 	}
 	fclose(out);
+	T_Printf("Wrote %s.\n",outFName);
 }
 
 #define COMPONENTS_PER_LINE 6
@@ -811,14 +861,22 @@ void writeMD5Anim(tAnim_t *a, const char *outFName) {
 	tFrame_t *f;
 	bone_t *b;
 
-	out = fopen(outFName,"w");
+	T_Printf("Writing Doom3 md5anim file %s...\n",outFName);
+
+	out = F_Open(outFName,"w");
 	
 	fprintf(out,"MD5Version 10\n");
 	fprintf(out,"commandline \"\"\n");
 	fprintf(out,"\n");
 	fprintf(out,"numFrames %i\n",a->numFrames);
 	fprintf(out,"numJoints %i\n",a->numBones);
-	fprintf(out,"frameRate %f\n",a->frameRate);
+
+	// floating point frameRate gives Quark error
+	//  self.frameRate=int(words[1])
+	//	ValueError: invalid literal for int(): 29.999998
+	//fprintf(out,"frameRate %f\n",a->frameRate);
+	fprintf(out,"frameRate %i\n",((int)(a->frameRate)));
+
 	fprintf(out,"numAnimatedComponents %i\n",a->numAnimatedComponents);
 	fprintf(out,"\n");
 	// write joint hierarchy
@@ -839,6 +897,17 @@ void writeMD5Anim(tAnim_t *a, const char *outFName) {
 	// write baseframe
 	fprintf(out,"\nbaseframe {\n");
 	for(i = 0, b = a->baseFrame; i < a->numBones; i++, b++) {
+#if 0
+		// ensure that md5 loader
+		// will be able to recalculate
+		// W component correctly
+		qboolean changed = FixQuatForMD5_P(b->q);
+		if(changed) {
+			T_Printf("WriteMD5Anim: fixed q of bone %i\n",i);
+		} else {
+
+		}
+#endif
 		fprintf(out,"\t( %f %f %f ) ( %f %f %f )\n",
 			b->p[0],b->p[1],b->p[2],b->q[0],b->q[1],b->q[2]);
 	}
@@ -853,12 +922,15 @@ void writeMD5Anim(tAnim_t *a, const char *outFName) {
 				fprintf(out,"\n\t");
 			fprintf(out,"%f ",f->components[j]);
 		}
-		if(j % COMPONENTS_PER_LINE != 0)
+		if(j % COMPONENTS_PER_LINE != 1)
 			fprintf(out,"\n");
 		fprintf(out,"}\n\n");
 	}
 
 	fclose(out);
+
+	T_Printf("Wrote %s.\n",outFName);
+
 }
 
 /*
@@ -914,17 +986,17 @@ bone_t *setupMD5AnimBones(tAnim_t *a, int frameNum) {
 
 		// update quaternion rotation bits
 		if(boneDef->componentBits & COMPONENT_BIT_QX) {
-			((vec_t *) q)[0] = f->components[boneDef->firstComponent + componentsApplied];
+			q[0] = f->components[boneDef->firstComponent + componentsApplied];
 			componentsApplied++;
 		}
 
 		if(boneDef->componentBits & COMPONENT_BIT_QY) {
-			((vec_t *) q)[1] = f->components[boneDef->firstComponent + componentsApplied];
+			q[1] = f->components[boneDef->firstComponent + componentsApplied];
 			componentsApplied++;
 		}
 
 		if(boneDef->componentBits & COMPONENT_BIT_QZ) {
-			((vec_t *) q)[2] = f->components[boneDef->firstComponent + componentsApplied];
+			q[2] = f->components[boneDef->firstComponent + componentsApplied];
 		}
 
 		// calculate quaternion W value, as it isnt stored in md5 anim
@@ -959,9 +1031,9 @@ void md5AnimateBones(tModel_t *m, bone_t *bones) {
 		QuatInverse(bones[b->parent].q);
 		QuaternionMultiply(res,bones[b->parent].q,temp);
 		QuatInverse(bones[b->parent].q);
-		bones[i].p[0] = res[0] +bones[b->parent].p[0];
-		bones[i].p[1] = res[1] +bones[b->parent].p[1];
-		bones[i].p[2] = res[2] +bones[b->parent].p[2];
+		bones[i].p[0] = res[0] + bones[b->parent].p[0];
+		bones[i].p[1] = res[1] + bones[b->parent].p[1];
+		bones[i].p[2] = res[2] + bones[b->parent].p[2];
 		QuatCopy(bones[i].q,temp);
 		QuatInverse(temp);
 		QuaternionMultiply(bones[i].q,temp,bones[b->parent].q);

@@ -43,7 +43,10 @@ char *extractTIKIDataPath(const char *tikiName) {
 	static char out[MAX_TOOLPATH];
 	strcpy(out,tikiName);
 	stripExt(out);
-	strcat(out,"/");
+	backSlashesToSlashes(out);
+	if(out[0] && out[strlen(out)-1] != '/') {
+		strcat(out,"/");
+	}
 	return out;
 }
 
@@ -53,6 +56,7 @@ void writeTIKI(tModel_t *m,const char *outFName) {
 	char path[MAX_TOOLPATH];
 	const char *skelmodel;
 	const char *p;
+	char surf[24];
 	
 	p = extractTIKIDataPath(outFName);
 	p = getGamePath(p);
@@ -60,7 +64,7 @@ void writeTIKI(tModel_t *m,const char *outFName) {
 
 	skelmodel = getFName(outSKDMesh);
 
-	out = fopen(outFName,"w");
+	out = F_Open(outFName,"w");
 
 	fprintf(out,"//////////////////////////////////////////////////////////////////////////\n");
 	fprintf(out,"//\n");
@@ -77,7 +81,10 @@ fprintf(out,"\n");
 		fprintf(out,"\tpath %s\n",path);
 		fprintf(out,"\tskelmodel %s\n",skelmodel);
 		for(i = 0; i < m->numSurfaces; i++) {
-			fprintf(out,"\tsurface %s shader %s\n",m->surfs[i].name,m->surfs[i].name);
+			// cap the len of surface name to 24,
+			// longer surface names crashes MoHAA
+			Q_strncpyz(surf,m->surfs[i].name,sizeof(surf));
+			fprintf(out,"\tsurface %s shader %s\n",surf,m->surfs[i].name);
 		}
 		fprintf(out,"\n");
 	fprintf(out,"}\n");

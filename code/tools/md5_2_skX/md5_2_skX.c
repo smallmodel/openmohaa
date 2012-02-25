@@ -27,6 +27,8 @@ qboolean noLimits = qfalse;
 qboolean createTIK = qfalse;
 qboolean createSKL = qfalse;
 qboolean renameBones = qfalse;
+// converting MoHAA models to Doom3 md5
+qboolean decompile = qfalse;
 char inMesh[MAX_TOOLPATH];
 tModel_t *mainModel;
 char outSKDMesh[MAX_TOOLPATH];
@@ -37,8 +39,7 @@ tAnim_t *anims[256];
 char outTIKI[MAX_TOOLPATH];
 // that's a path where skc/skd files should be put
 char modelDataDir[MAX_TOOLPATH];
-// converting MoHAA models to Doom3 md5
-qboolean decompile = qfalse;
+
 
 static float null = 0;
 void ConvertAnimation(tAnim_t *a, const char *outFName) {
@@ -51,7 +52,7 @@ void ConvertAnimation(tAnim_t *a, const char *outFName) {
 	char name[SKC_MAX_CHANNEL_CHARS];
 	int ofsChannelNames;
 
-	out = fopen(outFName,"wb");
+	out = F_Open(outFName,"wb");
 	if(out == 0) {
 		T_Error("ConvertAnimation: Cannot open %s\n",outFName);
 	}
@@ -124,7 +125,7 @@ void ConvertModelBaseFrameToAnim(tModel_t *m, const char *outFName) {
 	char name[SKC_MAX_CHANNEL_CHARS];
 	int ofsChannelNames;
 
-	out = fopen(outFName,"wb");
+	out = F_Open(outFName,"wb");
 	if(out == 0) {
 		T_Error("ConvertModelBaseFrameToAnim: Cannot open %s\n",outFName);
 	}
@@ -211,7 +212,7 @@ void ConvertModel(tModel_t *m, const char *outFName) {
 	FILE *out;
 	int afterBones;
 
-	out = fopen(outFName,"wb");
+	out = F_Open(outFName,"wb");
 	if(out == 0) {
 		T_Error("ConvertModel: Cannot open %s\n",outFName);
 	}
@@ -475,49 +476,83 @@ void constructPath(char *out, const char *source, const char *ext) {
 		return;
 	}
 }
+static void GenerateSKLFiles() {
+	int i;
+	char outFName[512];
+
+	if(noLimits == qfalse) {
+		// ensure that there are no surfaces with
+		// numVerts >= 1000 or numTris >= 2000
+		SplitSurfaces(mainModel);
+	}
+
+	for(i = 0; i < numAnims; i++) {
+		if(anims[i] == 0)
+			continue;
+		constructPath(outFName,anims[i]->fname,".skl");
+		writeSKL(mainModel,anims[i],outFName);
+	}
+}
 // convert MoHAA model to famous Doom3 md5 format
 void DecompileSKX() {
 	char fname[MAX_TOOLPATH];
-	int i;
+	int i,j;
 	int numValidAnims;
 	tModel_t *m;
 	tAnim_t *a;
 	
+
 	// load bone defs and surfaces
-	mainModel = m = readSKD(inMesh,1.f);
-	if(m == 0) {
-		T_Error("Couldn't load %s\n",inMesh);
-	}
-
-	if(renameBones == qtrue) {
-		for(i = 0; i < m->numBones; i++) {
-			sprintf(m->bones[i].name,"Bone%i",i);
+	if(inMesh[0] == 0) {
+		if(outTIKI[0] == 0) {
+			T_Error("No source model specified\n");
 		}
-	}
-
-	// load animations
-	numValidAnims = 0;
-	for(i = 0; i < numAnims; i++) {
-		a = appendSKC(m,inAnimFNames[i],1.f);
-		if(a == 0) {
-			T_Printf("Failed to load: %s\n",inAnimFNames[i]);
+		loadTIKI(outTIKI);
+	} else {
+		mainModel = m = readSKD(inMesh,1.f);
+		if(m == 0) {
+			T_Error("Couldn't load %s\n",inMesh);
 		}
-		anims[i] = a;
-		if(a)
-			numValidAnims++;
+
+		// load animations
+		numValidAnims = 0;
+		for(i = 0; i < numAnims; i++) {
+			a = appendSKC(m,inAnimFNames[i],1.f);
+			if(a == 0) {
+				T_Printf("Failed to load: %s\n",inAnimFNames[i]);
+			}
+			anims[i] = a;
+			if(a)
+				numValidAnims++;
+		}
 	}
 	
+	if(renameBones == qtrue) {
+		for(i = 0; i < mainModel->numBones; i++) {
+			sprintf(mainModel->bones[i].name,"Bone%i",i);
+		}
+		for(j = 0; j < numAnims; j++) {
+			tAnim_t *a = anims[j];
+			if(a == 0 || a->boneData == 0)
+				continue;
+			for(i = 0; i < a->numBones; i++) {
+				sprintf(a->boneData[i].name,"Bone%i",i);
+			}
+		}
+	}
+
 	if(createSKL) {
-		strcpy(fname,inMesh);
-		stripExt(fname);
-		strcat(fname,".skl");
-		// fixme!
-		writeSKL(m,anims[0],fname);
+		GenerateSKLFiles();
 		return;
 	}
 
-	constructPath(outSKDMesh,inMesh,".md5mesh");
-	writeMD5Mesh(m,outSKDMesh);
+	if(modelDataDir[0]) {
+		constructPath(outSKDMesh,outTIKI,".md5mesh");
+	} else {
+		constructPath(outSKDMesh,inMesh,".md5mesh");
+
+	}
+	writeMD5Mesh(mainModel,outSKDMesh);
 
 	// converts animations
 	for(i = 0; i < numAnims; i++) {
@@ -567,11 +602,7 @@ void CompileSKX() {
 	}
 	
 	if(createSKL) {
-		strcpy(fname,inMesh);
-		stripExt(fname);
-		strcat(fname,".skl");
-		// fixme!
-		writeSKL(m,anims[0],fname);
+		GenerateSKLFiles();
 		return;
 	}
 
@@ -607,16 +638,20 @@ void printHelp() {
 	T_Printf("Usage: md5_2_skX [-decompile] <skelmodel_file> <animation_file_1> "
 		" <animation_file_2> <animation_file_n> -outdir <directory>\n"
 		"\n"
-		"Example (converting Doom3 md5model to MoHAA): \n"
+		"Example 1: (converting Doom3 md5mesh/md5anim to MoHAA skc/skd files): \n"
 		"md5_2_skX C:/MoHAA/main/mymodels/mynewgun/mynewgun.md5mesh\n"
 		" C:/MoHAA/main/mymodels/mynewgun/mynewgun.md5anim\n"
 		" C:/MoHAA/main/mymodels/mynewgun/mynewgun_reload.md5anim\n"
 		" -outdir C:/MoHAA/main/models/weapons/mynewgun/\n"
 		"\n"
-		"or (converting MoHAA model to Doom3 md5): \n"
+		"Example2: (converting MoHAA skd/skc files to Doom3 md5mesh/md5anim): \n"
 		"md5_2_skX -decompile C:/MoHAA/main/pak0_unpacked/models/weapons/mp44/mp44.skd\n"
 		" C:/MoHAA/main/pak0_unpacked/models/weapons/mp44/mp44.skc\n"
 		" C:/MoHAA/main/pak0_unpacked/models/weapons/mp44/mp44_reload.skc\n"
+		" -outdir C:/MoHAA/main/decompiledmodels/\n"
+		"\n"
+		"Example3: (converting MoHAA tik file to Doom3 md5mesh/md5anim): \n"
+		"md5_2_skX -decompile C:/MoHAA/main/pak0_unpacked/models/weapons/mp44.tik\n"
 		" -outdir C:/MoHAA/main/decompiledmodels/\n"
 		"Note that paths can be relative.\n");
 	T_Printf("\n");
@@ -655,19 +690,42 @@ int main(int argc, const char **argv) {
 		tModel_t *m;
 		tAnim_t *a;
 
-		// skd -> md5mesh
-		m = readSKD("E:/openmohaa/build/main/models/omtests/copyofsarge/body.skd",1.f);
-		writeMD5Mesh(m,"E:/openmohaa/build/main/models/omtests/sarge/tmp.md5mesh");
-		// md5mesh -> skd
-		m = loadMD5Mesh("E:/openmohaa/build/main/models/omtests/sarge/tmp.md5mesh");
-		ConvertModel(m,"E:/openmohaa/build/main/models/omtests/sarge/body.skd");
+		a = loadMD5Anim("E:/openmohaa/build/sdk/models/test - Kopia/run.md5anim");
+		writeMD5Anim(a,"E:/openmohaa/build/sdk/models/test/run.md5anim");
 
-		// skc -> md5anim
-		a = appendSKC(m,"E:/openmohaa/build/main/models/omtests/copyofsarge/run.skc",1.f);
-		writeMD5Anim(a,"E:/openmohaa/build/main/models/omtests/sarge/tmpanim.md5anim");
-		// md5anim -> skc
-		a = loadMD5Anim("E:/openmohaa/build/main/models/omtests/sarge/tmpanim.md5anim");
-		ConvertAnimation(a,"E:/openmohaa/build/main/models/omtests/sarge/run.skc");
+
+		m = loadMD5Mesh("E:/openmohaa/build/sdk/models/test - Kopia/body.md5mesh");
+		writeMD5Mesh(m,"E:/openmohaa/build/sdk/models/test/body.md5mesh");
+
+		return;
+	}
+
+
+	
+#endif
+#if 0
+	{
+		tModel_t *m;
+		tAnim_t *a;
+
+		// NOTE: this will never recreate md5mesh completly
+		// because "baseframe" information is lost during conversion
+		// (there is no baseframe data in MoHAA skds)
+
+		// d3->moh
+		m = loadMD5Mesh("E:/openmohaa/build/sdk/models/test - Kopia/body.md5mesh");
+		ConvertModel(m,"E:/openmohaa/build/sdk/models/test/body.skd");
+		a = loadMD5Anim("E:/openmohaa/build/sdk/models/test - Kopia/run.md5anim");
+		ConvertAnimation(a,"E:/openmohaa/build/sdk/models/test/run.skc");
+
+
+		// moh->d3
+		m = readSKD("E:/openmohaa/build/sdk/models/test/body.skd",1.f);
+		a = appendSKC(m,"E:/openmohaa/build/sdk/models/test/run.skc",1.f);
+		writeMD5Mesh(m,"E:/openmohaa/build/sdk/models/test/body.md5mesh");
+		writeMD5Anim(a,"E:/openmohaa/build/sdk/models/test/run.md5anim");
+
+
 
 		return;
 	}
@@ -689,32 +747,44 @@ int main(int argc, const char **argv) {
 				i++;
 				strcpy(outTIKI,argv[i]);
 				strcpy(modelDataDir,argv[i]);
+				backSlashesToSlashes(modelDataDir); // fix slashes!
+				backSlashesToSlashes(outTIKI); // fix slashes!
 			}
 		} else if(!Q_stricmp(argv[i], "-anim")) {
 			// get anim filename
 			i++;
 			strcpy(inAnimFNames[numAnims],argv[i]);
+			backSlashesToSlashes(inAnimFNames[numAnims]); // fix slashes!
 			numAnims++;		
 		} else if(!Q_stricmp(argv[i], "-mesh")) {
 			// get mesh filename
 			i++;
 			strcpy(inMesh,argv[i]);
+			backSlashesToSlashes(inMesh); // fix slashes!
 		} else if(!Q_stricmp(argv[i], "-skl")) {
 			createSKL = qtrue;
 		} else if(!Q_stricmp(argv[i], "-renameBones")) {
 			// rename bones with their numbers, needed to avoid original skl_2_skx asserts 
 			renameBones = qtrue;
-		} else if(strstr(argv[i], "md5mesh")) {
+		} else if(strstr(argv[i], ".md5mesh") || strstr(argv[i], ".skd")) {
 			// that's a mesh filename
 			strcpy(inMesh,argv[i]);
-		} else if(strstr(argv[i], "md5anim")) {
+			backSlashesToSlashes(inMesh); // fix slashes!
+		} else if(strstr(argv[i], ".md5anim") || strstr(argv[i], ".skc")) {
 			// that's a anim filename
 			strcpy(inAnimFNames[numAnims],argv[i]);
+			backSlashesToSlashes(inAnimFNames[numAnims]); // fix slashes!
 			numAnims++;
+#if 1
+		} else if(strstr(argv[i], ".tik")) {
+			strcpy(outTIKI,argv[i]);
+			backSlashesToSlashes(outTIKI); // fix slashes!
+#endif
 		} else if(!Q_stricmp(argv[i], "-to") || !Q_stricmp(argv[i], "-outdir") || !Q_stricmp(argv[i], "-destdir")) {
 			i++;
 			// that's a path where generated skc/skd files should be put
 			strcpy(modelDataDir,argv[i]);
+			backSlashesToSlashes(modelDataDir); // fix slashes!
 		} else if(strstr(argv[i], "-decompile")) {
 			decompile = qtrue;
 		} else if(!Q_stricmp(argv[i], "-help") || !Q_stricmp(argv[i], "help")) {
