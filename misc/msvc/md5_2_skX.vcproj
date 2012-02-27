@@ -57,7 +57,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="..\..\build\sdk\md5_2_skX_d.exe"
+				OutputFile="..\..\build\sdk\md5_2_skX.exe"
 				GenerateDebugInformation="true"
 				TargetMachine="1"
 			/>
@@ -177,6 +177,10 @@
 			</File>
 			<File
 				RelativePath="..\..\code\tools\md5_2_skX\misc_utils.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\code\tools\md5_2_skX\NOTES.txt"
 				>
 			</File>
 			<File

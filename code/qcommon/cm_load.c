@@ -507,11 +507,14 @@ void CMod_LoadPatches( lump_t *surfs, lump_t *verts ) {
 	// not planar faces
 	for ( i = 0 ; i < count ; i++, in++ ) {
 		if ( LittleLong( in->surfaceType ) != MST_PATCH ) {
+			assert(cm.surfaces[ i ] == 0);
 			continue;		// ignore other surfaces
 		}
 		// FIXME: check for non-colliding patches
 
 		cm.surfaces[ i ] = patch = Hunk_Alloc( sizeof( *patch ), h_high );
+		assert(cm.surfaces[ i ] != 0);
+		assert(cm.surfaces[ i ] != 0x4);
 
 		// load the full drawverts onto the stack
 		width = LittleLong( in->patchWidth );

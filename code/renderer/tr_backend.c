@@ -539,6 +539,37 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 	// clear the z buffer, set the modelview, etc
 	RB_BeginDrawingView ();
 
+	// su44: set MoHAA fog (disabled as there is something wrong with some polygons right now)
+#if 0
+	{
+		// taken from MoHAA's mohdm4 fog settings
+		static vec4_t c = { 0.333, 0.333, 0.329, 0 };
+		static float fogFarplane = 5500.0000;
+		qglEnable (GL_FOG);
+		qglFogi (GL_FOG_MODE, GL_LINEAR);
+		qglFogfv (GL_FOG_COLOR, c);
+		qglFogf(GL_FOG_START, 0); // 0x0B63 == 2915
+		qglFogf(GL_FOG_END,fogFarplane);
+		qglHint (GL_FOG_HINT, GL_NICEST); // set the fog to look the nicest, may slow down on older cards
+	}
+#elif 0
+	if(backEnd.refdef.farplane_distance == 0) {
+		qglDisable(GL_FOG);
+	} else {
+		// su44: notes:
+		// GL_FOG_MODE == 0x0B65 == 2917
+		// GL_FOG_COLOR == 0x0B66 == 2918
+		// MoHAA uses: qglFogf(2917, 9729.0, v1, v2),
+		qglEnable (GL_FOG);
+		qglFogi (GL_FOG_MODE, GL_LINEAR);
+		qglFogfv (GL_FOG_COLOR, backEnd.refdef.farplane_color);
+
+		//qglFogf (GL_FOG_DENSITY////, 0.0005); // 2914
+		qglFogf(GL_FOG_START, 0); // 0x0B63 == 2915
+		qglFogf(GL_FOG_END,backEnd.refdef.farplane_distance);
+		qglHint (GL_FOG_HINT, GL_NICEST); // set the fog to look the nicest, may slow down on older cards
+	}
+#endif
 	// draw everything
 	oldEntityNum = -1;
 	backEnd.currentEntity = &tr.worldEntity;

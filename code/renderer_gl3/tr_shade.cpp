@@ -4012,6 +4012,12 @@ static void Render_fog()
 		return;
 	}
 
+	if(tr.world->fogs == 0) {
+		ri.Printf(PRINT_WARNING,"Render_fog called on map without fogs\n");
+		return;
+	}
+
+
 	fog = tr.world->fogs + tess.fogNum;
 
 	// Tr3B: use this only to render fog brushes

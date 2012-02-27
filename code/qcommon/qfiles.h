@@ -509,7 +509,7 @@ typedef enum {
 	JT_WORLD,
 	JT_HOSEROTBOTH,
 	JT_HOSEROTPARENT,
-	JT_POSROTFK,
+	//JT_POSROTFK,
 	JT_MAX = 0x7fffffff			// ensures that sizeof( skdJointType_t ) == sizeof( int )
 } skdJointType_t;
 
