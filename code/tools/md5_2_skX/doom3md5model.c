@@ -397,12 +397,13 @@ tModel_t *loadMD5Mesh(const char *fname) {
 			}
 		}
 		
-		// TODO: precalculate normals
-		for(j = 0, v = surf->verts; j < surf->numVerts; j++, v++) {
-			VectorSet(v->normal,0,0,1);
-		}
+		//////// TODO: precalculate normals
+		//////for(j = 0, v = surf->verts; j < surf->numVerts; j++, v++) {
+		//////	VectorSet(v->normal,0,0,1);
+		//////}
 
 	}
+	CalcModelNormals(out);
 	T_Printf("Succesfully loaded Doom3 model %s\n",fname);
 	return out;
 }

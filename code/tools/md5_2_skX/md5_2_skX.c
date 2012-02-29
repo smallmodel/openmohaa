@@ -142,6 +142,7 @@ void ConvertModelBaseFrameToAnim(tModel_t *m, const char *outFName) {
 	// write single frame
 	{
 		skcFrame_t outFrame;
+		// FIXME - calc proper bounding box!
 		VectorSet(outFrame.bounds[0],-128,-128,-128);
 		VectorSet(outFrame.bounds[1],128,128,128);
 		//VectorCopy(f->mins,outFrame.bounds[0]);
@@ -193,6 +194,114 @@ void ConvertModelBaseFrameToAnim(tModel_t *m, const char *outFName) {
 	fclose(out);
 	T_Printf("Wrote MoHAA animation %s\n",outFName);
 }
+// all bones should be obviously in model space
+void CalcModelXYZVerticesForBones(tModel_t *m, bone_t *bones) {
+	int i, j, k;
+	tSurf_t *sf;
+	tVert_t *v;
+	tWeight_t *w;
+	
+	sf = m->surfs;
+	for(i = 0; i < m->numSurfaces; i++, sf++) {
+		v = sf->verts;
+		for(j = 0; j < sf->numVerts; j++, v++) {
+			VectorClear(v->absXYZ);
+			w = v->weights;
+			for(k = 0; k < v->numWeights; k++, w++) {
+				quat_t qua, que,res;
+				vec3_t newnormal;
+				qua[0] = w->offset[0];
+				qua[1] = w->offset[1];
+				qua[2] = w->offset[2];
+				qua[3] = 0;
+				QuaternionMultiply(que,qua,bones[w->boneNum].q);
+				QuatInverse(bones[w->boneNum].q);
+				QuaternionMultiply(res,bones[w->boneNum].q,que);
+				QuatInverse(bones[w->boneNum].q);
+				v->absXYZ[0] += (bones[w->boneNum].p[0] + res[0])*w->boneWeight;
+				v->absXYZ[1] += (bones[w->boneNum].p[1] + res[1])*w->boneWeight;
+				v->absXYZ[2] += (bones[w->boneNum].p[2] + res[2])*w->boneWeight;
+			}
+		}
+	}
+}
+void R_CalcNormalForTriangle(vec3_t normal, const vec3_t v0, const vec3_t v1, const vec3_t v2)
+{
+	vec3_t          udir, vdir;
+
+	// compute the face normal based on vertex points
+	VectorSubtract(v2, v0, udir);
+	VectorSubtract(v1, v0, vdir);
+	CrossProduct(udir, vdir, normal);
+
+	VectorNormalize(normal);
+}
+void CalcModelNormals(tModel_t *m) {
+	int i, j;
+	tSurf_t *sf;
+	tVert_t *v;
+	matrix_t inverseMatrices[256];
+	bone_t *b;
+	tTri_t *t;
+
+	// calculate absolute vertex positions for baseframe
+	CalcModelXYZVerticesForBones(m,m->baseFrame);
+
+	// setup inverse matrices (model space -> parent bone space)
+	b = m->baseFrame;
+	for(i = 0; i < m->numBones; i++, b++) {
+		MatrixFromQuat(inverseMatrices[i],b->q);
+		VectorCopy(&inverseMatrices[i][12],b->p);
+		MatrixInverse(inverseMatrices[i]);
+	}
+
+	// set all vertex normals to null
+	sf = m->surfs;
+	for(i = 0; i < m->numSurfaces; i++, sf++) {
+		v = sf->verts;
+		for(j = 0; j < sf->numVerts; j++, v++) {
+			VectorClear(v->normal);
+		}
+	}
+
+	// sum normals of each triangle
+	sf = m->surfs;
+	for(i = 0; i < m->numSurfaces; i++, sf++) {
+		t = sf->tris;
+		for(j = 0; j < sf->numTris; j++, t++) {
+			int i0, i1, i2;
+			vec3_t n;
+
+			i0 = t->indexes[0];
+			i1 = t->indexes[1];
+			i2 = t->indexes[2];
+
+			R_CalcNormalForTriangle(n,sf->verts[i0].absXYZ,sf->verts[i1].absXYZ,sf->verts[i2].absXYZ);
+
+			VectorAdd(sf->verts[i0].normal,n,sf->verts[i0].normal);
+			VectorAdd(sf->verts[i1].normal,n,sf->verts[i1].normal);
+			VectorAdd(sf->verts[i2].normal,n,sf->verts[i2].normal);
+		}
+	}
+
+	// normalize all normals and transform them to first parent bone space
+	sf = m->surfs;
+	for(i = 0; i < m->numSurfaces; i++, sf++) {
+		v = sf->verts;
+		for(j = 0; j < sf->numVerts; j++, v++) {
+			int bone;
+
+			VectorNormalize(v->normal);
+
+			// use boneIndex of first vertex weight
+			// (FAKK's max2skl uses only the first bone here, too)
+			bone = v->weights[0].boneNum;
+
+			MatrixTransformNormal2(inverseMatrices[bone],v->normal);
+		}
+	}
+}
+
 void SplitSurfaces(tModel_t *m);
 int countVertBytes(tSurf_t *sf) {
 	int i;
@@ -305,7 +414,7 @@ void ConvertModel(tModel_t *m, const char *outFName) {
 		// write vertices
 		for(j = 0, v = s->verts; j < s->numVerts; j++, v++) {
 			skdVertex_t sv;
-			VectorSet(sv.normal,1,0,0); // FIXME!
+			VectorCopy(v->normal,sv.normal);
 			sv.numWeights = v->numWeights;
 			sv.numMorphs = 0;
 			sv.texCoords[0] = v->texCoords[0];

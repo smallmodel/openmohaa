@@ -53,6 +53,7 @@ typedef struct {
 typedef struct {
 	vec2_t texCoords;
 	vec3_t normal;
+	vec3_t absXYZ; // not saved to file
 	int firstWeight;
 	int numWeights;
 	tWeight_t *weights;
@@ -125,6 +126,9 @@ extern int numAnims;
 extern tAnim_t *anims[256];
 char inAnimFNames[MAX_TOOLPATH][256];
 extern tModel_t *mainModel;
+
+// md5_2_skX.c
+void CalcModelNormals(tModel_t *m);
 
 // doom3md5model.c
 tModel_t *loadMD5Mesh(const char *fname);
