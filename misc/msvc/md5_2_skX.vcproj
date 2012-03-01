@@ -184,6 +184,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\code\tools\md5_2_skX\writeobj.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\code\tools\md5_2_skX\writeskl.c"
 				>
 			</File>

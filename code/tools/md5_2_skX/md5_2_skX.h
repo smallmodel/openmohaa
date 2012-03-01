@@ -129,6 +129,7 @@ extern tModel_t *mainModel;
 
 // md5_2_skX.c
 void CalcModelNormals(tModel_t *m);
+void CalcModelXYZVerticesForBones(tModel_t *m, bone_t *bones);
 
 // doom3md5model.c
 tModel_t *loadMD5Mesh(const char *fname);
@@ -155,6 +156,11 @@ tModel_t *readSKD(const char *fname, float scale);
 tAnim_t *appendSKC(tModel_t *m, const char *fname, float scale);
 void loadTIKI(const char *fname);
 
+// writeobj.c
+//void WriteOBJ(const char *outFName, tModel_t *m, bone_t *bones);
+void WriteOBJ_FromBaseFrame(const char *outFName, tModel_t *m);
+void WriteOBJ_FromAnim(const char *outFName, tModel_t *m, tAnim_t *a);
+
 // misc_utils.c
 void T_Printf(const char *format, ...);
 void T_VerbPrintf(const char *format, ...);
@@ -173,5 +179,6 @@ const char *getGamePath(const char *s);
 const char *getFName(const char *s);
 // returns cleared memory
 void *T_Malloc(unsigned int size);
+void InverseBoneQuats(bone_t *bones, int numBones);
 
 #endif // __MD5_2_SKX_H__

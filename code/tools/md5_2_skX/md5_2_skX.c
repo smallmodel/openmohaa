@@ -26,6 +26,7 @@ qboolean verbose = qfalse;
 qboolean noLimits = qfalse;
 qboolean createTIK = qfalse;
 qboolean createSKL = qfalse;
+qboolean createOBJ = qfalse;
 qboolean renameBones = qfalse;
 // converting MoHAA models to Doom3 md5
 qboolean decompile = qfalse;
@@ -209,15 +210,19 @@ void CalcModelXYZVerticesForBones(tModel_t *m, bone_t *bones) {
 			w = v->weights;
 			for(k = 0; k < v->numWeights; k++, w++) {
 				quat_t qua, que,res;
+				quat_t boneQuat;
 				vec3_t newnormal;
+
+				QuatCopy(bones[w->boneNum].q,boneQuat);
+
 				qua[0] = w->offset[0];
 				qua[1] = w->offset[1];
 				qua[2] = w->offset[2];
 				qua[3] = 0;
-				QuaternionMultiply(que,qua,bones[w->boneNum].q);
-				QuatInverse(bones[w->boneNum].q);
-				QuaternionMultiply(res,bones[w->boneNum].q,que);
-				QuatInverse(bones[w->boneNum].q);
+				QuaternionMultiply(que,qua,boneQuat);
+				QuatInverse(boneQuat);
+				QuaternionMultiply(res,boneQuat,que);
+				QuatInverse(boneQuat);
 				v->absXYZ[0] += (bones[w->boneNum].p[0] + res[0])*w->boneWeight;
 				v->absXYZ[1] += (bones[w->boneNum].p[1] + res[1])*w->boneWeight;
 				v->absXYZ[2] += (bones[w->boneNum].p[2] + res[2])*w->boneWeight;
@@ -251,7 +256,7 @@ void CalcModelNormals(tModel_t *m) {
 	b = m->baseFrame;
 	for(i = 0; i < m->numBones; i++, b++) {
 		MatrixFromQuat(inverseMatrices[i],b->q);
-		VectorCopy(&inverseMatrices[i][12],b->p);
+		VectorCopy(b->p,&inverseMatrices[i][12]);
 		MatrixInverse(inverseMatrices[i]);
 	}
 
@@ -602,6 +607,25 @@ static void GenerateSKLFiles() {
 		writeSKL(mainModel,anims[i],outFName);
 	}
 }
+static void GenerateOBJFiles() {
+	int i;
+	char outFName[512];
+
+	if(noLimits == qfalse) {
+		// ensure that there are no surfaces with
+		// numVerts >= 1000 or numTris >= 2000
+		SplitSurfaces(mainModel);
+	}
+	constructPath(outFName,mainModel->fname,".obj");
+	WriteOBJ_FromBaseFrame(outFName,mainModel);
+
+	for(i = 0; i < numAnims; i++) {
+		if(anims[i] == 0)
+			continue;
+		constructPath(outFName,anims[i]->fname,".obj");
+		WriteOBJ_FromAnim(outFName,mainModel,anims[i]);
+	}
+}
 // convert MoHAA model to famous Doom3 md5 format
 void DecompileSKX() {
 	char fname[MAX_TOOLPATH];
@@ -652,6 +676,10 @@ void DecompileSKX() {
 
 	if(createSKL) {
 		GenerateSKLFiles();
+		return;
+	}
+	if(createOBJ) {
+		GenerateOBJFiles();
 		return;
 	}
 
@@ -705,6 +733,8 @@ void CompileSKX() {
 		if(a == 0) {
 			T_Printf("Failed to load: %s\n",inAnimFNames[i]);
 		}
+
+		////	WriteOBJ_FromAnim("e:/test.obj", m, a); // ok.
 		anims[i] = a;
 		if(a)
 			numValidAnims++;
@@ -712,6 +742,10 @@ void CompileSKX() {
 	
 	if(createSKL) {
 		GenerateSKLFiles();
+		return;
+	}
+	if(createOBJ) {
+		GenerateOBJFiles();
 		return;
 	}
 
@@ -872,6 +906,8 @@ int main(int argc, const char **argv) {
 			backSlashesToSlashes(inMesh); // fix slashes!
 		} else if(!Q_stricmp(argv[i], "-skl")) {
 			createSKL = qtrue;
+		} else if(!Q_stricmp(argv[i], "-obj")) {
+			createOBJ = qtrue;
 		} else if(!Q_stricmp(argv[i], "-renameBones")) {
 			// rename bones with their numbers, needed to avoid original skl_2_skx asserts 
 			renameBones = qtrue;

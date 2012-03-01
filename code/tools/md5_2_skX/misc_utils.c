@@ -249,3 +249,10 @@ void PrintBoneOr(bone_t *b) {
 	//T_Printf("pos %f %f %f, quat %f %f %f %f, angles %f %f %f\n",
 	//	b->p[0],);
 }
+
+void InverseBoneQuats(bone_t *bones, int numBones) {
+	int i;
+	for(i = 0; i < numBones; i++) {
+		QuatInverse(bones[i].q);
+	}
+}

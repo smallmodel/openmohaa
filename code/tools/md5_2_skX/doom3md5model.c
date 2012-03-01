@@ -142,7 +142,7 @@ tModel_t *loadMD5Mesh(const char *fname) {
 	// okay, let's assume that md5mesh file is valid, and alloc 
 	// output model. Still, it will be fried if any error occur
 	out = malloc(sizeof(tModel_t));
-	
+	strcpy(out->fname,fname);
 	out->numBones = tmpNumBones;
 	out->numSurfaces = tmpNumSurfs;
 	out->bones = malloc(sizeof(tBone_t)*out->numBones);
@@ -404,6 +404,8 @@ tModel_t *loadMD5Mesh(const char *fname) {
 
 	}
 	CalcModelNormals(out);
+	
+	// WriteOBJ_FromBaseFrame("e:/test.obj", out); // OK
 	T_Printf("Succesfully loaded Doom3 model %s\n",fname);
 	return out;
 }
