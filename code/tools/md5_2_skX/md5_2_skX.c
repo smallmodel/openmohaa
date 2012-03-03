@@ -117,6 +117,34 @@ void ConvertAnimation(tAnim_t *a, const char *outFName) {
 	fclose(out);
 	T_Printf("Wrote MoHAA animation %s\n",outFName);
 }
+void CalcModelBB(tModel_t *m, bone_t *bones, vec3_t outMins, vec3_t outMaxs, float *outRadius) {
+	int i, j;
+	tSurf_t *sf;
+	tVert_t *v;
+	float rad, l;
+
+	ClearBounds(outMins,outMaxs);
+
+	// calculate absolute vertex positions for given bones
+	CalcModelXYZVerticesForBones(m,bones);
+
+	rad = 0;
+	sf = m->surfs;
+	for(i = 0; i < m->numSurfaces; i++, sf++) {
+		v = sf->verts;
+		for(j = 0; j < sf->numVerts; j++, v++) {
+			AddPointToBounds(v->absXYZ,outMins,outMaxs);
+			l = VectorLengthSquared(v->absXYZ);
+			if(l > rad) {
+				rad = l;
+			}
+		}
+	}
+	*outRadius = sqrt(rad);
+}
+void CalcModelBBFromBaseframe(tModel_t *m) {
+	CalcModelBB(m,m->baseFrame,m->baseFrameMins,m->baseFrameMaxs,&m->baseFrameRadius);
+}
 void ConvertModelBaseFrameToAnim(tModel_t *m, const char *outFName) {
 	int i,j;
 	skcHeader_t h;
@@ -131,6 +159,8 @@ void ConvertModelBaseFrameToAnim(tModel_t *m, const char *outFName) {
 		T_Error("ConvertModelBaseFrameToAnim: Cannot open %s\n",outFName);
 	}
 
+	CalcModelBBFromBaseframe(m);
+
 	memset(&h,0,sizeof(h));
 	h.ident = SKC_IDENT;
 	h.version = SKC_VERSION;
@@ -143,11 +173,8 @@ void ConvertModelBaseFrameToAnim(tModel_t *m, const char *outFName) {
 	// write single frame
 	{
 		skcFrame_t outFrame;
-		// FIXME - calc proper bounding box!
-		VectorSet(outFrame.bounds[0],-128,-128,-128);
-		VectorSet(outFrame.bounds[1],128,128,128);
-		//VectorCopy(f->mins,outFrame.bounds[0]);
-		//VectorCopy(f->maxs,outFrame.bounds[1]);
+		VectorCopy(m->baseFrameMins,outFrame.bounds[0]);
+		VectorCopy(m->baseFrameMaxs,outFrame.bounds[1]);
 		outFrame.radius = RadiusFromBounds(outFrame.bounds[0],outFrame.bounds[1]);
 		VectorSet(outFrame.delta,0,0,0);
 		outFrame.unknown = 0;

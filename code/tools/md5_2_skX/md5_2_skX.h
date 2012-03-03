@@ -76,6 +76,9 @@ typedef struct tModel_s {
 	tSurf_t *surfs;
 	tBone_t *bones;
 	bone_t *baseFrame;
+	vec3_t baseFrameMins;
+	vec3_t baseFrameMaxs;
+	float baseFrameRadius;
 } tModel_t;
 
 // md5 animation data
@@ -130,6 +133,8 @@ extern tModel_t *mainModel;
 // md5_2_skX.c
 void CalcModelNormals(tModel_t *m);
 void CalcModelXYZVerticesForBones(tModel_t *m, bone_t *bones);
+void CalcModelBB(tModel_t *m, bone_t *bones, vec3_t outMins, vec3_t outMaxs, float *outRadius);
+void CalcModelBBFromBaseframe(tModel_t *m);
 
 // doom3md5model.c
 tModel_t *loadMD5Mesh(const char *fname);
