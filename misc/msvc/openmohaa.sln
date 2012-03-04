@@ -18,6 +18,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "md5_2_skX", "md5_2_skX.vcpr
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mohcgamewrapper", "mohcgamewrapper.vcproj", "{FB8E1986-F316-412B-81B1-7ED13554B4B9}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OMmap", "OMmap.vcproj", "{F1162C55-66E7-4486-B1F3-071CFAA78332}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug TA|Win32 = Debug TA|Win32
@@ -136,6 +138,18 @@ Global
 		{FB8E1986-F316-412B-81B1-7ED13554B4B9}.Release TA|Win32.Build.0 = Release|Win32
 		{FB8E1986-F316-412B-81B1-7ED13554B4B9}.Release|Win32.ActiveCfg = Release|Win32
 		{FB8E1986-F316-412B-81B1-7ED13554B4B9}.Release|Win32.Build.0 = Release|Win32
+		{F1162C55-66E7-4486-B1F3-071CFAA78332}.Debug TA|Win32.ActiveCfg = Debug|Win32
+		{F1162C55-66E7-4486-B1F3-071CFAA78332}.Debug TA|Win32.Build.0 = Debug|Win32
+		{F1162C55-66E7-4486-B1F3-071CFAA78332}.Debug_Dedicated|Win32.ActiveCfg = Debug|Win32
+		{F1162C55-66E7-4486-B1F3-071CFAA78332}.Debug_Dedicated|Win32.Build.0 = Debug|Win32
+		{F1162C55-66E7-4486-B1F3-071CFAA78332}.Debug_PlugableRenderer|Win32.ActiveCfg = Debug|Win32
+		{F1162C55-66E7-4486-B1F3-071CFAA78332}.Debug_PlugableRenderer|Win32.Build.0 = Debug|Win32
+		{F1162C55-66E7-4486-B1F3-071CFAA78332}.Debug|Win32.ActiveCfg = Debug|Win32
+		{F1162C55-66E7-4486-B1F3-071CFAA78332}.Debug|Win32.Build.0 = Debug|Win32
+		{F1162C55-66E7-4486-B1F3-071CFAA78332}.Release TA|Win32.ActiveCfg = Release|Win32
+		{F1162C55-66E7-4486-B1F3-071CFAA78332}.Release TA|Win32.Build.0 = Release|Win32
+		{F1162C55-66E7-4486-B1F3-071CFAA78332}.Release|Win32.ActiveCfg = Release|Win32
+		{F1162C55-66E7-4486-B1F3-071CFAA78332}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
