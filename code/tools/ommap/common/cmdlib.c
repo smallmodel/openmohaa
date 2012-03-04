@@ -34,7 +34,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <libc.h>
 #endif
 
-#define	BASEDIRNAME	"quake"		// assumed to have a 2 or 3 following
+#define	BASEDIRNAME	"MoHAA"		// assumed to have a 2 or 3 following
+#define	BASEDIRNAME2	"build"		// for OpenMoHAA
 #define PATHSEPERATOR   '/'
 
 // set these before calling CheckParm
@@ -217,28 +218,40 @@ char		qdir[1024];
 char		gamedir[1024];
 char		writedir[1024];
 
-void SetQdirFromPath( const char *path )
-{
-	char	temp[1024];
+void pathCpy(char *inout, const char *add) {
+	int level = 0;
+	char *end;
+	if(add[0] == '.' && add[1] == '/') {
+		add+=2;
+	}
+	while(add[0] == '.' && add[1] == '.') {
+		level++;
+		add+=2;
+		while(*add != '/' && *add != '\\' && *add) {
+			add++;
+		}
+	}
+	end = inout + strlen(inout)-2;
+	while(level && *end) {
+		if(*end == '/' || *end == '\\') {
+			*end = 0;
+			level --;
+		}
+		end--;
+	}
+	strcat (inout, add);
+}
+qboolean SetQdirFromPath_BaseDir(const char *path, const char *baseDirName) {
 	const char	*c;
   const char *sep;
 	int		len, count;
 
-	if (!(path[0] == '/' || path[0] == '\\' || path[1] == ':'))
-	{	// path is partial
-		Q_getwd (temp);
-		strcat (temp, path);
-		path = temp;
-	}
-
-	// search for "quake2" in path
-
-	len = strlen(BASEDIRNAME);
+	len = strlen(baseDirName);
 	for (c=path+strlen(path)-1 ; c != path ; c--)
 	{
 		int i;
 
-		if (!Q_strncasecmp (c, BASEDIRNAME, len))
+		if (!Q_strncasecmp (c, baseDirName, len))
 		{
       //
 			//strncpy (qdir, path, c+len+2-path);
@@ -283,15 +296,32 @@ void SetQdirFromPath( const char *path )
 						writedir[strlen( writedir )+1] = 0;
 					}
 
-					return;
+					return qtrue;
 				}
 				c++;
 			}
-			Error ("No gamedir in %s", path);
-			return;
+			return qfalse;
 		}
 	}
-	Error ("SetQdirFromPath: no '%s' in %s", BASEDIRNAME, path);
+	return qfalse;
+}
+void SetQdirFromPath( const char *path )
+{
+	char	temp[1024];
+
+
+	if (!(path[0] == '/' || path[0] == '\\' || path[1] == ':'))
+	{	// path is partial
+		Q_getwd (temp);
+		pathCpy(temp,path);
+		path = temp;
+	}
+
+	if(SetQdirFromPath_BaseDir(path,BASEDIRNAME2)==qfalse) {
+		if(SetQdirFromPath_BaseDir(path,BASEDIRNAME)==qfalse) {
+			Error ("SetQdirFromPath: no '%s' or '%' in %s", BASEDIRNAME, BASEDIRNAME2, path);
+		}
+	}
 }
 
 char *ExpandArg (const char *path)
@@ -301,7 +331,7 @@ char *ExpandArg (const char *path)
 	if (path[0] != '/' && path[0] != '\\' && path[1] != ':')
 	{
 		Q_getwd (full);
-		strcat (full, path);
+		pathCpy (full, path);
 	}
 	else
 		strcpy (full, path);

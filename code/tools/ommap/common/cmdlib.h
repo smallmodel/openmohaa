@@ -86,7 +86,8 @@ char *ExpandArg( const char *path );	// from cmd line
 char *ExpandPath( const char *path );	// from scripts
 char *ExpandGamePath (const char *path);
 char *ExpandPathAndArchive( const char *path );
-
+// this should handle paths with '../'
+void pathCpy(char *inout, const char *add);
 
 double I_FloatTime( void );
 

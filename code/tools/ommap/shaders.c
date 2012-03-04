@@ -585,24 +585,50 @@ static void ParseShaderFile( const char *filename ) {
 LoadShaderInfo
 ===============
 */
-#define	MAX_SHADER_FILES	64
+#define	MAX_SHADER_FILES	512
+#include <io.h>
 void LoadShaderInfo( void ) {
 	char			filename[1024];
 	int				i;
 	char			*shaderFiles[MAX_SHADER_FILES];
 	int				numShaderFiles;
+	FILE *f;
 
 	sprintf( filename, "%sscripts/shaderlist.txt", gamedir );
-	LoadScriptFile( filename );
 
-	numShaderFiles = 0;
-	while ( 1 ) {
-		if ( !GetToken( qtrue ) ) {
-			break;
+	f = fopen(filename,"rb");
+	if(f == 0) {
+		// if there is no shaderlist.txt in scripts dir, scan for shader files
+		struct _finddata_t fileinfo;
+		char scriptsDir[1024];
+		int handle;
+		sprintf( scriptsDir, "%sscripts/*.shader", gamedir );	
+		handle = _findfirst (scriptsDir, &fileinfo);
+		if (handle != -1)
+		{
+			do
+			{
+				sprintf(filename, "%s\\%s", scriptsDir, fileinfo.name);
+				shaderFiles[numShaderFiles] = malloc(MAX_OS_PATH);
+				strcpy( shaderFiles[ numShaderFiles ], token );
+				numShaderFiles++;
+			} while (_findnext( handle, &fileinfo ) != -1);
+			_findclose (handle);
 		}
-    shaderFiles[numShaderFiles] = malloc(MAX_OS_PATH);
-		strcpy( shaderFiles[ numShaderFiles ], token );
-		numShaderFiles++;
+	} else {
+		fclose(f);
+
+		LoadScriptFile( filename );
+
+		numShaderFiles = 0;
+		while ( 1 ) {
+			if ( !GetToken( qtrue ) ) {
+				break;
+			}
+			shaderFiles[numShaderFiles] = malloc(MAX_OS_PATH);
+			strcpy( shaderFiles[ numShaderFiles ], token );
+			numShaderFiles++;
+		}
 	}
 
 	for ( i = 0 ; i < numShaderFiles ; i++ ) {

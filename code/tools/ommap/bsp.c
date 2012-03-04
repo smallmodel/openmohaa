@@ -365,7 +365,8 @@ int main (int argc, char **argv) {
 	char		path[1024];
 
 	_printf ("Q3Map v1.0s (c) 1999 Id Software Inc.\n");
-  
+  	_printf ("OMmap (su44) - v0.1\n");
+
 	if ( argc < 2 ) {
 		Error ("usage: q3map [options] mapfile");
 	}
