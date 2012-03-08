@@ -872,6 +872,26 @@ void	ParseRawBrush( ) {
 			// get the texture mapping for this texturedef / plane combination
 			QuakeTextureVecs( &mapplanes[planenum], shift, rotate, scale, side->vecs );
 
+		// su44: check for extra MoHAA-specific keywords
+		while(1) {
+			GetToken(qtrue);
+			if(!stricmp(token,"surfaceColor")) {
+				GetToken(qtrue);
+				GetToken(qtrue);
+				GetToken(qtrue);
+			} else if(!stricmp(token,"+surfaceparm")) {
+				GetToken(qtrue);
+			} else if(!stricmp(token,"-surfaceparm")) {
+				GetToken(qtrue);
+			} else if(!stricmp(token,"subdivisions")) {
+				GetToken(qtrue);
+			} else if(!stricmp(token,"surfaceDensity")) {
+				GetToken(qtrue);
+			} else {
+				UnGetToken();
+				break;
+			}
+		}
 	} while (1);
 
 	if (g_bBrushPrimit==BPRIMIT_NEWBRUSHES)
@@ -1089,7 +1109,27 @@ qboolean	ParseMapEntity (void) {
 				numMapPatches++;
 				ParsePatch();
 			} else if ( !strcmp( token, "terrainDef" ) ) {
+	// su44: it seems that MoHAA's terrainDef syntax is incompatible 
+		// with q3map terrainDef parsing
+#if 0
 				ParseTerrain();
+#else
+				int level = 2;
+				printf("Terrain starats at %i\n",scriptline);
+				GetToken( qtrue );
+				if(token[0] != '{') {
+					Error("Expected '{' to follow 'terrainDef'\n");
+				}
+				while(level) {
+					GetToken( qtrue );
+					if(token[0] == '{') {
+						level++;
+					} else if(token[0] == '}') {
+						level--;
+					} 
+				}
+				printf("Terrain ends at %i\n",scriptline);
+#endif
 			} else if ( !strcmp( token, "brushDef" ) ) {
 				if (g_bBrushPrimit==BPRIMIT_OLDBRUSHES)
 					Error("old brush format not allowed in new brush format map");
