@@ -57,14 +57,25 @@ void writeTIKI(tModel_t *m,const char *outFName) {
 	const char *skelmodel;
 	const char *p;
 	char surf[24];
-	
+
+	// path should be something like this:
+	// "models/weapons/mp40"
 	p = extractTIKIDataPath(outFName);
 	p = getGamePath(p);
-	strcpy(path,p);
-
+	if(p) {
+		strcpy(path,p);
+	} else {
+		path[0] = 0;
+	}
 	skelmodel = getFName(outSKDMesh);
 
+	T_Printf("Writing MoHAA .tik file %s...\n",outFName);
+
 	out = F_Open(outFName,"w");
+	if(out == 0) {
+		T_Printf("Cannot open %s for writing\n",outFName);
+		return;
+	}
 
 	fprintf(out,"//////////////////////////////////////////////////////////////////////////\n");
 	fprintf(out,"//\n");

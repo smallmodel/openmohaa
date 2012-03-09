@@ -30,7 +30,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 qboolean FixQuatForMD5_N(quat_t q) {
 	// make sure that we will get the same 
 	// quaternion if we recalculate W component...
-	quat_t copy;
+//	quat_t copy;
 
 	if(q[3] > 0) {
 		QuatAntipodal(q);
@@ -44,7 +44,7 @@ qboolean FixQuatForMD5_N(quat_t q) {
 qboolean FixQuatForMD5_P(quat_t q) {
 	// make sure that we will get the same 
 	// quaternion if we recalculate W component...
-	quat_t copy;
+//	quat_t copy;
 
 	if(q[3] < 0) {
 		QuatAntipodal(q);
@@ -859,7 +859,7 @@ void writeMD5Mesh(tModel_t *m, const char *outFName) {
 
 void writeMD5Anim(tAnim_t *a, const char *outFName) {
 	FILE *out;
-	int i,j,k;
+	int i,j; //,k;
 	tAnimBone_t *ab;
 	tFrame_t *f;
 	bone_t *b;

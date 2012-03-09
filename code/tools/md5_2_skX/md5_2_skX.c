@@ -165,7 +165,7 @@ void ConvertModelBaseFrameToAnim(tModel_t *m, const char *outFName) {
 	h.ident = SKC_IDENT;
 	h.version = SKC_VERSION;
 	h.numFrames = 1;
-	h.frameTime = 0.033333335;
+	h.frameTime = 0.033333335f;
 	h.numChannels = m->numBones * 2;
 
 	fwrite(&h,sizeof(h),1,out);
@@ -238,7 +238,7 @@ void CalcModelXYZVerticesForBones(tModel_t *m, bone_t *bones) {
 			for(k = 0; k < v->numWeights; k++, w++) {
 				quat_t qua, que,res;
 				quat_t boneQuat;
-				vec3_t newnormal;
+//			vec3_t newnormal;
 
 				QuatCopy(bones[w->boneNum].q,boneQuat);
 
@@ -655,7 +655,7 @@ static void GenerateOBJFiles() {
 }
 // convert MoHAA model to famous Doom3 md5 format
 void DecompileSKX() {
-	char fname[MAX_TOOLPATH];
+//char fname[MAX_TOOLPATH];
 	int i,j;
 	int numValidAnims;
 	tModel_t *m;
@@ -729,7 +729,7 @@ void DecompileSKX() {
 	}
 }
 void CompileSKX() {
-	char fname[MAX_TOOLPATH];
+//	char fname[MAX_TOOLPATH];
 	int i;
 	int numValidAnims;
 	tModel_t *m;

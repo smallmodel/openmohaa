@@ -234,10 +234,10 @@ static int i = 0;
 tAnim_t *appendSKC(tModel_t *m, const char *fname, float scale) {
 	int len;
 	skcHeader_t *h;
-	skcFrame_t *f, *firstFrame;
+	skcFrame_t *f; //, *firstFrame;
 	tAnim_t *out;
 	tFrame_t *of;
-	const char *c;
+//	const char *c;
 	int i, j;
 	int cFlags[512];
 	bone_t baseFrame[512];
@@ -521,7 +521,8 @@ const char *fixPath(const char *fname, const char *path, const char *tikiFilePat
 void loadTIKI(const char *fname) {
 	int len;
 	char *txt;
-	char *p, *fixedPath;
+	char *p;
+	const char *fixedPath;
 	const char *token;
 	char path[MAX_TOOLPATH];
 	float scale;
@@ -530,7 +531,7 @@ void loadTIKI(const char *fname) {
 
 	if(len == -1) {
 		T_Error("loadTIKI: Cannot open %s\n",fname);
-		return 0;
+		return;
 	}
 
 	path[0] = 0;

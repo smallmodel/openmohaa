@@ -170,7 +170,7 @@ void stripExt(char *s) {
 
 	l = strlen(s);
 
-	p = s + l;
+	p = s + l - 1;
 	while(p != s) {
 		if(*p == '.') {
 			*p = 0;
@@ -217,6 +217,20 @@ const char *getGamePath(const char *s) {
 		}
 		p++;
 	}
+
+	// if it fail, lets assume that "models" directory residents in "main"
+	p = buf;
+
+	while(*p) {
+		if(!Q_stricmpn(p,"/models/",strlen("/models/"))) {
+			const char *r;
+			r = p;
+			r++;
+			return r;
+		}
+		p++;
+	}
+
 	return 0;
 }
 

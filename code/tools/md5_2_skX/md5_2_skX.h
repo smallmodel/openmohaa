@@ -23,6 +23,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef __MD5_2_SKX_H__
 #define __MD5_2_SKX_H__
 
+#define _CRT_SECURE_NO_WARNINGS
+
 // this tool is dependant on OpenMoHAA engine headers,
 // not on the ones used by q3map and rest of utilities
 #include "../../qcommon/q_shared.h"
@@ -155,6 +157,7 @@ void writeSKL(tModel_t *m, tAnim_t *a, const char *outFName);
 
 // writetiki.c
 void writeTIKI(tModel_t *m, const char *outFName);
+char *extractTIKIDataPath(const char *tikiName);
 
 // readtiki.c
 tModel_t *readSKD(const char *fname, float scale);
