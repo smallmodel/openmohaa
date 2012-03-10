@@ -1056,3 +1056,24 @@ void		trap_TIKI_SetChannels( struct tiki_s *tiki, int animIndex, float animTime,
 void		trap_TIKI_AppendFrameBoundsAndRadius( struct tiki_s *tiki, int animIndex, float animTime, float *outRadius, vec3_t outBounds[2] );
 void		trap_TIKI_Animate( struct tiki_s *tiki, bone_t *bones );
 int			trap_TIKI_GetBoneNameIndex( const char *boneName );
+// su44: these are for cg message writing
+void	trap_MSG_WriteBits (int value, int bits);
+void	trap_MSG_WriteChar (int c);
+void	trap_MSG_WriteByte (int c);
+void	trap_MSG_WriteSVC (int c);
+void	trap_MSG_WriteShort (int c);
+void	trap_MSG_WriteLong (int c);
+void	trap_MSG_WriteFloat (float f);
+void	trap_MSG_WriteString (const char *s);
+void	trap_MSG_WriteAngle8 (float f);
+void	trap_MSG_WriteAngle16 (float f);
+void	trap_MSG_WriteCoord (float f);
+void	trap_MSG_WriteDir (const vec_t *dir);
+void	trap_MSG_StartCGM (int type);
+void	trap_MSG_EndCGM();
+void	trap_MSG_SetClient (int iClient);
+void	trap_SetBroadcastAll ();
+void	trap_SetBroadcastVisible (const vec_t *vPos, const vec_t *vPosB);
+void	trap_SetBroadcastHearable (const vec_t *vPos, const vec_t *vPosB);
+
+

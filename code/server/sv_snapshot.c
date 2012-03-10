@@ -678,6 +678,9 @@ void SV_SendClientSnapshot( client_t *client ) {
 	// and the playerState_t
 	SV_WriteSnapshotToClient( client, &msg );
 
+	// su44: write any pending MoHAA cg messages
+	SV_WriteCGMToClient( client, &msg );
+
 	// Add any download data if the client is downloading
 	SV_WriteDownloadToClient( client, &msg );
 

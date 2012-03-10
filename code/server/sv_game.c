@@ -76,6 +76,417 @@ sharedEntity_t *SV_GEntityForSvEntity( svEntity_t *svEnt ) {
 	return SV_GentityNum( num );
 }
 
+// su44: MoHAA cg messages sending
+typedef struct {
+	byte *data;
+	int cursize;
+	byte *datatypes;
+	int dtindex;
+} cgm_t;
+cgm_t g_CGMessages[64];
+qboolean g_CGMRecieve[64];
+void SV_ClearCGMessage (int iClient)
+{
+	g_CGMessages[iClient].cursize = 0;
+	g_CGMessages[iClient].dtindex = 0;
+	if(g_CGMessages[iClient].data) {
+		Z_Free(g_CGMessages[iClient].data);
+		g_CGMessages[iClient].data = 0;
+	}
+	if(g_CGMessages[iClient].datatypes) {
+		Z_Free(g_CGMessages[iClient].datatypes);
+		g_CGMessages[iClient].datatypes = 0;
+	}
+	g_CGMRecieve[iClient] = 0;
+} 
+void SV_ClearAllCGMessages ()
+{
+	cgm_t *pCGM;
+	int i;
+	pCGM = g_CGMessages;
+	for(i = 0; i < MAX_CLIENTS; i++,pCGM++) {
+		pCGM->cursize = 0;
+		pCGM->dtindex = 0;
+		if(pCGM->data) {
+			Z_Free(pCGM->data);
+			pCGM->data = 0;
+		}
+		if(pCGM->datatypes) {
+			Z_Free(pCGM->datatypes);
+			pCGM->datatypes = 0;
+		}
+		g_CGMRecieve[i] = 0;
+	}
+}
+#define CGM_DATA_SIZE 4096
+#define CGM_DATATYPES_SIZE 8192
+void SV_InitCGMessage (int iClient)
+{
+	cgm_t *pCGM;
+
+	pCGM = &g_CGMessages[iClient];
+
+	if ( pCGM->data == 0 )
+		pCGM->data = Z_Malloc(CGM_DATA_SIZE);
+
+	if ( pCGM->datatypes == 0 )
+		pCGM->datatypes = Z_Malloc(CGM_DATA_SIZE);
+
+	pCGM->cursize = 0;
+	pCGM->dtindex = 0;
+
+	g_CGMRecieve[iClient] = 0;
+}
+
+void SV_InitAllCGMessages ()
+{
+	int i;
+
+	SV_ClearAllCGMessages();
+	for ( i = 0; i < /*svs.iNumClients*/MAX_CLIENTS; ++i )
+		SV_InitCGMessage(i);
+}
+
+static void MSG_WriteCGMBits (cgm_t *pCGM, int value, int bits)
+{
+	if(CGM_DATA_SIZE - pCGM->cursize <= 3) {
+		Com_DPrintf("CGM buffer for client %i overflowed\n", pCGM - g_CGMessages);
+		return;
+	}
+	if(CGM_DATATYPES_SIZE - pCGM->dtindex <= 0) {
+		Com_DPrintf("CGM buffer for client %i overflowed number of datum\n", pCGM - g_CGMessages);
+		return;
+	}
+
+    if (bits > 32)
+        Com_Error(1, "PF_MSG_WriteBits: bad bits %i", bits);
+
+	if(bits < 0)
+		bits = -bits;
+
+	if(bits <= 8) {
+		// append single byte
+		pCGM->data[pCGM->cursize] = value;
+		pCGM->cursize++;
+	} else if(bits <= 16) {
+		// append short (two bytes)
+		*((short*)(&pCGM->data[pCGM->cursize])) = LittleShort(value);
+		pCGM->cursize+=2;
+	} else if(bits <= 32) {
+		// append integer (4 bytes)
+		*((int*)(&pCGM->data[pCGM->cursize])) = LittleLong(value);	
+		pCGM->cursize+=4;
+	}
+	// save datatype
+	pCGM->datatypes[pCGM->dtindex] = bits;
+	pCGM->dtindex++;
+}
+void PF_MSG_WriteBits (int value, int bits)
+{
+	cgm_t *pCGM;
+	int i;
+	pCGM = g_CGMessages;
+	for(i = 0; i < MAX_CLIENTS/*svs.iMaxClients*/; i++,pCGM++) {
+		if(g_CGMRecieve[i] == 0) 
+			continue;
+		MSG_WriteCGMBits(pCGM,value,bits);
+	}
+}
+
+void PF_MSG_WriteChar (int c)
+{
+	cgm_t *pCGM;
+	int i;
+	pCGM = g_CGMessages;
+	for(i = 0; i < MAX_CLIENTS/*svs.iMaxClients*/; i++,pCGM++) {
+		if(g_CGMRecieve[i] == 0) 
+			continue;
+		// write 8 bit character
+		MSG_WriteCGMBits(pCGM,c,8);
+	}
+} 
+void PF_MSG_WriteByte (int c)
+{
+	cgm_t *pCGM;
+	int i;
+	pCGM = g_CGMessages;
+	for(i = 0; i < MAX_CLIENTS/*svs.iMaxClients*/; i++,pCGM++) {
+		if(g_CGMRecieve[i] == 0) 
+			continue;
+		// write 8 bit unsigned byte
+		MSG_WriteCGMBits(pCGM,c,8);
+	}
+}
+void PF_MSG_WriteSVC (int c)
+{
+	cgm_t *pCGM;
+	int i;
+	pCGM = g_CGMessages;
+	for(i = 0; i < MAX_CLIENTS/*svs.iMaxClients*/; i++,pCGM++) {
+		if(g_CGMRecieve[i] == 0) 
+			continue;
+		MSG_WriteCGMBits(pCGM,c,8);
+	}
+}
+void PF_MSG_WriteShort (int c)
+{
+	cgm_t *pCGM;
+	int i;
+	pCGM = g_CGMessages;
+	for(i = 0; i < MAX_CLIENTS/*svs.iMaxClients*/; i++,pCGM++) {
+		if(g_CGMRecieve[i] == 0) 
+			continue;
+		MSG_WriteCGMBits(pCGM,c,16);
+	}
+}
+void PF_MSG_WriteLong (int c)
+{
+ 	cgm_t *pCGM;
+	int i;
+	pCGM = g_CGMessages;
+	for(i = 0; i < MAX_CLIENTS/*svs.iMaxClients*/; i++,pCGM++) {
+		if(g_CGMRecieve[i] == 0) 
+			continue;
+		MSG_WriteCGMBits(pCGM,c,32);
+	}
+}
+void PF_MSG_WriteFloat (float f)
+{
+	union {
+		float fl;
+		int l;
+	} dat;
+ 	cgm_t *pCGM;
+	int i;
+	dat.fl = f;
+	pCGM = g_CGMessages;
+	for(i = 0; i < MAX_CLIENTS/*svs.iMaxClients*/; i++,pCGM++) {
+		if(g_CGMRecieve[i] == 0) 
+			continue;
+		MSG_WriteCGMBits(pCGM,dat.l,32);
+	}
+}
+void PF_MSG_WriteString (const char *s)
+{
+ 	cgm_t *pCGM;
+	int i,j;
+	int l;
+	l = strlen(s);
+	l+=1; // include trailing zero
+	pCGM = g_CGMessages;
+	for(i = 0; i < MAX_CLIENTS/*svs.iMaxClients*/; i++,pCGM++) {
+		if(g_CGMRecieve[i] == 0) 
+			continue;
+		for(j = 0; j < l; j++) {
+			MSG_WriteCGMBits(pCGM,s[j],8);
+		}
+	}
+}
+void PF_MSG_WriteAngle8 (float f)
+{
+ 	cgm_t *pCGM;
+	int i;
+	pCGM = g_CGMessages;
+	for(i = 0; i < MAX_CLIENTS/*svs.iMaxClients*/; i++,pCGM++) {
+		if(g_CGMRecieve[i] == 0) 
+			continue;
+		MSG_WriteCGMBits(pCGM,f * 256.0 / 360.0,8);
+	}
+}
+void PF_MSG_WriteAngle16 (float f)
+{
+ 	cgm_t *pCGM;
+	int i;
+	pCGM = g_CGMessages;
+	for(i = 0; i < MAX_CLIENTS/*svs.iMaxClients*/; i++,pCGM++) {
+		if(g_CGMRecieve[i] == 0) 
+			continue;
+		MSG_WriteCGMBits(pCGM,ANGLE2SHORT(f),16);
+	}
+}
+void PF_MSG_WriteCoord (float f)
+{
+ 	cgm_t *pCGM;
+	int i;
+
+	// 19th bit is a sign
+	int write = abs(f * 16.f);
+	if(f < 0) {
+		write |= 262144;
+	} else {
+		write &= ~262144;
+	}
+
+	pCGM = g_CGMessages;
+	for(i = 0; i < MAX_CLIENTS/*svs.iMaxClients*/; i++,pCGM++) {
+		if(g_CGMRecieve[i] == 0) 
+			continue;
+		MSG_WriteCGMBits(pCGM, write, 19);
+	}
+}
+void PF_MSG_WriteDir (vec_t *dir)
+{
+ 	cgm_t *pCGM;
+	int i;
+	byte b;
+	b = DirToByte(dir);
+	pCGM = g_CGMessages;
+	for(i = 0; i < MAX_CLIENTS/*svs.iMaxClients*/; i++,pCGM++) {
+		if(g_CGMRecieve[i] == 0) 
+			continue;
+		MSG_WriteCGMBits(pCGM,b,8);
+	}
+}
+void PF_MSG_StartCGM (int type)
+{
+    cgm_t *pCGM;
+    int i;
+
+	pCGM = g_CGMessages;
+	for(i = 0; i < MAX_CLIENTS/*svs.iMaxClients*/; i++,pCGM++) {
+		if(g_CGMRecieve[i] == 0) 
+			continue;
+		if(pCGM->cursize <= 0) {
+			// always put "svc_cgameMessage" byte at the beginning of CGM block
+			MSG_WriteCGMBits(pCGM,svc_cgameMessage,8);
+		} else {
+			// single bit means that there is one more message in block
+			MSG_WriteCGMBits(pCGM, 1, 1);
+		}
+		// write CG message type
+		MSG_WriteCGMBits(pCGM, type, 6);
+	}
+}
+void PF_MSG_EndCGM ()
+{
+	memset(g_CGMRecieve,0,sizeof(g_CGMRecieve));
+}
+void PF_MSG_SetClient (int iClient)
+{
+	memset(g_CGMRecieve,0,sizeof(g_CGMRecieve));
+	if(g_CGMessages[iClient].data && (g_CGMessages[iClient].cursize <= 3967))
+	{
+		g_CGMRecieve[iClient] = 1;
+	}
+}
+
+void MSG_SetBroadcastAll ()
+{
+	cgm_t *pCGM;
+	int i;
+
+	pCGM = g_CGMessages;
+	for(i = 0; i < MAX_CLIENTS/*svs.iMaxClients*/; i++,pCGM++) {
+		g_CGMRecieve[i] = qtrue;
+	}
+}
+void MSG_SetBroadcastVisible (vec_t *vPos, vec_t *vPosB)
+{
+    byte *clientpvs;
+    int posBcluster;
+    int poscluster;
+    int posBarea;
+    int posarea;
+    int posBleaf;
+    int posleaf;
+    int clientcluster;
+    int clientarea;
+    int leafnum;
+    client_t *pClient;
+    int i;
+	cgm_t *pCGM;
+
+#if 0
+	MSG_SetBroadcastAll();
+#else
+	// dont check the same pos twice
+	if(vPosB && VectorCompare(vPos,vPosB)) {
+		vPosB = 0;
+	}
+
+	pCGM = g_CGMessages;
+	pClient = svs.clients;
+	for(i = 0; i < MAX_CLIENTS/*svs.iMaxClients*/; i++,pCGM++,pClient++) {
+		if(pClient->state != CS_ACTIVE) {
+			g_CGMRecieve[i] = qfalse;
+			continue;
+		}
+		leafnum = CM_PointLeafnum(pClient->gentity->s.origin);
+		clientcluster = CM_LeafCluster(leafnum);
+		clientarea = CM_LeafArea(leafnum);
+		clientpvs = CM_ClusterPVS(clientcluster);
+
+		posleaf = CM_PointLeafnum(vPos);
+		poscluster = CM_LeafCluster(posleaf);
+		posarea = CM_LeafArea(posleaf);
+
+		if ( clientpvs[poscluster >> 3] & (1 << (poscluster&7) ) ) {
+			// visible.
+			g_CGMRecieve[i] = qtrue;
+			continue;
+		}
+	
+		if(vPosB) {
+			posBleaf = CM_PointLeafnum(vPosB);
+			posBcluster = CM_LeafCluster(posBleaf);
+			posBarea = CM_LeafArea(posBleaf);
+
+			if ( clientpvs[posBcluster >> 3] & (1 << (posBcluster&7) ) ) {
+				// visible.
+				g_CGMRecieve[i] = qtrue;
+				continue;
+			}
+		}
+		// not visible
+		g_CGMRecieve[i] = qfalse;
+	}
+#endif
+}
+void MSG_SetBroadcastHearable (vec_t *vPos, vec_t *vPosB)
+{
+	// su44: in MoHAA's, MSG_SetBroadcastAll is used here,
+	// but I'd rather use MSG_SetBroadcastVisible with
+	// PHS instead of PVS data
+	MSG_SetBroadcastAll();
+}
+void SV_WriteCGMToClient (client_t *client, msg_t *msg)
+{
+	byte *pBuffer;
+	cgm_t *pCGMMsg;
+	int i;
+	int clientNum;
+
+	clientNum = client - svs.clients;;
+	pCGMMsg = &g_CGMessages[clientNum];
+	if ( pCGMMsg->data )
+	{
+		if ( pCGMMsg->cursize > 0 )
+		{
+			int curDTIndex;
+			byte *data;
+			// write end of message - single false bit
+			MSG_WriteCGMBits(pCGMMsg, 0, 1);
+			data = pCGMMsg->data;
+			curDTIndex = 0;
+			for(curDTIndex = 0; curDTIndex < pCGMMsg->dtindex; curDTIndex++) {
+				int bits = pCGMMsg->datatypes[curDTIndex];
+				if(bits <= 8) {
+					MSG_WriteBits(msg, *data, bits);
+					data++;
+				} else if(bits <= 16) {
+					MSG_WriteBits(msg, *(short*)data, bits);
+					data+=2;
+				} else if(bits <= 32) {
+					MSG_WriteBits(msg, *(int*)data, bits);
+					data+=4;
+				}
+			
+			}
+			pCGMMsg->cursize = 0;
+			pCGMMsg->dtindex = 0;
+		}
+	}
+}
 /*
 ===============
 SV_GameSendServerCommand
@@ -827,6 +1238,60 @@ intptr_t SV_GameSystemCalls( intptr_t *args ) {
 	case G_TIKI_GETBONENAMEINDEX:
 		return TIKI_RegisterBoneName(args[1]);
 
+	case G_MSG_WRITEBITS:
+		PF_MSG_WriteBits(args[1],args[2]);
+		return 0;
+	case G_MSG_WRITECHAR:
+		PF_MSG_WriteChar(args[1]);
+		return 0;
+	case G_MSG_WRITEBYTE:
+		PF_MSG_WriteByte(args[1]);
+		return 0;
+	case G_MSG_WRITESVC:
+		PF_MSG_WriteSVC(args[1]);
+		return 0;
+	case G_MSG_WRITESHORT:
+		PF_MSG_WriteShort(args[1]);
+		return 0;
+	case G_MSG_WRITELONG:
+		PF_MSG_WriteLong(args[1]);
+		return 0;
+	case G_MSG_WRITEFLOAT:
+		PF_MSG_WriteFloat(VMF(1));
+		return 0;
+	case G_MSG_WRITESTR:
+		PF_MSG_WriteString(args[1]);
+		return 0;
+	case G_MSG_WRITEANGLE8:
+		PF_MSG_WriteAngle8(VMF(1));
+		return 0;
+	case G_MSG_WRITEANGLE16:
+		PF_MSG_WriteAngle16(VMF(1));
+		return 0;
+	case G_MSG_WRITECOORD:
+		PF_MSG_WriteCoord(VMF(1));
+		return 0;
+	case G_MSG_WRITEDIR:
+		PF_MSG_WriteDir(args[1]);
+		return 0;
+	case G_MSG_STARTCGM:
+		PF_MSG_StartCGM(args[1]);
+		return 0;
+	case G_MSG_ENDCGM:
+		PF_MSG_EndCGM(args[1]);
+		return 0;
+	case G_MSG_SETCLIENT:
+		PF_MSG_SetClient(args[1]);
+		return 0;
+	case G_MSG_BROADCASTALL:
+		MSG_SetBroadcastAll();
+		return 0;
+	case G_MSG_BROADCASTVISIBLE:
+		MSG_SetBroadcastVisible(args[1],args[2]);
+		return 0;
+	case G_MSG_BROADCASTHEARABLE:
+		MSG_SetBroadcastHearable(args[1],args[2]);
+		return 0;
 	case TRAP_MEMSET:
 		Com_Memset( VMA(1), args[2], args[3] );
 		return 0;

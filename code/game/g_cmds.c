@@ -1219,14 +1219,14 @@ void Cmd_Stats_f( gentity_t *ent ) {
 
 /*
 ============
-Cmd_Spawn
+Cmd_Spawn_f
 ============
 */
 // su44: spawn any TIKI model in front of local player view.
 // You don't have to add "models/" dir to the front of path.
 // Example usage: "spawn weapons/bar.tik",
 // "spawn human/coxswain.tik", etc.
-void Cmd_Spawn( gentity_t *clent ) {
+void Cmd_Spawn_f( gentity_t *clent ) {
 	char arg[MAX_TOKEN_CHARS];
 	const char *tikiFName;
 	vec3_t o, f;
@@ -1259,7 +1259,75 @@ void Cmd_Spawn( gentity_t *clent ) {
 	G_SetOrigin( ent, ent->s.origin );
 	trap_LinkEntity(ent);
 }
+/*
+=================
+Cmd_CastMoHAACGMessage_f
+=================
+*/
+// su44: spawns MoHAA's cg message effect in front of caster player
+void Cmd_CastMoHAACGMessage_f( gentity_t *clent, const char *fullCommand ) {
+	int msgType;
+	int testType;
+	vec3_t upVector = { 0, 0, 1 };
 
+	sscanf(fullCommand,"tcgm%i_%i",&msgType,&testType);
+
+	if(msgType == 23) {
+		// in MoHAA that's called from CrateObject__CrateKilled
+		trap_SetBroadcastVisible(clent->client->ps.origin,0);
+		trap_MSG_StartCGM(23);
+		trap_MSG_WriteCoord(clent->client->ps.origin[0]);
+		trap_MSG_WriteCoord(clent->client->ps.origin[1]);
+		trap_MSG_WriteCoord(clent->client->ps.origin[2]);
+		trap_MSG_WriteByte(2); // debris model type
+		trap_MSG_EndCGM();
+	} else if(msgType == 12) {
+		// case 12: // m1 frag/stiel grenade explosion
+		trap_SetBroadcastAll();
+		trap_MSG_StartCGM(12);
+		trap_MSG_WriteCoord(clent->client->ps.origin[0]);
+		trap_MSG_WriteCoord(clent->client->ps.origin[1]);
+		trap_MSG_WriteCoord(clent->client->ps.origin[2]);
+		trap_MSG_EndCGM();
+	} else if(msgType == 19) {
+		// oil barrel effect
+		trap_SetBroadcastAll();
+		trap_MSG_StartCGM(msgType);
+		trap_MSG_WriteCoord(clent->client->ps.origin[0]);
+		trap_MSG_WriteCoord(clent->client->ps.origin[1]);
+		trap_MSG_WriteCoord(clent->client->ps.origin[2]);
+		trap_MSG_WriteDir(upVector);
+		trap_MSG_EndCGM();
+	} else if(msgType == 20) {
+		// oil barrel effect
+		trap_SetBroadcastAll();
+		trap_MSG_StartCGM(msgType);
+		trap_MSG_WriteCoord(clent->client->ps.origin[0]);
+		trap_MSG_WriteCoord(clent->client->ps.origin[1]);
+		trap_MSG_WriteCoord(clent->client->ps.origin[2]);
+		trap_MSG_WriteDir(upVector);
+		trap_MSG_EndCGM();
+	} else if(msgType == 21) {
+		// oil barrel effect
+		trap_SetBroadcastAll();
+		trap_MSG_StartCGM(msgType);
+		trap_MSG_WriteCoord(clent->client->ps.origin[0]);
+		trap_MSG_WriteCoord(clent->client->ps.origin[1]);
+		trap_MSG_WriteCoord(clent->client->ps.origin[2]);
+		trap_MSG_WriteDir(upVector);
+		trap_MSG_EndCGM();
+	} else if(msgType == 22) {
+		// oil barrel effect
+		trap_SetBroadcastAll();
+		trap_MSG_StartCGM(msgType);
+		trap_MSG_WriteCoord(clent->client->ps.origin[0]);
+		trap_MSG_WriteCoord(clent->client->ps.origin[1]);
+		trap_MSG_WriteCoord(clent->client->ps.origin[2]);
+		trap_MSG_WriteDir(upVector);
+		trap_MSG_EndCGM();
+	}
+
+}
 /*
 =================
 ClientCommand
@@ -1367,7 +1435,9 @@ void ClientCommand( int clientNum ) {
 	else if (Q_stricmp (cmd, "stats") == 0)
 		Cmd_Stats_f( ent );
 	else if (Q_stricmp (cmd, "spawn") == 0)
-		Cmd_Spawn( ent ); // su44
+		Cmd_Spawn_f( ent ); // su44
+	else if (Q_stricmpn(cmd, "tcgm", strlen("tcgm")) == 0)
+		Cmd_CastMoHAACGMessage_f( ent, cmd ); // su44
 	else
 		trap_SendServerCommand( clientNum, va("print \"unknown cmd %s\n\"", cmd ) );
 }

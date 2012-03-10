@@ -280,6 +280,8 @@ void SV_Startup( void ) {
 	}
 	svs.initialized = qtrue;
 
+	SV_InitAllCGMessages();
+
 	// Don't respect sv_killserver unless a server is actually running
 	if ( sv_killserver->integer ) {
 		Cvar_Set( "sv_killserver", "0" );

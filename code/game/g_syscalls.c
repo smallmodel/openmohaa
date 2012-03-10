@@ -810,3 +810,61 @@ void trap_TIKI_Animate( tiki_t *tiki, bone_t *bones ) {
 int	trap_TIKI_GetBoneNameIndex( const char *boneName ) {
 	return syscall(G_TIKI_GETBONENAMEINDEX, boneName);
 }
+
+// su44: these are for cg message writing
+void trap_MSG_WriteBits (int value, int bits) {
+	syscall(G_MSG_WRITEBITS, value, bits);
+}
+void trap_MSG_WriteChar (int c) {
+	syscall(G_MSG_WRITECHAR, c);
+}
+void trap_MSG_WriteByte (int c) {
+	syscall(G_MSG_WRITEBYTE, c);
+}
+void trap_MSG_WriteSVC (int c) {
+	syscall(G_MSG_WRITESVC, c);
+}
+void trap_MSG_WriteShort (int c) {
+	syscall(G_MSG_WRITESHORT, c);
+}
+void trap_MSG_WriteLong (int c) {
+	syscall(G_MSG_WRITELONG, c);
+}
+void trap_MSG_WriteFloat (float f) {
+	syscall(G_MSG_WRITEFLOAT, PASSFLOAT(f));
+}
+void trap_MSG_WriteString (const char *s) {
+	syscall(G_MSG_WRITESTR, s);
+}
+void trap_MSG_WriteAngle8 (float f) {
+	syscall(G_MSG_WRITEANGLE8, PASSFLOAT(f));
+}
+void trap_MSG_WriteAngle16 (float f) {
+	syscall(G_MSG_WRITEANGLE16, PASSFLOAT(f));
+}
+void trap_MSG_WriteCoord (float f) {
+	syscall(G_MSG_WRITECOORD, PASSFLOAT(f));
+}
+void trap_MSG_WriteDir (const vec_t *dir) {
+	syscall(G_MSG_WRITEDIR, dir);
+}
+void trap_MSG_StartCGM (int type) {
+	syscall(G_MSG_STARTCGM, type);
+}
+void trap_MSG_EndCGM() {
+	syscall(G_MSG_ENDCGM);
+}
+void trap_MSG_SetClient (int iClient) {
+	syscall(G_MSG_SETCLIENT,iClient);
+}
+void trap_SetBroadcastAll () {
+	syscall(G_MSG_BROADCASTALL);
+}
+void trap_SetBroadcastVisible (const vec_t *vPos, const vec_t *vPosB) {
+	syscall(G_MSG_BROADCASTVISIBLE,vPos,vPosB);
+}
+void trap_SetBroadcastHearable (const vec_t *vPos, const vec_t *vPosB) {
+	syscall(G_MSG_BROADCASTHEARABLE,vPos,vPosB);
+}
+
+
