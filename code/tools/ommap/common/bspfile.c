@@ -80,6 +80,28 @@ dsurface_t	drawSurfaces[MAX_MAP_DRAW_SURFS];
 int			numFogs;
 dfog_t		dfogs[MAX_MAP_FOGS];
 
+// su44: added for MoHAA
+int			numLeafStaticModels;
+short			dleafStaticModels[MAX_LEAF_STATICMODELS];
+
+int			numStaticModels;
+dstaticModel_t staticModels[MAX_STATIC_MODELS];
+
+int			numStaticModelVertColors;
+byte		staticModelVertColors[MAX_MAP_STATICMODELVERTCOLORS];
+
+int			numSideEquations;
+dsideEquation_t sideEquations[MAX_MAP_SIDEEQATIONS];
+
+int			numSphereLights;
+dspherel_t	sphereLights[MAX_MAP_SPHERELIGHTS];
+
+int			numTerraPatches;
+dterPatch_t	terraPatches[MAX_TERRAIN_PATCHES];
+
+int			numLightDefs;
+dlightdef_t	lightDefs[MAX_LIGHTDEFS];
+
 //=============================================================================
 
 /*
@@ -167,6 +189,8 @@ void SwapBSPFile( void ) {
 		dfogs[i].brushNum = LittleLong( dfogs[i].brushNum );
 		dfogs[i].visibleSide = LittleLong( dfogs[i].visibleSide );
 	}
+
+	// TODO: swap MoHAA structs
 }
 
 
@@ -232,6 +256,15 @@ void	LoadBSPFile( const char *filename ) {
 
 //	numGridPoints = CopyLump( header, LUMP_LIGHTGRID, gridData, 8 );
 
+	// su44: MoHAA lumps
+	numStaticModels = CopyLump( header, LUMP_STATICMODELDEF, staticModels, sizeof(staticModels[0]));
+	numLeafStaticModels = CopyLump( header, LUMP_STATICMODELINDEXES, dleafStaticModels, sizeof(dleafStaticModels[0]));
+	numStaticModelVertColors = CopyLump( header, LUMP_STATICMODELDATA, staticModelVertColors, 3);
+	numTerraPatches = CopyLump( header, LUMP_TERRAIN, terraPatches, sizeof(terraPatches[0]));
+	numSideEquations = CopyLump( header, LUMP_SIDEEQUATIONS, sideEquations, sizeof(sideEquations[0]));
+	numSphereLights = CopyLump( header, LUMP_SPHERELIGHTS, sphereLights, sizeof(sphereLights[0]));
+	numLightDefs = CopyLump( header, LUMP_LIGHTDEFS, lightDefs, sizeof(lightDefs[0]));
+		
 
 	free( header );		// everything has been copied out
 		
@@ -297,6 +330,15 @@ void	WriteBSPFile( const char *filename ) {
 //	AddLump( bspfile, header, LUMP_FOGS, dfogs, numFogs * sizeof(dfog_t) );
 	AddLump( bspfile, header, LUMP_DRAWINDEXES, drawIndexes, numDrawIndexes * sizeof(drawIndexes[0]) );
 	
+	// su44: MoHAA lumps
+	AddLump( bspfile, header, LUMP_STATICMODELDEF, staticModels, numStaticModels * sizeof(staticModels[0]) );
+	AddLump( bspfile, header, LUMP_STATICMODELINDEXES, staticModels, numLeafStaticModels * sizeof(dleafStaticModels[0]) );
+	AddLump( bspfile, header, LUMP_STATICMODELDATA, staticModelVertColors, numStaticModelVertColors * 3 );
+	AddLump( bspfile, header, LUMP_TERRAIN, terraPatches, numTerraPatches * sizeof(terraPatches[0]) );
+	AddLump( bspfile, header, LUMP_SIDEEQUATIONS, sideEquations, numSideEquations * sizeof(sideEquations[0]) );
+	AddLump( bspfile, header, LUMP_SPHERELIGHTS, sphereLights, numSphereLights * sizeof(sphereLights[0]) );
+	AddLump( bspfile, header, LUMP_LIGHTDEFS, lightDefs, numLightDefs * sizeof(lightDefs[0]) );	
+
 	fseek (bspfile, 0, SEEK_SET);
 	SafeWrite (bspfile, header, sizeof(dheader_t));
 	fclose (bspfile);	
@@ -316,41 +358,62 @@ void PrintBSPFileSizes( void ) {
 		ParseEntities();
 	}
 
-	printf ("%6i models       %7i\n"
+	printf ("%6i models              %7i\n"
 		,nummodels, (int)(nummodels*sizeof(dmodel_t)));
-	printf ("%6i shaders      %7i\n"
+	printf ("%6i shaders             %7i\n"
 		,numShaders, (int)(numShaders*sizeof(dshader_t)));
-	printf ("%6i brushes      %7i\n"
+	printf ("%6i brushes             %7i\n"
 		,numbrushes, (int)(numbrushes*sizeof(dbrush_t)));
-	printf ("%6i brushsides   %7i\n"
+	printf ("%6i brushsides          %7i\n"
 		,numbrushsides, (int)(numbrushsides*sizeof(dbrushside_t)));
-	printf ("%6i fogs         %7i\n"
+	printf ("%6i fogs                %7i\n"
 		,numFogs, (int)(numFogs*sizeof(dfog_t)));
-	printf ("%6i planes       %7i\n"
+	printf ("%6i planes              %7i\n"
 		,numplanes, (int)(numplanes*sizeof(dplane_t)));
-	printf ("%6i entdata      %7i\n", num_entities, entdatasize);
+	printf ("%6i entdata             %7i\n", num_entities, entdatasize);
 
 	printf ("\n");
 
-	printf ("%6i nodes        %7i\n"
+	printf ("%6i nodes               %7i\n"
 		,numnodes, (int)(numnodes*sizeof(dnode_t)));
-	printf ("%6i leafs        %7i\n"
+	printf ("%6i leafs               %7i\n"
 		,numleafs, (int)(numleafs*sizeof(dleaf_t)));
-	printf ("%6i leafsurfaces %7i\n"
+	printf ("%6i leafsurfaces        %7i\n"
 		,numleafsurfaces, (int)(numleafsurfaces*sizeof(dleafsurfaces[0])));
-	printf ("%6i leafbrushes  %7i\n"
+	printf ("%6i leafbrushes         %7i\n"
 		,numleafbrushes, (int)(numleafbrushes*sizeof(dleafbrushes[0])));
-	printf ("%6i drawverts    %7i\n"
+	printf ("%6i drawverts           %7i\n"
 		,numDrawVerts, (int)(numDrawVerts*sizeof(drawVerts[0])));
-	printf ("%6i drawindexes  %7i\n"
+	printf ("%6i drawindexes         %7i\n"
 		,numDrawIndexes, (int)(numDrawIndexes*sizeof(drawIndexes[0])));
-	printf ("%6i drawsurfaces %7i\n"
+	printf ("%6i drawsurfaces        %7i\n"
 		,numDrawSurfaces, (int)(numDrawSurfaces*sizeof(drawSurfaces[0])));
 
-	printf ("%6i lightmaps    %7i\n"
+	printf ("%6i lightmaps           %7i\n"
 		,numLightBytes / (LIGHTMAP_WIDTH*LIGHTMAP_HEIGHT*3), numLightBytes );
-	printf ("       visibility   %7i\n"
+	printf ("       visibility          %7i\n"
 		, numVisBytes );
+	
+	printf("\n");
+
+	printf ("%6i staticModels        %7i\n"
+		,numStaticModels, (int)(numStaticModels*sizeof(staticModels[0])));
+	printf ("%6i leafStaticModels    %7i\n"
+		,numLeafStaticModels, (int)(numLeafStaticModels*sizeof(dleafStaticModels[0])));
+	printf ("%6i staticModelVertCols %7i\n"
+		,numStaticModelVertColors, (int)(numStaticModelVertColors*sizeof(staticModelVertColors[0])));
+
+	printf ("%6i terraPatches        %7i\n"
+		,numTerraPatches, (int)(numTerraPatches*sizeof(terraPatches[0])));
+
+	printf ("%6i sphereLights        %7i\n"
+		,numSphereLights, (int)(numSphereLights*sizeof(sphereLights[0])));
+
+	printf ("%6i sideEquations       %7i\n"
+		,numSideEquations, (int)(numSideEquations*sizeof(sideEquations[0])));
+
+	printf ("%6i lightDefs           %7i\n"
+		,numLightDefs, (int)(numLightDefs*sizeof(lightDefs[0])));
 }
 
 

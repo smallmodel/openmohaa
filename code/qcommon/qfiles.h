@@ -675,7 +675,7 @@ typedef struct {
 #define LUMP_LEAFSURFACES		7
 #define LUMP_LEAFS				8
 #define LUMP_NODES				9
-#define LIMP_DUMMY				10
+#define LUMP_SIDEEQUATIONS		10
 #define LUMP_BRUSHSIDES			11
 #define LUMP_BRUSHES			12
 /*
@@ -690,7 +690,7 @@ typedef struct {
 #define LUMP_LIGHTGRIDDATA		18
 #define LUMP_SPHERELIGHTS		19
 #define LUMP_SPHERELIGHTVIS		20
-#define LUMP_DUMMY5				21
+#define LUMP_LIGHTDEFS			21
 #define LUMP_TERRAIN			22
 #define LUMP_TERRAININDEXES		23
 #define LUMP_STATICMODELDATA	24
@@ -718,8 +718,8 @@ typedef struct {
 	char		shader[MAX_QPATH];
 	int			surfaceFlags;
 	int			contentFlags;
-
-	int			dummy[17];
+	int			subdivisions;
+	char		fenceMaskImage[MAX_QPATH];
 } dshader_t;
 
 // planes x^1 is allways the opposite of plane x
@@ -756,12 +756,20 @@ typedef struct {
 	int			numStaticModels;
 } dleaf_t;
 
+// su44: It seems that sideEquations 
+// are somehow related to fencemasks...
+// MoHAA loads them only in CM (CM_LoadMap).
+typedef struct {
+  float fSeq[4];
+  float fTeq[4];
+} dsideEquation_t;
+
 typedef struct {
 	int			planeNum;			// positive plane side faces out of the leaf
 	int			shaderNum;
 
 	//added for mohaa
-	int			dummy;
+	int			equationNum; // su44: that's a dsideEquation_t index
 } dbrushside_t;
 
 typedef struct {
@@ -855,5 +863,25 @@ typedef struct {
 	float spot_dir[3];
 	float spot_radiusbydistance;
 } dspherel_t;
+
+typedef struct {
+	float origin[3];
+	float axis[3];
+	int bounds[3];
+} dlightGrid_t;
+
+typedef struct {
+	int lightIntensity;
+	int lightAngle;
+	int lightmapResolution;
+	qboolean twoSided;
+	qboolean lightLinear;
+	vec3_t lightColor;
+	float lightFalloff;
+	float backsplashFraction;
+	float backsplashDistance;
+	float lightSubdivide;
+	qboolean autosprite;
+} dlightdef_t;
 
 #endif

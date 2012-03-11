@@ -24,6 +24,20 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../../../qcommon/qfiles.h"
 #include "../../../qcommon/surfaceflags.h"
 
+// su44: q3map-only limits added for MoHAA bsp structures
+// These values are exacly the same as in MoHAA's q3map
+#define MAX_MAP_SIDEEQATIONS 131072
+#define MAX_TERRAIN_PATCHES 2048
+#define MAX_LEAF_STATICMODELS 0x8000
+#define MAX_STATIC_MODELS 4096
+// these are from MoHlight
+#define MAX_MAP_LIGHTGRIDDATA 4194304
+// added by me...
+#define MAX_MAP_SPHERELIGHTS 8192
+#define MAX_MAP_STATICMODELVERTCOLORS 0x80000
+// Note: there are 6163 lightdefs on mohdm1
+#define MAX_LIGHTDEFS 16384
+
 extern	int			nummodels;
 extern	dmodel_t	dmodels[MAX_MAP_MODELS];
 
@@ -74,6 +88,27 @@ extern	dsurface_t	drawSurfaces[MAX_MAP_DRAW_SURFS];
 
 extern	int			numFogs;
 extern	dfog_t		dfogs[MAX_MAP_FOGS];
+
+extern	int			numLeafStaticModels;
+extern	short			dleafStaticModels[MAX_LEAF_STATICMODELS];
+
+extern	int			numStaticModels;
+extern	dstaticModel_t staticModels[MAX_STATIC_MODELS];
+
+extern	int			numStaticModelVertColors;
+extern	byte		staticModelVertColors[MAX_MAP_STATICMODELVERTCOLORS];
+
+extern	int			numSideEquations;
+extern	dsideEquation_t sideEquations[MAX_MAP_SIDEEQATIONS];
+
+extern	int			numSphereLights;
+extern	dspherel_t	sphereLights[MAX_MAP_SPHERELIGHTS];
+
+extern	int			numTerraPatches;
+extern	dterPatch_t	terraPatches[MAX_TERRAIN_PATCHES];
+
+extern	int			numLightDefs;
+extern	dlightdef_t	lightDefs[MAX_LIGHTDEFS];
 
 void	LoadBSPFile( const char *filename );
 void	WriteBSPFile( const char *filename );
