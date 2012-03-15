@@ -296,6 +296,7 @@ void UI_DrawHandlePic( float x, float y, float w, float h, qhandle_t hShader );
 void UI_RotatedPic( float x, float y, float w, float h, qhandle_t hShader, float angle );
 void UI_CmdExecute( const char *text );
 void UI_DrawBox( int x, int y, int w, int h, qboolean ctrCoord, int refx, int refy );
+void UI_AdjustFrom640( float *x, float *y, float *w, float *h );
 
 // ui_urc.c
 void	UI_LoadINC( const char *name, uiMenu_t *menu, qboolean post );

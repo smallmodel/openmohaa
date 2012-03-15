@@ -83,8 +83,8 @@ typedef struct {
 	byte *datatypes;
 	int dtindex;
 } cgm_t;
-cgm_t g_CGMessages[64];
-qboolean g_CGMRecieve[64];
+cgm_t g_CGMessages[MAX_CLIENTS];
+qboolean g_CGMRecieve[MAX_CLIENTS];
 void SV_ClearCGMessage (int iClient)
 {
 	g_CGMessages[iClient].cursize = 0;
@@ -451,9 +451,9 @@ void MSG_SetBroadcastHearable (vec_t *vPos, vec_t *vPosB)
 }
 void SV_WriteCGMToClient (client_t *client, msg_t *msg)
 {
-	byte *pBuffer;
+//	byte *pBuffer;
 	cgm_t *pCGMMsg;
-	int i;
+//	int i;
 	int clientNum;
 
 	clientNum = client - svs.clients;;

@@ -499,12 +499,6 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 
 	G_Printf ("-----------------------------------\n");
 
-	if( g_gametype.integer == GT_SINGLE_PLAYER || trap_Cvar_VariableIntegerValue( "com_buildScript" ) ) {
-		G_ModelIndex( SP_PODIUM_MODEL );
-		G_SoundIndex( "sound/player/gurp1.wav" );
-		G_SoundIndex( "sound/player/gurp2.wav" );
-	}
-
 	if ( trap_Cvar_VariableIntegerValue( "bot_enable" ) ) {
 		BotAISetup( restart );
 		BotAILoadMap( restart );
@@ -514,20 +508,20 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	G_RemapTeamShaders();
 
 	//G_SetFogInfo(0,4096,vec3_origin);
-
-trap_SetConfigstring(5,"-1"); // warmup???
-trap_SetConfigstring(8,"music/mohdm2.mus");
-
-
-	trap_SetConfigstring(CS_FOGINFO,va("%i %f %f %f %f",1,4500,0.3330,0.3330,0.3290));
-	trap_SetConfigstring(CS_SKYINFO,va("%f %i",1,1.f));
-
-
-
-	trap_SetConfigstring(1876,"2");
-	trap_SetConfigstring(1878,"su44 sepctarosplayers test");
-	trap_SetConfigstring(1879,"su44 aliesplayers test");
-	trap_SetConfigstring(1880,"su44 axisplayers test");
+//
+//trap_SetConfigstring(5,"-1"); // warmup???
+//trap_SetConfigstring(8,"music/mohdm2.mus");
+//
+//
+//	trap_SetConfigstring(CS_FOGINFO,va("%i %f %f %f %f",1,4500,0.3330,0.3330,0.3290));
+//	trap_SetConfigstring(CS_SKYINFO,va("%f %i",1,1.f));
+//
+//
+//
+//	trap_SetConfigstring(1876,"2");
+//	trap_SetConfigstring(1878,"su44 sepctarosplayers test");
+//	trap_SetConfigstring(1879,"su44 aliesplayers test");
+//	trap_SetConfigstring(1880,"su44 axisplayers test");
 //1876: 3
 //1878: 1 spectator 1 player(s)
 //1879: 3 allies 0 player(s)

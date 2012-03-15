@@ -191,6 +191,7 @@ int	TIKI_RegisterBoneName(const char *boneName);
 qhandle_t RE_RegisterShader( const char *name );
 void TIKI_PrintBoneInfo(tiki_t *tiki, int boneNum);
 int TIKI_GetBoneIndex(tiki_t *tiki, const char *boneName); // returns -1 if bone is not found
+bone_t *TIKI_GetBones(int numBones);
 
 static ID_INLINE int TIKI_GetSurfaceIndex(tiki_t *tiki, const char *surfName) {
 	int i;

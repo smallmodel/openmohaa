@@ -51,7 +51,7 @@ static int TIKI_FrameNumForTime(tiki_t *tiki, int animIndex, float animTime) {
 	int i;
 	tikiAnim_t *anim;
 	if(tiki->numAnims <= animIndex) {
-		Com_Printf("TIKI_SetChannels: animIndex %i out of range %i\n",animIndex,tiki->numAnims);
+		Com_Printf("TIKI_FrameNumForTime: animIndex %i out of range %i\n",animIndex,tiki->numAnims);
 		return;
 	}
 	anim = tiki->anims[animIndex];
@@ -126,7 +126,7 @@ static void CG_TransitionEntity( centity_t *cent ) {
 					CG_ExecuteFrameCommands(cent,a0,TIKI_FRAME_EXIT);
 				}
 			} else if(fi1->weight && tiki1 && fi1->index < tiki1->numAnims) {
-				// anim is staring
+				// anim is starting
 				a1 = tiki1->anims[fi1->index];
 				f1 = TIKI_FrameNumForTime(tiki1,fi1->index,fi1->time);
 				CG_ExecuteFrameCommands(cent,a1,TIKI_FRAME_ENTRY);

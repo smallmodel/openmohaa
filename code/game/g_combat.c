@@ -406,17 +406,18 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 
 	
 	// never gib in a nodrop
-	if ( (self->health <= GIB_HEALTH && !(contents & CONTENTS_NODROP) && g_blood.integer) || meansOfDeath == MOD_SUICIDE) {
-		// gib death
-		GibEntity( self, killer );
-	} else {
+	//if ( (self->health <= GIB_HEALTH && !(contents & CONTENTS_NODROP) && g_blood.integer) || meansOfDeath == MOD_SUICIDE) {
+	//	// gib death
+	//	GibEntity( self, killer );
+	//} else 
+	{
 
 
 		// for the no-blood option, we need to prevent the health
 		// from going to gib level
-		if ( self->health <= GIB_HEALTH ) {
-			self->health = GIB_HEALTH+1;
-		}
+		//if ( self->health <= GIB_HEALTH ) {
+		//	self->health = GIB_HEALTH+1;
+		//}
 
 
 		// the body can still be gibbed

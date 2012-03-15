@@ -136,9 +136,9 @@ static void CG_BulletTracerEffect(float *i_vStart, float *i_vEnd)
 	fTracerColor[1] = 255;
 	fTracerColor[2] = 255;
 	fTracerColor[3] = 255;
-	return CG_CreateBeam(
+	CG_CreateBeam(
 			vNewStart, // start
-			&vec3_origin, // dir
+			vec3_origin, // dir
 			0, // owner
 			1, // model
 			1.0, // alpha

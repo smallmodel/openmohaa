@@ -114,9 +114,9 @@ void P_WorldEffects( gentity_t *ent ) {
 	//
 	if ( waterlevel == 3 ) {
 		// envirosuit give air
-		if ( envirosuit ) {
-			ent->client->airOutTime = level.time + 10000;
-		}
+		//if ( envirosuit ) {
+		//	ent->client->airOutTime = level.time + 10000;
+		//}
 
 		// if out of air, start drowning
 		if ( ent->client->airOutTime < level.time) {

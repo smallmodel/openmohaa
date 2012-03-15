@@ -179,9 +179,6 @@ vmCvar_t	cg_smallFont;
 vmCvar_t	cg_bigFont;
 vmCvar_t	cg_noTaunt;
 vmCvar_t	cg_noProjectileTrail;
-vmCvar_t	cg_oldRail;
-vmCvar_t	cg_oldRocket;
-vmCvar_t	cg_oldPlasma;
 vmCvar_t	cg_trueLightning;
 
 vmCvar_t	vm_offset_max;
@@ -307,9 +304,6 @@ static cvarTable_t cvarTable[] = {
 	{ &cg_noProjectileTrail, "cg_noProjectileTrail", "0", CVAR_ARCHIVE},
 	{ &cg_smallFont, "ui_smallFont", "0.25", CVAR_ARCHIVE},
 	{ &cg_bigFont, "ui_bigFont", "0.4", CVAR_ARCHIVE},
-	{ &cg_oldRail, "cg_oldRail", "1", CVAR_ARCHIVE},
-	{ &cg_oldRocket, "cg_oldRocket", "1", CVAR_ARCHIVE},
-	{ &cg_oldPlasma, "cg_oldPlasma", "1", CVAR_ARCHIVE},
 	{ &cg_trueLightning, "cg_trueLightning", "0.0", CVAR_ARCHIVE},
 //	{ &cg_pmove_fixed, "cg_pmove_fixed", "0", CVAR_USERINFO | CVAR_ARCHIVE },
 
@@ -608,18 +602,6 @@ static void CG_RegisterGraphics( void ) {
 		&cg.farplane_color[0], &cg.farplane_color[1], &cg.farplane_color[2]);
 
 	CG_ClearParticles ();
-/*
-	for (i=1; i<MAX_PARTICLES_AREAS; i++)
-	{
-		{
-			int rval;
-
-			rval = CG_NewParticleArea ( CS_PARTICLES + i);
-			if (!rval)
-				break;
-		}
-	}
-*/
 }
 
 /*
@@ -684,7 +666,6 @@ Will perform callbacks to make the loading info screen update.
 */
 void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum, int randomSeed ) {
 	const char	*s;
-	int i;
 
 	// clear everything
 	memset( &cgs, 0, sizeof( cgs ) );
@@ -713,8 +694,6 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum, in
 
 	CG_InitConsoleCommands();
 
-	// old servers
-
 	// get the rendering configuration from the client system
 	trap_GetGlconfig( &cgs.glconfig );
 	cgs.screenXScale = cgs.glconfig.vidWidth / 640.0;
@@ -722,10 +701,8 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum, in
 
 	// get the gamestate from the client system
 	trap_GetGameState( &cgs.gameState );
-/*	for (i=0;i<MAX_CONFIGSTRINGS;i++ ){
-		CG_Printf( "CG %i: \"%s\"\n", i, CG_ConfigString(i) );
-	}
-*/	// check version
+
+	// check version
 	s = CG_ConfigString( CS_GAME_VERSION );
 	if ( strcmp( s, GAME_VERSION ) ) {
 		CG_Error( "Client/Server game mismatch: %s/%s", GAME_VERSION, s );
@@ -774,8 +751,6 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum, in
 
 	CG_LoadingString( "" );
 
-	//CG_ShaderStateChanged();
-
 	trap_S_ClearLoopingSounds( qtrue );
 }
 
@@ -801,16 +776,17 @@ CG_EventHandling
       2 - hud editor
 
 */
-#ifndef MISSIONPACK
+
 void CG_EventHandling(int type) {
+
 }
 
-
-
 void CG_KeyEvent(int key, qboolean down) {
+
 }
 
 void CG_MouseEvent(int x, int y) {
+
 }
-#endif
+
 

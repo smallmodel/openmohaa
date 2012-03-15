@@ -32,49 +32,6 @@ CLIENT INFO
 */
 
 /*
-==========================
-CG_FileExists
-==========================
-*/
-static qboolean	CG_FileExists(const char *filename) {
-	int len;
-
-	len = trap_FS_FOpenFile( filename, NULL, FS_READ );
-	if (len>0) {
-		return qtrue;
-	}
-	return qfalse;
-}
-
-/*
-====================
-CG_ColorFromString
-====================
-*/
-static void CG_ColorFromString( const char *v, vec3_t color ) {
-	int val;
-
-	VectorClear( color );
-
-	val = atoi( v );
-
-	if ( val < 1 || val > 7 ) {
-		VectorSet( color, 1, 1, 1 );
-		return;
-	}
-
-	if ( val & 1 ) {
-		color[2] = 1.0f;
-	}
-	if ( val & 2 ) {
-		color[1] = 1.0f;
-	}
-	if ( val & 4 ) {
-		color[0] = 1.0f;
-	}
-}
-
-/*
 ======================
 CG_NewClientInfo
 ======================
@@ -108,33 +65,6 @@ void CG_NewClientInfo( int clientNum ) {
 }
 
 //==========================================================================
-
-/*
-===============
-CG_TrailItem
-===============
-*/
-static void CG_TrailItem( centity_t *cent, qhandle_t hModel ) {
-	refEntity_t		ent;
-	vec3_t			angles;
-	vec3_t			axis[3];
-
-	VectorCopy( cent->lerpAngles, angles );
-	angles[PITCH] = 0;
-	angles[ROLL] = 0;
-	AnglesToAxis( angles, axis );
-
-	memset( &ent, 0, sizeof( ent ) );
-	VectorMA( cent->lerpOrigin, -16, axis[0], ent.origin );
-	ent.origin[2] += 16;
-	angles[YAW] += 90;
-	AnglesToAxis( angles, ent.axis );
-
-	ent.hModel = hModel;
-	trap_R_AddRefEntityToScene( &ent );
-}
-
-
 
 /*
 ===============
@@ -234,6 +164,7 @@ void CG_PlayerSprites( centity_t *cent ) {
 	//	return;
 	//}
 
+	// show team icons over friend heads
 	if(cgs.gametype >= GT_TEAM && !(cent->currentState.eFlags & EF_DEAD)) {
 		if(cent->currentState.eFlags & EF_AXIS && cg.snap->ps.stats[STAT_TEAM] == TEAM_AXIS) {
 			CG_PlayerFloatSprite(cent,trap_R_RegisterShader("textures/hud/axis.tga"));

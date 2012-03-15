@@ -28,8 +28,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define	GAME_VERSION		"mohaa-base-1"
 
 #define	DEFAULT_GRAVITY		800
-#define	GIB_HEALTH			-40
-#define	ARMOR_PROTECTION	0.66
 
 #define	SCORE_NOT_PRESENT	-9999	// for the CS_SCORES[12] when only one player is present
 
@@ -149,13 +147,6 @@ typedef enum {
 	// TODO: remove this one below, there is no PM_SPECTATOR in MoH
 	PM_SPECTATOR,	// still run into walls
 } pmtype_t;
-
-typedef enum {
-	WEAPON_READY,
-	WEAPON_RAISING,
-	WEAPON_DROPPING,
-	WEAPON_FIRING
-} weaponstate_t;
 
 // pmove->pm_flags
 #define	PMF_DUCKED			1
@@ -300,9 +291,6 @@ typedef enum {
 	TEAM_ALLIES,
 	TEAM_AXIS
 } team_t;
-
-// Time between location updates
-#define TEAM_LOCATION_UPDATE_TIME		1000
 
 // How many players on the overlay
 #define TEAM_MAXOVERLAY		32

@@ -463,24 +463,25 @@ static void CG_ServerCommand( void ) {
 		return;
 	}
 
-	if ( !strcmp( cmd, "chat" ) ) {
-		if ( !cg_teamChatsOnly.integer ) {
-//			trap_S_StartLocalSound( cgs.media.talkSound, CHAN_LOCAL_SOUND );
-			Q_strncpyz( text, CG_Argv(1), MAX_SAY_TEXT );
-			CG_RemoveChatEscapeChar( text );
-			CG_Printf( "%s\n", text );
-		}
-		return;
-	}
-
-	if ( !strcmp( cmd, "tchat" ) ) {
-//		trap_S_StartLocalSound( cgs.media.talkSound, CHAN_LOCAL_SOUND );
-		Q_strncpyz( text, CG_Argv(1), MAX_SAY_TEXT );
-		CG_RemoveChatEscapeChar( text );
-		CG_AddToTeamChat( text );
-		CG_Printf( "%s\n", text );
-		return;
-	}
+	// su44: chats are handled differently in MoH
+//	if ( !strcmp( cmd, "chat" ) ) {
+//		if ( !cg_teamChatsOnly.integer ) {
+////			trap_S_StartLocalSound( cgs.media.talkSound, CHAN_LOCAL_SOUND );
+//			Q_strncpyz( text, CG_Argv(1), MAX_SAY_TEXT );
+//			CG_RemoveChatEscapeChar( text );
+//			CG_Printf( "%s\n", text );
+//		}
+//		return;
+//	}
+//
+//	if ( !strcmp( cmd, "tchat" ) ) {
+////		trap_S_StartLocalSound( cgs.media.talkSound, CHAN_LOCAL_SOUND );
+//		Q_strncpyz( text, CG_Argv(1), MAX_SAY_TEXT );
+//		CG_RemoveChatEscapeChar( text );
+//		CG_AddToTeamChat( text );
+//		CG_Printf( "%s\n", text );
+//		return;
+//	}
 
 	if ( !strcmp( cmd, "scores" ) ) {
 		//CG_ParseScores();
@@ -488,11 +489,12 @@ static void CG_ServerCommand( void ) {
 		return;
 	}
 
-	if ( !strcmp( cmd, "map_restart" ) ) {
-		CG_MapRestart();
-		return;
-	}
+	//if ( !strcmp( cmd, "map_restart" ) ) {
+	//	CG_MapRestart();
+	//	return;
+	//}
 
+	// su44: there is no remapShader in MoHAA
 	if ( Q_stricmp (cmd, "remapShader") == 0 )
 	{
 		if (trap_Argc() == 4)

@@ -296,8 +296,8 @@ void BG_PlayerStateToEntityState( playerState_t *ps, entityState_t *s, qboolean 
 
 	if ( ps->pm_type == PM_SPECTATOR ) {
 		s->eType = 0;//ET_INVISIBLE;
-	} else if ( ps->stats[STAT_HEALTH] <= GIB_HEALTH ) {
-		s->eType = 0;//ET_INVISIBLE;
+	//} else if ( ps->stats[STAT_HEALTH] <= GIB_HEALTH ) {
+	//	s->eType = 0;//ET_INVISIBLE;
 	} else {
 		s->eType = ET_PLAYER;
 	}
@@ -344,8 +344,8 @@ void BG_PlayerStateToEntityStateExtraPolate( playerState_t *ps, entityState_t *s
 
 	if ( ps->pm_type == PM_SPECTATOR ) {
 		s->eType = 0;//ET_INVISIBLE;
-	} else if ( ps->stats[STAT_HEALTH] <= GIB_HEALTH ) {
-		s->eType = 0;//ET_INVISIBLE;
+	//} else if ( ps->stats[STAT_HEALTH] <= GIB_HEALTH ) {
+	//	s->eType = 0;//ET_INVISIBLE;
 	} else {
 		s->eType = ET_PLAYER;
 	}

@@ -322,7 +322,7 @@ void Field_VariableSizeDraw(fontInfo_t *font, field_t *edit, int x, int y, int w
 	int		prestep;
 	int		cursorChar;
 	char	str[MAX_STRING_CHARS];
-	int		i;
+//	int		i;
 
 	drawLen = edit->widthInChars - 1; // - 1 so there is always a space for the cursor
 	len = strlen( edit->buffer );

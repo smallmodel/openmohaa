@@ -592,7 +592,6 @@ void	UI_LoadURC( const char *name, uiMenu_t *menu ) {
 
 void	UI_PushMenu( const char *name ) {
 	uiMenu_t		*menu;
-	uiMenulist_t	*menulist;
 
 	uis.MSP++;
 	if ( uis.MSP >= UI_MAX_MENUS ) {

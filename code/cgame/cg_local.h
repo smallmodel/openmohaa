@@ -606,9 +606,6 @@ extern  vmCvar_t		cg_smallFont;
 extern  vmCvar_t		cg_bigFont;
 extern	vmCvar_t		cg_noTaunt;
 extern	vmCvar_t		cg_noProjectileTrail;
-extern	vmCvar_t		cg_oldRail;
-extern	vmCvar_t		cg_oldRocket;
-extern	vmCvar_t		cg_oldPlasma;
 extern	vmCvar_t		cg_trueLightning;
 
 extern	vmCvar_t		vm_offset_max;
@@ -793,12 +790,6 @@ void CG_SetEntitySoundPosition( centity_t *cent );
 void CG_AddPacketEntities( void );
 void CG_Beam( centity_t *cent );
 void CG_AdjustPositionForMover( const vec3_t in, int moverNum, int fromTime, int toTime, vec3_t out );
-
-void CG_PositionEntityOnTag( refEntity_t *entity, const refEntity_t *parent,
-							qhandle_t parentModel, char *tagName );
-void CG_PositionRotatedEntityOnTag( refEntity_t *entity, const refEntity_t *parent,
-							qhandle_t parentModel, char *tagName );
-
 
 
 //

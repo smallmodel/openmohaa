@@ -299,36 +299,38 @@ void CG_InitConsoleCommands( void ) {
 	// the game server will interpret these commands, which will be automatically
 	// forwarded to the server after they are not recognized locally
 	//
+	// wombat: mohaa servers understand the following
+	trap_AddCommand ("dog"); // Sets the god mode cheat or toggles it.
+	trap_AddCommand ("notarget"); // Toggles the notarget cheat.
+	trap_AddCommand ("noclip"); // Toggles the noclip cheat.
+	
+	trap_AddCommand ("weapdrop"); // Drops the player's current weapon.
+	trap_AddCommand ("reload"); // Reloads the player's weapon
+	trap_AddCommand ("give"); // Gives the player the specified thing (weapon, ammo, item, etc.) and optionally the amount.
+	trap_AddCommand ("jump"); // Makes the player jump.
+	trap_AddCommand ("holster"); // Holsters all wielded weapons, or unholsters previously put away weapons
+	// su44
+	trap_AddCommand ("join_team"); // Join the specified team (allies or axis)
+	trap_AddCommand ("auto_join_team"); // Join the team with fewer players
+	trap_AddCommand ("spectator"); // Become a spectator
+
+	// wombat: mohaa arena what is that???
+	trap_AddCommand ("join_arena"); // Join the specified arena
+	trap_AddCommand ("leave_arena"); // Leave the current arena
+	trap_AddCommand ("create_team"); // Create a team in the current arena
+	trap_AddCommand ("leave_team"); // Leave the current team
+	trap_AddCommand ("arena_ui"); // Refresh the arena UI
+
+	trap_AddCommand ("callvote"); // Player calls a vote
+	trap_AddCommand ("vote"); // Player votes either yes or no
+	
+	trap_AddCommand ("primarydmweapon"); // Sets the player's primary DM weapon
+	// primarydmweapon rifle / smg / mg / heavy / shotgun
+
 	trap_AddCommand ("kill");
 	trap_AddCommand ("say");
-	trap_AddCommand ("say_team");
-	trap_AddCommand ("tell");
-	trap_AddCommand ("vsay");
-	trap_AddCommand ("vsay_team");
-	trap_AddCommand ("vtell");
-	trap_AddCommand ("vtaunt");
-	trap_AddCommand ("vosay");
-	trap_AddCommand ("vosay_team");
-	trap_AddCommand ("votell");
-	trap_AddCommand ("give");
-	trap_AddCommand ("god");
-	trap_AddCommand ("notarget");
-	trap_AddCommand ("noclip");
-	trap_AddCommand ("team");
-	trap_AddCommand ("follow");
-	trap_AddCommand ("levelshot");
-	trap_AddCommand ("addbot");
-	trap_AddCommand ("setviewpos");
-	trap_AddCommand ("callvote");
-	trap_AddCommand ("vote");
-	trap_AddCommand ("callteamvote");
-	trap_AddCommand ("teamvote");
-	trap_AddCommand ("stats");
-	trap_AddCommand ("teamtask");
-	trap_AddCommand ("loaddefered");	// spelled wrong, but not changing for demo
-	// su44
-	trap_AddCommand ("join_team"); // join_team allies / axis
-	trap_AddCommand ("auto_join_team");
-	trap_AddCommand ("primarydmweapon"); // primarydmweapon rifle / smg / mg / heavy / shotgun
-	trap_AddCommand ("spectator");
+	trap_AddCommand ("sayone"); // talk to one client
+	trap_AddCommand ("sayprivate"); // same as sayone??
+	trap_AddCommand ("sayteam"); // talk to team
+	trap_AddCommand ("teamsay"); // talk to team
 }

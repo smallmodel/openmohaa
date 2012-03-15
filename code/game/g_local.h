@@ -60,8 +60,6 @@ typedef enum {
 	MOVER_2TO1
 } moverState_t;
 
-#define SP_PODIUM_MODEL		"models/mapobjects/podium/podium4.md3"
-
 //============================================================================
 
 typedef struct gentity_s gentity_t;
@@ -160,11 +158,6 @@ struct gentity_s {
 	gentity_t	*activator;
 	gentity_t	*teamchain;		// next entity in team
 	gentity_t	*teammaster;	// master of the team
-
-#ifdef MISSIONPACK
-	int			kamikazeTime;
-	int			kamikazeShockTime;
-#endif
 
 	int			watertype;
 	int			waterlevel;
@@ -322,13 +315,6 @@ struct gclient_s {
 	// like health / armor countdowns and regeneration
 	int			timeResidual;
 
-#ifdef MISSIONPACK
-	gentity_t	*persistantPowerup;
-	int			portalID;
-	int			ammoTimes[WP_NUM_WEAPONS];
-	int			invulnerabilityTime;
-#endif
-
 	char		*areabits;
 };
 
@@ -417,9 +403,6 @@ typedef struct {
 	gentity_t	*locationHead;			// head of the location list
 	int			bodyQueIndex;			// dead bodies
 	gentity_t	*bodyQue[BODY_QUEUE_SIZE];
-#ifdef MISSIONPACK
-	int			portalSequence;
-#endif
 } level_locals_t;
 
 // IneQuation: MoHAA server-side scripting

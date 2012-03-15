@@ -1063,13 +1063,6 @@
 				RelativePath="..\..\code\sys\con_passive.c"
 				>
 				<FileConfiguration
-					Name="Debug_PlugableRenderer|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
 					Name="Debug_Dedicated|Win32"
 					ExcludedFromBuild="true"
 					>

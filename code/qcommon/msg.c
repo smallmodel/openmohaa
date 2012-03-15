@@ -451,7 +451,6 @@ float MSG_ReadFloat( msg_t *msg ) {
 	return dat.f;	
 }
 
-// this is ReadString as MOHAA does it. original ReadString is below
 char *MSG_ReadString( msg_t *msg ) {
 	static char	string[MAX_STRING_CHARS];
 	int		l,c;
@@ -467,33 +466,7 @@ char *MSG_ReadString( msg_t *msg ) {
 			c = '.';
 		}
 		// don't allow higher ascii values
-		if ( c > 127 ) {
-			c = '.';
-		}
-
-		string[l] = c;
-		l++;
-	} while (l < sizeof(string)-1);
-	
-	string[l] = 0;
-	
-	return string;
-}
-char *MSG_ReadStringQ( msg_t *msg ) {
-	static char	string[MAX_STRING_CHARS];
-	int		l,c;
-	
-	l = 0;
-	do {
-		c = MSG_ReadByte(msg);		// use ReadByte so -1 is out of bounds
-		if ( c == -1 || c == 0 ) {
-			break;
-		}
-		// translate all fmt spec to avoid crash bugs
-		if ( c == '%' ) {
-			c = '.';
-		}
-		// don't allow higher ascii values
+		// (su44: this check is missing in MoHAA)
 		if ( c > 127 ) {
 			c = '.';
 		}
@@ -1306,6 +1279,7 @@ void MSG_ReadSounds (msg_t *msg, server_sound_t *sounds, int *snapshot_number_of
 				if ( MSG_ReadBits(msg, 1) == 1 ) {
 					sounds[i].entity_number = MSG_ReadBits(msg, 10 );
 					sounds[i].channel = MSG_ReadBits(msg, 7 );
+					sounds[i].stop_flag = qtrue; // su44 was here
 				} else {
 					sounds[i].stop_flag = qfalse;
 					sounds[i].streamed = (qboolean)MSG_ReadBits( msg, 1 );
@@ -1337,8 +1311,7 @@ void MSG_ReadSounds (msg_t *msg, server_sound_t *sounds, int *snapshot_number_of
 					if ( MSG_ReadBits( msg, 1 ) == 1 ) {
 						sounds[i].pitch = MSG_ReadFloat( msg );
 					} else {
-						sounds[i].pitch = -1.0f; // here might be a BUG, since in MSG_WriteSounds
-						// the corresponding constant is +1.0f. if i didnt make a mistake
+						sounds[i].pitch = 1.0f; // su44 was here
 					}
 
 					sounds[i].maxDist = MSG_ReadFloat( msg );

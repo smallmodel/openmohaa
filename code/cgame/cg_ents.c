@@ -24,68 +24,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "cg_local.h"
 
-
-/*
-======================
-CG_PositionEntityOnTag
-
-Modifies the entities position and axis by the given
-tag location
-======================
-*/
-void CG_PositionEntityOnTag( refEntity_t *entity, const refEntity_t *parent, 
-							qhandle_t parentModel, char *tagName ) {
-	int				i;
-	orientation_t	lerped;
-	
-	// lerp the tag
-	trap_R_LerpTag( &lerped, parentModel, parent->oldframe, parent->frame,
-		1.0 - parent->backlerp, tagName );
-
-	// FIXME: allow origin offsets along tag?
-	VectorCopy( parent->origin, entity->origin );
-	for ( i = 0 ; i < 3 ; i++ ) {
-		VectorMA( entity->origin, lerped.origin[i], parent->axis[i], entity->origin );
-	}
-
-	// had to cast away the const to avoid compiler problems...
-	Matrix3x3Multiply( lerped.axis, ((refEntity_t *)parent)->axis, entity->axis );
-	entity->backlerp = parent->backlerp;
-}
-
-
-/*
-======================
-CG_PositionRotatedEntityOnTag
-
-Modifies the entities position and axis by the given
-tag location
-======================
-*/
-void CG_PositionRotatedEntityOnTag( refEntity_t *entity, const refEntity_t *parent, 
-							qhandle_t parentModel, char *tagName ) {
-	int				i;
-	orientation_t	lerped;
-	vec3_t			tempAxis[3];
-
-//AxisClear( entity->axis );
-	// lerp the tag
-	trap_R_LerpTag( &lerped, parentModel, parent->oldframe, parent->frame,
-		1.0 - parent->backlerp, tagName );
-
-	// FIXME: allow origin offsets along tag?
-	VectorCopy( parent->origin, entity->origin );
-	for ( i = 0 ; i < 3 ; i++ ) {
-		VectorMA( entity->origin, lerped.origin[i], parent->axis[i], entity->origin );
-	}
-
-	// had to cast away the const to avoid compiler problems...
-	Matrix3x3Multiply( entity->axis, lerped.axis, tempAxis );
-	Matrix3x3Multiply( tempAxis, ((refEntity_t *)parent)->axis, entity->axis );
-}
-
-
-
 /*
 ==========================================================================
 
@@ -125,7 +63,7 @@ static void CG_EntityEffects( centity_t *cent ) {
 
 	// update sound origins
 	CG_SetEntitySoundPosition( cent );
-/*
+
 	// add loop sound
 	if ( cent->currentState.loopSound ) {
 		if (cent->currentState.eType != ET_SPEAKER) {
@@ -150,7 +88,6 @@ static void CG_EntityEffects( centity_t *cent ) {
 		i = ( ( cl >> 24 ) & 255 ) * 4;
 		trap_R_AddLightToScene( cent->lerpOrigin, i, r, g, b );
 	}
-*/
 }
 
 
@@ -187,15 +124,6 @@ static void CG_General( centity_t *cent ) {
 
 	// add to refresh list
 	trap_R_AddRefEntityToScene (&ent);
-}
-
-/*
-==================
-CG_Item
-==================
-*/
-static void CG_Item( centity_t *cent ) {
-
 }
 
 //============================================================================
