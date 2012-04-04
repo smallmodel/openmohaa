@@ -512,9 +512,6 @@ CL_FinishMove
 void CL_FinishMove( usercmd_t *cmd ) {
 	int		i;
 
-	// copy the state that the cgame is currently sending
-	cmd->weapon = cl.cgameUserCmdValue;
-
 	// send the current server time so the amount of movement
 	// can be determined without allowing cheating
 	cmd->serverTime = cl.serverTime;

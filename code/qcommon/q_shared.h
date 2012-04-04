@@ -1418,12 +1418,13 @@ typedef struct playerState_s {
 
 // usercmd_t is sent to the server each client frame
 typedef struct usercmd_s {
-	int				serverTime;
-	byte msec;
-	int buttons;
-	int		angles[3];
-//	int 			buttons;
-	byte			weapon;           // weapon
+	int			serverTime;
+	byte		msec;
+	int			buttons;
+	int			angles[3];
+	//int	weapon; // su44: there is no 'weapon' field
+	// in MoHAA's usercmd_s - weapon commands are encoded 
+	// into buttons bits. See CL_CmdButtons from cl_input.c.
 	signed char	forwardmove, rightmove, upmove;
 } usercmd_t;
 
