@@ -708,7 +708,6 @@ void G_GetNullEntityState(entityState_t *nullState) {
 	nullState->scale = 1.0f;
 	nullState->parent = ENTITYNUM_NONE;
 	nullState->tag_num = -1;
-	nullState->constantLight = -1;
 	nullState->renderfx = 16;
 	nullState->bone_tag[4] = -1;
 	nullState->bone_tag[3] = -1;
