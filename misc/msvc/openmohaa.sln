@@ -22,6 +22,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OMmap", "OMmap.vcproj", "{F
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pak", "..\..\code\tools\ommap\libs\pak\pak.vcproj", "{F2ACC9D7-D628-4624-864F-87FE58787625}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "bspc", "..\..\code\bspc\bspc.vcproj", "{35E8FA58-2EB0-400E-83E2-B90286B3B35E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug TA|Win32 = Debug TA|Win32
@@ -164,6 +166,18 @@ Global
 		{F2ACC9D7-D628-4624-864F-87FE58787625}.Release TA|Win32.Build.0 = Release|Win32
 		{F2ACC9D7-D628-4624-864F-87FE58787625}.Release|Win32.ActiveCfg = Release|Win32
 		{F2ACC9D7-D628-4624-864F-87FE58787625}.Release|Win32.Build.0 = Release|Win32
+		{35E8FA58-2EB0-400E-83E2-B90286B3B35E}.Debug TA|Win32.ActiveCfg = Debug|Win32
+		{35E8FA58-2EB0-400E-83E2-B90286B3B35E}.Debug TA|Win32.Build.0 = Debug|Win32
+		{35E8FA58-2EB0-400E-83E2-B90286B3B35E}.Debug_Dedicated|Win32.ActiveCfg = Debug|Win32
+		{35E8FA58-2EB0-400E-83E2-B90286B3B35E}.Debug_Dedicated|Win32.Build.0 = Debug|Win32
+		{35E8FA58-2EB0-400E-83E2-B90286B3B35E}.Debug_PlugableRenderer|Win32.ActiveCfg = Debug|Win32
+		{35E8FA58-2EB0-400E-83E2-B90286B3B35E}.Debug_PlugableRenderer|Win32.Build.0 = Debug|Win32
+		{35E8FA58-2EB0-400E-83E2-B90286B3B35E}.Debug|Win32.ActiveCfg = Debug|Win32
+		{35E8FA58-2EB0-400E-83E2-B90286B3B35E}.Debug|Win32.Build.0 = Debug|Win32
+		{35E8FA58-2EB0-400E-83E2-B90286B3B35E}.Release TA|Win32.ActiveCfg = Release|Win32
+		{35E8FA58-2EB0-400E-83E2-B90286B3B35E}.Release TA|Win32.Build.0 = Release|Win32
+		{35E8FA58-2EB0-400E-83E2-B90286B3B35E}.Release|Win32.ActiveCfg = Release|Win32
+		{35E8FA58-2EB0-400E-83E2-B90286B3B35E}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

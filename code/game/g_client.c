@@ -1113,6 +1113,8 @@ void ClientSpawn(gentity_t *ent) {
 
 	// clear entity state values
 	BG_PlayerStateToEntityState( &client->ps, &ent->s, qtrue );
+
+	ent->s.modelindex = G_ModelIndex("models/human/coxswain.tik");
 }
 
 

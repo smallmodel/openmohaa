@@ -55,6 +55,8 @@ int AINode_Battle_Fight(bot_state_t *bs);
 int AINode_Battle_Chase(bot_state_t *bs);
 int AINode_Battle_Retreat(bot_state_t *bs);
 int AINode_Battle_NBG(bot_state_t *bs);
+// su44: added for testing pathfinding
+int AINode_GoToEntity(bot_state_t *bs);
 
 void BotResetNodeSwitches(void);
 void BotDumpNodeSwitches(bot_state_t *bs);

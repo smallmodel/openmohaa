@@ -41,7 +41,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define CONTENTS_FENCE			0x2000
 #define CONTENTS_WOMBAT4		0x4000
 #define	CONTENTS_AREAPORTAL		0x8000
-#define MASK_WOMBAT5
+// su44: this is only for bspc .aas file compiler (bot navigation info)
+// I dont think its correct....
+#define CONTENTS_CLUSTERPORTAL CONTENTS_AREAPORTAL
+
+#define MASK_WOMBAT5				// su44: wtf is that?
 
 #define	CONTENTS_PLAYERCLIP		0x10000
 #define	CONTENTS_MONSTERCLIP	0x20000

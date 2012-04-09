@@ -1421,10 +1421,10 @@ int BotAIStartFrame(int time) {
 			}
 			// do not update event only entities
 			//if (ent->s.eType > ET_EVENTS)
-			{
-				trap_BotLibUpdateEntity(i, NULL);
-				continue;
-			}
+			//{
+			//	trap_BotLibUpdateEntity(i, NULL);
+			//	continue;
+			//}
 #ifdef MISSIONPACK
 			// never link prox mine triggers
 			if (ent->r.contents == CONTENTS_TRIGGER) {
@@ -1448,8 +1448,10 @@ int BotAIStartFrame(int time) {
 			VectorCopy(ent->r.maxs, state.maxs);
 			state.type = ent->s.eType;
 			state.flags = ent->s.eFlags;
-			if (ent->r.bmodel) state.solid = SOLID_BSP;
-			else state.solid = SOLID_BBOX;
+			if (ent->r.bmodel)
+				state.solid = SOLID_BSP;
+			else
+				state.solid = SOLID_BBOX;
 			state.groundent = ent->s.groundEntityNum;
 			state.modelindex = ent->s.modelindex;
 			//

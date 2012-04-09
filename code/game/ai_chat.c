@@ -331,7 +331,7 @@ BotChat_EnterGame
 int BotChat_EnterGame(bot_state_t *bs) {
 	char name[32];
 	float rnd;
-
+return qfalse; // temporary disabled
 	if (bot_nochat.integer) return qfalse;
 	if (bs->lastchat_time > FloatTime() - TIME_BETWEENCHATTING) return qfalse;
 	//don't chat in teamplay

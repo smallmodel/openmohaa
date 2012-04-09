@@ -523,7 +523,7 @@ typedef struct image_s
 
 	uint32_t        bits;
 	filterType_t    filterType;
-	wrapType_t      wrapType;	// GL_CLAMP or GL_REPEAT
+	wrapType_t      wrapType;	// GL_CLAMP_TO_EDGE or GL_REPEAT
 
 	struct image_s *next;
 } image_t;
