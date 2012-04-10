@@ -1433,6 +1433,39 @@ typedef struct usercmd_s {
 // if entityState->solid == SOLID_BMODEL, modelindex is an inline model number
 #define	SOLID_BMODEL	0xffffff
 
+// renderfx flags (entityState_t::renderfx)
+// su44: moved it here, in MoHAA (and FAKK)
+// render flags are set by "renderEffects" event
+// and sent to cgame trough entityState_t
+// TODO: find out rest of them
+#define RF_DEPTHHACK			4		// for view weapon Z crunching
+#define RF_VIEWLENSFLARE		8
+#define RF_DONTDRAW				128
+#define RF_LENSFLARE			256
+#define RF_SHADOW				2048
+#define RF_SKYORIGIN			8192
+#define RF_FULLBRIGHT			262144
+#define RF_LIGHTSTYLEDYNAMIC	8388608
+#define RF_PRECISESHADOW		16777216
+#define RF_INVISIBLE			33554432
+
+//#define RF_ADDICTIVEDYNAMICLIGHT ?????
+
+// q3 remnants
+#define	RF_MINLIGHT			1		// allways have some light (viewmodel, some items)
+#define	RF_THIRD_PERSON		2		// don't draw through eyes, only mirrors (player bodies, chat sprites)
+#define	RF_FIRST_PERSON		32		// only draw through eyes (view weapon, damage blood blob)
+#define	RF_NOSHADOW			64		// don't add stencil shadows
+
+#define RF_LIGHTING_ORIGIN	512		// use refEntity->lightingOrigin instead of refEntity->origin
+									// for lighting.  This allows entities to sink into the floor
+									// with their origin going solid, and allows all parts of a
+									// player to get the same lighting
+#define	RF_SHADOW_PLANE		4096		// use refEntity->shadowPlane
+#define	RF_WRAP_FRAMES		16384		// mod the model frames by the maxframes to allow continuous
+									// animation without needing to know the frame count
+#define RF_FORCENOLOD		1024
+
 typedef enum {
 	TR_STATIONARY,
 	TR_INTERPOLATE,				// non-parametric, but interpolate between snapshots

@@ -99,6 +99,11 @@ typedef enum {
 	GT_MAX_GAME_TYPE
 } gametype_t;
 
+//
+// scale to use when evaluating entityState_t::constantLight scale
+//
+#define CONSTANTLIGHT_RADIUS_SCALE 8
+
 typedef enum { GENDER_MALE, GENDER_FEMALE, GENDER_NEUTER } gender_t;
 
 // su44: vma indexes are sent as 4 bits
@@ -254,7 +259,7 @@ typedef enum {
 
 // entityState_t->eFlags
 // su44: eFlags used in MoHAA
-#define EF_TELEPORT			0x00000020		// su44: I'm not sure about this one
+#define EF_UNARMED			0x00000020		// su44: this player has his weapon holstered
 #define EF_ALLIES			0x00000080		// su44: this player is in allies team
 #define EF_AXIS				0x00000100		// su44: this player is in axis team
 #define EF_DEAD				0x00000200		// don't draw a foe marker over players with EF_DEAD

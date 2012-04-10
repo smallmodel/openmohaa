@@ -77,7 +77,7 @@ static void CG_EntityEffects( centity_t *cent ) {
 
 
 	// constant light glow
-	if ( cent->currentState.constantLight ) {
+	if ( cent->currentState.constantLight != -1 ) {
 		int		cl;
 		int		i, r, g, b;
 
@@ -85,7 +85,7 @@ static void CG_EntityEffects( centity_t *cent ) {
 		r = cl & 255;
 		g = ( cl >> 8 ) & 255;
 		b = ( cl >> 16 ) & 255;
-		i = ( ( cl >> 24 ) & 255 ) * 4;
+		i = ( ( cl >> 24 ) & 255 ) * CONSTANTLIGHT_RADIUS_SCALE;
 		trap_R_AddLightToScene( cent->lerpOrigin, i, r, g, b );
 	}
 }
@@ -394,6 +394,62 @@ static void CG_CalcEntityLerpPositions( centity_t *cent ) {
 	//}
 }
 
+// su44: prints all unknown eFlags
+// NOTE: it seems that flag 4 has something to do with player weapons,
+// try holstering/unholstering player weapon and watch changes
+// NOTE2: flags 64 is present on vehicles/opeltruck.tik,
+// vehicles/tigertank.tik (both body model and its cannon),
+// vehicles/panzer_tank.tik, vehicles/tigertank.tik
+// All of those modes have animated tank-wheels shader...
+static void CG_ShowEntUnknownEFlags(centity_t *cent) {
+	int f = cent->currentState.eFlags;
+	f &= ~EF_ALLIES;
+	f &= ~EF_AXIS;
+	f &= ~EF_DEAD;
+	f &= ~EF_UNARMED;
+
+	if(f) {
+		CG_Printf("Timenow %i, ent %i ef %i\n",cg.time, cent->currentState.number,f);
+	}
+}
+// renderFX 16 - thompsonsmg.tik, bar.tik, etc, tigertank.tik
+// su44: From gamex86.dll rendereffects event
+// invisible - 33554432 - 
+// preciseshadow - 16777216
+// shadow - 2048 - 2^11 - matches FAKK
+// lightstyledynamiclight - 8388608
+// additivedynamiclight -  ??????????????
+// fullbright - no longer supported
+// skyorigin - 8192
+// lightoffset - no longer supported
+// viewlensflare - 8
+// lensflare - 256
+// dontdraw - 128
+
+static void CG_ShowEntUnknownRenderFX(centity_t *cent) {
+	int f = cent->currentState.renderfx;
+	if( f & RF_DEPTHHACK ) {
+		f &= ~RF_DEPTHHACK;	
+	}
+	if( f & RF_SHADOW ) {
+		f &= ~RF_SHADOW;	
+	}
+	if( f & RF_FULLBRIGHT ) {
+		f &= ~RF_FULLBRIGHT;	
+	}
+	if( f & RF_VIEWLENSFLARE ) {
+		f &= ~RF_VIEWLENSFLARE;	
+	}
+	if( f & RF_PRECISESHADOW ) {
+		f &= ~RF_PRECISESHADOW;	
+	}
+	if( f & RF_LIGHTSTYLEDYNAMIC ) {
+		f &= ~RF_LIGHTSTYLEDYNAMIC;	
+	}
+	if(f) {
+		CG_Printf("Timenow %i, ent %i renderFX %i\n",cg.time, cent->currentState.number,f);
+	}
+}
 /*
 ===============
 CG_AddCEntity
@@ -427,7 +483,11 @@ case ET_MOVER: // su44: ET_MOVER is used only if running a local openmohaa serve
 	case ET_ITEM:
 	case ET_MODELANIM:
 		CG_ModelAnim( cent );
+		//CG_ShowEntUnknownEFlags(cent);
+		//CG_ShowEntUnknownRenderFX(cent);
+
 		if( cent->currentState.number < cgs.maxclients ) {
+
 			// su44: save player team to clientInfo_t
 			CG_ExtractPlayerTeam( cent );
 			// su44: draw axis/allies icon over player head.
