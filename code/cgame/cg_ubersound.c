@@ -21,10 +21,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 #include "cg_local.h"
 
-#define	MAX_UBERSOUNDS	4096
+#define	MAX_UBERSOUNDS	8192
 ubersound_t		snd_indexes[MAX_UBERSOUNDS];
 int				snd_numIndexes;
-char			buffer[UBERSOUND_SIZE];
+char			*buffer;
 
 #define FILE_HASH_SIZE		256
 static	ubersound_t*		hashTable[FILE_HASH_SIZE];
@@ -83,14 +83,14 @@ ubersound_t*	CG_GetUbersound( const char *name ) {
 	}
 
 	if ( snd->hasLoaded == qfalse )
-		snd->sfxHandle = trap_S_RegisterSound( snd->wavfile, qfalse );
+		snd->sfxHandle = cgi.S_RegisterSound( snd->wavfile, qfalse );
 
 	return snd;
 }
 
 void CG_ParseUSline( char **ptr, ubersound_t *snd ) {
-	char *chan;
-	char *token;
+	const char *chan;
+	const char *token;
 	// name
 	Q_strncpyz( snd->name, COM_Parse(ptr), sizeof(snd->name) );
 	Q_strncpyz( snd->wavfile, COM_Parse(ptr), sizeof(snd->wavfile) );
@@ -148,7 +148,8 @@ void CG_ParseUSline( char **ptr, ubersound_t *snd ) {
 }
 
 qboolean US_CheckMapstring( const char *mapstring ) {
-	char *ptr, *token;
+	char		*ptr;
+	const char	*token;
 
 	ptr = (char*)mapstring;
 	token = COM_Parse(&ptr);
@@ -163,10 +164,9 @@ qboolean US_CheckMapstring( const char *mapstring ) {
 
 void CG_LoadUberSoundFile( const char *fname, qboolean sndVar ) {
 	// sndVar decides whether the last digit (if it is a digit) provides a variation of the same sound
-	fileHandle_t	f;
 	int				len;
 
-	char			*token;
+	const char		*token;
 	char			*ptr;
 	qboolean		end;
 	ubersound_t		*oldSnd, *newSnd;
@@ -174,18 +174,13 @@ void CG_LoadUberSoundFile( const char *fname, qboolean sndVar ) {
 
 	CG_Printf( "=== Loading %s ===\n", fname );
 
-	len = trap_FS_FOpenFile( fname, &f, FS_READ);
-	if (!f) {
+	len = cgi.FS_ReadFile( fname, &buffer, qfalse );
+
+	if( len <= 0 ) {
 		CG_Printf( "couldn't load %s. file not found.\n", fname );
 		return;
 	}
-	if ( len >= UBERSOUND_SIZE ) {
-		Com_Printf( ".scr file too large, %i KB. Max size is %i KB\n", len/1024, UBERSOUND_SIZE/1024 );
-		return;
-	}
 
-	trap_FS_Read( buffer, len, f );
-	buffer[len] = 0;
 	end = qfalse;
 	ptr = buffer;
 	token = COM_Parse( &ptr );
@@ -208,7 +203,7 @@ void CG_LoadUberSoundFile( const char *fname, qboolean sndVar ) {
 							oldSnd = oldSnd->nextVariation;
 						oldSnd->nextVariation = newSnd;
 						if ( newSnd->loaded == qtrue ) {
-							 newSnd->sfxHandle = trap_S_RegisterSound( newSnd->wavfile, qfalse );
+							 newSnd->sfxHandle = cgi.S_RegisterSound( newSnd->wavfile, qfalse );
 							 newSnd->hasLoaded = qtrue;
 						}
 						snd_numIndexes++;
@@ -231,7 +226,7 @@ void CG_LoadUberSoundFile( const char *fname, qboolean sndVar ) {
 				else
 					hashTable[i] = newSnd;
 				if ( newSnd->loaded == qtrue ) {
-					 newSnd->sfxHandle = trap_S_RegisterSound( newSnd->wavfile, qfalse );
+					 newSnd->sfxHandle = cgi.S_RegisterSound( newSnd->wavfile, qfalse );
 					 newSnd->hasLoaded = qtrue;
 				}
 				snd_numIndexes++;
@@ -252,7 +247,7 @@ void CG_LoadUberSoundFile( const char *fname, qboolean sndVar ) {
 	//if ( end == qfalse ) 
 	//	Com_Printf( "CG_LoadUbersound hit end of file without end statement\n" );
 
-	trap_FS_FCloseFile( f );
+	cgi.FS_FreeFile( buffer );
 	CG_Printf( "=== Finished %s ===\n", fname );
 }
 
@@ -268,29 +263,27 @@ void CG_LoadUbersound( void ) {
 
 const char* CG_LoadMusic( const char *musicfile ) {
 
-	fileHandle_t	f;
 	int				len;
 
-	char			*token;
+	const char		*token;
 	char			*ptr;
-	int				i;
 	char			path[MAX_QPATH];
 	char			name[MAX_QPATH];
 
+	if( !musicfile[ 0 ] )
+	{
+		return "";
+	}
+
 	CG_Printf( "=== Loading %s ===\n", musicfile );
 
-	len = trap_FS_FOpenFile( musicfile, &f, FS_READ);
-	if (!f) {
+	len = cgi.FS_ReadFile( musicfile, &buffer, qfalse );
+
+	if( len <= 0 ) {
 		CG_Printf( "couldn't load %s. file not found.\n", musicfile );
-		return 0;
-	}
-	if ( len >= MUSIC_SIZE ) {
-		Com_Printf( ".scr file too large, %i KB. Max size is %i KB\n", len/1024, MUSIC_SIZE/1024 );
-		return 0;
+		return NULL;
 	}
 
-	trap_FS_Read( buffer, len, f );
-	buffer[len] = 0;
 	ptr = buffer;
 	token = COM_Parse( &ptr );
 	while (*token) {

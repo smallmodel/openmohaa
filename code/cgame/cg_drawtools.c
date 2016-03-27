@@ -52,12 +52,12 @@ Coordinates are 640*480 virtual values
 =================
 */
 void CG_FillRect( float x, float y, float width, float height, const float *color ) {
-	trap_R_SetColor( color );
+	cgi.R_SetColor( color );
 
 	CG_AdjustFrom640( &x, &y, &width, &height );
-	trap_R_DrawStretchPic( x, y, width, height, 0, 0, 0, 0, cgs.media.whiteShader );
+	cgi.R_DrawStretchPic( x, y, width, height, 0, 0, 0, 0, cgs.media.whiteShader );
 
-	trap_R_SetColor( NULL );
+	cgi.R_SetColor( NULL );
 }
 
 /*
@@ -70,15 +70,15 @@ Coords are virtual 640x480
 void CG_DrawSides(float x, float y, float w, float h, float size) {
 	CG_AdjustFrom640( &x, &y, &w, &h );
 	size *= cgs.screenXScale;
-	trap_R_DrawStretchPic( x, y, size, h, 0, 0, 0, 0, cgs.media.whiteShader );
-	trap_R_DrawStretchPic( x + w - size, y, size, h, 0, 0, 0, 0, cgs.media.whiteShader );
+	cgi.R_DrawStretchPic( x, y, size, h, 0, 0, 0, 0, cgs.media.whiteShader );
+	cgi.R_DrawStretchPic( x + w - size, y, size, h, 0, 0, 0, 0, cgs.media.whiteShader );
 }
 
 void CG_DrawTopBottom(float x, float y, float w, float h, float size) {
 	CG_AdjustFrom640( &x, &y, &w, &h );
 	size *= cgs.screenYScale;
-	trap_R_DrawStretchPic( x, y, w, size, 0, 0, 0, 0, cgs.media.whiteShader );
-	trap_R_DrawStretchPic( x, y + h - size, w, size, 0, 0, 0, 0, cgs.media.whiteShader );
+	cgi.R_DrawStretchPic( x, y, w, size, 0, 0, 0, 0, cgs.media.whiteShader );
+	cgi.R_DrawStretchPic( x, y + h - size, w, size, 0, 0, 0, 0, cgs.media.whiteShader );
 }
 /*
 ================
@@ -88,12 +88,12 @@ Coordinates are 640*480 virtual values
 =================
 */
 void CG_DrawRect( float x, float y, float width, float height, float size, const float *color ) {
-	trap_R_SetColor( color );
+	cgi.R_SetColor( color );
 
   CG_DrawTopBottom(x, y, width, height, size);
   CG_DrawSides(x, y, width, height, size);
 
-	trap_R_SetColor( NULL );
+	cgi.R_SetColor( NULL );
 }
 
 
@@ -107,7 +107,7 @@ Coordinates are 640*480 virtual values
 */
 void CG_DrawPic( float x, float y, float width, float height, qhandle_t hShader ) {
 	CG_AdjustFrom640( &x, &y, &width, &height );
-	trap_R_DrawStretchPic( x, y, width, height, 0, 0, 1, 1, hShader );
+	cgi.R_DrawStretchPic( x, y, width, height, 0, 0, 1, 1, hShader );
 }
 
 
@@ -130,7 +130,7 @@ int CG_DrawStrlen( const char *str ) {
 //			s++;
 //		}
 //	}
-	return trap_R_Text_Width( &cgs.media.verdana, str, -1, qtrue );
+	return cgi.R_Text_Width( &cgs.media.verdana, str, -1, qtrue );
 }
 
 /*
@@ -148,7 +148,7 @@ static void CG_TileClearBox( int x, int y, int w, int h, qhandle_t hShader ) {
 	t1 = y/64.0;
 	s2 = (x+w)/64.0;
 	t2 = (y+h)/64.0;
-	trap_R_DrawStretchPic( x, y, w, h, s1, t1, s2, t2, hShader );
+	cgi.R_DrawStretchPic( x, y, w, h, s1, t1, s2, t2, hShader );
 }
 
 /*
@@ -232,8 +232,8 @@ void CG_DrawStringExt( int x, int y, const char *string, const float *setColor,
 		qboolean forceColor, qboolean shadow, int charWidth, int charHeight, int maxChars ) {
 	if(string == 0 || string[0] == 0) 
 		return;
-	trap_R_SetColor(setColor);
-	trap_R_Text_Paint(&cgs.media.verdana, x, y, 1, 1, string, 0, maxChars, qfalse, qtrue);
+	cgi.R_SetColor(setColor);
+	cgi.R_Text_Paint(&cgs.media.verdana, x, y, 1, 1, string, 0, maxChars, qfalse, qfalse);
 }
 void CG_DrawBigString( int x, int y, const char *s, float alpha ) {
 	float	color[4];

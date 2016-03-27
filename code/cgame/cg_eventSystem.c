@@ -112,13 +112,12 @@ void CG_ProcessSpawnEvent(centity_t *ent, vec3_t spawnOrigin, vec3_t spawnAngles
 	le->endTime = cg.time + 10000;
 	le->leType = LE_SKIP;
 	//le->leFlags = LEF_TUMBLE;
-	le->pos.trType = TR_GRAVITY;
 	le->pos.trTime = cg.time - (rand()&15);
-	VectorCopy(spawnOrigin,le->pos.trBase);
+	VectorCopy( spawnOrigin, le->pos.trDelta );
 	VectorCopy(spawnOrigin,le->refEntity.origin);
-	le->angles.trType = TR_STATIONARY;
-	VectorCopy(spawnAngles,le->angles.trBase);
+	VectorCopy( spawnAngles, le->angles.trDelta );
 	AnglesToAxis(spawnAngles,le->refEntity.axis);
+	tiki = le->tiki;
 	// parse parameters ( ... ) block
 	while(token[0] != ')') {
 		if(token[0]==0) {
@@ -138,12 +137,12 @@ void CG_ProcessSpawnEvent(centity_t *ent, vec3_t spawnOrigin, vec3_t spawnAngles
 		} else if(!strcmp(token,"model")) {
 			// both .tik and .spr models are used here
 			token = COM_ParseExt( &text, qtrue );
-			h = trap_R_RegisterModel(token);
-			le->refEntity.hModel = h;
+			h = cgi.R_RegisterModel(token);
+			le->refEntity.model = h;
 			le->leType = LE_FRAGMENT;
 			dot = strchr(token,'.');
 			if(dot && !Q_stricmp(dot+1,"tik")) {
-				le->tiki = trap_TIKI_RegisterModel(token);
+				le->tiki = cgi.TIKI_RegisterModel(token);
 			}
 		} else if(!strcmp(token,"color")) {
 			token = COM_ParseExt( &text, qfalse );
@@ -190,7 +189,7 @@ void CG_ProcessSpawnEvent(centity_t *ent, vec3_t spawnOrigin, vec3_t spawnAngles
 			v[0] = CG_ParseEventFloatParm(&text);
 			v[1] = CG_ParseEventFloatParm(&text);
 			v[2] = CG_ParseEventFloatParm(&text);
-			VectorCopy(v,le->angles.trBase);
+			VectorCopy( v, le->angles.trDelta );
 			AnglesToAxis(v,le->refEntity.axis);
 
 		} else if(!strcmp(token,"randvel")) {
@@ -279,7 +278,6 @@ void CG_ProcessEventText(centity_t *ent, const char *eventText) {
 	int i;
 	int boneName;
 	tiki_t *tiki;
-	qhandle_t h;
 	vec3_t v,a;
 
 
@@ -297,7 +295,7 @@ again:
 	// [ Float min_distance ], [ Float pitch ],
 	// [ Float randompitch ], [ String randomvolume ] )
 		char *name;
-		float volume, minDist, pitch, randompitch;
+		//float volume, minDist, pitch, randompitch;
 		soundChannel_t channel;
 		ubersound_t* sound;
 		name = COM_ParseExt( &text, qtrue );
@@ -344,9 +342,9 @@ again:
 		randompitch	= atof( COM_ParseExt( &text, qtrue ) );
 		randomvolume = COM_ParseExt( &text, qtrue );*/
 #if 0
-		trap_S_StartSound( ent->currentState.origin, -1, channel, sound->sfxHandle );
+		cgi.S_StartSound( ent->currentState.origin, -1, channel, sound->sfxHandle );
 #else
-		trap_S_StartSound( 0, ent->currentState.number, channel, sound->sfxHandle );
+		cgi.S_StartSound( 0, ent->currentState.number, channel, sound->sfxHandle );
 #endif
 	} else if(!strcmp(token,"stopsound")) {
 		// syntax: stopsound( String channelName )
@@ -355,7 +353,7 @@ again:
 		// syntax: loopsound( String soundName, [ Float volume ],
 		// [ Float min_distance ], Float pitch )
 		char *name;
-		float volume, minDist, pitch;
+		//float volume, minDist, pitch;
 		ubersound_t* snd;
 		name = COM_ParseExt( &text, qtrue );
 		snd = CG_GetUbersound(name);
@@ -364,9 +362,9 @@ again:
 		pitch	= atof( COM_ParseExt( &text, qtrue ) );
 */
 		if (snd)
-			trap_S_AddLoopingSound( ent->currentState.number, ent->currentState.origin, vec3_origin, snd->sfxHandle );
+			cgi.S_AddLoopingSound( ent->currentState.number, ent->currentState.origin, vec3_origin, snd->sfxHandle );
 	} else if(!strcmp(token,"stoploopsound")) {
-		trap_S_StopLoopingSound( ent->currentState.number );
+		cgi.S_StopLoopingSound( ent->currentState.number );
 	} else if(!strcmp(token,"stopaliaschannel")) {
 		token = COM_ParseExt( &text, qtrue );
 	} else if(!strcmp(token,"viewkick")) {
@@ -377,7 +375,7 @@ again:
 	} else if(!strcmp(token,"cache")) {
 		token = COM_ParseExt( &text, qtrue );
 		//CG_Printf("Caching %s...\n",token);
-		trap_R_RegisterModel(token);
+		cgi.R_RegisterModel(token);
 	} else if(!strcmp(token,"commanddelay")) {
 		token = COM_ParseExt( &text, qtrue );
 		f = atof(token);
@@ -393,7 +391,7 @@ again:
 		// parse tagname
 		token = COM_ParseExt( &text, qtrue );
 		// find tag in tiki
-		boneName = trap_TIKI_GetBoneNameIndex(token); 
+		boneName = cgi.TIKI_GetBoneNameIndex(token); 
 		for(i = 0; i < tiki->numBones; i++) {
 			if(tiki->boneNames[i] == boneName) {
 				break;
@@ -430,7 +428,7 @@ again:
 		// parse tagname
 		token = COM_ParseExt( &text, qtrue );
 		// find tag in tiki
-		boneName = trap_TIKI_GetBoneNameIndex(token); 
+		boneName = cgi.TIKI_GetBoneNameIndex(token); 
 		for(i = 0; i < tiki->numBones; i++) {
 			if(tiki->boneNames[i] == boneName) {
 				break;
@@ -468,7 +466,7 @@ again:
 			}
 		}
 		CG_CentBoneIndexLocal2World(i,ent,v,0);
-		trap_R_AddLightToScene(v,intensity,r,g,b);
+		cgi.R_AddLightToScene(v,intensity,r,g,b);
 	} else if(!strcmp(token,"sfx")) {
 		goto again;
 
@@ -491,7 +489,7 @@ again:
 		strcpy(str,token);
 		/*
 		// find tag in tiki
-		boneName = trap_TIKI_GetBoneNameIndex(token); 
+		boneName = cgi.TIKI_GetBoneNameIndex(token); 
 		for(i = 0; i < tiki->numBones; i++) {
 			if(tiki->boneNames[i] == boneName) {
 				break;

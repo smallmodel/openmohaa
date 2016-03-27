@@ -167,11 +167,11 @@ static void SV_WriteSnapshotToClient( client_t *client, msg_t *msg ) {
 		// the client's perspective this time is strictly speaking
 		// incorrect, but since it'll be busy loading a map at
 		// the time it doesn't really matter.
-		MSG_WriteLong (msg, sv.time + client->oldServerTime);
+		MSG_WriteLong (msg, svs.time + client->oldServerTime);
 	} else {
 		// WOMBAT: note that MOHAA always goes into this else.
 		// therefore we are deviating from the MOHAA protocol but i don't think this is a problem
-		MSG_WriteLong (msg, sv.time);
+		MSG_WriteLong (msg, svs.time);
 	}
 
 	if ( sv.timeResidual > 254 )
@@ -295,7 +295,7 @@ static int QDECL SV_QsortEntityNumbers( const void *a, const void *b ) {
 SV_AddEntToSnapshot
 ===============
 */
-static void SV_AddEntToSnapshot( svEntity_t *svEnt, sharedEntity_t *gEnt, snapshotEntityNumbers_t *eNums ) {
+static void SV_AddEntToSnapshot( svEntity_t *svEnt, gentity_t *gEnt, snapshotEntityNumbers_t *eNums ) {
 	// if we have already added this entity to this snapshot, don't add again
 	if ( svEnt->snapshotCounter == sv.snapshotCounter ) {
 		return;
@@ -319,7 +319,7 @@ SV_AddEntitiesVisibleFromPoint
 static void SV_AddEntitiesVisibleFromPoint( vec3_t origin, clientSnapshot_t *frame, 
 									snapshotEntityNumbers_t *eNums, qboolean portal ) {
 	int		e, i;
-	sharedEntity_t *ent;
+	gentity_t *ent;
 	svEntity_t	*svEnt;
 	int		l;
 	int		clientarea, clientcluster;
@@ -379,7 +379,7 @@ static void SV_AddEntitiesVisibleFromPoint( vec3_t origin, clientSnapshot_t *fra
 		// entities can be flagged to be sent to a given mask of clients
 		if ( ent->r.svFlags & SVF_CLIENTMASK ) {
 			if (frame->ps.clientNum >= 32)
-				Com_Error( ERR_DROP, "SVF_CLIENTMASK: cientNum > 32\n" );
+				Com_Error( ERR_DROP, "SVF_CLIENTMASK: clientNum > 32\n" );
 			if (~ent->r.singleClient & (1 << frame->ps.clientNum))
 				continue;
 		}
@@ -397,6 +397,8 @@ static void SV_AddEntitiesVisibleFromPoint( vec3_t origin, clientSnapshot_t *fra
 			continue;
 		}
 
+		// FIXME: entities won't show sometimes
+#if 0
 		// ignore if not touching a PV leaf
 		// check area
 		if ( !CM_AreasConnected( clientarea, svEnt->areanum ) ) {
@@ -407,12 +409,14 @@ static void SV_AddEntitiesVisibleFromPoint( vec3_t origin, clientSnapshot_t *fra
 			}
 		}
 
-		bitvector = clientpvs;
-
 		// check individual leafs
-		if ( !svEnt->numClusters ) {
+		if( !svEnt->numClusters ) {
 			continue;
 		}
+#endif
+
+		bitvector = clientpvs;
+
 		l = 0;
 		for ( i=0 ; i < svEnt->numClusters ; i++ ) {
 			l = svEnt->clusternums[i];
@@ -434,7 +438,8 @@ static void SV_AddEntitiesVisibleFromPoint( vec3_t origin, clientSnapshot_t *fra
 					continue;	// not visible
 				}
 			} else {
-				continue;
+				// FIXME (ley0k) : this seems to hide the entity at random places
+				//continue;
 			}
 		}
 
@@ -475,10 +480,10 @@ static void SV_BuildClientSnapshot( client_t *client ) {
 	clientSnapshot_t			*frame;
 	snapshotEntityNumbers_t		entityNumbers;
 	int							i;
-	sharedEntity_t				*ent;
+	gentity_t					*ent;
 	entityState_t				*state;
 	svEntity_t					*svEnt;
-	sharedEntity_t				*clent;
+	gentity_t					*clent;
 	int							clientNum;
 	playerState_t				*ps;
 
@@ -578,12 +583,6 @@ static int SV_RateMsec( client_t *client, int messageSize ) {
 		if ( sv_maxRate->integer < rate ) {
 			rate = sv_maxRate->integer;
 		}
-	}
-	if ( sv_minRate->integer ) {
-		if ( sv_minRate->integer < 1000 )
-			Cvar_Set( "sv_minRate", "1000" );
-		if ( sv_minRate->integer > rate )
-			rate = sv_minRate->integer;
 	}
 
 	rateMsec = ( messageSize + HEADER_RATE_BYTES ) * 1000 / rate * com_timescale->value;

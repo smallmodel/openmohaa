@@ -22,9 +22,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "server.h"
 
+cvar_t			*sv_mapname;
 serverStatic_t	svs;				// persistant server info
 server_t		sv;					// local server
-vm_t			*gvm = NULL;				// game virtual machine
+//vm_t			*gvm = NULL;				// game virtual machine
+gameExport_t	*ge = NULL;
 
 cvar_t	*sv_fps;				// time rate for running non-clients
 cvar_t	*sv_timeout;			// seconds without any message
@@ -36,21 +38,30 @@ cvar_t	*sv_maxclients;
 
 cvar_t	*sv_privateClients;		// number of clients reserved for password
 cvar_t	*sv_hostname;
-cvar_t	*sv_master[MAX_MASTER_SERVERS];		// master server ip address
+cvar_t	*sv_master[ MAX_MASTER_SERVERS ];		// master server ip address
 cvar_t	*sv_reconnectlimit;		// minimum seconds between connect messages
 cvar_t	*sv_showloss;			// report when usercmds are lost
 cvar_t	*sv_padPackets;			// add nop bytes to messages
 cvar_t	*sv_killserver;			// menu system can set to 1 to shut server down
-cvar_t	*sv_mapname;
 cvar_t	*sv_mapChecksum;
 cvar_t	*sv_serverid;
-cvar_t	*sv_minRate;
 cvar_t	*sv_maxRate;
 cvar_t	*sv_minPing;
 cvar_t	*sv_maxPing;
-cvar_t	*sv_gametype;
 cvar_t	*sv_pure;
 cvar_t	*sv_floodProtect;
+cvar_t	*sv_maplist;
+cvar_t	*sv_drawentities;
+cvar_t	*sv_deeptracedebug;
+cvar_t	*g_gametype;
+cvar_t	*g_gametypestring;
+cvar_t	*sv_chatter;
+cvar_t	*sv_gamename;
+cvar_t	*sv_location;
+
+// FIXME: use another global network ?
+//cvar_t	*sv_debug_gamepsy;
+//cvar_t	*sv_gamespy;
 cvar_t	*sv_lanForceRate; // dedicated 1 (LAN) server forces local client rates to 99999 (bug #491)
 cvar_t	*sv_strictAuth;
 
@@ -387,7 +398,7 @@ void SVC_Info( netadr_t from ) {
 
 	// don't count privateclients
 	count = 0;
-	for ( i = sv_privateClients->integer ; i < sv_maxclients->integer ; i++ ) {
+	for ( i = sv_privateClients->integer ; i < svs.iNumClients ; i++ ) {
 		if ( svs.clients[i].state >= CS_CONNECTED ) {
 			count++;
 		}
@@ -404,9 +415,9 @@ void SVC_Info( netadr_t from ) {
 	Info_SetValueForKey( infostring, "mapname", sv_mapname->string );
 	Info_SetValueForKey( infostring, "clients", va("%i", count) );
 	Info_SetValueForKey( infostring, "sv_maxclients", 
-		va("%i", sv_maxclients->integer - sv_privateClients->integer ) );
-	Info_SetValueForKey( infostring, "gametype", va("%i", sv_gametype->integer ) );
-	Info_SetValueForKey( infostring, "gametypestring", "OPENMOHAA" );
+		va("%i", svs.iNumClients - sv_privateClients->integer ) );
+	Info_SetValueForKey( infostring, "gametype", va("%i", g_gametype->integer ) );
+	Info_SetValueForKey( infostring, "gametypestring", g_gametypestring->string );
 	Info_SetValueForKey( infostring, "pure", va("%i", sv_pure->integer ) );
 
 	if( sv_minPing->integer ) {
@@ -578,7 +589,7 @@ void SV_PacketEvent( netadr_t from, msg_t *msg ) {
 	qport = MSG_ReadShort( msg ) & 0xffff;
 
 	// find which client the message is from
-	for (i=0, cl=svs.clients ; i < sv_maxclients->integer ; i++,cl++) {
+	for (i=0, cl=svs.clients ; i < svs.iNumClients; i++,cl++) {
 		if (cl->state == CS_FREE) {
 			continue;
 		}
@@ -605,7 +616,7 @@ void SV_PacketEvent( netadr_t from, msg_t *msg ) {
 			// to make sure they don't need to retransmit the final
 			// reliable message, but they don't do any other processing
 			if (cl->state != CS_ZOMBIE) {
-				cl->lastPacketTime = svs.time;	// don't timeout
+				cl->lastPacketTime = svs.lastTime;	// don't timeout
 				SV_ExecuteClientMessage( cl, msg );
 			}
 		}
@@ -731,27 +742,26 @@ qboolean SV_CheckPaused( void ) {
 	client_t	*cl;
 	int		i;
 
-	if ( !cl_paused->integer ) {
+	if ( !paused->integer && !SV_DoSaveGame() ) {
+		return qfalse;
+	}
+
+	if( !ge->AllowPaused() ) {
 		return qfalse;
 	}
 
 	// only pause if there is just a single client connected
 	count = 0;
-	for (i=0,cl=svs.clients ; i < sv_maxclients->integer ; i++,cl++) {
+	for (i=0,cl=svs.clients ; i < svs.iNumClients ; i++,cl++) {
 		if ( cl->state >= CS_CONNECTED && cl->netchan.remoteAddress.type != NA_BOT ) {
 			count++;
 		}
 	}
 
 	if ( count > 1 ) {
-		// don't pause
-		if (sv_paused->integer)
-			Cvar_Set("sv_paused", "0");
-		return qfalse;
+		Com_Unpause();
 	}
 
-	if (!sv_paused->integer)
-		Cvar_Set("sv_paused", "1");
 	return qtrue;
 }
 
@@ -774,7 +784,7 @@ void SV_Frame( int msec ) {
 		return;
 	}
 
-	if (!com_sv_running->integer)
+	if( !com_sv_running->integer )
 	{
 		// Running as a server, but no map loaded
 #ifdef DEDICATED
@@ -792,25 +802,16 @@ void SV_Frame( int msec ) {
 
 	// if it isn't time for the next frame, do nothing
 	if ( sv_fps->integer < 1 ) {
-		Cvar_Set( "sv_fps", "10" );
+		Cvar_Set( "sv_fps", "20" );
 	}
 
-	frameMsec = 1000 / sv_fps->integer * com_timescale->value;
-	// don't let it scale below 1ms
-	if(frameMsec < 1)
-	{
-		Cvar_Set("timescale", va("%f", sv_fps->integer / 1000.0f));
-		frameMsec = 1;
-	}
-
+	frameMsec = 1000 / sv_fps->integer;
 	sv.timeResidual += msec;
-
-	if (!com_dedicated->integer) SV_BotFrame (sv.time + sv.timeResidual);
 
 	if ( com_dedicated->integer && sv.timeResidual < frameMsec ) {
 		// NET_Sleep will give the OS time slices until either get a packet
 		// or time enough for a server frame has gone by
-		NET_Sleep(frameMsec - sv.timeResidual);
+		NET_Sleep( frameMsec - sv.timeResidual );
 		return;
 	}
 
@@ -830,19 +831,13 @@ void SV_Frame( int msec ) {
 		return;
 	}
 
-	if( sv.restartTime && sv.time >= sv.restartTime ) {
-		sv.restartTime = 0;
-		Cbuf_AddText( "map_restart 0\n" );
-		return;
-	}
-
 	// update infostrings if anything has been changed
 	if ( cvar_modifiedFlags & CVAR_SERVERINFO ) {
 		SV_SetConfigstring( CS_SERVERINFO, Cvar_InfoString( CVAR_SERVERINFO ) );
 		cvar_modifiedFlags &= ~CVAR_SERVERINFO;
 	}
 	if ( cvar_modifiedFlags & CVAR_SYSTEMINFO ) {
-		SV_SetConfigstring( CS_SYSTEMINFO, Cvar_InfoString_Big( CVAR_SYSTEMINFO ) );
+		SV_SetConfigstring( CS_SYSTEMINFO, Cvar_InfoString( CVAR_SYSTEMINFO ) );
 		cvar_modifiedFlags &= ~CVAR_SYSTEMINFO;
 	}
 
@@ -852,19 +847,34 @@ void SV_Frame( int msec ) {
 		startTime = 0;	// quite a compiler warning
 	}
 
+	if( ( sv_fps->integer * msec > 1100 ) && ( svs.time > svs.serverLagTime + 2500 ) )
+	{
+		svs.serverLagTime = svs.time;
+		SV_SendServerCommand( NULL, "svlag" );
+	}
+
 	// update ping based on the all received frames
 	SV_CalcPings();
-
-	if (com_dedicated->integer) SV_BotFrame (sv.time);
 
 	// run the game simulation in chunks
 	while ( sv.timeResidual >= frameMsec ) {
 		sv.timeResidual -= frameMsec;
 		svs.time += frameMsec;
-		sv.time += frameMsec;
 
-		// let everything in the world think and move
-		VM_Call (gvm, GAME_RUN_FRAME, sv.time);
+		if( sv.state == SS_GAME )
+		{
+			const char *err;
+
+			// let everything in the world think and move
+			ge->RunFrame( svs.time, frameMsec );
+
+			err = ge->errorMessage;
+			if( err )
+			{
+				ge->errorMessage = NULL;
+				Com_Error( ERR_DROP, err );
+			}
+		}
 	}
 
 	if ( com_speeds->integer ) {
@@ -879,6 +889,107 @@ void SV_Frame( int msec ) {
 
 	// send a heartbeat to the master if needed
 	SV_MasterHeartbeat();
+
+	svs.lastTime = svs.time;
+}
+
+/*
+==================
+Com_Pause
+==================
+*/
+void Com_Pause()
+{
+	if( deathmatch->integer ) {
+		return;
+	}
+
+	if( !com_sv_running->integer ) {
+		return;
+	}
+
+	if( sv.state != SS_GAME ) {
+		return;
+	}
+
+	if( paused->integer ) {
+		return;
+	}
+
+	SetBelowNormalThreadPriority();
+	Cvar_Set( "paused", "1" );
+}
+
+/*
+==================
+Com_Unpause
+==================
+*/
+void Com_Unpause()
+{
+	if( paused->integer )
+	{
+		if( paused->integer == 1 ) {
+			SetNormalThreadPriority();
+		}
+
+		Cvar_Set( "paused", "0" );
+		CL_ClearButtons();
+	}
+}
+
+/*
+==================
+Com_FakePause
+==================
+*/
+void Com_FakePause()
+{
+	if( !paused->integer ) {
+		Cvar_Set( "paused", "2" );
+	}
+}
+
+/*
+==================
+Com_FakeUnpause
+==================
+*/
+void Com_FakeUnpause()
+{
+	if( paused->integer >= 2 )
+	{
+		Cvar_Set( "paused", "0" );
+		CL_ClearButtons();
+	}
+}
+
+/*
+==================
+Com_Pause_f
+==================
+*/
+void Com_Pause_f()
+{
+	if( paused->integer == 1 ) {
+		Com_Unpause();
+	} else {
+		Com_Pause();
+	}
+}
+
+/*
+==================
+SV_SoundCallback
+==================
+*/
+void SV_SoundCallback( int entnum, int channel_number, const char *name )
+{
+	if( ge ) {
+		ge->SoundCallback( entnum, channel_number, name );
+	} else {
+		Com_Printf( "^~^~^ Failed SV_SoundCallback for (entnum %d, channel %d, sound '%s')\n", entnum, channel_number, name );
+	}
 }
 
 //============================================================================

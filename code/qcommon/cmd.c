@@ -24,18 +24,28 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "q_shared.h"
 #include "qcommon.h"
 
-#define	MAX_CMD_BUFFER	16384
-#define	MAX_CMD_LINE	1024
+#define	MAX_CMD_BUFFER		16384
+#define	MAX_CMD_LINE		1024
+#define MAX_ALIAS_NAME		32
+#define MAX_ALIAS_COUNT		16
 
 typedef struct {
 	byte	*data;
-	int		maxsize;
-	int		cursize;
+	size_t	maxsize;
+	size_t	cursize;
 } cmd_t;
+
+typedef struct cmdalias_s {
+	struct cmdalias_s *next;
+	char name[ MAX_ALIAS_NAME ];
+	const char *value;
+} cmdalias_t;
 
 int			cmd_wait;
 cmd_t		cmd_text;
 byte		cmd_text_buf[MAX_CMD_BUFFER];
+static		cmdalias_t *cmd_alias;
+int			alias_count;
 
 
 //=============================================================================
@@ -86,7 +96,7 @@ Adds command text at the end of the buffer, does NOT add a final \n
 ============
 */
 void Cbuf_AddText( const char *text ) {
-	int		l;
+	size_t l;
 	
 	l = strlen (text);
 
@@ -109,8 +119,8 @@ Adds a \n to the text
 ============
 */
 void Cbuf_InsertText( const char *text ) {
-	int		len;
-	int		i;
+	size_t	len;
+	size_t	i;
 
 	len = strlen( text ) + 1;
 	if ( len + cmd_text.cursize > cmd_text.maxsize ) {
@@ -171,6 +181,8 @@ void Cbuf_Execute (int msec)
 	char	*text;
 	char	line[MAX_CMD_LINE];
 	int		quotes;
+
+	alias_count = 0;
 
 	while (cmd_text.cursize)
 	{
@@ -252,7 +264,7 @@ void Cmd_Exec_f( void ) {
 
 	Q_strncpyz( filename, Cmd_Argv(1), sizeof( filename ) );
 	COM_DefaultExtension( filename, sizeof( filename ), ".cfg" ); 
-	len = FS_ReadFile( filename, (void **)&f);
+	len = FS_ReadFile( filename, (void **)&f );
 	if (!f) {
 		Com_Printf ("couldn't exec %s\n",Cmd_Argv(1));
 		return;
@@ -301,11 +313,140 @@ void Cmd_Echo_f (void)
 	Com_Printf ("\n");
 }
 
+/*
+===============
+Cmd_Alias
+
+Registers an alias, a command that matches an alias will turn into the alias's value
+===============
+*/
+void Cmd_Alias( const char *s, const char *cmd )
+{
+	cmdalias_t *a;
+
+	if( strlen( s ) >= MAX_ALIAS_NAME ) {
+		Com_Printf( "Alias name is too long\n" );
+		return;
+	}
+
+	for( a = cmd_alias; a != NULL; a = a->next )
+	{
+		if( !strcmp( a->name, s ) ) {
+			Z_Free( ( void * )a->value );
+			break;
+		}
+	}
+
+	if( !a )
+	{
+		a = Z_TagMalloc( sizeof( cmdalias_t ), TAG_STRINGS_AND_COMMANDS );
+		a->next = cmd_alias;
+		cmd_alias = a;
+	}
+
+	strcpy( a->name, s );
+	a->value = CopyString( cmd );
+
+	// save the alias to config file
+	cvar_modifiedFlags |= CVAR_ARCHIVE;
+}
+
+/*
+===============
+Cmd_Alias_f
+
+Registers an alias, a command that matches an alias will turn into the alias's value
+===============
+*/
+void Cmd_Alias_f( void )
+{
+	cmdalias_t *a;
+	int i, c;
+	const char *s;
+	char cmd[ 1024 ];
+
+	if( Cmd_Argc() == 1 ) {
+		Com_Printf( "Current alias commands:\n" );
+		for( a = cmd_alias; a != NULL; a = a->next ) {
+			Com_Printf( "%s : %s\n", a->name, a->value );
+		}
+		return;
+	}
+
+	s = Cmd_Argv( 1 );
+
+	if( strlen( s ) >= MAX_ALIAS_NAME ) {
+		Com_Printf( "Alias name is too long\n" );
+		return;
+	}
+
+	for( a = cmd_alias; a != NULL; a = a->next )
+	{
+		if( !strcmp( a->name, s ) ) {
+			Z_Free( ( void * )a->value );
+			break;
+		}
+	}
+
+	if( !a )
+	{
+		a = Z_TagMalloc( sizeof( cmdalias_t ), TAG_STRINGS_AND_COMMANDS );
+		a->next = cmd_alias;
+		cmd_alias = a;
+	}
+
+	strcpy( a->name, s );
+
+	cmd[ 0 ] = 0;
+
+	c = Cmd_Argc();
+
+	for( i = 2; i < c; i++ )
+	{
+		s = Cmd_Argv( i );
+		strcat( cmd, s );
+		if( i != c - 1 ) {
+			strcat( cmd, " " );
+		}
+	}
+
+	strcat( cmd, "\n" );
+	a->value = CopyString( cmd );
+
+	// save the alias to config file
+	cvar_modifiedFlags |= CVAR_ARCHIVE;
+}
+
+/*
+===============
+Cmd_WriteAliases
+
+Saves aliases to file
+===============
+*/
+void Cmd_WriteAliases( fileHandle_t f )
+{
+	char tempbuf[ 1024 ];
+	char buffer[ 1024 ];
+	cmdalias_t *a;
+
+	for( a = cmd_alias; a != NULL; a = a->next )
+	{
+		strcpy( tempbuf, a->value );
+
+		// remove the line ending
+		tempbuf[ strlen( tempbuf ) - 1 ] = 0;
+		Com_sprintf( buffer, sizeof( buffer ), "alias %s \"%s\"\n", a->name, tempbuf );
+
+		// save the alias to file
+		FS_Printf( f, "%s", buffer );
+	}
+}
 
 /*
 =============================================================================
 
-					COMMAND EXECUTION
+COMMAND EXECUTION
 
 =============================================================================
 */
@@ -313,7 +454,7 @@ void Cmd_Echo_f (void)
 typedef struct cmd_function_s
 {
 	struct cmd_function_s	*next;
-	char					*name;
+	const char				*name;
 	xcommand_t				function;
 } cmd_function_t;
 
@@ -459,7 +600,7 @@ static void Cmd_TokenizeString2( const char *text_in, qboolean ignoreQuotes ) {
 		return;
 	}
 	
-	Q_strncpyz( cmd_cmd, text_in, sizeof(cmd_cmd) );
+	Q_strncpyz( cmd_cmd, text_in, sizeof( cmd_cmd ) );
 
 	text = text_in;
 	textOut = cmd_tokenized;
@@ -503,7 +644,7 @@ static void Cmd_TokenizeString2( const char *text_in, qboolean ignoreQuotes ) {
 			cmd_argv[cmd_argc] = textOut;
 			cmd_argc++;
 			text++;
-			while ( *text && *text != '"' ) {
+			while( *text && *text != '"' ) {
 				*textOut++ = *text++;
 			}
 			*textOut++ = 0;
@@ -583,7 +724,7 @@ void	Cmd_AddCommand( const char *cmd_name, xcommand_t function ) {
 	}
 
 	// use a small malloc to avoid zone fragmentation
-	cmd = S_Malloc (sizeof(cmd_function_t));
+	cmd = Z_TagMalloc( sizeof( cmd_function_t ), TAG_STRINGS_AND_COMMANDS );
 	cmd->name = CopyString( cmd_name );
 	cmd->function = function;
 	cmd->next = cmd_functions;
@@ -608,7 +749,7 @@ void	Cmd_RemoveCommand( const char *cmd_name ) {
 		if ( !strcmp( cmd_name, cmd->name ) ) {
 			*back = cmd->next;
 			if (cmd->name) {
-				Z_Free(cmd->name);
+				Z_Free( ( void * )cmd->name );
 			}
 			Z_Free (cmd);
 			return;
@@ -631,6 +772,86 @@ void	Cmd_CommandCompletion( void(*callback)(const char *s) ) {
 	}
 }
 
+/*
+============
+Cmd_CompleteCommand
+============
+*/
+const char *Cmd_CompleteCommand( const char *partial )
+{
+	size_t len;
+	cmd_function_t *cmd;
+	cmdalias_t *a;
+
+	len = strlen( partial );
+	if( !len ) {
+		return NULL;
+	}
+
+	for( cmd = cmd_functions; cmd != NULL; cmd = cmd->next )
+	{
+		if( !Q_stricmp( partial, cmd->name ) ) {
+			return cmd->name;
+		}
+	}
+
+	for( cmd = cmd_functions; cmd != NULL; cmd = cmd->next )
+	{
+		if( !Q_stricmpn( partial, cmd->name, len ) ) {
+			return cmd->name;
+		}
+	}
+
+	for( a = cmd_alias; a != NULL; a = a->next )
+	{
+		if( !strncmp( partial, a->name, len ) ) {
+			return a->name;
+		}
+	}
+
+	return NULL;
+}
+
+/*
+============
+Cmd_CompleteCommandByNumber
+============
+*/
+const char *Cmd_CompleteCommandByNumber( const char *partial, int number )
+{
+	size_t len;
+	cmd_function_t *cmd;
+	cmdalias_t *a;
+
+	len = strlen( partial );
+	if( !len ) {
+		return NULL;
+	}
+
+	for( cmd = cmd_functions; cmd != NULL; cmd = cmd->next )
+	{
+		if( !strncmp( partial, cmd->name, len ) )
+		{
+			if( !number ) {
+				return cmd->name;
+			}
+			number--;
+		}
+	}
+
+	for( a = cmd_alias; a != NULL; a = a->next )
+	{
+		if( !strncmp( partial, a->name, len ) )
+		{
+			if( !number ) {
+				return a->name;
+			}
+			number--;
+		}
+	}
+
+	return NULL;
+}
 
 /*
 ============
@@ -641,6 +862,7 @@ A complete command line has been parsed, so try to execute it
 */
 void	Cmd_ExecuteString( const char *text ) {	
 	cmd_function_t	*cmd, **prev;
+	cmdalias_t		*a;
 
 	// execute the command line
 	Cmd_TokenizeString( text );		
@@ -668,6 +890,20 @@ void	Cmd_ExecuteString( const char *text ) {
 			return;
 		}
 	}
+
+	for( a = cmd_alias; a != NULL; a = a->next )
+	{
+		if( !Q_stricmp( cmd_argv[ 0 ], a->name ) )
+		{
+			alias_count++;
+			if( alias_count >= MAX_ALIAS_COUNT ) {
+				Com_Printf( "ALIAS_LOOP_COUNT\n" );
+			} else {
+				Cbuf_InsertText( a->value );
+			}
+			return;
+		}
+	}
 	
 	// check cvars
 	if ( Cvar_Command() ) {
@@ -681,11 +917,6 @@ void	Cmd_ExecuteString( const char *text ) {
 
 	// check server game commands
 	if ( com_sv_running && com_sv_running->integer && SV_GameCommand() ) {
-		return;
-	}
-
-	// check ui commands
-	if ( com_cl_running && com_cl_running->integer && UI_GameCommand() ) {
 		return;
 	}
 
@@ -727,10 +958,11 @@ Cmd_Init
 ============
 */
 void Cmd_Init (void) {
-	Cmd_AddCommand ("cmdlist",Cmd_List_f);
-	Cmd_AddCommand ("exec",Cmd_Exec_f);
-	Cmd_AddCommand ("vstr",Cmd_Vstr_f);
-	Cmd_AddCommand ("echo",Cmd_Echo_f);
-	Cmd_AddCommand ("wait", Cmd_Wait_f);
+	Cmd_AddCommand( "cmdlist", Cmd_List_f );
+	Cmd_AddCommand( "exec", Cmd_Exec_f );
+	Cmd_AddCommand( "vstr", Cmd_Vstr_f );
+	Cmd_AddCommand( "echo", Cmd_Echo_f );
+	Cmd_AddCommand( "wait", Cmd_Wait_f );
+	Cmd_AddCommand( "alias", Cmd_Alias_f );
 }
 

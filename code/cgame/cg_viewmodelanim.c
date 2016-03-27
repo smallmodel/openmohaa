@@ -22,6 +22,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "cg_local.h"
 
+#define VIEWMODEL_PITCH_FIX		8.0f
+
 char itemNames[64][64];
 void CG_RegisterItemName(int index, const char *str) {
 	if(index >= 64 || index < 0) {
@@ -42,7 +44,7 @@ const char *CG_GetItemName(int index) {
 //Papers  Colt 45 Walther P38 Hi-Standard Silenced    M1 Garand   Mauser KAR 98K  KAR98 - Sniper  Springfield '03 Sniper  Thompson    MP40    BAR StG 44  Frag Grenade    Stielhandgranate    Bazooka Panzerschreck   Shotgun
 const char *CG_GetVMAnimPrefixString(int index) {
 	const char *wpn;
-	wpn = CG_GetItemName(index);
+	wpn = CG_ConfigString( CS_WEAPONS + index ); //CG_GetItemName(index);
 	if(wpn) {
 		if(!Q_stricmp(wpn,"Papers"))
 			return "papers";
@@ -101,11 +103,13 @@ const char *CG_GetVMTypeString(int index) {
 	}
 	return viewModelAnimTypes[index];
 }
-void CG_AddViewModelAnimAttachment(refEntity_t *ent, centity_t *cent) {
+void CG_AddViewModelAnimAttachment( refEntity_t *ent, centity_t *cent ) {
 	vec3_t outRot;
+	vec3_t angles;
+
 	int boneName;
 	int i;
-	if(cg.renderingThirdPerson || cg.viewModelEnt.bones == 0)
+	if(cg.renderingThirdPerson || cgi.anim->ref.bones == 0)
 		return;
 	if(cg.snap->ps.stats[STAT_INZOOM])
 		return;
@@ -118,19 +122,25 @@ void CG_AddViewModelAnimAttachment(refEntity_t *ent, centity_t *cent) {
 		return;
 	}
 	boneName = cgs.gameTIKIs[cg_entities[cent->currentState.parent].currentState.modelindex]->boneNames[cent->currentState.tag_num];
-	for(i = 0; i < cg.viewModelTiki->numBones; i++) {
-		if(boneName == cg.viewModelTiki->boneNames[i])
+	for(i = 0; i < cgi.anim->tiki->numBones; i++) {
+		if( boneName == cgi.anim->tiki->boneNames[ i ] )
 			break;
 	}
-	if(i == cg.viewModelTiki->numBones)
+	if( i == cgi.anim->tiki->numBones )
 		return;
-	CG_BoneLocal2World(cg.viewModelEnt.bones+i,cg.viewModelEnt.origin,cg.refdefViewAngles,ent->origin,outRot);
+
+	VectorCopy( cg.refdefViewAngles, angles );
+
+	angles[ PITCH ] += VIEWMODEL_PITCH_FIX;
+
+	CG_BoneLocal2World(cgi.anim->ref.bones+i,cgi.anim->ref.origin,angles,ent->origin,outRot);
 #endif
 	VectorCopy(ent->origin,cent->lerpOrigin);
 	VectorCopy(outRot,cent->lerpAngles);
+
 	AnglesToAxis(outRot,ent->axis);
 
-	trap_R_AddRefEntityToScene(ent);
+	cgi.R_AddRefEntityToScene(ent);
 }
 void CG_CalcViewModelMovement(float fViewBobPhase, float fViewBobAmp, 
 		float *vVelocity, float *vMovement ) {
@@ -142,21 +152,21 @@ void CG_CalcViewModelMovement(float fViewBobPhase, float fViewBobAmp,
 	float *curAnimVMPosOfs;
 	int i;
 
-	vMovement[1] = sin(fViewBobPhase + 0.3141592700403172) * fViewBobAmp * vm_sway_side.value;
-	vMovement[0] = vMovement[1] * vm_sway_front.value;
+	vMovement[1] = sin(fViewBobPhase + 0.3141592700403172) * fViewBobAmp * vm_sway_side->value;
+	vMovement[0] = vMovement[1] * vm_sway_front->value;
 	tmp = sin(fViewBobPhase - 0.9424778335276408 + fViewBobPhase - 0.9424778335276408 + 3.141592653589793)
 	 + sin((fViewBobPhase - 0.9424778335276408) * 4.0 + 1.570796326794897) * 0.125;
-	vMovement[2] = fViewBobAmp * tmp * vm_sway_up.value;
+	vMovement[2] = fViewBobAmp * tmp * vm_sway_up->value;
 
 	//if(!cg.predictedPlayerState.walking) {
 	if(cg.predictedPlayerState.groundEntityNum == ENTITYNUM_NONE) {
 		// player is in air
-		vmOfs[0] = vm_offset_air_front.value;
-		vmOfs[1] = vm_offset_air_side.value;
-		vmOfs[2] = vm_offset_air_up.value;
+		vmOfs[0] = vm_offset_air_front->value;
+		vmOfs[1] = vm_offset_air_side->value;
+		vmOfs[2] = vm_offset_air_up->value;
 		// append offset depending on Z velocity
 		if(vVelocity[2] != 0.f) {
-			vmOfs[2] -= vVelocity[2] * vm_offset_upvel.value;
+			vmOfs[2] -= vVelocity[2] * vm_offset_upvel->value;
 		}
 	} else {
 		// player is walking
@@ -166,35 +176,35 @@ void CG_CalcViewModelMovement(float fViewBobPhase, float fViewBobAmp,
 			/*
 			// special cases for shotgun and rocked launchers - TODO
 			if(using shotgun) {
-				vmOfs[0] = vm_offset_shotguncrouch_front.value;
-				vmOfs[1] = vm_offset_shotguncrouch_side.value;
-				vmOfs[2] = vm_offset_shotguncrouch_up.value;
+				vmOfs[0] = vm_offset_shotguncrouch_front->value;
+				vmOfs[1] = vm_offset_shotguncrouch_side->value;
+				vmOfs[2] = vm_offset_shotguncrouch_up->value;
 			} else if(using rockets) {
-				vmOfs[0] = vm_offset_rocketcrouch_front.value;
-				vmOfs[1] = vm_offset_rocketcrouch_side.value;
-				vmOfs[2] = vm_offset_rocketcrouch_up.value;
+				vmOfs[0] = vm_offset_rocketcrouch_front->value;
+				vmOfs[1] = vm_offset_rocketcrouch_side->value;
+				vmOfs[2] = vm_offset_rocketcrouch_up->value;
 			} else
 			*/
 			{
-				vmOfs[0] = vm_offset_crouch_front.value;
-				vmOfs[1] = vm_offset_crouch_side.value;
-				vmOfs[2] = vm_offset_crouch_up.value;
+				vmOfs[0] = vm_offset_crouch_front->value;
+				vmOfs[1] = vm_offset_crouch_side->value;
+				vmOfs[2] = vm_offset_crouch_up->value;
 			}
 		} else {
 			// player is standing
 			VectorClear(vmOfs);
 		}
-		tmp = VectorLength(vVelocity) - vm_offset_vel_base.value;
+		tmp = VectorLength(vVelocity) - vm_offset_vel_base->value;
 
 		if(tmp > 0) {
-			tmp2 = 250.0 - vm_offset_vel_base.value;
+			tmp2 = 250.0 - vm_offset_vel_base->value;
 			if( tmp > tmp2 )
 				tmp = tmp2;
 			frac = tmp / tmp2;	
 
-			vmOfs[0] += frac * vm_offset_vel_front.value;
-			vmOfs[1] += frac * vm_offset_vel_side.value;
-			vmOfs[2] += frac * vm_offset_vel_up.value;
+			vmOfs[0] += frac * vm_offset_vel_front->value;
+			vmOfs[1] += frac * vm_offset_vel_side->value;
+			vmOfs[2] += frac * vm_offset_vel_up->value;
 		}
 
 
@@ -203,14 +213,14 @@ void CG_CalcViewModelMovement(float fViewBobPhase, float fViewBobAmp,
 
 
 	// for each coordinate
-	curAnimVMPosOfs = &cg.g_vCurrentVMPosOffset[0];
+	curAnimVMPosOfs = &cgi.anim->currentVMPosOffset[0];
 	for(i = 0; i < 3; i++) {
 		float ofsDelta;
 		ofsDelta = vmOfs[i] - curAnimVMPosOfs[i];
 		curAnimVMPosOfs[i] += (float)cg.frametime
 			* 0.001
 			* ofsDelta
-			* vm_offset_speed.value;
+			* vm_offset_speed->value;
 		//if(ofsDelta < 0) {
 		//	if ( vmOfs[i] <= curAnimVMPosOfs[i] ) {
 
@@ -226,19 +236,19 @@ void CG_CalcViewModelMovement(float fViewBobPhase, float fViewBobAmp,
 		//}
 	}
 
-	vMovement[0] = vMovement[0] + cg.g_vCurrentVMPosOffset[0];
-	vMovement[1] = vMovement[1] + cg.g_vCurrentVMPosOffset[1];
-	vMovement[2] = vMovement[2] + cg.g_vCurrentVMPosOffset[2];
+	vMovement[ 0 ] = vMovement[ 0 ] + cgi.anim->currentVMPosOffset[ 0 ];
+	vMovement[ 1 ] = vMovement[ 1 ] + cgi.anim->currentVMPosOffset[ 1 ];
+	vMovement[ 2 ] = vMovement[ 2 ] + cgi.anim->currentVMPosOffset[ 2 ];
 
 	// add lean offset
 	if(cg.predictedPlayerState.fLeanAngle != 0.f) {
-		vMovement[2] -= fabs(cg.predictedPlayerState.fLeanAngle) * vm_lean_lower.value;
+		vMovement[2] -= fabs(cg.predictedPlayerState.fLeanAngle) * vm_lean_lower->value;
 	}
 	vMovementLen = VectorNormalize2(vMovement, vMovementNormalized);
-	if(vm_offset_max.value < vMovementLen) {
-		vMovement[0] = vm_offset_max.value * vMovementNormalized[0];
-		vMovement[1] = vm_offset_max.value * vMovementNormalized[1];
-		vMovement[2] = vm_offset_max.value * vMovementNormalized[2];
+	if(vm_offset_max->value < vMovementLen) {
+		vMovement[0] = vm_offset_max->value * vMovementNormalized[0];
+		vMovement[1] = vm_offset_max->value * vMovementNormalized[1];
+		vMovement[2] = vm_offset_max->value * vMovementNormalized[2];
 	}
 
 
@@ -253,18 +263,34 @@ void CG_ViewModelAnim() {
 	tiki_t *fps, *tiki;
 	refEntity_t *ent;
 	bone_t *bone;
-	vec3_t v,a;
+	vec3_t v;
 	int boneName;
 	matrix_t m;
-	vec3_t vMovement;
+	vec3_t vMovement, angles;
+	int slot;
+	int index;
+	float crossblend;
+	float time, weight;
+	qboolean m_bAnimChange = qfalse;
 
-	if(cg.renderingThirdPerson)
+	if( cg.renderingThirdPerson )
 		return;
 
-	if(cg.snap->ps.stats[STAT_INZOOM])
+	if( cg.snap->ps.stats[ STAT_INZOOM ] )
 		return;
 
-	ent = &cg.viewModelEnt;
+	slot = cgi.anim->currentVMAnimSlot;
+
+	if( slot < 0 || slot > MAX_FRAMEINFOS )
+	{
+		slot = 0;
+	}
+
+	ent = &cgi.anim->ref;
+
+	VectorCopy( cg.refdefViewAngles, angles );
+
+	angles[ PITCH ] += VIEWMODEL_PITCH_FIX;
 
 	//CG_Printf("vma changed %i\n",cg.predictedPlayerState.iViewModelAnimChanged);
 
@@ -294,122 +320,271 @@ item 2 "Binoculars"
 	tiki = cgs.gameTIKIs[cg_entities[cg.clientNum].currentState.modelindex];
 	if(!tiki) {
 		if(cg.snap->ps.stats[STAT_TEAM]==TEAM_AXIS) {
-			tiki = trap_TIKI_RegisterModel("models/player/german_wehrmacht_soldier.tik");
+			tiki = cgi.TIKI_RegisterModel("models/player/german_wehrmacht_soldier.tik");
 		} else {
-			tiki = trap_TIKI_RegisterModel("models/player/american_army.tik");
+			tiki = cgi.TIKI_RegisterModel("models/player/american_army.tik");
 		}
 		if(!tiki)
 			return;
 	}
 	strcpy(tmp,tiki->name);
 	ptr = strchr(tmp,'.');
-	if(!ptr)
+
+	if( !ptr )
 		return;
+
 	*ptr = 0;
 	strcat(tmp,"_fps.tik");
-	fps = trap_TIKI_RegisterModel(tmp);
+	fps = cgi.TIKI_RegisterModel(tmp);
+
 	if(!fps) {
 		CG_Printf("CG_ViewModelAnim: error, cannot register first person player model for %s\n",tiki->name);
 		return;
 	}
-	cg.viewModelTiki = fps;
-	for(i = 0; i < fps->numAnims; i++) {
-//		if(!Q_stricmp(anim,fps->anims[i]->alias)) {
-		if(!Q_stricmpn(anim,fps->anims[i]->alias,strlen(anim))) {
-			break;
+
+	cgi.anim->tiki = fps;
+
+	if( cgi.anim->lastVMAnim == -1 )
+	{
+		index = cgi.Anim_Random( fps, anim );
+
+		if( index < 0 )
+		{
+			index = cgi.Anim_Random( fps, "idle" );
+
+			if( index == -1 ) {
+				index = 0;
+			}
+
+			cgi.Printf( "Warning: #1 Couldn't find view model animation \"%s\"\n", anim );
+		}
+
+		cgi.anim->vmFrameInfo[ slot ].index = index;
+
+		cgi.anim->vmFrameInfo[ slot ].time = 0.0f;
+		cgi.anim->vmFrameInfo[ slot ].weight = 1.0f;
+		cgi.anim->lastVMAnim = VMA_IDLE;
+	}
+
+	if( cg.snap->ps.iViewModelAnimChanged != cgi.anim->lastVMAnimChanged )
+	{
+		m_bAnimChange = qtrue;
+
+		cgi.anim->lastVMAnim = cg.snap->ps.iViewModelAnim;
+		cgi.anim->lastVMAnimChanged = cg.snap->ps.iViewModelAnimChanged;
+	}
+
+	if( m_bAnimChange )
+	{
+		crossblend = cgi.Anim_CrossblendTime( tiki, cgi.anim->vmFrameInfo[ slot ].index );
+		time = cgi.anim->currentVMDuration / 1000.0f;
+
+		if( time < crossblend )
+		{
+			weight = time / crossblend;
+
+			for( i = 0; i < MAX_FRAMEINFOS; i++ )
+			{
+				float w;
+
+				w = cgi.anim->vmFrameInfo[ i ].weight;
+
+				if( w == 0.0f )
+				{
+					continue;
+				}
+
+				if( i == slot )
+				{
+					cgi.anim->vmFrameInfo[ i ].weight = weight;
+				}
+				else
+				{
+					w = ( 1.0f - weight ) * cgi.anim->vmFrameInfo[ i ].weight;
+					cgi.anim->vmFrameInfo[ i ].weight = w;
+				}
+			}
+		}
+
+		slot = ( slot + 1 ) % MAX_FRAMEINFOS;
+		cgi.anim->currentVMAnimSlot = slot;
+
+		index = cgi.Anim_Random( fps, anim );
+
+		if( index < 0 )
+		{
+			cgi.Printf( "Warning: #2 Couldn't find view model animation \"%s\"\n", anim );
+
+			sprintf( anim, "%s_idle", CG_GetVMAnimPrefixString( cg.predictedPlayerState.activeItems[ ITEM_WEAPON ] ) );
+
+			index = cgi.Anim_Random( fps, anim );
+
+			if( index < 0 ) {
+				index = 0;
+			}
+		}
+
+		cgi.anim->vmFrameInfo[ slot ].index = index;
+		cgi.anim->vmFrameInfo[ slot ].time = 0.0f;
+		cgi.anim->vmFrameInfo[ slot ].weight = 1.0f;
+
+		cgi.anim->currentVMDuration = 0;
+
+		crossblend = cgi.Anim_CrossblendTime( tiki, index );
+
+		if( crossblend == 0.0f )
+		{
+			for( i = 0; i < MAX_FRAMEINFOS; i++ )
+			{
+				if( i != slot ) {
+					cgi.anim->vmFrameInfo[ i ].weight = 0.0f;
+				}
+			}
+
+			cgi.anim->crossBlending = qfalse;
+		}
+		else
+		{
+			cgi.anim->crossBlending = qtrue;
 		}
 	}
-	if(fps->numAnims == i) {
-		CG_Printf("WARNING: vma %s not found in %s\n",anim,fps->name);
-		return;
+
+	cgi.anim->currentVMDuration += cg.frametime / 2;
+
+	if( cgi.anim->crossBlending )
+	{
+		crossblend = cgi.Anim_CrossblendTime( tiki, cgi.anim->vmFrameInfo[ slot ].index );
+		time = cgi.anim->currentVMDuration / 1000.0f;
+
+		if( time >= crossblend )
+		{
+			for( i = 0; i < MAX_FRAMEINFOS; i++ )
+			{
+				if( slot != i ) {
+					cgi.anim->vmFrameInfo[ i ].weight = 0.0f;
+				}
+			}
+
+			cgi.anim->crossBlending = qfalse;
+		}
+		else
+		{
+			weight = time / crossblend;
+		}
 	}
-	cg.viewModelAnimTime += ((float)cg.frametime/2000);
-	if(cg.lastViewModelAnim != i) {
-		cg.viewModelAnimTime = 0;
-		cg.lastViewModelAnim = i;
-	} else if((fps->anims[i]->frameTime*fps->anims[i]->numFrames) < cg.viewModelAnimTime) {
-		cg.viewModelAnimTime = 0;
-	}
+
 	// su44: ok, we have chosen the proper viewmodelanim
 	// but ent->origin and ent->axis still needs to be adjusted
-	memset(ent,0,sizeof(*ent));
+	memset( ent, 0, sizeof( *ent ) );
+
 	ent->renderfx = RF_FIRST_PERSON;
-	ent->hModel = trap_R_RegisterModel(tmp);
-	ent->bones = trap_TIKI_GetBones(fps->numBones);
+	ent->model = cgi.R_RegisterModel( tmp );
+	ent->bones = cgi.TIKI_GetBones( fps->numBones );
+
 	// dont bother culling hands model
-	VectorSet(ent->bounds[0],-99999,-99999,-99999);
-	VectorSet(ent->bounds[1],99999,99999,99999);
+	VectorSet( ent->bounds[ 0 ], -99999, -99999, -99999 );
+	VectorSet( ent->bounds[ 1 ], 99999, 99999, 99999 );
+
 	ent->radius = 99999;
+
+	//ClearBounds( ent->bounds[ 0 ], ent->bounds[ 1 ] );
+	//ent->radius = 0;
 
 	// su44: kinda strange, but thats how its done by MoHAA
 	// we have two different hand surfaces - one is visible only while carrying rifles,
 	// second is used for the rest of weapons
-	ptr = itemNames[cg.predictedPlayerState.activeItems[ITEM_WEAPON]];
-	if(!Q_stricmp(ptr,"M1 Garand") || !Q_stricmp(ptr,"Springfield '03 Sniper")
-		|| !Q_stricmp(ptr,"KAR98 - Sniper") || !Q_stricmp(ptr,"Mauser KAR 98K")) {
-		ent->surfaceBits |= (1<<TIKI_GetSurfaceIndex(fps,"lefthand")); // hide "lefthand" surface
-	} else {
-		ent->surfaceBits |= (1<<TIKI_GetSurfaceIndex(fps,"garandhand")); // hide "garandhand" surface
+	ptr = itemNames[ cg.predictedPlayerState.activeItems[ ITEM_WEAPON ] ];
+
+	if( !Q_stricmp( ptr, "M1 Garand" ) || !Q_stricmp( ptr, "Springfield '03 Sniper" )
+		|| !Q_stricmp( ptr, "KAR98 - Sniper" ) || !Q_stricmp( ptr, "Mauser KAR 98K" ) )
+	{
+		ent->surfaceBits |= ( 1 << TIKI_GetSurfaceIndex( fps, "lefthand" ) ); // hide "lefthand" surface
+	}
+	else
+	{
+		ent->surfaceBits |= ( 1 << TIKI_GetSurfaceIndex( fps, "garandhand" ) ); // hide "garandhand" surface
 	}
 
-	trap_TIKI_SetChannels(fps,i,cg.viewModelAnimTime,1,ent->bones);
-	trap_TIKI_Animate(fps,ent->bones);
+	for( i = 0; i < MAX_FRAMEINFOS; i++ )
+	{
+		float w, frametime;
 
-	if ( cg.predictedPlayerState.groundEntityNum != ENTITYNUM_NONE ) {
-		float vel = VectorLength(cg.predictedPlayerState.velocity);
-		cg.fCurrentViewBobPhase = (((float)cg.frametime) * 0.001) * 3.141592653589793
-		* (vel * 0.001500000013038516 + 0.8999999761581421) + cg.fCurrentViewBobPhase;
-		if ( cg.fCurrentViewBobAmp != 0.0 )
-			vel = vel * 0.5;
-		cg.fCurrentViewBobAmp = vel;
+		if( cgi.anim->vmFrameInfo[ i ].index >= 0 && cgi.anim->vmFrameInfo[ i ].weight != 0.0f )
+		{
+			//cgi.TIKI_AppendFrameBoundsAndRadius( fps, cgi.anim->vmFrameInfo[ i ].index, cgi.anim->vmFrameInfo[ i ].time, &ent->radius, ent->bounds );
+			cgi.TIKI_SetChannels( fps, cgi.anim->vmFrameInfo[ i ].index, cgi.anim->vmFrameInfo[ i ].time, cgi.anim->vmFrameInfo[ i ].weight, ent->bones );
 
-		if ( cg.predictedPlayerState.fLeanAngle != 0.f )
-			cg.fCurrentViewBobAmp = cg.fCurrentViewBobAmp * 0.75;
-		cg.fCurrentViewBobAmp = (1.0 - fabs(cg.refdefViewAngles[0]) * 0.01111111138015985 * 0.5)
-			* 0.5
-			* cg.fCurrentViewBobAmp;
-	} else {
-		if ( cg.fCurrentViewBobAmp > 0.0 ) {
-			float f;
-			f = ((float)cg.frametime) * 0.001 * cg.fCurrentViewBobAmp;
-			cg.fCurrentViewBobAmp -= (f + f);
+			w = cgi.anim->vmFrameInfo[ i ].weight;
 
+			if( w == 0.0f )
+			{
+				cgi.anim->vmFrameInfo[ i ].index = 0;
+				cgi.anim->vmFrameInfo[ i ].time = 0.0f;
+				cgi.anim->vmFrameInfo[ i ].weight = 0.0f;
 
+				continue;
+			}
 
+			frametime = cgi.Anim_Frametime( tiki, cgi.anim->vmFrameInfo[ i ].index );
+
+			cgi.anim->vmFrameInfo[ i ].time += cg.frametime / 2000.0f;
+
+			if( cgi.anim->crossBlending )
+			{
+				if( slot == i )
+				{
+					cgi.anim->vmFrameInfo[ i ].weight = weight;
+				}
+				else
+				{
+					cgi.anim->vmFrameInfo[ i ].weight = ( 1.0f - weight ) * cgi.anim->vmFrameInfo[ i ].weight;
+				}
+			}
+			else
+			{
+				cgi.anim->vmFrameInfo[ i ].weight = 1.0f;
+			}
 		}
 	}
-	if ( cg.fCurrentViewBobAmp > 0.0 ) {
-	
-	}
+
+	cgi.TIKI_Animate( fps, ent->bones );
+
 	CG_CalcViewModelMovement(cg.fCurrentViewBobPhase,cg.fCurrentViewBobAmp,cg.predictedPlayerState.velocity,vMovement);
 	//CG_Printf("Movement: %f %f %f\n",vMovement[0],vMovement[1],vMovement[2]);
 
 	// in MoHAA "eyes bone" is used here
 	bone = 0;
-	boneName = trap_TIKI_GetBoneNameIndex("eyes bone"); 
-	for(i = 0; i < fps->numBones; i++) {
-		if(fps->boneNames[i] == boneName) {
+	boneName = cgi.TIKI_GetBoneNameIndex("eyes bone"); 
+
+	for(i = 0; i < fps->numBones; i++)
+	{
+		if( fps->boneNames[ i ] == boneName )
+		{
 			bone = ent->bones+i;
 			break;
 		}
 	}
-	if(bone == 0) {
+
+	if( bone == 0 )
+	{
 		CG_Printf("CG_OffsetFirstPersonView warning: Couldn't find 'eyes bone' for player\n");
 	}
 #if 1
 
+	bone->p[ 0 ] += 4.55f; // front
+	bone->p[ 1 ] += 0.15f; // side
+	bone->p[ 2 ] -= 1.25f; // up
 
-	//VectorAdd(bone->p,vMovement,bone->p);
-	VectorSubtract(bone->p,vMovement,bone->p);
+	VectorSubtract( bone->p, vMovement, bone->p );
 
 
 #if 0
-	CG_BoneLocal2World(bone,vec3_origin,cg.refdefViewAngles,v,a);
+	CG_BoneLocal2World( bone, vec3_origin, cg.refdefViewAngles, v, a );
 #else
-	MatrixFromAngles(m,cg.refdefViewAngles[0],cg.refdefViewAngles[1],cg.refdefViewAngles[2]);
-	MatrixTransformPoint(m,bone->p,v);
+	MatrixFromAngles( m, cg.refdefViewAngles[ 0 ], cg.refdefViewAngles[ 1 ], cg.refdefViewAngles[ 2 ] );
+	MatrixTransformPoint( m, bone->p, v );
 #endif
-	VectorSubtract( cg.refdef.vieworg,v,ent->origin);
+	VectorSubtract( cg.refdef.vieworg, v, ent->origin );
 #else
 	VectorCopy(cg.predictedPlayerState.origin,ent->origin);
 	ent->origin[2] += cg.predictedPlayerState.viewheight;
@@ -421,15 +596,11 @@ item 2 "Binoculars"
 	VectorAdd(ent->origin,v,ent->origin);
 #endif
 
-	VectorMA( ent->origin, cg_gun_x.value, cg.refdef.viewaxis[0], ent->origin );
-	VectorMA( ent->origin, cg_gun_y.value, cg.refdef.viewaxis[1], ent->origin );
-	VectorMA( ent->origin, cg_gun_z.value, cg.refdef.viewaxis[2], ent->origin );
+	VectorMA( ent->origin, cg_gun_x->value, cg.refdef.viewaxis[ 0 ], ent->origin );
+	VectorMA( ent->origin, cg_gun_y->value, cg.refdef.viewaxis[ 1 ], ent->origin );
+	VectorMA( ent->origin, cg_gun_z->value, cg.refdef.viewaxis[ 2 ], ent->origin );
 
+	AnglesToAxis( angles, ent->axis );
 
-
-	VectorCopy(cg.refdef.viewaxis[0],ent->axis[0]);
-	VectorCopy(cg.refdef.viewaxis[1],ent->axis[1]);
-	VectorCopy(cg.refdef.viewaxis[2],ent->axis[2]);
-
-	trap_R_AddRefEntityToScene(ent);
+	cgi.R_AddRefEntityToScene( ent );
 }

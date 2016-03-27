@@ -23,22 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "cg_local.h"
 
-typedef struct hdelement_s {
-	qhandle_t hShader;
-	char shaderName[64];
-	int iX;
-	int iY;
-	int iWidth;
-	int iHeight;
-	float vColor[4];
-	int iHorizontalAlign;
-	int iVerticalAlign;
-	qboolean bVirtualScreen;
-	char string[2048];
-	char fontName[64];
-	fontInfo_t pFont;
-} hdelement_t;
-
 #define MAX_HDELEMENTS 256
 
 hdelement_t hdelements[MAX_HDELEMENTS];
@@ -84,13 +68,13 @@ void CG_MakeBulletHole(float *i_vPos, float *i_vNorm, int iLarge,
 
 #if 0
 	// su44: make an "explosion" effect here so I can debug bullet holes coordinates
-	CG_MakeExplosion(i_vPos,vec3_origin,0,trap_R_RegisterShader("heavy_pipe"),250,qtrue);
+	CG_MakeExplosion(i_vPos,vec3_origin,0,cgi.R_RegisterShader("heavy_pipe"),250,qtrue);
 #endif
 	s = "bhole_";
 
 	// TODO: choose an appropriate decal shader and play hit sound
 
-	CG_ImpactMark(trap_R_RegisterShader("bhole_wood"),i_vPos,i_vNorm,0,1,1,1,1,qfalse,8,qfalse);
+	CG_ImpactMark(cgi.R_RegisterShader("bhole_wood"),i_vPos,i_vNorm,0,1,1,1,1,qfalse,8,qfalse);
 }
 
 void CG_AddBulletImpacts() {
@@ -225,7 +209,7 @@ void CG_AddBulletTracers() {
 }
 
 static void CG_MakeExplosionEffect(float *vPos, int iType) {
-	CG_MakeExplosion(vPos,vec3_origin,0,trap_R_RegisterShader("gren_explosion"),1000,qtrue);
+	CG_MakeExplosion(vPos,vec3_origin,0,cgi.R_RegisterShader("gren_explosion"),1000,qtrue);
 }
 
 static void CG_MakeEffect_Normal(int iEffect, vec3_t vPos, vec3_t vNormal) {
@@ -240,18 +224,16 @@ static void CG_SpawnEffectModel(const char *model, vec3_t origin) {
 	le = CG_AllocLocalEntity();
 	le->endTime = cg.time + 5000;
 	le->leType = LE_SKIP;
-	le->pos.trType = TR_GRAVITY;
 	le->pos.trTime = cg.time - (rand()&15);
-	VectorCopy(origin,le->pos.trBase);
+	VectorCopy( origin, le->pos.trDelta );
 	VectorCopy(origin,le->refEntity.origin);
-	le->angles.trType = TR_STATIONARY;
-	VectorCopy(spawnAngles,le->angles.trBase);
+	VectorCopy( spawnAngles, le->angles.trDelta );
 	AnglesToAxis(spawnAngles,le->refEntity.axis);
 
-	h = trap_R_RegisterModel(model);
-	le->refEntity.hModel = h;
+	h = cgi.R_RegisterModel(model);
+	le->refEntity.model = h;
 	le->leType = LE_FRAGMENT;
-	le->tiki = trap_TIKI_RegisterModel(model);
+	le->tiki = cgi.TIKI_RegisterModel(model);
 }
 
 void CG_HudDrawElements() {
@@ -297,7 +279,7 @@ void CG_HudDrawElements() {
 						}
 					}
 
-					trap_R_SetColor(hdi->vColor);
+					cgi.R_SetColor(hdi->vColor);
 
 					// su44: that's wrong
 					if(hdi->bVirtualScreen) {
@@ -313,15 +295,15 @@ void CG_HudDrawElements() {
 
 					if ( hdi->string[0] ) {
 						if ( hdi->pFont.glyphs[0].glyph ) {
-							trap_R_Text_Paint(&hdi->pFont, x, y, 1, 1, hdi->string,0,-1, qfalse, hdi->bVirtualScreen);
+							cgi.R_Text_Paint(&hdi->pFont, x, y, 1, 1, hdi->string,0,-1, qfalse, hdi->bVirtualScreen);
 						} else {
-							trap_R_Text_Paint(&cgs.media.verdana, x, y, 1, 1, hdi->string,0,-1, qfalse, hdi->bVirtualScreen);
+							cgi.R_Text_Paint(&cgs.media.verdana, x, y, 1, 1, hdi->string,0,-1, qfalse, hdi->bVirtualScreen);
 						}
 					} else {
 						if ( hdi->bVirtualScreen )
 							CG_AdjustFrom640(&x, &y, &w, &h);
 
-						trap_R_DrawStretchPic(x, y, w, h, 0.f, 0.f, 1.f, 1.f, hdi->hShader);
+						cgi.R_DrawStretchPic(x, y, w, h, 0.f, 0.f, 1.f, 1.f, hdi->hShader);
 					}
 				}
 			}
@@ -332,7 +314,7 @@ void CG_HudDrawElements() {
 static void CG_HudDrawShader (int iInfo) {
 	hdelement_t *hdi = hdelements + iInfo;
 	if(hdi->shaderName[0]) {
-		hdi->hShader = trap_R_RegisterShaderNoMip(hdi->shaderName);
+		hdi->hShader = cgi.R_RegisterShaderNoMip(hdi->shaderName);
 	} else {
 		hdi->hShader = 0;
 	}
@@ -341,7 +323,7 @@ static void CG_HudDrawShader (int iInfo) {
 static void CG_HudDrawFont (int iInfo) {
 	hdelement_t *hdi = hdelements + iInfo;
 	if(hdi->fontName[0]) {
-		trap_R_RegisterFont(hdi->fontName,0,&hdi->pFont);
+		cgi.R_RegisterFont(hdi->fontName,0,&hdi->pFont);
 	} else {
 		memset(&hdi->pFont,0,sizeof(hdi->pFont));
 	}
@@ -354,7 +336,7 @@ static void CG_PlaySound(char *sound_name, float *origin, int channel,
 	sound = CG_GetUbersound(sound_name);
 
 	if(sound)
-		trap_S_StartSound( origin, -1, sound->channel, sound->sfxHandle );
+		cgi.S_StartSound( origin, -1, sound->channel, sound->sfxHandle );
 
 
 }
@@ -377,30 +359,30 @@ void CG_ParseCGMessage() {
 	flesh_impact_count = 0;
 
 	do {
-		msgtype = trap_MSG_ReadBits( 6 );
-		if(cg_debugCGMessages.integer) {
+		msgtype = cgi.MSG_ReadBits( 6 );
+		if(cg_debugCGMessages->integer) {
 			Com_Printf( "CG_ParseCGMessage: command type %i\n", msgtype );
 		}
 		switch ( msgtype ) {
 			case 1: // BulletTracer (visible?)
-				vecTmp[0] = trap_MSG_ReadCoord();
-				vecTmp[1] = trap_MSG_ReadCoord();
-				vecTmp[2] = trap_MSG_ReadCoord();
+				vecTmp[0] = cgi.MSG_ReadCoord();
+				vecTmp[1] = cgi.MSG_ReadCoord();
+				vecTmp[2] = cgi.MSG_ReadCoord();
 			case 2: // BulletTracer (invisible?)
 			case 5: // BubbleTrail
-				vecStart[0] = trap_MSG_ReadCoord();
-				vecStart[1] = trap_MSG_ReadCoord();
-				vecStart[2] = trap_MSG_ReadCoord();
+				vecStart[0] = cgi.MSG_ReadCoord();
+				vecStart[1] = cgi.MSG_ReadCoord();
+				vecStart[2] = cgi.MSG_ReadCoord();
 				if ( msgtype != 1 ) {
 					vecTmp[0] = vecStart[0];
 					vecTmp[1] = vecStart[1];
 					vecTmp[2] = vecStart[2];
 				}
-				vecArray[0][0] = trap_MSG_ReadCoord();
-				vecArray[0][1] = trap_MSG_ReadCoord();
-				vecArray[0][2] = trap_MSG_ReadCoord();
+				vecArray[0][0] = cgi.MSG_ReadCoord();
+				vecArray[0][1] = cgi.MSG_ReadCoord();
+				vecArray[0][2] = cgi.MSG_ReadCoord();
 
-				iLarge = trap_MSG_ReadBits( 1 );
+				iLarge = cgi.MSG_ReadBits( 1 );
 				if(msgtype==5) {
 					CG_MakeBubbleTrail(vecStart,vecArray[0],iLarge);
 				} else if(msgtype==1) {
@@ -411,27 +393,27 @@ void CG_ParseCGMessage() {
 				}
 				break;
 			case 3: // BulletTracer multiple times
-				vecTmp[0] = trap_MSG_ReadCoord();
-				vecTmp[1] = trap_MSG_ReadCoord();
-				vecTmp[2] = trap_MSG_ReadCoord();
-				iTemp = trap_MSG_ReadBits( 6 );
+				vecTmp[0] = cgi.MSG_ReadCoord();
+				vecTmp[1] = cgi.MSG_ReadCoord();
+				vecTmp[2] = cgi.MSG_ReadCoord();
+				iTemp = cgi.MSG_ReadBits( 6 );
 			case 4: // BulletTracer multiple times (shotgun shot)
 				if ( msgtype == 4 )
 					iTemp = 0;
-				vecStart[0] = trap_MSG_ReadCoord();
-				vecStart[1] = trap_MSG_ReadCoord();
-				vecStart[2] = trap_MSG_ReadCoord();
+				vecStart[0] = cgi.MSG_ReadCoord();
+				vecStart[1] = cgi.MSG_ReadCoord();
+				vecStart[2] = cgi.MSG_ReadCoord();
 
-				iLarge = trap_MSG_ReadBits( 1 );
-				iCount = trap_MSG_ReadBits( 6 );
+				iLarge = cgi.MSG_ReadBits( 1 );
+				iCount = cgi.MSG_ReadBits( 6 );
 
 				// this check is missing in MOHAA code, so this has buffer overflow risk in AA
 				if ( iCount > 64 )
 					Com_Error( ERR_DROP, "CG message type 4 sent too many data.\n" );
 				for (i=0;i<iCount;i++) {
-					vecArray[i][0] = trap_MSG_ReadCoord();
-					vecArray[i][1] = trap_MSG_ReadCoord();
-					vecArray[i][2] = trap_MSG_ReadCoord();
+					vecArray[i][0] = cgi.MSG_ReadCoord();
+					vecArray[i][1] = cgi.MSG_ReadCoord();
+					vecArray[i][2] = cgi.MSG_ReadCoord();
 				}
 				CG_MakeBulletTracer(vecTmp, vecStart, vecArray, iCount, iLarge, iTemp, 1);
 				break;
@@ -440,12 +422,12 @@ void CG_ParseCGMessage() {
 			case 8: // flesh impact (?)
 			case 9: // wall impact (?)
 			case 10: // wall impact (?)
-				vecStart[0] = trap_MSG_ReadCoord();
-				vecStart[1] = trap_MSG_ReadCoord();
-				vecStart[2] = trap_MSG_ReadCoord();
+				vecStart[0] = cgi.MSG_ReadCoord();
+				vecStart[1] = cgi.MSG_ReadCoord();
+				vecStart[2] = cgi.MSG_ReadCoord();
 
-				trap_MSG_ReadDir( vecEnd );
-				iLarge = trap_MSG_ReadBits( 1 );
+				cgi.MSG_ReadDir( vecEnd );
+				iLarge = cgi.MSG_ReadBits( 1 );
 				switch (msgtype) {
 					case 6:
 						if(wall_impact_count < MAX_IMPACTS) {
@@ -508,19 +490,19 @@ void CG_ParseCGMessage() {
 				}
 				break;
 			case 11:
-				vecStart[0] = trap_MSG_ReadCoord();
-				vecStart[1] = trap_MSG_ReadCoord();
-				vecStart[2] = trap_MSG_ReadCoord();
-				vecEnd[0] = trap_MSG_ReadCoord();
-				vecEnd[1] = trap_MSG_ReadCoord();
-				vecEnd[2] = trap_MSG_ReadCoord();
+				vecStart[0] = cgi.MSG_ReadCoord();
+				vecStart[1] = cgi.MSG_ReadCoord();
+				vecStart[2] = cgi.MSG_ReadCoord();
+				vecEnd[0] = cgi.MSG_ReadCoord();
+				vecEnd[1] = cgi.MSG_ReadCoord();
+				vecEnd[2] = cgi.MSG_ReadCoord();
 				CG_MeleeImpact(vecStart,vecEnd);
 				break;
 			case 12: // m1 frag/stiel grenade explosion
 			case 13: // bazooka/panzershrek projectile explosion
-				vecStart[0] = trap_MSG_ReadCoord();
-				vecStart[1] = trap_MSG_ReadCoord();
-				vecStart[2] = trap_MSG_ReadCoord();
+				vecStart[0] = cgi.MSG_ReadCoord();
+				vecStart[1] = cgi.MSG_ReadCoord();
+				vecStart[2] = cgi.MSG_ReadCoord();
 				CG_MakeExplosionEffect(vecStart,msgtype);
 				break;
 			default: //unknown message
@@ -535,18 +517,18 @@ void CG_ParseCGMessage() {
 			case 20:
 			case 21: // oil barrel effect top
 			case 22: // oil barrel effect top - first hit
-				vecStart[0] = trap_MSG_ReadCoord();
-				vecStart[1] = trap_MSG_ReadCoord();
-				vecStart[2] = trap_MSG_ReadCoord();
-				trap_MSG_ReadDir( vecEnd );
+				vecStart[0] = cgi.MSG_ReadCoord();
+				vecStart[1] = cgi.MSG_ReadCoord();
+				vecStart[2] = cgi.MSG_ReadCoord();
+				cgi.MSG_ReadDir( vecEnd );
 				CG_MakeEffect_Normal(msgtype/* + 67*/,vecStart,vecEnd);
 				break;
 			case 23: // broke crate
 			case 24: // broke glass window
-				vecStart[0] = trap_MSG_ReadCoord();
-				vecStart[1] = trap_MSG_ReadCoord();
-				vecStart[2] = trap_MSG_ReadCoord();
-				i = trap_MSG_ReadByte();
+				vecStart[0] = cgi.MSG_ReadCoord();
+				vecStart[1] = cgi.MSG_ReadCoord();
+				vecStart[2] = cgi.MSG_ReadCoord();
+				i = cgi.MSG_ReadByte();
 				if(msgtype == 23) {
 					s = va("models/fx/crates/debris_%i.tik",i);
 				} else {
@@ -555,18 +537,18 @@ void CG_ParseCGMessage() {
 				CG_SpawnEffectModel(s, vecStart);
 				break;
 			case 25: // Bullet tracer
-				vecTmp[0] = trap_MSG_ReadCoord();
-				vecTmp[1] = trap_MSG_ReadCoord();
-				vecTmp[2] = trap_MSG_ReadCoord();
-				vecStart[0] = trap_MSG_ReadCoord();
-				vecStart[1] = trap_MSG_ReadCoord();
-				vecStart[2] = trap_MSG_ReadCoord();
+				vecTmp[0] = cgi.MSG_ReadCoord();
+				vecTmp[1] = cgi.MSG_ReadCoord();
+				vecTmp[2] = cgi.MSG_ReadCoord();
+				vecStart[0] = cgi.MSG_ReadCoord();
+				vecStart[1] = cgi.MSG_ReadCoord();
+				vecStart[2] = cgi.MSG_ReadCoord();
 
-				vecArray[0][0] = trap_MSG_ReadCoord();
-				vecArray[0][1] = trap_MSG_ReadCoord();
-				vecArray[0][2] = trap_MSG_ReadCoord();
+				vecArray[0][0] = cgi.MSG_ReadCoord();
+				vecArray[0][1] = cgi.MSG_ReadCoord();
+				vecArray[0][2] = cgi.MSG_ReadCoord();
 
-				iLarge = trap_MSG_ReadBits( 1 );
+				iLarge = cgi.MSG_ReadBits( 1 );
 
 				CG_MakeBulletTracer(vecTmp,vecStart,vecArray,1,iLarge,0,1);				
 				break;
@@ -574,21 +556,21 @@ void CG_ParseCGMessage() {
 				vecTmp[0] = 0;
 				vecTmp[1] = 0;
 				vecTmp[2] = 0;
-				vecStart[0] = trap_MSG_ReadCoord();
-				vecStart[1] = trap_MSG_ReadCoord();
-				vecStart[2] = trap_MSG_ReadCoord();
+				vecStart[0] = cgi.MSG_ReadCoord();
+				vecStart[1] = cgi.MSG_ReadCoord();
+				vecStart[2] = cgi.MSG_ReadCoord();
 
-				vecArray[0][0] = trap_MSG_ReadCoord();
-				vecArray[0][1] = trap_MSG_ReadCoord();
-				vecArray[0][2] = trap_MSG_ReadCoord();
+				vecArray[0][0] = cgi.MSG_ReadCoord();
+				vecArray[0][1] = cgi.MSG_ReadCoord();
+				vecArray[0][2] = cgi.MSG_ReadCoord();
 
-				iLarge = trap_MSG_ReadBits( 1 );
+				iLarge = cgi.MSG_ReadBits( 1 );
 				CG_MakeBulletTracer(vecTmp,vecStart,vecArray,1,iLarge,0,1);
 				break;
 			case 27: // HUD drawing...
-				i = trap_MSG_ReadByte();
+				i = cgi.MSG_ReadByte();
 				hde = hdelements + i;
-				Q_strncpyz( hde->shaderName, trap_MSG_ReadString(), sizeof(hde->shaderName) );
+				Q_strncpyz( hde->shaderName, cgi.MSG_ReadString(), sizeof(hde->shaderName) );
 				hde->string[0] = 0;
 				memset(&hde->pFont,0,sizeof(hde->pFont));
 				hde->fontName[0] = 0;	
@@ -596,46 +578,46 @@ void CG_ParseCGMessage() {
 				CG_HudDrawShader(i);
 				break;
 			case 28: // HUD drawing...
-				i = trap_MSG_ReadByte();
+				i = cgi.MSG_ReadByte();
 				hde = hdelements + i;
-				hde->iHorizontalAlign = trap_MSG_ReadBits( 2 );
-				hde->iHorizontalAlign = trap_MSG_ReadBits( 2 );
+				hde->iHorizontalAlign = cgi.MSG_ReadBits( 2 );
+				hde->iHorizontalAlign = cgi.MSG_ReadBits( 2 );
 				break;
 			case 29:
-				i = trap_MSG_ReadByte();
+				i = cgi.MSG_ReadByte();
 				hde = hdelements + i;
-				hde->iX = trap_MSG_ReadShort();
-				hde->iY = trap_MSG_ReadShort();
-				hde->iWidth = trap_MSG_ReadShort();
-				hde->iHeight = trap_MSG_ReadShort();
+				hde->iX = cgi.MSG_ReadShort();
+				hde->iY = cgi.MSG_ReadShort();
+				hde->iWidth = cgi.MSG_ReadShort();
+				hde->iHeight = cgi.MSG_ReadShort();
 				break;
 			case 30:
-				i = trap_MSG_ReadByte();
+				i = cgi.MSG_ReadByte();
 				hde = hdelements + i;
-				hde->bVirtualScreen = trap_MSG_ReadBits( 1 );
+				hde->bVirtualScreen = cgi.MSG_ReadBits( 1 );
 				break;
 			case 31: // huddraw_color
-				i = trap_MSG_ReadByte();
+				i = cgi.MSG_ReadByte();
 				hde = hdelements + i;
-				hde->vColor[0] = trap_MSG_ReadByte()*0.003921568859368563;
-				hde->vColor[1] = trap_MSG_ReadByte()*0.003921568859368563;
-				hde->vColor[2] = trap_MSG_ReadByte()*0.003921568859368563;
+				hde->vColor[0] = cgi.MSG_ReadByte()*0.003921568859368563;
+				hde->vColor[1] = cgi.MSG_ReadByte()*0.003921568859368563;
+				hde->vColor[2] = cgi.MSG_ReadByte()*0.003921568859368563;
 				break;
 			case 32: // huddraw_alpha
-				i = trap_MSG_ReadByte();
+				i = cgi.MSG_ReadByte();
 				hde = hdelements + i;
-				hde->vColor[3] = trap_MSG_ReadByte()*0.003921568859368563;
+				hde->vColor[3] = cgi.MSG_ReadByte()*0.003921568859368563;
 				break;
 			case 33: // huddraw_string
-				i = trap_MSG_ReadByte();
+				i = cgi.MSG_ReadByte();
 				hde = hdelements + i;
 				hde->hShader = 0;
-				Q_strncpyz( hde->string, trap_MSG_ReadString(), sizeof(hde->string) );
+				Q_strncpyz( hde->string, cgi.MSG_ReadString(), sizeof(hde->string) );
 				break;
 			case 34: // huddraw_font
-				i = trap_MSG_ReadByte();
+				i = cgi.MSG_ReadByte();
 				hde = hdelements + i;
-				Q_strncpyz( hde->fontName, trap_MSG_ReadString(), sizeof(hde->fontName) );
+				Q_strncpyz( hde->fontName, cgi.MSG_ReadString(), sizeof(hde->fontName) );
 				hde->hShader = 0;
 				hde->shaderName[0] = 0;
 				CG_HudDrawFont(i);
@@ -646,15 +628,15 @@ void CG_ParseCGMessage() {
 				//CG_PlaySound(s, 0, 5, 2.0, -1.0, vecStart, 1);
 				break;
 			case 37: // voicechat message (squad command, taunt, etc...)
-				vecStart[0] = trap_MSG_ReadCoord();
-				vecStart[1] = trap_MSG_ReadCoord();
-				vecStart[2] = trap_MSG_ReadCoord();
+				vecStart[0] = cgi.MSG_ReadCoord();
+				vecStart[1] = cgi.MSG_ReadCoord();
+				vecStart[2] = cgi.MSG_ReadCoord();
 
-				iTemp = trap_MSG_ReadBits( 1 );
+				iTemp = cgi.MSG_ReadBits( 1 );
 				// read client index
-				i = trap_MSG_ReadBits( 6 );
+				i = cgi.MSG_ReadBits( 6 );
 				// read voicechat sound alias
-				s = trap_MSG_ReadString();
+				s = cgi.MSG_ReadString();
 
 				if(iTemp) {
 					current_entity_number = i;
@@ -667,5 +649,5 @@ void CG_ParseCGMessage() {
 					CG_PlaySound(s,vecStart,5,-1.0,-1.0,-1.0,0);
 				break;
 		}
-	} while ( trap_MSG_ReadBits(1) );
+	} while ( cgi.MSG_ReadBits(1) );
 }

@@ -4894,7 +4894,7 @@ static void SortNewShader(void)
 
 	// Arnout: fix rendercommandlist
 	// https://zerowing.idsoftware.com/bugzilla/show_bug.cgi?id=493
-	FixRenderCommandList(i + 1);
+	//FixRenderCommandList(i + 1);
 
 	newShader->sortedIndex = i + 1;
 	tr.sortedShaders[i + 1] = newShader;
@@ -6197,6 +6197,7 @@ static void ScanAndLoadGuideFiles(void)
 	int             guideTextHashTableSizes[MAX_GUIDETEXT_HASH], hash, size;
 	char            filename[MAX_QPATH];
 	long            sum = 0;
+	int				num;
 
 	ri.Printf(PRINT_ALL, "----- ScanAndLoadGuideFiles -----\n");
 
@@ -6205,7 +6206,7 @@ static void ScanAndLoadGuideFiles(void)
 	Com_Memset(guideTextHashTable, 0, sizeof(guideTextHashTable));
 
 	// scan for guide files
-	guideFiles = ri.FS_ListFiles("guides", ".guide", &numGuides);
+	guideFiles = ri.FS_ListFiles( "guides", ".guide", qfalse, &numGuides );
 
 	if(!guideFiles || !numGuides)
 	{
@@ -6434,9 +6435,9 @@ static void ScanAndLoadShaderFiles(void)
 
 	// scan for shader files
 #if defined(COMPAT_Q3A) || defined(COMPAT_ET)
-	shaderFiles = ri.FS_ListFiles("scripts", ".shader", &numShaders);
+	shaderFiles = ri.FS_ListFiles("scripts", ".shader", qfalse, &numShaders);
 #else
-	shaderFiles = ri.FS_ListFiles("materials", ".mtr", &numShaders);
+	shaderFiles = ri.FS_ListFiles("materials", ".mtr", qfalse, &numShaders);
 #endif
 
 	if(!shaderFiles || !numShaders)

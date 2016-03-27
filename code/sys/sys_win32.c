@@ -39,6 +39,17 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 // Used to determine where to store user-specific files
 static char homePath[ MAX_OSPATH ] = { 0 };
+static char programpath[ MAX_OSPATH ] = { 0 };
+
+/*
+================
+RecoverLostAutodialData
+================
+*/
+void RecoverLostAutodialData( void )
+{
+	// FIXME: stub
+}
 
 /*
 ================
@@ -95,6 +106,56 @@ char *Sys_DefaultHomePath( void )
 
 /*
 ================
+SetProgramPath
+================
+*/
+void SetProgramPath( const char *path )
+{
+	char *p;
+
+	Q_strncpyz( programpath, path, sizeof( programpath ) );
+
+	p = strrchr( programpath, '/' );
+	if( p ) {
+		*p = 0;
+	}
+}
+
+/*
+================
+Sys_DefaultBasePath
+================
+*/
+char *Sys_DefaultBasePath( void )
+{
+	static char basepath[ 256 ];
+
+	Q_strncpyz( basepath, programpath, sizeof( basepath ) );
+	return basepath;
+}
+
+/*
+================
+Sys_DefaultUserPath
+================
+*/
+char *Sys_DefaultUserPath( void )
+{
+	return Sys_DefaultBasePath();
+}
+
+/*
+================
+Sys_DefaultUserPath
+================
+*/
+char *Sys_DefaultOutputPath( void )
+{
+	return Sys_DefaultUserPath();
+}
+
+/*
+================
 Sys_Milliseconds
 ================
 */
@@ -121,6 +182,7 @@ Sys_SnapVector
 */
 void Sys_SnapVector( float *v )
 {
+#ifndef _WIN64
 	int i;
 	float f;
 
@@ -138,6 +200,11 @@ void Sys_SnapVector( float *v )
 	__asm	fld		f;
 	__asm	fistp	i;
 	*v = i;
+#else
+	v[ 0 ] = rint( v[ 0 ] );
+	v[ 1 ] = rint( v[ 1 ] );
+	v[ 2 ] = rint( v[ 2 ] );
+#endif
 }
 #endif
 
@@ -227,6 +294,26 @@ qboolean Sys_LowPhysicalMemory( void )
 }
 
 /*
+==================
+SetNormalThreadPriority
+==================
+*/
+void SetNormalThreadPriority( void )
+{
+	SetThreadPriority( GetCurrentThread(), THREAD_PRIORITY_NORMAL );
+}
+
+/*
+==================
+SetBelowNormalThreadPriority
+==================
+*/
+void SetBelowNormalThreadPriority( void )
+{
+	SetThreadPriority( GetCurrentThread(), THREAD_PRIORITY_BELOW_NORMAL );
+}
+
+/*
 ==============
 Sys_Basename
 ==============
@@ -234,7 +321,7 @@ Sys_Basename
 const char *Sys_Basename( char *path )
 {
 	static char base[ MAX_OSPATH ] = { 0 };
-	int length;
+	size_t length;
 
 	length = strlen( path ) - 1;
 
@@ -264,7 +351,7 @@ Sys_Dirname
 const char *Sys_Dirname( char *path )
 {
 	static char dir[ MAX_OSPATH ] = { 0 };
-	int length;
+	size_t length;
 
 	Q_strncpyz( dir, path, sizeof( dir ) );
 	length = strlen( dir ) - 1;
@@ -316,11 +403,11 @@ DIRECTORY SCANNING
 Sys_ListFilteredFiles
 ==============
 */
-void Sys_ListFilteredFiles( const char *basedir, char *subdirs, char *filter, char **list, int *numfiles )
+void Sys_ListFilteredFiles( const char *basedir, char *subdirs, char *filter, const char **list, int *numfiles )
 {
 	char		search[MAX_OSPATH], newsubdirs[MAX_OSPATH];
 	char		filename[MAX_OSPATH];
-	int			findhandle;
+	intptr_t	findhandle;
 	struct _finddata_t findinfo;
 
 	if ( *numfiles >= MAX_FOUND_FILES - 1 ) {
@@ -371,7 +458,7 @@ strgtr
 */
 static qboolean strgtr(const char *s0, const char *s1)
 {
-	int l0, l1, i;
+	size_t l0, l1, i;
 
 	l0 = strlen(s0);
 	l1 = strlen(s1);
@@ -403,7 +490,7 @@ char **Sys_ListFiles( const char *directory, const char *extension, char *filter
 	char		**listCopy;
 	char		*list[MAX_FOUND_FILES];
 	struct _finddata_t findinfo;
-	int			findhandle;
+	intptr_t	findhandle;
 	int			flag;
 	int			i;
 
@@ -530,12 +617,12 @@ void Sys_Sleep( int msec )
 
 /*
 ==============
-Sys_ErrorDialog
+SyScriptErrorDialog
 
 Display an error message
 ==============
 */
-void Sys_ErrorDialog( const char *error )
+void SyScriptErrorDialog( const char *error )
 {
 	if( MessageBox( NULL, va( "%s. Copy console log to clipboard?", error ),
 			NULL, MB_YESNO|MB_ICONERROR ) == IDYES )
@@ -550,7 +637,7 @@ void Sys_ErrorDialog( const char *error )
 		{
 			char *p = clipMemory;
 			char buffer[ 1024 ];
-			unsigned int size;
+			size_t size;
 
 			while( ( size = CON_LogRead( buffer, sizeof( buffer ) ) ) > 0 )
 			{
@@ -567,4 +654,147 @@ void Sys_ErrorDialog( const char *error )
 			CloseClipboard( );
 		}
 	}
+}
+
+/*
+==============
+Sys_CloseMutex
+==============
+*/
+void Sys_CloseMutex( void )
+{
+	// FIXME: stub
+}
+
+/*
+==============
+Sys_ShowConsole
+==============
+*/
+void Sys_ShowConsole( int visLevel, qboolean quitOnClose )
+{
+	// FIXME: stub
+}
+
+/*
+==============
+Sys_PumpMessageLoop
+==============
+*/
+void Sys_PumpMessageLoop( void )
+{
+	// FIXME: stub
+}
+
+/*
+==============
+Sys_Dialog
+Display a win32 dialog box
+==============
+*/
+dialogResult_t Sys_Dialog( dialogType_t type, const char *message, const char *title )
+{
+	UINT uType;
+
+	switch( type )
+	{
+		default:
+		case DT_INFO:      uType = MB_ICONINFORMATION|MB_OK; break;
+		case DT_WARNING:   uType = MB_ICONWARNING|MB_OK; break;
+		case DT_ERROR:     uType = MB_ICONERROR|MB_OK; break;
+		case DT_YES_NO:    uType = MB_ICONQUESTION|MB_YESNO; break;
+		case DT_OK_CANCEL: uType = MB_ICONWARNING|MB_OKCANCEL; break;
+	}
+
+	switch( MessageBox( NULL, message, title, uType ) )
+	{
+		default:
+		case IDOK:      return DR_OK;
+		case IDCANCEL:  return DR_CANCEL;
+		case IDYES:     return DR_YES;
+		case IDNO:      return DR_NO;
+	}
+}
+
+/*
+==============
+SaveRegistryInfo
+==============
+*/
+qboolean SaveRegistryInfo( qboolean user, const char *pszName, void *pvBuf, long lSize )
+{
+	STUB_DESC( "not implemented" );
+	return qfalse;
+}
+
+/*
+==============
+LoadRegistryInfo
+==============
+*/
+qboolean LoadRegistryInfo( qboolean user, const char *pszName, void *pvBuf, long *plSize )
+{
+	STUB_DESC( "not implemented" );
+	return qfalse;
+}
+
+/*
+==============
+IsFirstRun
+==============
+*/
+qboolean IsFirstRun( void )
+{
+	STUB_DESC( "wtf" );
+	return qfalse;
+}
+
+/*
+==============
+IsNewConfig
+==============
+*/
+qboolean IsNewConfig( void )
+{
+	STUB_DESC( "wtf" );
+	return qfalse;
+}
+
+/*
+==============
+IsSafeMode
+==============
+*/
+qboolean IsSafeMode( void )
+{
+	STUB_DESC( "wtf" );
+	return qfalse;
+}
+
+/*
+==============
+ClearNewConfigFlag
+==============
+*/
+void ClearNewConfigFlag( void )
+{
+}
+
+/*
+==============
+Sys_GetWholeClipboard
+==============
+*/
+const char *Sys_GetWholeClipboard( void )
+{
+	return NULL;
+}
+
+/*
+==============
+Sys_SetClipboard
+==============
+*/
+void Sys_SetClipboard( const char *contents )
+{
 }

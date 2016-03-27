@@ -129,7 +129,7 @@ int AAS_UpdatePortal(int areanum, int clusternum)
 	//
 	if (portalnum == aasworld.numportals)
 	{
-		AAS_Error("no portal of area %d", areanum);
+		AAScriptError("no portal of area %d", areanum);
 		return qtrue;
 	} //end if
 	//
@@ -156,7 +156,7 @@ int AAS_UpdatePortal(int areanum, int clusternum)
 	} //end else
 	if (aasworld.portalindexsize >= AAS_MAX_PORTALINDEXSIZE)
 	{
-		AAS_Error("AAS_MAX_PORTALINDEXSIZE");
+		AAScriptError("AAS_MAX_PORTALINDEXSIZE");
 		return qtrue;
 	} //end if
 	//set the area cluster number to the negative portal number
@@ -183,7 +183,7 @@ int AAS_FloodClusterAreas_r(int areanum, int clusternum)
 	//
 	if (areanum <= 0 || areanum >= aasworld.numareas)
 	{
-		AAS_Error("AAS_FloodClusterAreas_r: areanum out of range");
+		AAScriptError("AAS_FloodClusterAreas_r: areanum out of range");
 		return qfalse;
 	} //end if
 	//if the area is already part of a cluster
@@ -193,7 +193,7 @@ int AAS_FloodClusterAreas_r(int areanum, int clusternum)
 		//
 		//there's a reachability going from one cluster to another only in one direction
 		//
-		AAS_Error("cluster %d touched cluster %d at area %d\r\n",
+		AAScriptError("cluster %d touched cluster %d at area %d\r\n",
 				clusternum, aasworld.areasettings[areanum].cluster, areanum);
 		return qfalse;
 	} //end if
@@ -409,7 +409,7 @@ int AAS_FindClusters(void)
 			continue;
 		if (aasworld.numclusters >= AAS_MAX_CLUSTERS)
 		{
-			AAS_Error("AAS_MAX_CLUSTERS");
+			AAScriptError("AAS_MAX_CLUSTERS");
 			return qfalse;
 		} //end if
 		cluster = &aasworld.clusters[aasworld.numclusters];
@@ -448,7 +448,7 @@ void AAS_CreatePortals(void)
 		{
 			if (aasworld.numportals >= AAS_MAX_PORTALS)
 			{
-				AAS_Error("AAS_MAX_PORTALS");
+				AAScriptError("AAS_MAX_PORTALS");
 				return;
 			} //end if
 			portal = &aasworld.portals[aasworld.numportals];
@@ -775,7 +775,7 @@ int AAS_GetAdjacentAreasWithLessPresenceTypes_r(int *areanums, int numareas, int
 			{
 				if (numareas >= MAX_PORTALAREAS)
 				{
-					AAS_Error("MAX_PORTALAREAS");
+					AAScriptError("MAX_PORTALAREAS");
 					return numareas;
 				} //end if
 				numareas = AAS_GetAdjacentAreasWithLessPresenceTypes_r(areanums, numareas, otherareanum);
@@ -987,7 +987,7 @@ void AAS_FloodCluster_r(int areanum, int clusternum)
 		if (!otherareanum)
 		{
 			continue;
-			AAS_Error("reachability %d has zero area\n", aasworld.areasettings[areanum].firstreachablearea + i);
+			AAScriptError("reachability %d has zero area\n", aasworld.areasettings[areanum].firstreachablearea + i);
 		} //end if
 		//if the area is a portal
 		if (aasworld.areasettings[otherareanum].contents & AREACONTENTS_CLUSTERPORTAL) continue;

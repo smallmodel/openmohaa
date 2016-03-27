@@ -24,7 +24,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "tr_local.h"
 
 #include "../png/png.h"
-
+#include "../png/pngstruct.h"
 
 
 /*
@@ -54,7 +54,7 @@ static void png_user_warning_fn(png_structp png_ptr, png_const_charp warning_mes
 static void png_user_error_fn(png_structp png_ptr, png_const_charp error_message)
 {
 	ri.Printf(PRINT_ERROR, "libpng error: %s\n", error_message);
-	longjmp(png_ptr->jmpbuf, 0);
+	longjmp( png_ptr->jmp_buf_ptr, 0 );
 }
 
 void LoadPNG(const char *name, byte ** pic, int *width, int *height, byte alphaByte)

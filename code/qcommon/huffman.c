@@ -322,7 +322,9 @@ void Huff_offsetTransmit (huff_t *huff, int ch, byte *fout, int *offset) {
 }
 
 void Huff_Decompress(msg_t *mbuf, int offset) {
-	int			ch, cch, i, j, size;
+	int			ch, i, j;
+	size_t		cch;
+	size_t		size;
 	byte		seq[65536];
 	byte*		buffer;
 	huff_t		huff;
@@ -376,7 +378,8 @@ void Huff_Decompress(msg_t *mbuf, int offset) {
 extern 	int oldsize;
 
 void Huff_Compress(msg_t *mbuf, int offset) {
-	int			i, ch, size;
+	int			i, ch;
+	size_t		size;
 	byte		seq[65536];
 	byte*		buffer;
 	huff_t		huff;
@@ -397,8 +400,8 @@ void Huff_Compress(msg_t *mbuf, int offset) {
 	huff.tree->parent = huff.tree->left = huff.tree->right = NULL;
 	huff.loc[NYT] = huff.tree;
 
-	seq[0] = (size>>8);
-	seq[1] = size&0xff;
+	seq[0] = ( byte )(size>>8);
+	seq[1] = ( byte )size&0xff;
 
 	bloc = 16;
 

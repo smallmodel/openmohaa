@@ -85,11 +85,11 @@ int qftol0E7F( void );
 int qftol0F7F( void );
 
 
-static	int		ftolPtr = (int)qftol0F7F;
+static	int		ftolPtr = (int)0;
 #endif // FTOL_PTR
 
 void doAsmCall( void );
-static	int		asmCallPtr = (int)doAsmCall;
+static	int		asmCallPtr = (int)0;
 #endif
 
 

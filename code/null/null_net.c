@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ===========================================================================
 */
 
+#include "../qcommon/q_shared.h"
 #include "../qcommon/qcommon.h"
 
 /*
@@ -33,15 +34,15 @@ idnewt:28000
 192.246.40.70:28000
 =============
 */
-qboolean	NET_StringToAdr (char *s, netadr_t *a)
+qboolean	NET_StringToAdr ( const char *s, netadr_t *a)
 {	
 	if (!strcmp (s, "localhost")) {
 		memset (a, 0, sizeof(*a));
 		a->type = NA_LOOPBACK;
-		return true;
+		return qtrue;
 	}
 
-	return false;
+	return qfalse;
 }
 
 /*
@@ -60,5 +61,26 @@ Never called by the game logic, just the system event queing
 ==================
 */
 qboolean	Sys_GetPacket ( netadr_t *net_from, msg_t *net_message ) {
-	return false;
+	return qfalse;
 }
+
+void NET_Init( void ) {
+}
+
+void NET_FlushPacketQueue( void ) {
+}
+
+qboolean NET_GetLoopPacket( netsrc_t sock, netadr_t *net_from, msg_t *net_message ) {
+	return qfalse;
+}
+
+void Netchan_Init( int port ) {
+}
+
+/*
+void MSG_Init( msg_t *buf, byte *data, int length ) {
+}
+
+void MSG_ReportChangeVectors_f( void ) {
+}
+*/

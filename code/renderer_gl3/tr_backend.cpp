@@ -3006,7 +3006,7 @@ static void RB_RenderInteractionsShadowMapped()
 
 		if(drawShadows)
 		{
-			if(entity->e.renderfx & (RF_NOSHADOW | RF_DEPTHHACK))
+			if(entity->e.renderfx & (RF_DEPTHHACK))
 			{
 				goto skipInteraction;
 			}
@@ -6014,7 +6014,7 @@ static void RB_RenderInteractionsDeferredShadowMapped()
 
 		if(drawShadows)
 		{
-			if(entity->e.renderfx & (RF_NOSHADOW | RF_DEPTHHACK))
+			if(entity->e.renderfx & (RF_DEPTHHACK))
 			{
 				goto skipInteraction;
 			}

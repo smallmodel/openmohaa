@@ -27,6 +27,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../qcommon/q_shared.h"
 #include "../qcommon/qcommon.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct snd_info_s
 {
 	int rate;
@@ -102,6 +106,10 @@ void *S_MP3_CodecLoad(const char *filename, snd_info_t *info);
 snd_stream_t *S_MP3_CodecOpenStream(const char *filename);
 void S_MP3_CodecCloseStream(snd_stream_t *stream);
 int S_MP3_CodecReadStream(snd_stream_t *stream, int bytes, void *buffer);
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif // !_SND_CODEC_H_

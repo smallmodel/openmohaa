@@ -86,7 +86,7 @@ void CG_Rain(centity_t *cent) {
 	fcolor[3] = 1.f;
 	//if ( !cg_rain.integer  )
 	//		return;
-	trap_R_ModelBounds(cgs.gameModels[cent->currentState.modelindex],mins,maxs);
+	cgi.R_ModelBounds(cgs.gameModels[cent->currentState.modelindex],mins,maxs);
 
 	tMins[0] = mins[0] + cent->lerpOrigin[0];
 	f = cg.snap->ps.origin[0] - cg.rain.min_dist;

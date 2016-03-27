@@ -202,7 +202,7 @@ void *S_WAV_CodecLoad(const char *filename, snd_info_t *info)
 	void *buffer;
 
 	// Try to open the file
-	FS_FOpenFileRead(filename, &file, qtrue);
+	FS_FOpenFileRead(filename, &file, qtrue, qtrue);
 	if(!file)
 	{
 		Com_Printf( S_COLOR_RED "ERROR: Could not open \"%s\"\n",

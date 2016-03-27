@@ -40,7 +40,7 @@ void CG_ParseServerinfo( void ) {
 
 	info = CG_ConfigString( CS_SERVERINFO );
 	cgs.gametype = atoi( Info_ValueForKey( info, "g_gametype" ) );
-	trap_Cvar_Set("g_gametype", va("%i", cgs.gametype));
+	cgi.Cvar_Set("g_gametype", va("%i", cgs.gametype));
 	cgs.dmflags = atoi( Info_ValueForKey( info, "dmflags" ) );
 	cgs.teamflags = atoi( Info_ValueForKey( info, "teamflags" ) );
 	cgs.fraglimit = atoi( Info_ValueForKey( info, "fraglimit" ) );
@@ -49,7 +49,7 @@ void CG_ParseServerinfo( void ) {
 	cgs.maxclients = atoi( Info_ValueForKey( info, "sv_maxclients" ) );
 	mapname = Info_ValueForKey( info, "mapname" );
 	Com_sprintf( cgs.mapname, sizeof( cgs.mapname ), "maps/%s.bsp", mapname );
-	trap_Cvar_Set( "cg_scoreboardpic", Info_ValueForKey( info,"g_scoreboardpic" ) );
+	cgi.Cvar_Set( "cg_scoreboardpic", Info_ValueForKey( info,"g_scoreboardpic" ) );
 }
 
 /*
@@ -71,7 +71,7 @@ static void CG_ParseWarmup( void ) {
 	} else if ( warmup > 0 && cg.warmup <= 0 ) {
 
 		{
-//			trap_S_StartLocalSound( cgs.media.countPrepareSound, CHAN_ANNOUNCER );
+//			cgi.S_StartLocalSound( cgs.media.countPrepareSound, CHAN_ANNOUNCER );
 		}
 	}
 
@@ -105,7 +105,7 @@ static void CG_ConfigStringModified( void ) {
 
 	// get the gamestate from the client system, which will have the
 	// new configstring already integrated
-	trap_GetGameState( &cgs.gameState );
+	cgi.GetGameState( &cgs.gameState );
 
 	// look up the individual string that was modified
 	str = CG_ConfigString( num );
@@ -125,9 +125,9 @@ static void CG_ConfigStringModified( void ) {
 	} else if ( num == CS_LEVEL_START_TIME ) {
 		cgs.levelStartTime = atoi( str );
 	} else if ( num >= CS_MODELS && num < CS_MODELS+MAX_MODELS ) {
-		cgs.gameModels[ num-CS_MODELS ] = trap_R_RegisterModel( str );
+		cgs.gameModels[ num-CS_MODELS ] = cgi.R_RegisterModel( str );
 		if(str[0] && str[0] != '*') {
-			cgs.gameTIKIs[num-CS_MODELS] = trap_TIKI_RegisterModel( str );
+			cgs.gameTIKIs[num-CS_MODELS] = cgi.TIKI_RegisterModel( str );
 			if(cgs.gameTIKIs[num-CS_MODELS] == 0) {
 				CG_Printf("CG_ConfigStringModified: failed to load tiki file %s (%i)\n",str,num-CS_MODELS);
 			}
@@ -137,11 +137,11 @@ static void CG_ConfigStringModified( void ) {
 			Q_strncpyz( buffer, str, sizeof(buffer) );
 			if (buffer[strlen( buffer )-1] == '0' || buffer[strlen( buffer )-1] == '1')
 				buffer[strlen( buffer )-1] = 0;
-			cgs.gameSounds[ num-CS_SOUNDS] = trap_S_RegisterSound( buffer, qfalse );
+			cgs.gameSounds[ num-CS_SOUNDS] = cgi.S_RegisterSound( buffer, qfalse );
 		}
 	} else if ( num >= CS_PLAYERS && num < CS_PLAYERS+MAX_CLIENTS ) {
 		CG_NewClientInfo( num - CS_PLAYERS );
-	} else if ( num >= CS_WEAPONS && num < CS_UNKNOWN) {
+	} else if( num >= CS_WEAPONS && num < CS_TEAMS ) {
 		CG_RegisterItemName(num - CS_WEAPONS, str);
 	} 	
 }
@@ -159,13 +159,13 @@ static void CG_AddToTeamChat( const char *str ) {
 	int lastcolor;
 	int chatHeight;
 
-	if (cg_teamChatHeight.integer < TEAMCHAT_HEIGHT) {
-		chatHeight = cg_teamChatHeight.integer;
+	if (cg_teamChatHeight->integer < TEAMCHAT_HEIGHT) {
+		chatHeight = cg_teamChatHeight->integer;
 	} else {
 		chatHeight = TEAMCHAT_HEIGHT;
 	}
 
-	if (chatHeight <= 0 || cg_teamChatTime.integer <= 0) {
+	if (chatHeight <= 0 || cg_teamChatTime->integer <= 0) {
 		// team chat disabled, dump into normal chat
 		cgs.teamChatPos = cgs.teamLastChatPos = 0;
 		return;
@@ -232,7 +232,7 @@ require a reload of all the media
 ===============
 */
 static void CG_MapRestart( void ) {
-	if ( cg_showmiss.integer ) {
+	if ( cg_showmiss->integer ) {
 		CG_Printf( "CG_MapRestart\n" );
 	}
 
@@ -249,17 +249,17 @@ static void CG_MapRestart( void ) {
 
 	CG_StartMusic();
 
-	trap_S_ClearLoopingSounds(qtrue);
+	cgi.S_ClearLoopingSounds(qtrue);
 
 	// we really should clear more parts of cg here and stop sounds
 
 	// play the "fight" sound if this is a restart without warmup
 	if ( cg.warmup == 0 /* && cgs.gametype == GT_TOURNAMENT */) {
-//		trap_S_StartLocalSound( cgs.media.countFightSound, CHAN_ANNOUNCER );
+//		cgi.S_StartLocalSound( cgs.media.countFightSound, CHAN_ANNOUNCER );
 		CG_CenterPrint( "FIGHT!", 120, GIANTCHAR_WIDTH*2 );
 	}
 
-	trap_Cvar_Set("cg_thirdPerson", "0");
+	cgi.Cvar_Set("cg_thirdPerson", "0");
 }
 
 /*
@@ -314,10 +314,11 @@ sane commands...
 =================
 */
 void CG_StufftextCommand( const char *cmd ) {
-	int		i;
-	char	*ptr,*ptr2;
+	int			i;
+	char		*ptr;
+	const char	*ptr2;
 
-	ptr = (char*)cmd;
+	ptr = ( char * )cmd;
 	ptr2 = COM_Parse(&ptr);
 	for ( i = 0 ; i < sizeof( stufftextBlock ) / sizeof( stufftextBlock[0] ) ; i++ ) {
 		if ( !Q_stricmp( ptr2, stufftextBlock[i] ) ) {
@@ -327,12 +328,12 @@ void CG_StufftextCommand( const char *cmd ) {
 	// wombat: some servers use ST commands for anti-cheat measures
 	// we don't use the whitelist right now...
 	Com_Printf( "^3Executing stufftext command: \"%s\"\n", cmd ); 
-	trap_SendConsoleCommand( cmd );
+	cgi.SendConsoleCommand( cmd );
 	return;
 
 	for ( i = 0 ; i < sizeof( stufftextSafe ) / sizeof( stufftextSafe[0] ) ; i++ ) {
 		if ( !Q_stricmp( ptr2, stufftextSafe[i].cmd ) ) {
-			trap_SendConsoleCommand( cmd );
+			cgi.SendConsoleCommand( cmd );
 			return;
 		}
 	}
@@ -358,7 +359,7 @@ void CG_AddGameMessage( const char *cmd, serverMessageType_t smt ) {
 			cg.gameMessageTypes[cg.gameMessagePtr2] = smt;
 			Q_strncpyz( cg.gameMessages[cg.gameMessagePtr2], cmd, sizeof(cg.gameMessages[cg.gameMessagePtr2]) );
 			CG_Printf( "Game Message: %s", cmd );
-			trap_S_StartLocalSound( click->sfxHandle, click->channel );
+			cgi.S_StartLocalSound( click->sfxHandle, click->channel );
 			cg.gameMessagePtr2 = (cg.gameMessagePtr2+1) % MAX_GAMEMESSAGES;
 			if ( cg.gameMessagePtr2 == cg.gameMessagePtr1 ) {
 				cg.gameMessagePtr1 = (cg.gameMessagePtr1+1) % MAX_GAMEMESSAGES;
@@ -367,7 +368,7 @@ void CG_AddGameMessage( const char *cmd, serverMessageType_t smt ) {
 			break;
 		case SMT_CHAT:
 			CG_Printf( "Chat: %s", cmd );
-			trap_S_StartLocalSound( click->sfxHandle, click->channel );
+			cgi.S_StartLocalSound( click->sfxHandle, click->channel );
 		case SMT_DEATH:
 			if ( cg.chatDeathMessageTime == 0 )
 				cg.chatDeathMessageTime = cg.time;
@@ -397,7 +398,6 @@ Cmd_Argc() / Cmd_Argv()
 */
 static void CG_ServerCommand( void ) {
 	const char	*cmd;
-	char		text[MAX_SAY_TEXT];
 	char		stufftextBuffer[512];
 	const char *ptr;
 	char		letter;
@@ -465,8 +465,8 @@ static void CG_ServerCommand( void ) {
 
 	// su44: chats are handled differently in MoH
 //	if ( !strcmp( cmd, "chat" ) ) {
-//		if ( !cg_teamChatsOnly.integer ) {
-////			trap_S_StartLocalSound( cgs.media.talkSound, CHAN_LOCAL_SOUND );
+//		if ( !cg_teamChatsOnly->integer ) {
+////			cgi.S_StartLocalSound( cgs.media.talkSound, CHAN_LOCAL_SOUND );
 //			Q_strncpyz( text, CG_Argv(1), MAX_SAY_TEXT );
 //			CG_RemoveChatEscapeChar( text );
 //			CG_Printf( "%s\n", text );
@@ -475,7 +475,7 @@ static void CG_ServerCommand( void ) {
 //	}
 //
 //	if ( !strcmp( cmd, "tchat" ) ) {
-////		trap_S_StartLocalSound( cgs.media.talkSound, CHAN_LOCAL_SOUND );
+////		cgi.S_StartLocalSound( cgs.media.talkSound, CHAN_LOCAL_SOUND );
 //		Q_strncpyz( text, CG_Argv(1), MAX_SAY_TEXT );
 //		CG_RemoveChatEscapeChar( text );
 //		CG_AddToTeamChat( text );
@@ -485,7 +485,7 @@ static void CG_ServerCommand( void ) {
 
 	if ( !strcmp( cmd, "scores" ) ) {
 		//CG_ParseScores();
-		trap_Args(cg.aScore,sizeof(cg.aScore));
+		Q_strncpyz( cg.aScore, cgi.Args(), sizeof( cg.aScore ) );
 		return;
 	}
 
@@ -493,25 +493,6 @@ static void CG_ServerCommand( void ) {
 	//	CG_MapRestart();
 	//	return;
 	//}
-
-	// su44: there is no remapShader in MoHAA
-	if ( Q_stricmp (cmd, "remapShader") == 0 )
-	{
-		if (trap_Argc() == 4)
-		{
-			char shader1[MAX_QPATH];
-			char shader2[MAX_QPATH];
-			char shader3[MAX_QPATH];
-
-			Q_strncpyz(shader1, CG_Argv(1), sizeof(shader1));
-			Q_strncpyz(shader2, CG_Argv(2), sizeof(shader2));
-			Q_strncpyz(shader3, CG_Argv(3), sizeof(shader3));
-
-			trap_R_RemapShader(shader1, shader2, shader3);
-		}
-		
-		return;
-	}
 
 	// clientLevelShot is sent before taking a special screenshot for
 	// the menu system during development
@@ -552,7 +533,7 @@ with this this snapshot.
 */
 void CG_ExecuteNewServerCommands( int latestSequence ) {
 	while ( cgs.serverCommandSequence < latestSequence ) {
-		if ( trap_GetServerCommand( ++cgs.serverCommandSequence ) ) {
+		if ( cgi.GetServerCommand( ++cgs.serverCommandSequence ) ) {
 			CG_ServerCommand();
 		}
 	}

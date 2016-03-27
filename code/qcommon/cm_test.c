@@ -160,7 +160,6 @@ void CM_BoxLeafnums_r( leafList_t *ll, int nodenum ) {
 			CM_BoxLeafnums_r( ll, node->children[0] );
 			nodenum = node->children[1];
 		}
-
 	}
 }
 
@@ -211,6 +210,16 @@ int CM_BoxBrushes( const vec3_t mins, const vec3_t maxs, cbrush_t **list, int li
 	CM_BoxLeafnums_r( &ll, 0 );
 
 	return ll.count;
+}
+
+/*
+==================
+CM_ShaderPointer
+==================
+*/
+baseshader_t *CM_ShaderPointer( int iShaderNum )
+{
+	return ( baseshader_t * )&cm.shaders[ iShaderNum ];
 }
 
 
@@ -270,6 +279,48 @@ int CM_PointContents( const vec3_t p, clipHandle_t model ) {
 	}
 
 	return contents;
+}
+
+/*
+==================
+CM_PointBrushNum
+==================
+*/
+int CM_PointBrushNum( const vec3_t p, clipHandle_t model ) {
+	int i, k;
+	int brushnum;
+	cLeaf_t *leaf;
+	cbrush_t *b;
+	cmodel_t *clipm;
+
+	if( !cm.numNodes ) {
+		return 0;
+	}
+
+	if( model ) {
+		clipm = CM_ClipHandleToModel( model );
+		leaf = &clipm->leaf;
+	} else {
+		leaf = &cm.leafs[ CM_PointLeafnum_r( p, 0 ) ];
+	}
+
+	for( k = 0; k<leaf->numLeafBrushes; k++ ) {
+		brushnum = cm.leafbrushes[ leaf->firstLeafBrush + k ];
+		b = &cm.brushes[ brushnum ];
+
+		// see if the point is in the brush
+		for( i = 0; i < b->numsides; i++ ) {
+			if( DotProduct( p, b->sides[ i ].plane->normal ) > b->sides[ i ].plane->dist ) {
+				return brushnum;
+			}
+		}
+
+		if( i == b->numsides ) {
+			return brushnum;
+		}
+	}
+
+	return -1;
 }
 
 /*
@@ -411,6 +462,54 @@ void	CM_AdjustAreaPortalState( int area1, int area2, qboolean open ) {
 
 /*
 ====================
+CM_ResetAreaPortals
+====================
+*/
+void	CM_ResetAreaPortals( void )
+{
+	memset( cm.areaPortals, 0, cm.numAreas * cm.numAreas * sizeof( cArea_t * ) );
+	CM_FloodAreaConnections();
+}
+
+/*
+====================
+CM_WritePortalState
+====================
+*/
+void	CM_WritePortalState( fileHandle_t f )
+{
+	FS_Write( &cm.numAreas, sizeof( int ), f );
+	FS_Write( &cm.areaPortals, cm.numAreas * cm.numAreas * sizeof( cArea_t * ), f );
+}
+
+/*
+====================
+CM_ReadPortalState
+====================
+*/
+void	CM_ReadPortalState( fileHandle_t f )
+{
+	int numareaportals;
+	FS_Read( &numareaportals, sizeof( int ), f );
+	if( cm.numAreas != cm.numAreas ) {
+		Com_Error( ERR_DROP, "numareaportals differs from save game" );
+	}
+	FS_Read( &cm.areaPortals, cm.numAreas * cm.numAreas * sizeof( cArea_t * ), f );
+	CM_FloodAreaConnections();
+}
+
+/*
+====================
+CM_AreaForPoint
+====================
+*/
+int		CM_AreaForPoint( vec3_t vPos ) {
+	int leafnum = CM_PointLeafnum( vPos );
+	return CM_LeafArea( leafnum );
+}
+
+/*
+====================
 CM_AreasConnected
 
 ====================
@@ -478,6 +577,43 @@ int CM_WriteAreaBits (byte *buffer, int area)
 	}
 
 	return bytes;
+}
+
+/*
+====================
+CM_inPVS
+====================
+*/
+qboolean CM_inPVS( vec3_t p1, vec3_t p2 ) {
+	int		leaf1;
+	int		leaf2;
+
+	leaf1 = CM_PointLeafnum( p1 );
+	leaf2 = CM_PointLeafnum( p2 );
+
+	return CM_LeafInPVS( leaf1, leaf2 );
+}
+
+/*
+====================
+CM_LeafInPVS
+====================
+*/
+qboolean CM_LeafInPVS( int leaf1, int leaf2 ) {
+	int		cluster;
+	byte	*mask;
+
+	mask = CM_ClusterPVS( cm.leafs[ leaf1 ].cluster );
+	cluster = cm.leafs[ leaf2 ].cluster;
+
+	if( !mask || mask[ cluster >> 3 ] & ( 1 << ( cluster & 7 ) ) )
+	{
+		if( CM_AreasConnected( cm.leafs[ leaf1 ].area, cm.leafs[ leaf2 ].area ) ) {
+			return qtrue;
+		}
+	}
+
+	return qfalse;
 }
 
 /*

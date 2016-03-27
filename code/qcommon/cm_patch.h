@@ -100,4 +100,4 @@ typedef struct {
 #define	WRAP_POINT_EPSILON	0.1
 
 
-struct patchCollide_s	*CM_GeneratePatchCollide( int width, int height, vec3_t *points );
+patchCollide_t *CM_GeneratePatchCollide( int width, int height, vec3_t *points, float subdivisions );

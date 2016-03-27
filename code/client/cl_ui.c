@@ -24,10 +24,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "../botlib/botlib.h"
 #include "../qcommon/tiki_local.h"
+#include "../uilib/ui_public.h"
 
 extern	botlib_export_t	*botlib_export;
 
 vm_t *uivm;
+
+uiexport_t uie;
 
 /*
 ====================
@@ -829,9 +832,6 @@ intptr_t CL_UISystemCalls( intptr_t *args ) {
 	case UI_R_REGISTERMODEL:
 		return re.RegisterModel( VMA(1) );
 
-	case UI_R_REGISTERSKIN:
-		return re.RegisterSkin( VMA(1) );
-
 	case UI_R_REGISTERSHADER:
 		return re.RegisterShader( VMA(1) );
 
@@ -865,9 +865,6 @@ intptr_t CL_UISystemCalls( intptr_t *args ) {
 	case UI_R_DRAWSTRETCHPIC:
 		re.DrawStretchPic( VMF(1), VMF(2), VMF(3), VMF(4), VMF(5), VMF(6), VMF(7), VMF(8), args[9] );
 		return 0;
-	case UI_R_ROTATEDPIC:
-		re.RotatedPic( VMF(1), VMF(2), VMF(3), VMF(4), VMF(5), VMF(6), VMF(7), VMF(8), args[9], VMF(10) );
-		return 0;
 
   case UI_R_MODELBOUNDS:
 		re.ModelBounds( args[1], VMA(2), VMA(3) );
@@ -875,10 +872,6 @@ intptr_t CL_UISystemCalls( intptr_t *args ) {
 
 	case UI_UPDATESCREEN:
 		SCR_UpdateScreen();
-		return 0;
-
-	case UI_CM_LERPTAG:
-		re.LerpTag( VMA(1), args[2], args[3], args[4], VMF(5), VMA(6) );
 		return 0;
 
 	case UI_S_REGISTERSOUND:
@@ -1088,10 +1081,6 @@ intptr_t CL_UISystemCalls( intptr_t *args ) {
 	  CIN_SetExtents(args[1], args[2], args[3], args[4], args[5]);
 	  return 0;
 
-	case UI_R_REMAP_SHADER:
-		re.RemapShader( VMA(1), VMA(2), VMA(3) );
-		return 0;
-
 	case UI_VERIFY_CDKEY:
 		return CL_CDKeyValidate(VMA(1), VMA(2));
 
@@ -1154,12 +1143,12 @@ void CL_ShutdownUI( void ) {
 
 /*
 ====================
-CL_InitUI
+CL_InitializeUI
 ====================
 */
 #define UI_OLD_API_VERSION	4
 
-void CL_InitUI( void ) {
+void CL_InitializeUI( void ) {
 	int		v;
 	vmInterpret_t		interpret;
 

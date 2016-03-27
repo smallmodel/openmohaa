@@ -23,6 +23,130 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // q_shared.c -- stateless support routines that are included in each code dll
 #include "q_shared.h"
 
+#ifdef WIN32
+#include <intrin.h>
+#endif
+
+static char musicmoods[ mood_totalnumber ][ 16 ] =
+{
+	"none",
+	"normal",
+	"action",
+	"suspense",
+	"mystery",
+	"success",
+	"failure",
+	"surprise",
+	"special",
+	"aux1",
+	"aux2",
+	"aux3",
+	"aux4",
+	"aux5",
+	"aux6",
+	"aux7"
+};
+
+static char eaxmodes[ eax_totalnumber ][ 16 ] =
+{
+	"generic",
+	"paddedcell",
+	"room",
+	"bathroom",
+	"livingroom",
+	"stoneroom",
+	"auditorium",
+	"concerthall",
+	"cave",
+	"arena",
+	"hangar",
+	"carpetedhallway",
+	"hallway",
+	"stonecorridor",
+	"alley",
+	"forest",
+	"city",
+	"mountains",
+	"quarry",
+	"plain",
+	"parkinglot",
+	"sewerpipe",
+	"underwater",
+	"drugged",
+	"dizzy",
+	"psychotic"
+};
+
+/*
+=================
+MusicMood_NameToNum
+=================
+*/
+int MusicMood_NameToNum( const char * name )
+{
+	int i;
+
+	if( !name )
+		return -1;
+
+	for( i = 0; i < mood_totalnumber; i++ )
+	{
+		if( !Q_stricmp( name, musicmoods[ i ] ) )
+		{
+			return i;
+		}
+	}
+	return -1;
+}
+
+/*
+=================
+MusicMood_NumToName
+=================
+*/
+const char * MusicMood_NumToName( int num )
+{
+	if( ( num < 0 ) || ( num >= mood_totalnumber ) )
+		return "";
+	else
+		return musicmoods[ num ];
+}
+
+/*
+=================
+EAXMode_NameToNum
+=================
+*/
+int EAXMode_NameToNum( const char * name )
+{
+	int i;
+
+	if( !name )
+		return -1;
+
+	for( i = 0; i < eax_totalnumber; i++ )
+	{
+		if( !Q_stricmp( name, eaxmodes[ i ] ) )
+		{
+			return i;
+		}
+	}
+	return -1;
+}
+
+/*
+=================
+EAXMode_NumToName
+=================
+*/
+const char * EAXMode_NumToName( int num )
+{
+	if( ( num < 0 ) || ( num >= eax_totalnumber ) )
+		return "";
+	else
+		return eaxmodes[ num ];
+}
+
 float Com_Clamp( float min, float max, float value ) {
 	if ( value < min ) {
 		return min;
@@ -46,7 +170,7 @@ char *COM_SkipPath (char *pathname)
 	last = pathname;
 	while (*pathname)
 	{
-		if (*pathname=='/')
+		if (*pathname=='/' || *pathname=='\\')
 			last = pathname+1;
 		pathname++;
 	}
@@ -59,7 +183,7 @@ COM_GetExtension
 ============
 */
 const char *COM_GetExtension( const char *name ) {
-	int length, i;
+	size_t length, i;
 
 	length = strlen(name)-1;
 	i = length;
@@ -81,7 +205,7 @@ COM_StripExtension
 ============
 */
 void COM_StripExtension( const char *in, char *out, int destsize ) {
-	int             length;
+	size_t length;
 
 	Q_strncpyz(out, in, destsize);
 
@@ -139,143 +263,6 @@ int Com_HashKey(char *string, int maxlen) {
 	return hash;
 }
 
-/*
-============================================================================
-
-					BYTE ORDER FUNCTIONS
-
-============================================================================
-*/
-/*
-// can't just use function pointers, or dll linkage can
-// mess up when qcommon is included in multiple places
-static short	(*_BigShort) (short l);
-static short	(*_LittleShort) (short l);
-static int		(*_BigLong) (int l);
-static int		(*_LittleLong) (int l);
-static qint64	(*_BigLong64) (qint64 l);
-static qint64	(*_LittleLong64) (qint64 l);
-static float	(*_BigFloat) (const float *l);
-static float	(*_LittleFloat) (const float *l);
-
-short	BigShort(short l){return _BigShort(l);}
-short	LittleShort(short l) {return _LittleShort(l);}
-int		BigLong (int l) {return _BigLong(l);}
-int		LittleLong (int l) {return _LittleLong(l);}
-qint64 	BigLong64 (qint64 l) {return _BigLong64(l);}
-qint64 	LittleLong64 (qint64 l) {return _LittleLong64(l);}
-float	BigFloat (const float *l) {return _BigFloat(l);}
-float	LittleFloat (const float *l) {return _LittleFloat(l);}
-*/
-
-short   ShortSwap (short l)
-{
-	byte    b1,b2;
-
-	b1 = l&255;
-	b2 = (l>>8)&255;
-
-	return (b1<<8) + b2;
-}
-
-short	ShortNoSwap (short l)
-{
-	return l;
-}
-
-int    LongSwap (int l)
-{
-	byte    b1,b2,b3,b4;
-
-	b1 = l&255;
-	b2 = (l>>8)&255;
-	b3 = (l>>16)&255;
-	b4 = (l>>24)&255;
-
-	return ((int)b1<<24) + ((int)b2<<16) + ((int)b3<<8) + b4;
-}
-
-int	LongNoSwap (int l)
-{
-	return l;
-}
-
-qint64 Long64Swap (qint64 ll)
-{
-	qint64	result;
-
-	result.b0 = ll.b7;
-	result.b1 = ll.b6;
-	result.b2 = ll.b5;
-	result.b3 = ll.b4;
-	result.b4 = ll.b3;
-	result.b5 = ll.b2;
-	result.b6 = ll.b1;
-	result.b7 = ll.b0;
-
-	return result;
-}
-
-qint64 Long64NoSwap (qint64 ll)
-{
-	return ll;
-}
-
-typedef union {
-    float	f;
-    unsigned int i;
-} _FloatByteUnion;
-
-float FloatSwap (const float *f) {
-	_FloatByteUnion out;
-
-	out.f = *f;
-	out.i = LongSwap(out.i);
-
-	return out.f;
-}
-
-float FloatNoSwap (const float *f)
-{
-	return *f;
-}
-
-/*
-================
-Swap_Init
-================
-*/
-/*
-void Swap_Init (void)
-{
-	byte	swaptest[2] = {1,0};
-
-// set the byte swapping variables in a portable manner	
-	if ( *(short *)swaptest == 1)
-	{
-		_BigShort = ShortSwap;
-		_LittleShort = ShortNoSwap;
-		_BigLong = LongSwap;
-		_LittleLong = LongNoSwap;
-		_BigLong64 = Long64Swap;
-		_LittleLong64 = Long64NoSwap;
-		_BigFloat = FloatSwap;
-		_LittleFloat = FloatNoSwap;
-	}
-	else
-	{
-		_BigShort = ShortNoSwap;
-		_LittleShort = ShortSwap;
-		_BigLong = LongNoSwap;
-		_LittleLong = LongSwap;
-		_BigLong64 = Long64NoSwap;
-		_LittleLong64 = Long64Swap;
-		_BigFloat = FloatNoSwap;
-		_LittleFloat = FloatSwap;
-	}
-
-}
-*/
 
 /*
 ============================================================================
@@ -300,9 +287,9 @@ int COM_GetCurrentParseLine( void )
 	return com_lines;
 }
 
-char *COM_Parse( char **data_p )
+const char *COM_Parse( char **data_p )
 {
-	return COM_ParseExt( data_p, qtrue );
+	return COM_GetToken( data_p, 1 );
 }
 
 void COM_ParseError( char *format, ... )
@@ -342,7 +329,7 @@ a newline.
 ==============
 */
 static char *SkipWhitespace( char *data, qboolean *hasNewLines ) {
-	int c;
+	unsigned int c;
 
 	while( (c = *data) <= ' ') {
 		if( !c ) {
@@ -429,7 +416,130 @@ int COM_Compress( char *data_p ) {
 char *COM_ParseExt( char **data_p, qboolean allowLineBreaks )
 {
 	int c = 0, len;
-	int d;
+	qboolean hasNewLines = qfalse;
+	char *data;
+
+	data = *data_p;
+	len = 0;
+	com_token[ 0 ] = 0;
+
+	// make sure incoming data is valid
+	if( !data )
+	{
+		*data_p = NULL;
+		return com_token;
+	}
+
+	while( 1 )
+	{
+		// skip whitespace
+		data = SkipWhitespace( data, &hasNewLines );
+		if( !data )
+		{
+			*data_p = NULL;
+			return com_token;
+		}
+		if( hasNewLines && !allowLineBreaks )
+		{
+			*data_p = data;
+			return com_token;
+		}
+
+		c = *data;
+
+		// skip double slash comments
+		if( c == '/' && data[ 1 ] == '/' )
+		{
+			while( *data && *data != '\n' )
+				data++;
+		}
+		// skip /* */ comments
+		else if( c == '/' && data[ 1 ] == '*' )
+		{
+			while( *data && ( *data != '*' || data[ 1 ] != '/' ) )
+			{
+				data++;
+			}
+			if( *data )
+			{
+				data += 2;
+			}
+		}
+		else
+		{
+			break;
+		}
+	}
+
+	// handle quoted strings
+	if( c == '\"' )
+	{
+		data++;
+		while( 1 )
+		{
+			c = *data++;
+			if( c == '\"' || !c )
+			{
+				com_token[ len ] = 0;
+				*data_p = ( char * )data;
+				return com_token;
+			}
+			if( len < MAX_TOKEN_CHARS )
+			{
+				com_token[ len ] = c;
+				len++;
+			}
+		}
+	}
+
+	// parse a regular word
+	do
+	{
+		if( ( len > 0 ) && ( c == '{' || c == '}' ) )
+		{
+			break;
+		}
+
+		data++;
+		if( len < MAX_TOKEN_CHARS )
+		{
+			// handle '\n' correctly
+			if( c == '\\' && *data == 'n' )
+			{
+				com_token[ len ] = '\n';
+				data++;
+			}
+			else
+			{
+				com_token[ len ] = c;
+			}
+			len++;
+
+			if( ( len == 1 ) && ( c == '{' || c == '}' ) )
+			{
+				break;
+			}
+
+		}
+		c = *data;
+		if( c == '\n' )
+			com_lines++;
+	} while( c>32 );
+
+	if( len == MAX_TOKEN_CHARS )
+	{
+		//		Com_Printf ("Token exceeded %i chars, discarded.\n", MAX_TOKEN_CHARS);
+		len = 0;
+	}
+	com_token[ len ] = 0;
+
+	*data_p = ( char * )data;
+	return com_token;
+}
+
+char *COM_ParseExtIgnoreQuotes( char **data_p, qboolean allowLineBreaks )
+{
+	int c = 0, len;
 	qboolean hasNewLines = qfalse;
 	char *data;
 
@@ -488,28 +598,6 @@ char *COM_ParseExt( char **data_p, qboolean allowLineBreaks )
 		}
 	}
 
-	// handle quoted strings
-	if (c == '\"')
-	{
-		data++;
-		while (1)
-		{
-			c = *data++;
-			d = *(data-2);
-			if ((c=='\"'&&d!='\\') || !c)	//wombat: skip \" quotes inside "..."
-			{
-				com_token[len] = 0;
-				*data_p = ( char * ) data;
-				return com_token;
-			}
-			if (len < MAX_TOKEN_CHARS - 1)
-			{
-				com_token[len] = c;
-				len++;
-			}
-		}
-	}
-
 	// parse a regular word
 	do
 	{
@@ -530,6 +618,132 @@ char *COM_ParseExt( char **data_p, qboolean allowLineBreaks )
 	return com_token;
 }
 
+/*
+==============
+COM_GetToken
+
+Parse a token out of a string
+==============
+*/
+const char *COM_GetToken( const char **data_p, qboolean crossline )
+{
+	int		c;
+	int		len;
+	const char *data;
+
+	data = *data_p;
+	len = 0;
+	com_token[ 0 ] = 0;
+
+	if( !data )
+	{
+		*data_p = NULL;
+		return "";
+	}
+
+	// skip whitespace
+skipwhite:
+	while( ( c = *data ) <= ' ' )
+	{
+		if( c == '\n' && !crossline )
+		{
+			*data_p = data;
+			return "";
+		}
+		if( !c )
+		{
+			*data_p = NULL;
+			return "";
+		}
+		data++;
+	}
+
+	// skip // comments
+	if( c == '/' && data[ 1 ] == '/' )
+	{
+		while( *data && *data != '\n' )
+			data++;
+		goto skipwhite;
+	}
+
+	// skip /* comments
+	if( c == '/' && data[ 1 ] == '*' )
+	{
+		data++;
+		while( *data )
+		{
+			if( ( *( data - 1 ) == '*' ) && ( *data == '/' ) )
+				break;
+			data++;
+		}
+		while( *data && *data != '\n' )
+			data++;
+		goto skipwhite;
+	}
+
+
+	// handle quoted strings specially
+	if( c == '\"' )
+	{
+		data++;
+		while( 1 )
+		{
+			c = *data++;
+			if( c == '\\' && *data == '\"' )
+			{
+				if( len < MAX_STRING_CHARS )
+				{
+					com_token[ len ] = '\"';
+					len++;
+				}
+				data++;
+			}
+			else if( c == '\"' || !c )
+			{
+				com_token[ len ] = 0;
+				*data_p = data;
+				return com_token;
+			}
+			else if( len < MAX_STRING_CHARS )
+			{
+				if( c == '\\' && *data == 'n' )
+				{
+					com_token[ len ] = '\n';
+					data++;
+				}
+				else
+				{
+					com_token[ len ] = c;
+				}
+				len++;
+				//            com_token[len] = c;
+				//				len++;
+			}
+		}
+	}
+
+	// parse a regular word
+	do
+	{
+		if( len < MAX_STRING_CHARS )
+		{
+			com_token[ len ] = c;
+			len++;
+		}
+		data++;
+		c = *data;
+	} while( c>32 );
+
+	if( len == MAX_STRING_CHARS )
+	{
+		//		Com_Printf ("Token exceeded %i chars, discarded.\n", MAX_STRING_CHARS);
+		len = 0;
+	}
+	com_token[ len ] = 0;
+
+	*data_p = data;
+	return com_token;
+}
 
 /*
 =================
@@ -588,23 +802,23 @@ void Com_SkipRestOfLine(char **data)
 
 void Com_Parse1DMatrix(char **buf_p, int x, float *m, qboolean checkBrackets)
 {
-	char           *token;
-	int             i;
+	const char	*token;
+	int			i;
 
-	if(checkBrackets)
+	if( checkBrackets )
 	{
-		COM_MatchToken(buf_p, "(");
+		COM_MatchToken( buf_p, "(" );
 	}
 
-	for(i = 0; i < x; i++)
+	for( i = 0; i < x; i++ )
 	{
-		token = COM_Parse(buf_p);
-		m[i] = atof(token);
+		token = COM_Parse( buf_p );
+		m[ i ] = atof( token );
 	}
 
-	if(checkBrackets)
+	if( checkBrackets )
 	{
-		COM_MatchToken(buf_p, ")");
+		COM_MatchToken( buf_p, ")" );
 	}
 }
 
@@ -670,10 +884,10 @@ COM_MatchToken
 ==================
 */
 void COM_MatchToken( char **buf_p, char *match ) {
-	char	*token;
+	const char *token;
 
 	token = COM_Parse( buf_p );
-	if ( strcmp( token, match ) ) {
+	if( strcmp( token, match ) ) {
 		Com_Error( ERR_DROP, "MatchToken: %s != %s", token, match );
 	}
 }
@@ -688,11 +902,22 @@ Skips until a matching close brace is found.
 Internal brace depths are properly skipped.
 =================
 */
-void SkipBracedSection (char **program) {
-	char			*token;
-	int				depth;
+qboolean SkipBracedSection (char **program) {
+	return SkipBracedSectionEx( program, 0 );
+}
 
-	depth = 0;
+/*
+=================
+SkipBracedSectionEx
+
+The next token should be an open brace.
+Skips until a matching close brace is found.
+Internal brace depths are properly skipped.
+=================
+*/
+qboolean SkipBracedSectionEx (char **program, int depth) {
+	char			*token;
+
 	do {
 		token = COM_ParseExt( program, qtrue );
 		if( token[1] == 0 ) {
@@ -704,6 +929,8 @@ void SkipBracedSection (char **program) {
 			}
 		}
 	} while( depth && *program );
+
+	return ( depth == 0 );
 }
 
 /*
@@ -728,14 +955,14 @@ void SkipRestOfLine ( char **data ) {
 
 
 void Parse1DMatrix (char **buf_p, int x, float *m) {
-	char	*token;
-	int		i;
+	const char	*token;
+	int			i;
 
 	COM_MatchToken( buf_p, "(" );
 
-	for (i = 0 ; i < x ; i++) {
-		token = COM_Parse(buf_p);
-		m[i] = atof(token);
+	for( i = 0; i < x; i++ ) {
+		token = COM_Parse( buf_p );
+		m[ i ] = atof( token );
 	}
 
 	COM_MatchToken( buf_p, ")" );
@@ -763,6 +990,45 @@ void Parse3DMatrix (char **buf_p, int z, int y, int x, float *m) {
 	}
 
 	COM_MatchToken( buf_p, ")" );
+}
+
+/*
+===================
+Com_HexStrToInt
+===================
+*/
+int Com_HexStrToInt( const char *str )
+{
+	if ( !str || !str[ 0 ] )
+		return -1;
+
+	// check for hex code
+	if( str[ 0 ] == '0' && str[ 1 ] == 'x' )
+	{
+		int i, n = 0;
+
+		for( i = 2; i < strlen( str ); i++ )
+		{
+			char digit;
+
+			n *= 16;
+
+			digit = tolower( str[ i ] );
+
+			if( digit >= '0' && digit <= '9' )
+				digit -= '0';
+			else if( digit >= 'a' && digit <= 'f' )
+				digit = digit - 'a' + 10;
+			else
+				return -1;
+
+			n += digit;
+		}
+
+		return n;
+	}
+
+	return -1;
 }
 
 
@@ -829,7 +1095,7 @@ Q_strncpyz
 Safe strncpy that ensures a trailing zero
 =============
 */
-void Q_strncpyz( char *dest, const char *src, int destsize ) {
+void Q_strncpyz( char *dest, const char *src, size_t destsize ) {
   if ( !dest ) {
     Com_Error( ERR_FATAL, "Q_strncpyz: NULL dest" );
   }
@@ -844,7 +1110,7 @@ void Q_strncpyz( char *dest, const char *src, int destsize ) {
   dest[destsize-1] = 0;
 }
                  
-int Q_stricmpn (const char *s1, const char *s2, int n) {
+int Q_stricmpn( const char *s1, const char *s2, size_t n ) {
 	int		c1, c2;
 
         if ( s1 == NULL ) {
@@ -882,7 +1148,7 @@ int Q_stricmpn (const char *s1, const char *s2, int n) {
 	return 0;		// strings are equal
 }
 
-int Q_strncmp (const char *s1, const char *s2, int n) {
+int Q_strncmp( const char *s1, const char *s2, size_t n ) {
 	int		c1, c2;
 	
 	do {
@@ -931,7 +1197,7 @@ char *Q_strupr( char *s1 ) {
 
 // never goes past bounds or leaves without a terminating 0
 void Q_strcat( char *dest, int size, const char *src ) {
-	int		l1;
+	size_t l1;
 
 	l1 = strlen( dest );
 	if ( l1 >= size ) {
@@ -983,9 +1249,9 @@ replaces content of find by replace in dest
 */
 qboolean Q_strreplace(char *dest, int destsize, const char *find, const char *replace)
 {
-	int             lstart, lfind, lreplace, lend;
-	char           *s;
-	char            backup[32000];	// big, but small enough to fit in PPC stack
+	size_t		lstart, lfind, lreplace, lend;
+	char		*s;
+	char		backup[32000];	// big, but small enough to fit in PPC stack
 
 	lend = strlen(dest);
 	if(lend >= destsize)
@@ -1060,7 +1326,7 @@ char *Q_CleanStr( char *string ) {
 
 
 void QDECL Com_sprintf( char *dest, int size, const char *fmt, ...) {
-	int		len;
+	size_t		len;
 	va_list		argptr;
 	char	bigbuffer[32000];	// big, but small enough to fit in PPC stack
 
@@ -1073,14 +1339,163 @@ void QDECL Com_sprintf( char *dest, int size, const char *fmt, ...) {
 	if (len >= size) {
 		Com_Printf ("Com_sprintf: overflow of %i in %i\n", len, size);
 #ifdef	_DEBUG
-		__asm {
-			int 3;
-		}
+		__debugbreak();
 #endif
 	}
 	Q_strncpyz (dest, bigbuffer, size );
 }
 
+void Com_BackslashToSlash( char *str )
+{
+	int i;
+	size_t len;
+
+	len = strlen( str );
+
+	for( i = 0; i < len; i++ )
+	{
+		if( str[ i ] == '\\' ) {
+			str[ i ] = '/';
+		}
+	}
+}
+
+/*
+============================================================================
+
+BYTE ORDER FUNCTIONS
+
+============================================================================
+*/
+
+qboolean	bigendian;
+
+// can't just use function pointers, or dll linkage can
+// mess up when qcommon is included in multiple places
+short( *_BigShort ) ( short l );
+short( *_LittleShort ) ( short l );
+int( *_BigLong ) ( int l );
+int( *_LittleLong ) ( int l );
+float( *_BigFloat ) ( float l );
+float( *_LittleFloat ) ( float l );
+unsigned short( *_BigUnsignedShort ) ( unsigned short l );
+unsigned short( *_LittleUnsignedShort ) ( unsigned short l );
+
+short	BigShort( short l ){ return _BigShort( l ); }
+short	LittleShort( short l ) { return _LittleShort( l ); }
+int		BigLong( int l ) { return _BigLong( l ); }
+int		LittleLong( int l ) { return _LittleLong( l ); }
+float	BigFloat( float l ) { return _BigFloat( l ); }
+float	LittleFloat( float l ) { return _LittleFloat( l ); }
+unsigned short	BigUnsignedShort( unsigned short l ){ return _BigUnsignedShort( l ); }
+unsigned short	LittleUnsignedShort( unsigned short l ) { return _LittleUnsignedShort( l ); }
+
+short   ShortSwap( short l )
+{
+	byte    b1, b2;
+
+	b1 = l & 255;
+	b2 = ( l >> 8 ) & 255;
+
+	return ( b1 << 8 ) + b2;
+}
+
+short	ShortNoSwap( short l )
+{
+	return l;
+}
+
+
+unsigned short   UnsignedShortSwap( unsigned short l )
+{
+	byte    b1, b2;
+
+	b1 = l & 255;
+	b2 = ( l >> 8 ) & 255;
+
+	return ( b1 << 8 ) + b2;
+}
+
+unsigned short	UnsignedShortNoSwap( unsigned short l )
+{
+	return l;
+}
+
+
+int    LongSwap( int l )
+{
+	byte    b1, b2, b3, b4;
+
+	b1 = l & 255;
+	b2 = ( l >> 8 ) & 255;
+	b3 = ( l >> 16 ) & 255;
+	b4 = ( l >> 24 ) & 255;
+
+	return ( ( int )b1 << 24 ) + ( ( int )b2 << 16 ) + ( ( int )b3 << 8 ) + b4;
+}
+
+int	LongNoSwap( int l )
+{
+	return l;
+}
+
+float FloatSwap( float f )
+{
+	union
+	{
+		float	f;
+		byte	b[ 4 ];
+	} dat1, dat2;
+
+
+	dat1.f = f;
+	dat2.b[ 0 ] = dat1.b[ 3 ];
+	dat2.b[ 1 ] = dat1.b[ 2 ];
+	dat2.b[ 2 ] = dat1.b[ 1 ];
+	dat2.b[ 3 ] = dat1.b[ 0 ];
+	return dat2.f;
+}
+
+float FloatNoSwap( float f )
+{
+	return f;
+}
+
+/*
+================
+Swap_Init
+================
+*/
+void Swap_Init( void )
+{
+	byte	swaptest[ 2 ] = { 1, 0 };
+
+	// set the byte swapping variables in a portable manner	
+	if( *( short * )swaptest == 1 )
+	{
+		bigendian = qfalse;
+		_BigShort = ShortSwap;
+		_LittleShort = ShortNoSwap;
+		_BigUnsignedShort = UnsignedShortSwap;
+		_LittleUnsignedShort = UnsignedShortNoSwap;
+		_BigLong = LongSwap;
+		_LittleLong = LongNoSwap;
+		_BigFloat = FloatSwap;
+		_LittleFloat = FloatNoSwap;
+	}
+	else
+	{
+		bigendian = qtrue;
+		_BigShort = ShortNoSwap;
+		_LittleShort = ShortSwap;
+		_BigUnsignedShort = UnsignedShortNoSwap;
+		_LittleUnsignedShort = UnsignedShortSwap;
+		_BigLong = LongNoSwap;
+		_LittleLong = LongSwap;
+		_BigFloat = FloatNoSwap;
+		_LittleFloat = FloatSwap;
+	}
+}
 
 /*
 ============
@@ -1091,18 +1506,19 @@ varargs versions of all text functions.
 FIXME: make this buffer size safe someday
 ============
 */
-char	* QDECL va( char *format, ... ) {
+const char *va( const char *format, ... )
+{
 	va_list		argptr;
-	static char		string[2][32000];	// in case va is called by nested functions
+	static char		string[ 2 ][ 16384 ];	// in case va is called by nested functions
 	static int		index = 0;
 	char	*buf;
 
-	buf = string[index & 1];
+	buf = string[ index & 1 ];
 	index++;
 
-	va_start (argptr, format);
-	vsprintf (buf, format,argptr);
-	va_end (argptr);
+	va_start( argptr, format );
+	vsprintf( buf, format, argptr );
+	va_end( argptr );
 
 	return buf;
 }
@@ -1116,7 +1532,7 @@ Assumes buffer is atleast TRUNCATE_LENGTH big
 */
 void Com_TruncateLongString( char *buffer, const char *s )
 {
-	int length = strlen( s );
+	size_t length = strlen( s );
 
 	if( length <= TRUNCATE_LENGTH )
 		Q_strncpyz( buffer, s, TRUNCATE_LENGTH );
@@ -1426,6 +1842,7 @@ void Info_SetValueForKey_Big( char *s, const char *key, const char *value ) {
 	{
 		if (strchr (key, *blacklist) || strchr (value, *blacklist))
 		{
+			assert( 0 );
 			Com_Printf (S_COLOR_YELLOW "Can't use keys or values with a '%c': %s = %s\n", *blacklist, key, value);
 			return;
 		}
@@ -1607,4 +2024,15 @@ int Com_IndexForGrowListElement(const growList_t * list, const void *element)
 		}
 	}
 	return -1;
+}
+
+unsigned long long rdtsc( void )
+{
+#ifdef WIN32
+	return __rdtsc();
+#else
+	unsigned int low, high;
+	asm volatile ( "rdtsc" : "=a" ( low ), "=d" ( high ) );
+	return ( unsigned long long )high << 32 | low;
+#endif
 }

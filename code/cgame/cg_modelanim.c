@@ -66,7 +66,7 @@ void CG_CentBoneIndexLocal2World(int boneIndex, centity_t *cent, vec3_t outPos, 
 int CG_TIKI_BoneIndexForName(tiki_t *tiki, char *name) {
 	int nameIndex;
 	int i;
-	nameIndex = trap_TIKI_GetBoneNameIndex(name);
+	nameIndex = cgi.TIKI_GetBoneNameIndex(name);
 	for(i = 0; i < tiki->numBones; i++) {
 		if(tiki->boneNames[i] == nameIndex) {
 			return i;
@@ -85,7 +85,8 @@ void CG_AttachEntity(refEntity_t *e, centity_t *parent, int boneIndex, vec3_t ou
 	if(outAngles)
 		VectorCopy(a,outAngles);
 }
-qboolean CG_TIKI_BoneOnGround(centity_t *cent, tiki_t *tiki, int boneIndex) {
+qboolean CG_TIKI_BoneOnGround(centity_t *cent, tiki_t *tiki, int boneIndex)
+{
 	if(cent->bones == 0)
 		return qfalse;
 	//CG_Printf("Z: %f\n",cent->bones[boneIndex].p[2]);
@@ -93,7 +94,8 @@ qboolean CG_TIKI_BoneOnGround(centity_t *cent, tiki_t *tiki, int boneIndex) {
 		return qfalse;
 	return qtrue;
 }
-void CG_ModelAnim( centity_t *cent ) {
+void CG_ModelAnim( centity_t *cent )
+{
 	refEntity_t ent;
 	entityState_t *s1;
 	tiki_t *tiki;
@@ -103,7 +105,23 @@ void CG_ModelAnim( centity_t *cent ) {
 
 	attachedToViewmodel = qfalse;
 
-	memset(&ent,0,sizeof(ent));
+	memset( &ent, 0, sizeof( ent ) );
+
+	for( i = 0; i < MAX_FRAMEINFOS; i++ )
+	{
+		frameInfo_t *frame = &cent->currentState.frameInfo[ i ];
+		frameInfo_t *nextframe = &cent->nextState.frameInfo[ i ];
+
+		if( frame->index != nextframe->index || !cent->interpolate ) {
+			continue;
+		}
+
+		if( frame->time <= nextframe->time ) {
+			frame->time += cg.frametime / 1000.0f;
+		} else {
+			frame->time -= cg.frametime / 1000.0f;
+		}
+	}
 
 	if(s1->tag_num != -1 && s1->parent != 1023) {
 		if(s1->parent == cg.clientNum && !cg.renderingThirdPerson) {
@@ -121,15 +139,16 @@ void CG_ModelAnim( centity_t *cent ) {
 	}
 
 	if(s1->eType == ET_MOVER) {
-		ent.hModel = cgs.inlineDrawModel[s1->modelindex];
+		ent.model = cgs.inlineDrawModel[ s1->modelindex ];
 	} else {
-		ent.hModel = cgs.gameModels[s1->modelindex];
+		ent.model = cgs.gameModels[ s1->modelindex ];
 	}
-	
-	tiki = cgs.gameTIKIs[s1->modelindex];
+
+	tiki = cgs.gameTIKIs[ s1->modelindex ];
+
 	if(tiki && tiki->numAnims) {
 		int idleIndex = 0;
-		ent.bones = trap_TIKI_GetBones(tiki->numBones);
+		ent.bones = cgi.TIKI_GetBones(tiki->numBones);
 		cent->bones = ent.bones;
 #if 0
 		for(i = 0; i < tiki->numAnims; i++) {
@@ -139,21 +158,36 @@ void CG_ModelAnim( centity_t *cent ) {
 			}
 		}
 		if(idleIndex!=0) {
-			trap_TIKI_SetChannels(tiki,idleIndex,0,0,ent.bones);
+			cgi.TIKI_SetChannels(tiki,idleIndex,0,0,ent.bones);
 		} else 
 #endif
+
+
 		{
 			frameInfo_t *fi = s1->frameInfo;
 			ClearBounds(ent.bounds[0],ent.bounds[1]);
 			ent.radius = 0;
 			for(i = 0; i < 16; i++)	{
 				if(fi->weight!=0) {
-					trap_TIKI_AppendFrameBoundsAndRadius(tiki,fi->index,fi->time,&ent.radius,ent.bounds);
-					trap_TIKI_SetChannels(tiki,fi->index,fi->time,fi->weight,ent.bones);
+					cgi.TIKI_AppendFrameBoundsAndRadius(tiki,fi->index,fi->time,&ent.radius,ent.bounds);
+					cgi.TIKI_SetChannels(tiki,fi->index,fi->time,fi->weight,ent.bones);
 				}
 				fi++;
 			}
 		}
+
+		/*if( cent->currentState.number == cg.clientNum )
+		{
+			vec3_t angles;
+
+			QuatToAngles( ent.bones[ 0 ].q, angles );
+
+			angles[ 0 ] -= 90.0f;
+			angles[ 2 ] -= 90.0f;
+
+			EulerToQuat( angles, ent.bones[ 0 ].q );
+		}*/
+
 #if 0
 		for(i = 0; i < 5; i++)	{
 			if(s1->bone_tag[i] != -1) {
@@ -161,8 +195,8 @@ void CG_ModelAnim( centity_t *cent ) {
 				matrix_t m2;
 				matrix_t mf;
 				quat_t q;
-//				CG_Printf("i %i of 5, tag %i, angles %f %f %f\n",i,s1->bone_tag[i],
-//					s1->bone_angles[i][0],s1->bone_angles[i][1],s1->bone_angles[i][2]);
+				//				CG_Printf("i %i of 5, tag %i, angles %f %f %f\n",i,s1->bone_tag[i],
+				//					s1->bone_angles[i][0],s1->bone_angles[i][1],s1->bone_angles[i][2]);
 				//bone_quat is always 0 0 0 0?
 				if(s1->bone_quat[i][0] != 0 || s1->bone_quat[i][1] != 0 || s1->bone_quat[i][2] != 0 || s1->bone_quat[i][3] != 0) {
 					CG_Printf("i %i of 5, tag %i, quat %f %f %f %f\n",i,s1->bone_tag[i],
@@ -178,44 +212,102 @@ void CG_ModelAnim( centity_t *cent ) {
 				Matrix4x4Multiply(m,m2,mf);
 				QuatFromMatrix(ent.bones[s1->bone_tag[i]].q,mf);
 			}
-		}
-#endif
-		trap_TIKI_Animate(tiki,ent.bones);
 	}
-	// player model
-	if ( cent->currentState.number == cg.clientNum) {
-#if 1 //calculate eye pos/rot for usereyes_t
-		if(tiki) {
-			vec3_t eyePos,eyeRot;
-#if 0
-			VectorSet(eyePos,0,0,cg.predictedPlayerState.viewheight);
+#endif
 
-			VectorCopy(cg.predictedPlayerState.viewangles,eyeRot);
-			trap_SetEyeInfo(eyePos,eyeRot);
+		cgi.TIKI_Animate( tiki, ent.bones );
+
+		for( i = 0; i < NUM_BONE_CONTROLLERS; i++ )
+		{
+			int tag = s1->bone_tag[ i ];
+
+			//if( tag == cgi.Tag_NumForName( tiki, "Bip01 Pelvis" ) ) {
+			//	continue;
+			//}
+
+			if( tag >= 0 )
+			{
+				matrix_t m;
+				matrix_t m2;
+				matrix_t mf;
+				quat_t quat;
+
+				MatrixFromAngles( m, s1->bone_angles[ i ][ 0 ] * 2.0f, s1->bone_angles[ i ][ 1 ], s1->bone_angles[ i ][ 2 ] * 4.0f );
+				MatrixFromQuat( m2, ent.bones[ tag ].q );
+				Matrix4x4Multiply( m, m2, mf );
+				QuatFromMatrix( quat, mf );
+
+				/*MatrixFromAngles( m, -cent->nextState.bone_angles[ i ][ 2 ] * 4.0f, -cent->nextState.bone_angles[ i ][ 0 ], cent->nextState.bone_angles[ i ][ 1 ] );
+				MatrixFromQuat( m2, ent.bones[ tag ].q );
+				Matrix4x4Multiply( m, m2, mf );
+				QuatFromMatrix( nextquat, mf );
+
+				if( ( cent->interpolate ) && ( cent->nextState.bone_tag[ i ] == cent->currentState.bone_tag[ i ] ) )
+				{
+					QuatSlerp( quat, nextquat,
+						cg.frameInterpolation, ent.bones[ tag ].q );
+				}
+				else*/
+				{
+					ent.bones[ tag ].q[ 0 ] = quat[ 0 ];
+					ent.bones[ tag ].q[ 1 ] = quat[ 1 ];
+					ent.bones[ tag ].q[ 2 ] = quat[ 2 ];
+					ent.bones[ tag ].q[ 3 ] = quat[ 3 ];
+				}
+			}
+		}
+	}
+
+	// player model
+	if( cent->currentState.number == cg.clientNum ) {
+#if 1 //calculate eye pos/rot for usereyes_t
+		if( tiki ) {
+			vec3_t pos, rot;
+#if 0
+			VectorSet( eyePos, 0, 0, cg.predictedPlayerState.viewheight );
+
+			VectorCopy( cg.predictedPlayerState.viewangles, eyeRot );
+			cgi.SetEyeInfo( eyePos, eyeRot );
 #else
 			int eyeBoneName;
-			eyeBoneName = trap_TIKI_GetBoneNameIndex("eyes bone");//("tag_weapon_right");
-			for(i = 0; i < tiki->numBones; i++) {
-				if(tiki->boneNames[i] == eyeBoneName) {
-					CG_BoneLocal2World(ent.bones + i,ent.origin,cent->lerpAngles,eyePos,eyeRot);
+			int torso_tag;
+			eyeBoneName = cgi.TIKI_GetBoneNameIndex( "eyes bone" );//("tag_weapon_right");
+			torso_tag = cgi.TIKI_GetBoneNameIndex( "Bip01 Spine1" );
+			for( i = 0; i < tiki->numBones; i++ ) {
+				if( tiki->boneNames[ i ] == eyeBoneName ) {
+					CG_BoneLocal2World( ent.bones + i, ent.origin, cent->lerpAngles, pos, rot );
 
-					VectorCopy(cg.predictedPlayerState.viewangles,eyeRot);
-					VectorSubtract(eyePos,cent->lerpOrigin,eyePos);
-					trap_SetEyeInfo(eyePos,eyeRot);
+					VectorCopy( cg.predictedPlayerState.viewangles, rot );
+					VectorSubtract( pos, cent->lerpOrigin, pos );
+					cgi.SetEyeInfo( pos, rot );
 				}
+				/*else if( tiki->boneNames[ i ] == torso_tag )
+				{
+					bone_t *bone = ent.bones + i;
+
+					CG_BoneLocal2World( ent.bones + i, ent.origin, cent->lerpAngles, pos, rot );
+
+					VectorCopy( s1->bone_angles[ 1 ], rot );
+					VectorSubtract( pos, cent->lerpOrigin, pos );
+
+					VectorCopy( rot, bone->p );
+					EulerToQuat( rot, bone->q );
+				}*/
 			}
 #endif
 		}
 #endif
-		if (!cg.renderingThirdPerson) {
+		if( !cg.renderingThirdPerson ) {
 			ent.renderfx = RF_THIRD_PERSON;			// only draw in mirrors
 		} else {
-			if (cg_cameraMode.integer) {
+			if( cg_cameraMode->integer ) {
 				return;
 			}
 		}
-		 CG_ViewModelAnim(); // maybe I should put it somewhere else..
+
+		CG_ViewModelAnim(); // maybe I should put it somewhere else..
 	}
+
 	if(cent->currentState.groundEntityNum == ENTITYNUM_NONE) {
 		cent->bFootOnGround_Right = 0;
 		cent->bFootOnGround_Left = 0;
@@ -246,13 +338,18 @@ void CG_ModelAnim( centity_t *cent ) {
 			}
 		}
 	}
-	
 
+	for( i = 0; i < 32; i++ )
+	{
+		if( cent->currentState.surfaces[ i ] & MDL_SURFACE_NODRAW )
+		{
+			ent.surfaceBits |= 1 << i;
+		}
+	}
 
-	trap_R_AddRefEntityToScene(&ent);
+	cgi.R_AddRefEntityToScene(&ent);
 	if(attachedToViewmodel) {
 		CG_AddViewModelAnimAttachment(&ent,cent);
 	}
 
 }
-

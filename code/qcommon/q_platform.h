@@ -83,6 +83,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #if defined( _M_IX86 ) || defined( __i386__ )
 #define ARCH_STRING "x86"
+#elif defined _M_X64
+#define ARCH_STRING "x64"
 #elif defined _M_ALPHA
 #define ARCH_STRING "AXP"
 #endif
@@ -122,6 +124,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #ifdef __linux__
 
+#include <stdint.h>
 #include <endian.h>
 
 #define OS_STRING "linux"
@@ -129,7 +132,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define PATH_SEP '/'
 
 #if defined __i386__
-#define ARCH_STRING "i386"
+#define ARCH_STRING "x86"
 #elif defined __x86_64__
 #define ARCH_STRING "x86_64"
 #elif defined __powerpc64__
@@ -280,45 +283,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #ifndef DLL_EXT
 #error "DLL_EXT not defined"
-#endif
-
-
-//endianness
-short ShortSwap (short l);
-int LongSwap (int l);
-float FloatSwap (const float *f);
-
-#if defined( Q3_BIG_ENDIAN ) && defined( Q3_LITTLE_ENDIAN )
-#error "Endianness defined as both big and little"
-#elif defined( Q3_BIG_ENDIAN )
-
-#define LittleShort(x) ShortSwap(x)
-#define LittleLong(x) LongSwap(x)
-#define LittleFloat(x) FloatSwap(&x)
-#define BigShort
-#define BigLong
-#define BigFloat
-
-#elif defined( Q3_LITTLE_ENDIAN )
-
-#define LittleShort
-#define LittleLong
-#define LittleFloat
-#define BigShort(x) ShortSwap(x)
-#define BigLong(x) LongSwap(x)
-#define BigFloat(x) FloatSwap(&x)
-
-#elif defined( Q3_VM )
-
-#define LittleShort
-#define LittleLong
-#define LittleFloat
-#define BigShort
-#define BigLong
-#define BigFloat
-
-#else
-#error "Endianness not defined"
 #endif
 
 

@@ -29,6 +29,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // IneQuation was here
 
 #define	CONTENTS_SOLID			1		// an eye is never valid in a solid
+#define CONTENTS_LADDER			2
 #define	CONTENTS_LAVA			0x0008
 #define	CONTENTS_SLIME			0x0010
 #define	CONTENTS_WATER			0x0020
@@ -36,10 +37,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #define CONTENTS_NOTTEAM1		0x0080
 #define CONTENTS_NOTTEAM2		0x0100
+#define CONTENTS_BBOX			0x0100
 #define CONTENTS_NOBOTCLIP		0x0200
+#define CONTENTS_UNKNOWN1		0x0400
+#define CONTENTS_UNKNOWN2		0x0800
 
+#define CONTENTS_UNKNOWN3		0x1000
 #define CONTENTS_FENCE			0x2000
-#define CONTENTS_WOMBAT4		0x4000
+#define CONTENTS_UNKNOWN4		0x4000
 #define	CONTENTS_AREAPORTAL		0x8000
 // su44: this is only for bspc .aas file compiler (bot navigation info)
 // I dont think its correct....
@@ -106,4 +111,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define SURF_NODLIGHT			0x20000000	// don't dlight even if solid (solid lava, skies)
 #define SURF_HINT				0x40000000	// make a primary bsp splitter
 #define SURF_UNKNOWN3			0x80000000	// IneQuation: WTF?
+
+#define	SURF_FLESH				0x40	// make flesh sounds and effects
+#define	SURF_POINTLIGHT			0x800	// generate lighting info at vertexes
+#define	SURF_METALSTEPS			0x1000	// clanking footsteps
+#define	SURF_LIGHTFILTER		0x8000	// act as a light filter during q3map -light
+#define SURF_DUST				0x40000 // leave a dust trail when walking on this surface
 

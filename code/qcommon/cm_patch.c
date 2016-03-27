@@ -124,7 +124,7 @@ Returns false if the triangle is degenrate.
 The normal will point out of the clock for clockwise ordered points
 =====================
 */
-static qboolean CM_PlaneFromPoints( vec4_t plane, vec3_t a, vec3_t b, vec3_t c ) {
+qboolean CM_PlaneFromPoints( vec4_t plane, vec3_t a, vec3_t b, vec3_t c ) {
 	vec3_t	d1, d2;
 
 	VectorSubtract( b, a, d1 );
@@ -155,7 +155,7 @@ Returns true if the given quadratic curve is not flat enough for our
 collision detection purposes
 =================
 */
-static qboolean	CM_NeedsSubdivision( vec3_t a, vec3_t b, vec3_t c ) {
+static qboolean	CM_NeedsSubdivision( vec3_t a, vec3_t b, vec3_t c, float subdivisions ) {
 	vec3_t		cmid;
 	vec3_t		lmid;
 	vec3_t		delta;
@@ -176,7 +176,7 @@ static qboolean	CM_NeedsSubdivision( vec3_t a, vec3_t b, vec3_t c ) {
 	VectorSubtract( cmid, lmid, delta );
 	dist = VectorLength( delta );
 	
-	return dist >= SUBDIVIDE_DISTANCE;
+	return dist >= subdivisions;
 }
 
 /*
@@ -286,7 +286,7 @@ all the aproximating points are within SUBDIVIDE_DISTANCE
 from the true curve
 =================
 */
-static void CM_SubdivideGridColumns( cGrid_t *grid ) {
+static void CM_SubdivideGridColumns( cGrid_t *grid, float subdivisions ) {
 	int		i, j, k;
 
 	for ( i = 0 ; i < grid->width - 2 ;  ) {
@@ -298,7 +298,7 @@ static void CM_SubdivideGridColumns( cGrid_t *grid ) {
 		// first see if we can collapse the aproximating collumn away
 		//
 		for ( j = 0 ; j < grid->height ; j++ ) {
-			if ( CM_NeedsSubdivision( grid->points[i][j], grid->points[i+1][j], grid->points[i+2][j] ) ) {
+			if( CM_NeedsSubdivision( grid->points[ i ][ j ], grid->points[ i + 1 ][ j ], grid->points[ i + 2 ][ j ], subdivisions ) ) {
 				break;
 			}
 		}
@@ -940,7 +940,9 @@ void CM_AddFacetBevels( facet_t *facet ) {
 					} //end if
 					ChopWindingInPlace( &w2, newplane, newplane[3], 0.1f );
 					if (!w2) {
-						Com_DPrintf("WARNING: CM_AddFacetBevels... invalid bevel\n");
+						if( developer->integer == 2 ) {
+							Com_DPrintf( "WARNING: CM_AddFacetBevels... invalid bevel\n" );
+						}
 						continue;
 					}
 					else {
@@ -1129,9 +1131,9 @@ static void CM_PatchCollideFromGrid( cGrid_t *grid, patchCollide_t *pf ) {
 	// copy the results out
 	pf->numPlanes = numPlanes;
 	pf->numFacets = numFacets;
-	pf->facets = Hunk_Alloc( numFacets * sizeof( *pf->facets ), h_high );
+	pf->facets = Hunk_Alloc( numFacets * sizeof( *pf->facets ) );
 	Com_Memcpy( pf->facets, facets, numFacets * sizeof( *pf->facets ) );
-	pf->planes = Hunk_Alloc( numPlanes * sizeof( *pf->planes ), h_high );
+	pf->planes = Hunk_Alloc( numPlanes * sizeof( *pf->planes ) );
 	Com_Memcpy( pf->planes, planes, numPlanes * sizeof( *pf->planes ) );
 }
 
@@ -1146,7 +1148,7 @@ collision detection with a patch mesh.
 Points is packed as concatenated rows.
 ===================
 */
-struct patchCollide_s	*CM_GeneratePatchCollide( int width, int height, vec3_t *points ) {
+patchCollide_t *CM_GeneratePatchCollide( int width, int height, vec3_t *points, float subdivisions ) {
 	patchCollide_t	*pf;
 	cGrid_t			grid;
 	int				i, j;
@@ -1177,19 +1179,19 @@ struct patchCollide_s	*CM_GeneratePatchCollide( int width, int height, vec3_t *p
 
 	// subdivide the grid
 	CM_SetGridWrapWidth( &grid );
-	CM_SubdivideGridColumns( &grid );
+	CM_SubdivideGridColumns( &grid, subdivisions );
 	CM_RemoveDegenerateColumns( &grid );
 
 	CM_TransposeGrid( &grid );
 
 	CM_SetGridWrapWidth( &grid );
-	CM_SubdivideGridColumns( &grid );
+	CM_SubdivideGridColumns( &grid, subdivisions );
 	CM_RemoveDegenerateColumns( &grid );
 
 	// we now have a grid of points exactly on the curve
 	// the aproximate surface defined by these points will be
 	// collided against
-	pf = Hunk_Alloc( sizeof( *pf ), h_high );
+	pf = Hunk_Alloc( sizeof( *pf ) );
 	ClearBounds( pf->bounds[0], pf->bounds[1] );
 	for ( i = 0 ; i < grid.width ; i++ ) {
 		for ( j = 0 ; j < grid.height ; j++ ) {
@@ -1377,19 +1379,13 @@ CM_TraceThroughPatchCollide
 */
 void CM_TraceThroughPatchCollide( traceWork_t *tw, const struct patchCollide_s *pc ) {
 	int i, j, hit, hitnum;
-	float offset, enterFrac, leaveFrac, t;
+	float enterFrac, leaveFrac;
 	patchPlane_t *planes;
 	facet_t	*facet;
 	float plane[4] = {0, 0, 0, 0}, bestplane[4] = {0, 0, 0, 0};
-	vec3_t startp, endp;
 #ifndef BSPC
 	static cvar_t *cv;
 #endif //BSPC
-
-	if ( !CM_BoundsIntersect( tw->bounds[0], tw->bounds[1],
-				pc->bounds[0], pc->bounds[1] ) ) {
-		return;
-	}
 
 	if (tw->isPoint) {
 		CM_TracePointThroughPatchCollide( tw, pc );
@@ -1405,29 +1401,9 @@ void CM_TraceThroughPatchCollide( traceWork_t *tw, const struct patchCollide_s *
 		planes = &pc->planes[ facet->surfacePlane ];
 		VectorCopy(planes->plane, plane);
 		plane[3] = planes->plane[3];
-		if ( tw->sphere.use ) {
-			// adjust the plane distance apropriately for radius
-			plane[3] += tw->sphere.radius;
+		plane[3] -= DotProduct( tw->offsets[ planes->signbits ], plane);
 
-			// find the closest point on the capsule to the plane
-			t = DotProduct( plane, tw->sphere.offset );
-			if ( t > 0.0f ) {
-				VectorSubtract( tw->start, tw->sphere.offset, startp );
-				VectorSubtract( tw->end, tw->sphere.offset, endp );
-			}
-			else {
-				VectorAdd( tw->start, tw->sphere.offset, startp );
-				VectorAdd( tw->end, tw->sphere.offset, endp );
-			}
-		}
-		else {
-			offset = DotProduct( tw->offsets[ planes->signbits ], plane);
-			plane[3] -= offset;
-			VectorCopy( tw->start, startp );
-			VectorCopy( tw->end, endp );
-		}
-
-		if (!CM_CheckFacetPlane(plane, startp, endp, &enterFrac, &leaveFrac, &hit)) {
+		if( !CM_CheckFacetPlane( plane, tw->start, tw->end, &enterFrac, &leaveFrac, &hit ) ) {
 			continue;
 		}
 		if (hit) {
@@ -1444,30 +1420,11 @@ void CM_TraceThroughPatchCollide( traceWork_t *tw, const struct patchCollide_s *
 				VectorCopy(planes->plane, plane);
 				plane[3] = planes->plane[3];
 			}
-			if ( tw->sphere.use ) {
-				// adjust the plane distance apropriately for radius
-				plane[3] += tw->sphere.radius;
 
-				// find the closest point on the capsule to the plane
-				t = DotProduct( plane, tw->sphere.offset );
-				if ( t > 0.0f ) {
-					VectorSubtract( tw->start, tw->sphere.offset, startp );
-					VectorSubtract( tw->end, tw->sphere.offset, endp );
-				}
-				else {
-					VectorAdd( tw->start, tw->sphere.offset, startp );
-					VectorAdd( tw->end, tw->sphere.offset, endp );
-				}
-			}
-			else {
-				// NOTE: this works even though the plane might be flipped because the bbox is centered
-				offset = DotProduct( tw->offsets[ planes->signbits ], plane);
-				plane[3] += fabs(offset);
-				VectorCopy( tw->start, startp );
-				VectorCopy( tw->end, endp );
-			}
+			// NOTE: this works even though the plane might be flipped because the bbox is centered
+			plane[ 3 ] += fabs( DotProduct( tw->offsets[ planes->signbits ], plane ) );
 
-			if (!CM_CheckFacetPlane(plane, startp, endp, &enterFrac, &leaveFrac, &hit)) {
+			if( !CM_CheckFacetPlane( plane, tw->start, tw->end, &enterFrac, &leaveFrac, &hit ) ) {
 				break;
 			}
 			if (hit) {
@@ -1533,17 +1490,17 @@ qboolean CM_PositionTestInPatchCollide( traceWork_t *tw, const struct patchColli
 		planes = &pc->planes[ facet->surfacePlane ];
 		VectorCopy(planes->plane, plane);
 		plane[3] = planes->plane[3];
-		if ( tw->sphere.use ) {
+		if ( sphere.use ) {
 			// adjust the plane distance apropriately for radius
-			plane[3] += tw->sphere.radius;
+			plane[3] += sphere.radius;
 
 			// find the closest point on the capsule to the plane
-			t = DotProduct( plane, tw->sphere.offset );
+			t = DotProduct( plane, sphere.offset );
 			if ( t > 0 ) {
-				VectorSubtract( tw->start, tw->sphere.offset, startp );
+				VectorSubtract( tw->start, sphere.offset, startp );
 			}
 			else {
-				VectorAdd( tw->start, tw->sphere.offset, startp );
+				VectorAdd( tw->start, sphere.offset, startp );
 			}
 		}
 		else {
@@ -1566,17 +1523,17 @@ qboolean CM_PositionTestInPatchCollide( traceWork_t *tw, const struct patchColli
 				VectorCopy(planes->plane, plane);
 				plane[3] = planes->plane[3];
 			}
-			if ( tw->sphere.use ) {
+			if ( sphere.use ) {
 				// adjust the plane distance apropriately for radius
-				plane[3] += tw->sphere.radius;
+				plane[3] += sphere.radius;
 
 				// find the closest point on the capsule to the plane
-				t = DotProduct( plane, tw->sphere.offset );
+				t = DotProduct( plane, sphere.offset );
 				if ( t > 0.0f ) {
-					VectorSubtract( tw->start, tw->sphere.offset, startp );
+					VectorSubtract( tw->start, sphere.offset, startp );
 				}
 				else {
-					VectorAdd( tw->start, tw->sphere.offset, startp );
+					VectorAdd( tw->start, sphere.offset, startp );
 				}
 			}
 			else {
@@ -1642,7 +1599,7 @@ void CM_DrawDebugSurface( void (*drawPoly)(int color, int numPoints, float *poin
 
 	if (cv2->integer != 1)
 	{
-		BotDrawDebugPolygons(drawPoly, cv2->integer);
+		//BotDrawDebugPolygons(drawPoly, cv2->integer);
 		return;
 	}
 #endif

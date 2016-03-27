@@ -41,7 +41,7 @@ int oldsize = 0;
 
 void MSG_initHuffman( void );
 
-void MSG_Init( msg_t *buf, byte *data, int length ) {
+void MSG_Init( msg_t *buf, byte *data, size_t length ) {
 	if (!msgInit) {
 		MSG_initHuffman();
 	}
@@ -50,7 +50,7 @@ void MSG_Init( msg_t *buf, byte *data, int length ) {
 	buf->maxsize = length;
 }
 
-void MSG_InitOOB( msg_t *buf, byte *data, int length ) {
+void MSG_InitOOB( msg_t *buf, byte *data, size_t length ) {
 	if (!msgInit) {
 		MSG_initHuffman();
 	}
@@ -270,7 +270,7 @@ void MSG_WriteByte( msg_t *sb, int c ) {
 	MSG_WriteBits( sb, c, 8 );
 }
 
-void MSG_WriteData( msg_t *buf, const void *data, int length ) {
+void MSG_WriteData( msg_t *buf, const void *data, size_t length ) {
 	int i;
 	for(i=0;i<length;i++) {
 		MSG_WriteByte(buf, ((byte *)data)[i]);
@@ -308,7 +308,8 @@ void MSG_WriteString( msg_t *sb, const char *s ) {
 	if ( !s ) {
 		MSG_WriteData (sb, "", 1);
 	} else {
-		int		l,i;
+		size_t	l;
+		int		i;
 		char	string[MAX_STRING_CHARS];
 
 		l = strlen( s );
@@ -334,7 +335,8 @@ void MSG_WriteBigString( msg_t *sb, const char *s ) {
 	if ( !s ) {
 		MSG_WriteData (sb, "", 1);
 	} else {
-		int		l,i;
+		size_t	l;
+		int		i;
 		char	string[BIG_INFO_STRING];
 
 		l = strlen( s );
@@ -384,6 +386,16 @@ int MSG_ReadChar (msg_t *msg ) {
 }
 
 int MSG_ReadByte( msg_t *msg ) {
+	int	c;
+	
+	c = (unsigned char)MSG_ReadBits( msg, 8 );
+	if ( msg->readcount > msg->cursize ) {
+		c = -1;
+	}	
+	return c;
+}
+
+int MSG_ReadSVC( msg_t *msg ) {
 	int	c;
 	
 	c = (unsigned char)MSG_ReadBits( msg, 8 );
@@ -551,6 +563,10 @@ void MSG_GetNullEntityState(entityState_t *nullState) {
 	nullState->bone_tag[2] = -1;
 	nullState->bone_tag[1] = -1;
 	nullState->bone_tag[0] = -1;
+}
+
+float MSG_ReadAngle8( msg_t *msg ) {
+	return BYTE2ANGLE(MSG_ReadShort(msg));
 }
 
 float MSG_ReadAngle16( msg_t *msg ) {
@@ -838,16 +854,16 @@ typedef struct {
 
 netField_t	entityStateFields[] = 
 {
-{ NETF(origin[0]), 0, 6 },
-{ NETF(origin[1]), 0, 6 },
-{ NETF(angles[1]), 12, 1 },
+{ NETF(netorigin[0]), 0, 6 },
+{ NETF(netorigin[1]), 0, 6 },
+{ NETF(netangles[1]), 12, 1 },
 { NETF(frameInfo[0].time), 0, 2 },
 { NETF(frameInfo[1].time), 0, 2 },
 { NETF(bone_angles[0][0]), -13, 1 },
 { NETF(bone_angles[3][0]), -13, 1 },
 { NETF(bone_angles[1][0]), -13, 1 },
 { NETF(bone_angles[2][0]), -13, 1 },
-{ NETF(origin[2]), 0, 6 },
+{ NETF(netorigin[2]), 0, 6 },
 { NETF(frameInfo[0].weight), 0, 3 },
 { NETF(frameInfo[1].weight), 0, 3},
 { NETF(frameInfo[2].time), 0, 2 },
@@ -874,8 +890,8 @@ netField_t	entityStateFields[] =
 { NETF(usageIndex), 16, 0 },
 { NETF(eFlags), 16, 0 },
 { NETF(solid), 32, 0 },
-{ NETF(angles[2]), 12, 1 },
-{ NETF(angles[0]), 12, 1 },
+{ NETF(netangles[2]), 12, 1 },
+{ NETF(netangles[0]), 12, 1 },
 { NETF(tag_num), 10, 0 },
 { NETF(bone_angles[1][2]), -13, 1 },
 { NETF(attach_use_angles), 1, 0 },
@@ -1612,6 +1628,18 @@ void MSG_ReadDeltaEntity( msg_t *msg, entityState_t *from, entityState_t *to,
 		}
 		Com_Printf( " (%i bits)\n", endBit - startBit  );
 	}
+
+	VectorCopy( to->netorigin, to->origin );
+	VectorCopy( to->netangles, to->angles );
+	EulerToQuat( to->angles, to->quat );
+
+	// get bone controllers
+	for( i = 0; i < NUM_BONE_CONTROLLERS; i++ )
+	{
+		if( to->bone_tag[ i ] >= 0 ) {
+			EulerToQuat( to->bone_angles[ i ], to->bone_quat[ i ] );
+		}
+	}
 }
 
 
@@ -1750,7 +1778,7 @@ void MSG_WriteDeltaPlayerstate( msg_t *msg, struct playerState_s *from, struct p
 	int				ammo_amountbits;
 	int				max_ammo_amountbits;
 	int				numFields;
-	int				c;
+	size_t			c;
 	netField_t		*field;
 	int				*fromF, *toF;
 	float			fullFloat;

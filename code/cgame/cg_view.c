@@ -72,24 +72,24 @@ void CG_TestModel_f (void) {
 	char		tmp[128];
 
 	memset( &cg.testModelEntity, 0, sizeof(cg.testModelEntity) );
-	if ( trap_Argc() < 2 ) {
+	if ( cgi.Argc() < 2 ) {
 		return;
 	}
 
 	Q_strncpyz (cg.testModelName, CG_Argv( 1 ), MAX_QPATH );
-	cg.testModelEntity.hModel = trap_R_RegisterModel( cg.testModelName );
+	cg.testModelEntity.model = cgi.R_RegisterModel( cg.testModelName );
 
-	if ( trap_Argc() == 3 ) {
+	if ( cgi.Argc() == 3 ) {
 		cg.testModelEntity.backlerp = atof( CG_Argv( 2 ) );
 		cg.testModelEntity.frame = 1;
 		cg.testModelEntity.oldframe = 0;
 	}
-	if (! cg.testModelEntity.hModel ) {
+	if( !cg.testModelEntity.model ) {
 		strcpy(tmp,"models/");
 		strcat(tmp,cg.testModelName);
 		strcpy(cg.testModelName,tmp);
-		cg.testModelEntity.hModel = trap_R_RegisterModel( cg.testModelName );
-		if (! cg.testModelEntity.hModel ) {
+		cg.testModelEntity.model = cgi.R_RegisterModel( cg.testModelName );
+		if( !cg.testModelEntity.model ) {
 			CG_Printf( "Can't register model\n" );
 			return;
 		}
@@ -157,9 +157,9 @@ static void CG_AddTestModel (void) {
 	int		i;
 	tiki_t	*tiki;
 	// re-register the model, because the level may have changed
-	cg.testModelEntity.hModel = trap_R_RegisterModel( cg.testModelName );
-	tiki = trap_TIKI_RegisterModel( cg.testModelName );
-	if (! cg.testModelEntity.hModel ) {
+	cg.testModelEntity.model = cgi.R_RegisterModel( cg.testModelName );
+	tiki = cgi.TIKI_RegisterModel( cg.testModelName );
+	if( !cg.testModelEntity.model ) {
 		CG_Printf ("Can't register model\n");
 		return;
 	}
@@ -173,33 +173,33 @@ static void CG_AddTestModel (void) {
 
 		// allow the position to be adjusted
 		for (i=0 ; i<3 ; i++) {
-			cg.testModelEntity.origin[i] += cg.refdef.viewaxis[0][i] * cg_gun_x.value;
-			cg.testModelEntity.origin[i] += cg.refdef.viewaxis[1][i] * cg_gun_y.value;
-			cg.testModelEntity.origin[i] += cg.refdef.viewaxis[2][i] * cg_gun_z.value;
+			cg.testModelEntity.origin[i] += cg.refdef.viewaxis[0][i] * cg_gun_x->value;
+			cg.testModelEntity.origin[i] += cg.refdef.viewaxis[1][i] * cg_gun_y->value;
+			cg.testModelEntity.origin[i] += cg.refdef.viewaxis[2][i] * cg_gun_z->value;
 		}
 	}
 	if( tiki ) {
 		int animIndex;
 
-		cg.testModelEntity.bones = trap_TIKI_GetBones(tiki->numBones);
+		cg.testModelEntity.bones = cgi.TIKI_GetBones(tiki->numBones);
 		ClearBounds(cg.testModelEntity.bounds[0],cg.testModelEntity.bounds[1]);
 		cg.testModelEntity.radius = 0;
 
-		animIndex = trap_TIKI_GetAnimIndex(tiki,cg.testModelAnim);
+		animIndex = cgi.TIKI_GetAnimIndex(tiki,cg.testModelAnim);
 		if(cg.testModelAnim[0]) {
 			float t = cg.time / 1000.f;
 			if(cg.testModelAnimSpeedScale != 0.f) {
 				t *= cg.testModelAnimSpeedScale;
 			}
-			trap_TIKI_AppendFrameBoundsAndRadius(tiki,animIndex,t,&cg.testModelEntity.radius,cg.testModelEntity.bounds);
-			trap_TIKI_SetChannels(tiki,animIndex,t,1,cg.testModelEntity.bones);
+			cgi.TIKI_AppendFrameBoundsAndRadius(tiki,animIndex,t,&cg.testModelEntity.radius,cg.testModelEntity.bounds);
+			cgi.TIKI_SetChannels(tiki,animIndex,t,1,cg.testModelEntity.bones);
 		} else {
-			trap_TIKI_AppendFrameBoundsAndRadius(tiki,0,0,&cg.testModelEntity.radius,cg.testModelEntity.bounds);
-			trap_TIKI_SetChannels(tiki,0,0,1,cg.testModelEntity.bones);
+			cgi.TIKI_AppendFrameBoundsAndRadius(tiki,0,0,&cg.testModelEntity.radius,cg.testModelEntity.bounds);
+			cgi.TIKI_SetChannels(tiki,0,0,1,cg.testModelEntity.bones);
 		}
-		trap_TIKI_Animate(tiki,cg.testModelEntity.bones);
+		cgi.TIKI_Animate(tiki,cg.testModelEntity.bones);
 	}
-	trap_R_AddRefEntityToScene( &cg.testModelEntity );
+	cgi.R_AddRefEntityToScene( &cg.testModelEntity );
 }
 
 
@@ -218,14 +218,14 @@ static void CG_CalcVrect (void) {
 	int		size;
 
 	// bound normal viewsize
-	if (cg_viewsize.integer < 30) {
-		trap_Cvar_Set ("cg_viewsize","30");
+	if (cg_viewsize->integer < 30) {
+		cgi.Cvar_Set ("cg_viewsize","30");
 		size = 30;
-	} else if (cg_viewsize.integer > 100) {
-		trap_Cvar_Set ("cg_viewsize","100");
+	} else if (cg_viewsize->integer > 100) {
+		cgi.Cvar_Set ("cg_viewsize","100");
 		size = 100;
 	} else {
-		size = cg_viewsize.integer;
+		size = cg_viewsize->integer;
 	}
 
 	cg.refdef.width = cgs.glconfig.vidWidth*size/100;
@@ -284,15 +284,15 @@ static void CG_OffsetThirdPersonView( void ) {
 
 	AngleVectors( cg.refdefViewAngles, forward, right, up );
 
-	forwardScale = cos( cg_thirdPersonAngle.value / 180 * M_PI );
-	sideScale = sin( cg_thirdPersonAngle.value / 180 * M_PI );
-	VectorMA( view, -cg_thirdPersonRange.value * forwardScale, forward, view );
-	VectorMA( view, -cg_thirdPersonRange.value * sideScale, right, view );
+	forwardScale = cos( cg_thirdPersonAngle->value / 180 * M_PI );
+	sideScale = sin( cg_thirdPersonAngle->value / 180 * M_PI );
+	VectorMA( view, -cg_thirdPersonRange->value * forwardScale, forward, view );
+	VectorMA( view, -cg_thirdPersonRange->value * sideScale, right, view );
 
 	// trace a ray from the origin to the viewpoint to make sure the view isn't
 	// in a solid block.  Use an 8 by 8 block to prevent the view from near clipping anything
 
-	if (!cg_cameraMode.integer) {
+	if (!cg_cameraMode->integer) {
 		CG_Trace( &trace, cg.refdef.vieworg, mins, maxs, view, cg.predictedPlayerState.clientNum, MASK_SOLID );
 
 		if ( trace.fraction != 1.0 ) {
@@ -316,7 +316,7 @@ static void CG_OffsetThirdPersonView( void ) {
 		focusDist = 1;	// should never happen
 	}
 	cg.refdefViewAngles[PITCH] = -180 / M_PI * atan2( focusPoint[2], focusDist );
-	cg.refdefViewAngles[YAW] -= cg_thirdPersonAngle.value;
+	cg.refdefViewAngles[YAW] -= cg_thirdPersonAngle->value;
 }
 
 
@@ -344,15 +344,15 @@ static void CG_OffsetFirstPersonView( void ) {
 	float			bob;
 	float			ratio;
 	float			delta;
-	float			speed;
 	float			f;
-	vec3_t			predictedVelocity;
 	int				timeDelta;
-	vec3_t a,tmp;
-	vec3_t forward, right;
+	vec3_t tmp;
+	vec3_t right;
 	trace_t trace;
 	vec3_t mins = { -8, -8, -8 };
 	vec3_t maxs = { 8, 8, 8 };
+	matrix_t m;
+	vec3_t pos, v;
 
 	origin = cg.refdef.vieworg;
 	angles = cg.refdefViewAngles;
@@ -393,51 +393,92 @@ static void CG_OffsetFirstPersonView( void ) {
 	angles[PITCH] += ratio * cg.fall_value;
 #endif
 
+#if 0
+
 	// add angles based on velocity
 	VectorCopy( cg.predictedPlayerState.velocity, predictedVelocity );
 
 	delta = DotProduct ( predictedVelocity, cg.refdef.viewaxis[0]);
-	angles[PITCH] += delta * cg_runpitch.value;
+	angles[PITCH] += delta * cg_runpitch->value;
 	
 	delta = DotProduct ( predictedVelocity, cg.refdef.viewaxis[1]);
-	angles[ROLL] -= delta * cg_runroll.value;
+	angles[ROLL] -= delta * cg_runroll->value;
 
 	// add angles based on bob
 
 	// make sure the bob is visible even at low speeds
 	speed = cg.xyspeed > 200 ? cg.xyspeed : 200;
 
-	delta = cg.bobfracsin * cg_bobpitch.value * speed;
+	delta = cg.bobfracsin * cg_bobpitch->value * speed;
 	if (cg.predictedPlayerState.pm_flags & PMF_DUCKED)
 		delta *= 3;		// crouching
 	angles[PITCH] += delta;
-	delta = cg.bobfracsin * cg_bobroll.value * speed;
+	delta = cg.bobfracsin * cg_bobroll->value * speed;
 	if (cg.predictedPlayerState.pm_flags & PMF_DUCKED)
 		delta *= 3;		// crouching accentuates roll
 	if (cg.bobcycle & 1)
 		delta = -delta;
 	angles[ROLL] += delta;
+#endif
 
 //===================================
 
 	// add view height
-	origin[2] += cg.predictedPlayerState.viewheight;
+	origin[ 2 ] += cg.predictedPlayerState.viewheight;
 
 	// smooth out duck height changes
 	timeDelta = cg.time - cg.duckTime;
 	if ( timeDelta < DUCK_TIME) {
-		cg.refdef.vieworg[2] -= cg.duckChange 
-			* (DUCK_TIME - timeDelta) / DUCK_TIME;
+		cg.refdef.vieworg[ 2 ] -= cg.duckChange
+			* ( DUCK_TIME - timeDelta ) / DUCK_TIME;
 	}
 
-	// add bob height
-	bob = cg.bobfracsin * cg.xyspeed * cg_bobup.value;
-	if (bob > 6) {
-		bob = 6;
+	if( cg.predictedPlayerState.groundEntityNum != ENTITYNUM_NONE )
+	{
+		float vel = VectorLength( cg.predictedPlayerState.velocity );
+
+		cg.fCurrentViewBobPhase = ( ( ( float )cg.frametime ) / 1000 ) * M_PI
+			* ( vel * 0.001500000013038516 + 0.8999999761581421 ) * 2 + cg.fCurrentViewBobPhase;
+
+		if( cg.fCurrentViewBobAmp != 0.0 )
+			vel = vel * 0.5;
+
+		cg.fCurrentViewBobAmp = vel;
+
+		if( cg.predictedPlayerState.fLeanAngle != 0.f ) {
+			cg.fCurrentViewBobAmp = cg.fCurrentViewBobAmp * 0.75;
+		}
+
+		cg.fCurrentViewBobAmp = ( 1.0 - fabs( cg.refdefViewAngles[ 0 ] ) * 0.01111111138015985 * 0.5 )
+			* 0.5
+			* cg.fCurrentViewBobAmp;
+	}
+	else if( cg.fCurrentViewBobAmp > 0.0 )
+	{
+		float f;
+
+		f = ( ( float )cg.frametime ) * 0.001 * cg.fCurrentViewBobAmp;
+		cg.fCurrentViewBobAmp -= ( f + f );
 	}
 
-	origin[2] += bob;
+	if( cg.fCurrentViewBobAmp > 0.0 ) {
 
+	}
+
+	// add bob values
+	VectorClear( pos );
+
+	bob = cg.fCurrentViewBobAmp * ( sin( cg.fCurrentViewBobPhase - 0.9424778335276408 + cg.fCurrentViewBobPhase - 0.9424778335276408 + 3.141592653589793 )
+		+ sin( ( cg.fCurrentViewBobPhase - 0.9424778335276408 ) * 4.0 + 1.570796326794897 ) * 0.125 ) * 0.05f;
+
+	pos[ 1 ] = -( sin( cg.fCurrentViewBobPhase + 0.3141592700403172 ) * cg.fCurrentViewBobAmp * 0.05f ) * 1.5f;
+
+	MatrixFromAngles( m, cg.refdefViewAngles[ 0 ], cg.refdefViewAngles[ 1 ], cg.refdefViewAngles[ 2 ] );
+	MatrixTransformPoint( m, pos, v );
+
+	VectorSubtract( origin, v, origin );
+
+	origin[ 2 ] += bob;
 
 	// add fall height
 	delta = cg.time - cg.landTime;
@@ -529,8 +570,6 @@ static int CG_CalcFov( void ) {
 	float	v;
 	int		contents;
 	float	fov_x, fov_y;
-	float	zoomFov;
-	float	f;
 	int		inwater;
 
 #if 0
@@ -543,7 +582,7 @@ static int CG_CalcFov( void ) {
 			// dmflag to prevent wide fov for all clients
 			fov_x = 90;
 		} else {
-			fov_x = cg_fov.value;
+			fov_x = cg_fov->value;
 			if ( fov_x < 1 ) {
 				fov_x = 1;
 			} else if ( fov_x > 160 ) {
@@ -552,7 +591,7 @@ static int CG_CalcFov( void ) {
 		}
 
 		// account for zooms
-		zoomFov = cg_zoomFov.value;
+		zoomFov = cg_zoomFov->value;
 		if ( zoomFov < 1 ) {
 			zoomFov = 1;
 		} else if ( zoomFov > 160 ) {
@@ -661,7 +700,7 @@ static void CG_DamageBlendBlob( void ) {
 	//ent.shaderRGBA[1] = 255;
 	//ent.shaderRGBA[2] = 255;
 	//ent.shaderRGBA[3] = 200 * ( 1.0 - ((float)t / maxTime) );
-	//trap_R_AddRefEntityToScene( &ent );
+	//cgi.R_AddRefEntityToScene( &ent );
 }
 
 
@@ -693,7 +732,7 @@ static int CG_CalcViewValues( void ) {
 /*
 	if (cg.cameraMode) {
 		vec3_t origin, angles;
-		if (trap_getCameraInfo(cg.time, &origin, &angles)) {
+		if (cgi.getCameraInfo(cg.time, &origin, &angles)) {
 			VectorCopy(origin, cg.refdef.vieworg);
 			angles[ROLL] = 0;
 			VectorCopy(angles, cg.refdefViewAngles);
@@ -713,19 +752,19 @@ static int CG_CalcViewValues( void ) {
 	VectorCopy( ps->origin, cg.refdef.vieworg );
 	VectorCopy( ps->viewangles, cg.refdefViewAngles );
 
-	if (cg_cameraOrbit.integer) {
+	if (cg_cameraOrbit->integer) {
 		if (cg.time > cg.nextOrbitTime) {
-			cg.nextOrbitTime = cg.time + cg_cameraOrbitDelay.integer;
-			cg_thirdPersonAngle.value += cg_cameraOrbit.value;
+			cg.nextOrbitTime = cg.time + cg_cameraOrbitDelay->integer;
+			cg_thirdPersonAngle->value += cg_cameraOrbit->value;
 		}
 	}
 	// add error decay
-	if ( cg_errorDecay.value > 0 ) {
+	if ( cg_errorDecay->value > 0 ) {
 		int		t;
 		float	f;
 
 		t = cg.time - cg.predictedErrorTime;
-		f = ( cg_errorDecay.value - t ) / cg_errorDecay.value;
+		f = ( cg_errorDecay->value - t ) / cg_errorDecay->value;
 		if ( f > 0 && f < 1 ) {
 			VectorMA( cg.refdef.vieworg, f, cg.predictedError, cg.refdef.vieworg );
 		} else {
@@ -780,10 +819,10 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 
 	// any looped sounds will be respecified as entities
 	// are added to the render list
-	trap_S_ClearLoopingSounds(qfalse);
+	cgi.S_ClearLoopingSounds(qfalse);
 
 	// clear all the render lists
-	trap_R_ClearScene();
+	cgi.R_ClearScene();
 
 	// set up cg.snap and possibly cg.nextSnap
 	CG_ProcessSnapshots();
@@ -796,7 +835,7 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 	}
 
 	// let the client system know what our weapon and zoom settings are
-	trap_SetUserCmdValue( CG_WeaponCommandButtonBits(), cg.zoomSensitivity );
+	cgi.SetUserCmdValue( CG_WeaponCommandButtonBits(), cg.zoomSensitivity );
 
 	// this counter will be bumped for every valid scene we generate
 	cg.clientFrame++;
@@ -805,7 +844,7 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 	CG_PredictPlayerState();
 
 	// decide on third person view
-	cg.renderingThirdPerson = cg_thirdPerson.integer || (cg.snap->ps.stats[STAT_HEALTH] <= 0);
+	cg.renderingThirdPerson = cg_thirdPerson->integer || (cg.snap->ps.stats[STAT_HEALTH] <= 0);
 
 	// build cg.refdef
 	inwater = CG_CalcViewValues();
@@ -831,14 +870,14 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 	CG_AddViewWeapon( &cg.predictedPlayerState );
 
 	// finish up the rest of the refdef
-	if ( cg.testModelEntity.hModel ) {
+	if( cg.testModelEntity.model ) {
 		CG_AddTestModel();
 	}
 	cg.refdef.time = cg.time;
 	memcpy( cg.refdef.areamask, cg.snap->areamask, sizeof( cg.refdef.areamask ) );
 
 	// update audio positions
-	trap_S_Respatialize( cg.snap->ps.clientNum, cg.refdef.vieworg, cg.refdef.viewaxis, inwater );
+	cgi.S_Respatialize( cg.snap->ps.clientNum, cg.refdef.vieworg, cg.refdef.viewaxis, inwater );
 
 	// make sure the lagometerSample and frame timing isn't done twice when in stereo
 	if ( stereoView != STEREO_RIGHT ) {
@@ -849,26 +888,26 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 		cg.oldTime = cg.time;
 		CG_AddLagometerFrameInfo();
 	}
-	if (cg_timescale.value != cg_timescaleFadeEnd.value) {
-		if (cg_timescale.value < cg_timescaleFadeEnd.value) {
-			cg_timescale.value += cg_timescaleFadeSpeed.value * ((float)cg.frametime) / 1000;
-			if (cg_timescale.value > cg_timescaleFadeEnd.value)
-				cg_timescale.value = cg_timescaleFadeEnd.value;
+	if (cg_timescale->value != cg_timescaleFadeEnd->value) {
+		if (cg_timescale->value < cg_timescaleFadeEnd->value) {
+			cg_timescale->value += cg_timescaleFadeSpeed->value * ((float)cg.frametime) / 1000;
+			if (cg_timescale->value > cg_timescaleFadeEnd->value)
+				cg_timescale->value = cg_timescaleFadeEnd->value;
 		}
 		else {
-			cg_timescale.value -= cg_timescaleFadeSpeed.value * ((float)cg.frametime) / 1000;
-			if (cg_timescale.value < cg_timescaleFadeEnd.value)
-				cg_timescale.value = cg_timescaleFadeEnd.value;
+			cg_timescale->value -= cg_timescaleFadeSpeed->value * ((float)cg.frametime) / 1000;
+			if (cg_timescale->value < cg_timescaleFadeEnd->value)
+				cg_timescale->value = cg_timescaleFadeEnd->value;
 		}
-		if (cg_timescaleFadeSpeed.value) {
-			trap_Cvar_Set("timescale", va("%f", cg_timescale.value));
+		if (cg_timescaleFadeSpeed->value) {
+			cgi.Cvar_Set("timescale", va("%f", cg_timescale->value));
 		}
 	}
 
 	// actually issue the rendering calls
 	CG_DrawActive( stereoView );
 
-	if ( cg_stats.integer ) {
+	if ( cg_stats->integer ) {
 		CG_Printf( "cg.clientFrame:%i\n", cg.clientFrame );
 	}
 

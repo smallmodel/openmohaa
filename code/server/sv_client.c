@@ -226,20 +226,20 @@ void SV_DirectConnect( netadr_t from ) {
 	int			i;
 	client_t	*cl, *newcl;
 	client_t	temp;
-	sharedEntity_t *ent;
+	gentity_t	*ent;
 	int			clientNum;
 	int			version;
 	int			qport;
 	int			challenge;
 	char		*password;
 	int			startIndex;
-	intptr_t		denied;
+	char		*denied;
 	int			count;
 	char		*ip;
 
-	Com_DPrintf ("SVC_DirectConnect ()\n");
+	Com_DPrintf( "SVC_DirectConnect ()\n" );
 
-	Q_strncpyz( userinfo, Cmd_Argv(1), sizeof(userinfo) );
+	Q_strncpyz( userinfo, Cmd_Argv( 1 ), sizeof( userinfo ) );
 
 	version = atoi( Info_ValueForKey( userinfo, "protocol" ) );
 	if ( version != PROTOCOL_VERSION ) {
@@ -420,16 +420,14 @@ gotnewcl:
 	newcl->netchan_end_queue = &newcl->netchan_start_queue;
 
 	// save the userinfo
-	Q_strncpyz( newcl->userinfo, userinfo, sizeof(newcl->userinfo) );
+	Q_strncpyz( newcl->userinfo, userinfo, sizeof( newcl->userinfo ) );
 
 	// get the game a chance to reject this connection or modify the userinfo
-	denied = VM_Call( gvm, GAME_CLIENT_CONNECT, clientNum, qtrue, qfalse ); // firstTime = qtrue
-	if ( denied ) {
-		// we can't just use VM_ArgPtr, because that is only valid inside a VM_Call
-		char *str = VM_ExplicitArgPtr( gvm, denied );
+	denied = ge->ClientConnect( clientNum, qtrue );
 
-		NET_OutOfBandPrint( NS_SERVER, from, "print\n%s\n", str );
-		Com_DPrintf ("Game rejected a connection: %s.\n", str);
+	if ( denied ) {
+		NET_OutOfBandPrint( NS_SERVER, from, "print\n%s\n", denied );
+		Com_DPrintf( "Game rejected a connection: %s.\n", denied );
 		return;
 	}
 
@@ -497,7 +495,7 @@ void SV_DropClient( client_t *drop, const char *reason ) {
 	SV_CloseDownload( drop );
 
 	// tell everyone why they got dropped
-	SV_SendServerCommand( NULL, "print \"%s" S_COLOR_WHITE " %s\n\"", drop->name, reason );
+	SV_SendServerCommand( NULL, "print \"%s %s\n\"", drop->name, reason );
 
 
 	if (drop->download)	{
@@ -507,14 +505,10 @@ void SV_DropClient( client_t *drop, const char *reason ) {
 
 	// call the prog function for removing a client
 	// this will remove the body, among other things
-	VM_Call( gvm, GAME_CLIENT_DISCONNECT, drop - svs.clients );
+	ge->ClientDisconnect( ( gentity_t * )SV_GentityNum( drop - svs.clients ) );
 
 	// add the disconnect command
 	SV_SendServerCommand( drop, "disconnect \"%s\"", reason);
-
-	if ( drop->netchan.remoteAddress.type == NA_BOT ) {
-		SV_BotFreeClient( drop - svs.clients );
-	}
 
 	// nuke user info
 	SV_SetUserinfo( drop - svs.clients, "" );
@@ -624,7 +618,7 @@ SV_ClientEnterWorld
 */
 void SV_ClientEnterWorld( client_t *client, usercmd_t *cmd ) {
 	int		clientNum;
-	sharedEntity_t *ent;
+	gentity_t *ent;
 
 	Com_DPrintf( "Going from CS_PRIMED to CS_ACTIVE for %s\n", client->name );
 	client->state = CS_ACTIVE;
@@ -644,7 +638,7 @@ void SV_ClientEnterWorld( client_t *client, usercmd_t *cmd ) {
 	client->lastUsercmd = *cmd;
 
 	// call the game begin function
-	VM_Call( gvm, GAME_CLIENT_BEGIN, client - svs.clients );
+	ge->ClientBegin( ( gentity_t * )ent, cmd );
 }
 
 /*
@@ -918,12 +912,6 @@ void SV_WriteDownloadToClient( client_t *cl , msg_t *msg )
 		if ( sv_maxRate->integer < rate ) {
 			rate = sv_maxRate->integer;
 		}
-	}
-	if ( sv_minRate->integer ) {
-		if ( sv_minRate->integer < 1000 )
-			Cvar_Set( "sv_minRate", "1000" );
-		if ( sv_minRate->integer > rate )
-			rate = sv_minRate->integer;
 	}
 
 	if (!rate) {
@@ -1253,16 +1241,17 @@ SV_UpdateUserinfo_f
 ==================
 */
 static void SV_UpdateUserinfo_f( client_t *cl ) {
-	Q_strncpyz( cl->userinfo, Cmd_Argv(1), sizeof(cl->userinfo) );
+	Q_strncpyz( cl->userinfo, Cmd_Argv( 1 ), sizeof( cl->userinfo ) );
 
 	SV_UserinfoChanged( cl );
+
 	// call prog code to allow overrides
-	VM_Call( gvm, GAME_CLIENT_USERINFO_CHANGED, cl - svs.clients );
+	ge->ClientUserinfoChanged( ( gentity_t * )SV_GentityNum( cl - svs.clients ), cl->userinfo );
 }
 
 typedef struct {
 	char	*name;
-	void	(*func)( client_t *cl );
+	void	( *func )( client_t *cl );
 } ucmd_t;
 
 static ucmd_t ucmds[] = {
@@ -1303,7 +1292,7 @@ void SV_ExecuteClientCommand( client_t *cl, const char *s, qboolean clientOK ) {
 	if (clientOK) {
 		// pass unknown strings to the game
 		if (!u->name && sv.state == SS_GAME) {
-			VM_Call( gvm, GAME_CLIENT_COMMAND, cl - svs.clients );
+			ge->ClientCommand( ( gentity_t * )SV_GentityNum( cl - svs.clients ) );
 		}
 	}
 	else if (!bProcessed)
@@ -1328,7 +1317,9 @@ static qboolean SV_ClientCommand( client_t *cl, msg_t *msg ) {
 		return qtrue;
 	}
 
-	Com_DPrintf( "clientCommand: %s : %i : %s\n", cl->name, seq, s );
+	if( developer->integer == 2 ) {
+		Com_DPrintf( "clientCommand: %s : %i : %s\n", cl->name, seq, s );
+	}
 
 	// drop the connection if we have somehow lost commands
 	if ( seq > cl->lastClientCommand + 1 ) {
@@ -1360,7 +1351,7 @@ static qboolean SV_ClientCommand( client_t *cl, msg_t *msg ) {
 	SV_ExecuteClientCommand( cl, s, clientOk );
 
 	cl->lastClientCommand = seq;
-	Com_sprintf(cl->lastClientCommandString, sizeof(cl->lastClientCommandString), "%s", s);
+	Com_sprintf( cl->lastClientCommandString, sizeof( cl->lastClientCommandString ), "%s", s );
 
 	return qtrue;		// continue procesing
 }
@@ -1376,14 +1367,24 @@ SV_ClientThink
 Also called by bot code
 ==================
 */
-void SV_ClientThink (client_t *cl, usercmd_t *cmd) {
+void SV_ClientThink( client_t *cl, usercmd_t *cmd )
+{
+	const char *err;
+
 	cl->lastUsercmd = *cmd;
 
 	if ( cl->state != CS_ACTIVE ) {
 		return;		// may have been kicked during the last usercmd
 	}
 
-	VM_Call( gvm, GAME_CLIENT_THINK, cl - svs.clients );
+	ge->ClientThink( ( gentity_t * )SV_GentityNum( cl - svs.clients ), cmd, &cl->lastEyeinfo );
+
+	err = ge->errorMessage;
+	if( err )
+	{
+		ge->errorMessage = NULL;
+		Com_Error( ERR_DROP, err );
+	}
 }
 
 /*
@@ -1442,32 +1443,12 @@ static void SV_UserMove( client_t *cl, msg_t *msg, qboolean delta ) {
 
 	// save time for ping calculation
 	cl->frames[ cl->messageAcknowledge & PACKET_MASK ].messageAcked = svs.time;
-
-	// TTimo
-	// catch the no-cp-yet situation before SV_ClientEnterWorld
-	// if CS_ACTIVE, then it's time to trigger a new gamestate emission
-	// if not, then we are getting remaining parasite usermove commands, which we should ignore
-	if (sv_pure->integer != 0 && cl->pureAuthentic == 0 && !cl->gotCP) {
-		if (cl->state == CS_ACTIVE)
-		{
-			// we didn't get a cp yet, don't assume anything and just send the gamestate all over again
-			Com_DPrintf( "%s: didn't get cp command, resending gamestate\n", cl->name);
-			SV_SendClientGameState( cl );
-		}
-		return;
-	}			
 	
 	// if this is the first usercmd we have received
 	// this gamestate, put the client into the world
 	if ( cl->state == CS_PRIMED ) {
 		SV_ClientEnterWorld( cl, &cmds[0] );
 		// the moves can be processed normaly
-	}
-	
-	// a bad cp command was sent, drop the client
-	if (sv_pure->integer != 0 && cl->pureAuthentic == 0) {		
-		SV_DropClient( cl, "Cannot validate pure client!");
-		return;
 	}
 
 	if ( cl->state != CS_ACTIVE ) {
@@ -1492,7 +1473,8 @@ static void SV_UserMove( client_t *cl, msg_t *msg, qboolean delta ) {
 		if ( cmds[i].serverTime <= cl->lastUsercmd.serverTime ) {
 			continue;
 		}
-		SV_ClientThink (cl, &cmds[ i ]);
+
+		SV_ClientThink( cl, &cmds[ i ] );
 	}
 }
 
@@ -1556,12 +1538,7 @@ void SV_ExecuteClientMessage( client_t *cl, msg_t *msg ) {
 	// don't drop as long as previous command was a nextdl, after a dl is done, downloadName is set back to ""
 	// but we still need to read the next message to move to next download or send gamestate
 	// I don't like this hack though, it must have been working fine at some point, suspecting the fix is somewhere else
-	if ( serverId != sv.serverId && !*cl->downloadName && !strstr(cl->lastClientCommandString, "nextdl") ) {
-		if ( serverId >= sv.restartedServerId && serverId < sv.serverId ) { // TTimo - use a comparison here to catch multiple map_restart
-			// they just haven't caught the map_restart yet
-			Com_DPrintf("%s : ignoring pre map_restart / outdated client message\n", cl->name);
-			return;
-		}
+	if ( serverId != sv.serverId && !*cl->downloadName ) {
 		// if we can tell that the client has dropped the last
 		// gamestate we sent them, resend it
 		if ( cl->messageAcknowledge > cl->gamestateMessageNum ) {
@@ -1571,17 +1548,10 @@ void SV_ExecuteClientMessage( client_t *cl, msg_t *msg ) {
 		return;
 	}
 
-	// this client has acknowledged the new gamestate so it's
-	// safe to start sending it the real time again
-	if( cl->oldServerTime && serverId == sv.serverId ){
-		Com_DPrintf( "%s acknowledged gamestate\n", cl->name );
-		cl->oldServerTime = 0;
-	}
-
 	// read optional clientCommand strings
 	do {
 		c = MSG_ReadByte( msg );
-		Com_DPrintf( "SV_ExecuteClientMessage: %i\n", c );
+		//Com_DPrintf( "SV_ExecuteClientMessage: %i\n", c );
 		if ( c == clc_EOF ) {
 			break;
 		}

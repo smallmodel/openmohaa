@@ -46,9 +46,9 @@ void CG_SetEntitySoundPosition( centity_t *cent ) {
 
 		v = cgs.inlineModelMidpoints[ cent->currentState.modelindex ];
 		VectorAdd( cent->lerpOrigin, v, origin );
-		trap_S_UpdateEntityPosition( cent->currentState.number, origin );
+		cgi.S_UpdateEntityPosition( cent->currentState.number, origin );
 	} else {
-		trap_S_UpdateEntityPosition( cent->currentState.number, cent->lerpOrigin );
+		cgi.S_UpdateEntityPosition( cent->currentState.number, cent->lerpOrigin );
 	}
 }
 
@@ -67,10 +67,10 @@ static void CG_EntityEffects( centity_t *cent ) {
 	// add loop sound
 	if ( cent->currentState.loopSound ) {
 		if (cent->currentState.eType != ET_SPEAKER) {
-			trap_S_AddLoopingSound( cent->currentState.number, cent->lerpOrigin, vec3_origin, 
+			cgi.S_AddLoopingSound( cent->currentState.number, cent->lerpOrigin, vec3_origin, 
 				cgs.gameSounds[ cent->currentState.loopSound ] );
 		} else {
-			trap_S_AddRealLoopingSound( cent->currentState.number, cent->lerpOrigin, vec3_origin, 
+			cgi.S_AddRealLoopingSound( cent->currentState.number, cent->lerpOrigin, vec3_origin, 
 				cgs.gameSounds[ cent->currentState.loopSound ] );
 		}
 	}
@@ -86,7 +86,7 @@ static void CG_EntityEffects( centity_t *cent ) {
 		g = ( cl >> 8 ) & 255;
 		b = ( cl >> 16 ) & 255;
 		i = ( ( cl >> 24 ) & 255 ) * CONSTANTLIGHT_RADIUS_SCALE;
-		trap_R_AddLightToScene( cent->lerpOrigin, i, r, g, b );
+		cgi.R_AddLightToScene( cent->lerpOrigin, i, r, g, b );
 	}
 }
 
@@ -112,7 +112,7 @@ static void CG_General( centity_t *cent ) {
 	VectorCopy( cent->lerpOrigin, ent.origin);
 	VectorCopy( cent->lerpOrigin, ent.oldorigin);
 
-	ent.hModel = cgs.gameModels[s1->modelindex];
+	ent.model = cgs.gameModels[ s1->modelindex ];
 
 	// player model
 	if (s1->number == cg.snap->ps.clientNum) {
@@ -123,7 +123,7 @@ static void CG_General( centity_t *cent ) {
 	AnglesToAxis( cent->lerpAngles, ent.axis );
 
 	// add to refresh list
-	trap_R_AddRefEntityToScene (&ent);
+	cgi.R_AddRefEntityToScene (&ent);
 }
 
 //============================================================================
@@ -145,20 +145,20 @@ static void CG_Mover( centity_t *cent ) {
 	VectorCopy( cent->lerpOrigin, ent.oldorigin);
 	AnglesToAxis( cent->lerpAngles, ent.axis );
 
-	ent.renderfx = RF_NOSHADOW;
+	ent.renderfx &= ~RF_SHADOW;
 
 	// flicker between two skins (FIXME?)
 	ent.skinNum = ( cg.time >> 6 ) & 1;
 
 	// get the model, either as a bmodel or a modelindex
 	if ( s1->solid == SOLID_BMODEL ) {
-		ent.hModel = cgs.inlineDrawModel[s1->modelindex];
+		ent.model = cgs.inlineDrawModel[ s1->modelindex ];
 	} else {
-		ent.hModel = cgs.gameModels[s1->modelindex];
+		ent.model = cgs.gameModels[ s1->modelindex ];
 	}
 
 	// add to refresh list
-	trap_R_AddRefEntityToScene(&ent);
+	cgi.R_AddRefEntityToScene(&ent);
 }
 
 /*
@@ -184,7 +184,7 @@ void CG_Beam( centity_t *cent ) {
 	ent.renderfx = RF_NOSHADOW;
 
 	// add to refresh list
-	trap_R_AddRefEntityToScene(&ent);
+	cgi.R_AddRefEntityToScene(&ent);
 #else
 	entityState_t  *s1;
 	vec3_t         vz={0,0,0},origin={0,0,0};
@@ -266,7 +266,7 @@ static void CG_Portal( centity_t *cent ) {
 	//ent.skinNum = s1->clientNum/256.0 * 360;	// roll offset
 
 	//// add to refresh list
-	//trap_R_AddRefEntityToScene(&ent);
+	//cgi.R_AddRefEntityToScene(&ent);
 }
 
 
@@ -443,8 +443,8 @@ static void CG_ShowEntUnknownRenderFX(centity_t *cent) {
 	if( f & RF_PRECISESHADOW ) {
 		f &= ~RF_PRECISESHADOW;	
 	}
-	if( f & RF_LIGHTSTYLEDYNAMIC ) {
-		f &= ~RF_LIGHTSTYLEDYNAMIC;	
+	if( f & RF_LIGHTSTYLE_DLIGHT ) {
+		f &= ~RF_LIGHTSTYLE_DLIGHT;
 	}
 	if(f) {
 		CG_Printf("Timenow %i, ent %i renderFX %i\n",cg.time, cent->currentState.number,f);
@@ -571,7 +571,8 @@ void CG_AddPacketEntities( void ) {
 	CG_CalcEntityLerpPositions( &cg_entities[ cg.snap->ps.clientNum ] );
 
 	// add each entity sent over by the server
-	for ( num = 0 ; num < cg.snap->numEntities ; num++ ) {
+	for ( num = 0 ; num < cg.snap->numEntities ; num++ )
+	{
 		cent = &cg_entities[ cg.snap->entities[ num ].number ];
 		CG_AddCEntity( cent );
 	}

@@ -31,6 +31,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "q_shared.h"
 
+#define X 0
+#define Y 1
+#define Z 2
+#define W 3
+
 vec3_t	vec3_origin = {0,0,0};
 vec3_t	axisDefault[3] = { { 1, 0, 0 }, { 0, 1, 0 }, { 0, 0, 1 } };
 matrix_t matrixIdentity = {	1, 0, 0, 0,
@@ -163,6 +168,58 @@ float	Q_crandom( int *seed ) {
 	return 2.0 * ( Q_random( seed ) - 0.5 );
 }
 
+
+/*
+grandom
+
+This function produces a random number with a gaussian
+distribution.  This also also known as a normal or bell
+curve distribution; it has a mean value of zero and a
+standard deviation of one.
+*/
+float grandom( void ) {
+	double			v1;
+	double			v2;
+	double			s;
+	float				x1;
+	static float		x2 = 0;
+	static int		toggle = 0;
+
+	if( toggle ) {
+		toggle = 0;
+		return x2;
+	}
+
+	do {
+		v1 = -1.0 + 2.0 * random();
+		v2 = -1.0 + 2.0 * random();
+		s = v1 * v1 + v2 * v2;
+	} while( s >= 1.0 || s == 0 );
+
+	s = sqrt( -2.0 * log( s ) / s );
+	x1 = v1 * s;
+	x2 = v2 * s;
+	toggle = 1;
+	return x1;
+}
+
+
+/*
+erandom
+
+This function produces a random number with a exponential
+distribution and the specified mean value.
+*/
+float erandom( float mean ) {
+	float	r;
+
+	do {
+		r = random();
+	} while( r == 0.0 );
+
+	return -mean * log( r );
+}
+
 //=======================================================
 
 byte ClampByte(int i) {
@@ -193,6 +250,149 @@ signed short ClampShort( int i ) {
 		return 0x7fff;
 	}
 	return i;
+}
+
+//===========================================================================
+//
+// Global functions base on type double
+//
+//===========================================================================
+#define SCALAR_EPSILON (0.000001f)
+#define SCALAR_IDENTITY (0.0f)
+
+double dEpsilon( void )
+{
+	return ( double )SCALAR_EPSILON;
+}
+
+double dIdentity( void )
+{
+	return ( double )SCALAR_IDENTITY;
+}
+
+double dSign( const double number )
+{
+	if( number >= 0.0 )
+	{
+		return 1;
+	} else
+	{
+		return -1;
+	}
+}
+
+double dClamp( const double value, const double min, const double max )
+{
+	assert( min <= max );
+	if( value < min )
+	{
+		return min;
+	}
+	if( value > max )
+	{
+		return max;
+	}
+	return value;
+}
+
+double dDistance( const double value1, const double value2 )
+{
+	return fabs( value1 - value2 );
+}
+
+qboolean dCloseEnough( const double value1, const double value2, const double epsilon )
+{
+	return dDistance( value1, value2 ) < epsilon;
+}
+
+qboolean dSmallEnough( const double value, const double epsilon )
+{
+	return dDistance( dIdentity(), value ) < epsilon;
+}
+
+//===========================================================================
+//
+// Global functions base on type float
+//
+//===========================================================================
+float fEpsilon( void )
+{
+	return SCALAR_EPSILON;
+}
+
+float fIdentity( void )
+{
+	return SCALAR_IDENTITY;
+}
+
+float fSign( const float number )
+{
+	if( number >= 0.0f )
+	{
+		return 1;
+	} else
+	{
+		return -1;
+	}
+}
+
+float	fClamp( const float value, const float min, const float max )
+{
+	assert( min <= max );
+	if( value < min )
+	{
+		return min;
+	}
+	if( value > max )
+	{
+		return max;
+	}
+	return value;
+}
+
+float fDistance( const float value1, const float value2 )
+{
+	return fabs( value1 - value2 );
+}
+
+qboolean fCloseEnough( const float value1, const float value2, const float epsilon )
+{
+	return fDistance( value1, value2 ) < epsilon;
+}
+
+qboolean fSmallEnough( const float value, const float epsilon )
+{
+	return fDistance( fIdentity(), value ) < epsilon;
+}
+
+//===========================================================================
+//
+// Global functions base on type int
+//
+//===========================================================================
+int iSign( const int number )
+{
+	if( number >= 0 )
+	{
+		return 1;
+	} else
+	{
+		return -1;
+	}
+}
+
+int iClamp( const int value, const int min, const int max )
+{
+	assert( min <= max );
+	if( value < min )
+	{
+		return min;
+	}
+	if( value > max )
+	{
+		return max;
+	}
+	return value;
 }
 
 
@@ -466,8 +666,6 @@ void RotateAroundDirection( vec3_t axis[3], float yaw ) {
 	CrossProduct( axis[0], axis[1], axis[2] );
 }
 
-
-
 void vectoangles( const vec3_t value1, vec3_t angles ) {
 	float	forward;
 	float	yaw, pitch;
@@ -508,17 +706,69 @@ void vectoangles( const vec3_t value1, vec3_t angles ) {
 }
 
 
+void VectorToAngles( const vec3_t vec, vec3_t angles )
+{
+	float	forward;
+	float	yaw, pitch;
+
+	if( vec[ 1 ] == 0 && vec[ 0 ] == 0 )
+	{
+		yaw = 0;
+		if( vec[ 2 ] > 0 ) {
+			pitch = 90;
+		} else {
+			pitch = 270;
+		}
+	}
+	else
+	{
+		yaw = ( atan2( vec[ 1 ], vec[ 0 ] ) * ( 180.0f / M_PI ) );
+		if( yaw < 0 ) {
+			yaw += 360;
+		}
+		forward = sqrt( 1.0f - vec[ 2 ] * vec[ 2 ] );
+		pitch = ( atan2( vec[ 2 ], forward ) * -( 180.0f / M_PI ) );
+		if( pitch < 0 ) {
+			pitch += 360;
+		}
+	}
+
+	angles[ PITCH ] = pitch;
+	angles[ YAW ] = yaw;
+	angles[ ROLL ] = 0;
+}
+
 /*
 =================
 AnglesToAxis
 =================
 */
 void AnglesToAxis( const vec3_t angles, vec3_t axis[3] ) {
-	vec3_t	right;
+	float		angle;
+	static float		sr, sp, sy, cr, cp, cy;
+	// static to help MS compiler fp bugs
 
-	// angle vectors returns "right" instead of "y axis"
-	AngleVectors( angles, axis[0], right, axis[2] );
-	VectorSubtract( vec3_origin, right, axis[1] );
+	angle = angles[ YAW ] * ( M_PI * 2 / 360 );
+	sy = sin( angle );
+	cy = cos( angle );
+	angle = angles[ PITCH ] * ( M_PI * 2 / 360 );
+	sp = sin( angle );
+	cp = cos( angle );
+	angle = angles[ ROLL ] * ( M_PI * 2 / 360 );
+	sr = sin( angle );
+	cr = cos( angle );
+
+	axis[ 0 ][ 0 ] = cp*cy;
+	axis[ 0 ][ 1 ] = cp*sy;
+	axis[ 0 ][ 2 ] = -sp;
+
+	axis[ 1 ][ 0 ] = ( sr*sp*cy + cr*-sy );
+	axis[ 1 ][ 1 ] = ( sr*sp*sy + cr*cy );
+	axis[ 1 ][ 2 ] = sr*cp;
+
+	axis[ 2 ][ 0 ] = ( cr*sp*cy + -sr*-sy );
+	axis[ 2 ][ 1 ] = ( cr*sp*sy + -sr*cy );
+	axis[ 2 ][ 2 ] = cr*cp;
 }
 
 void AxisClear( vec3_t axis[3] ) {
@@ -533,7 +783,7 @@ void AxisClear( vec3_t axis[3] ) {
 	axis[2][2] = 1;
 }
 
-void AxisCopy( vec3_t in[3], vec3_t out[3] ) {
+void AxisCopy( const vec3_t in[3], vec3_t out[3] ) {
 	VectorCopy( in[0], out[0] );
 	VectorCopy( in[1], out[1] );
 	VectorCopy( in[2], out[2] );
@@ -675,6 +925,86 @@ float LerpAngle (float from, float to, float frac) {
 	return a;
 }
 
+/*
+================
+R_ConcatRotations
+================
+*/
+void R_ConcatRotations( float in1[ 3 ][ 3 ], float in2[ 3 ][ 3 ], float out[ 3 ][ 3 ] )
+{
+	out[ 0 ][ 0 ] = in1[ 0 ][ 0 ] * in2[ 0 ][ 0 ] + in1[ 0 ][ 1 ] * in2[ 1 ][ 0 ] +
+		in1[ 0 ][ 2 ] * in2[ 2 ][ 0 ];
+	out[ 0 ][ 1 ] = in1[ 0 ][ 0 ] * in2[ 0 ][ 1 ] + in1[ 0 ][ 1 ] * in2[ 1 ][ 1 ] +
+		in1[ 0 ][ 2 ] * in2[ 2 ][ 1 ];
+	out[ 0 ][ 2 ] = in1[ 0 ][ 0 ] * in2[ 0 ][ 2 ] + in1[ 0 ][ 1 ] * in2[ 1 ][ 2 ] +
+		in1[ 0 ][ 2 ] * in2[ 2 ][ 2 ];
+	out[ 1 ][ 0 ] = in1[ 1 ][ 0 ] * in2[ 0 ][ 0 ] + in1[ 1 ][ 1 ] * in2[ 1 ][ 0 ] +
+		in1[ 1 ][ 2 ] * in2[ 2 ][ 0 ];
+	out[ 1 ][ 1 ] = in1[ 1 ][ 0 ] * in2[ 0 ][ 1 ] + in1[ 1 ][ 1 ] * in2[ 1 ][ 1 ] +
+		in1[ 1 ][ 2 ] * in2[ 2 ][ 1 ];
+	out[ 1 ][ 2 ] = in1[ 1 ][ 0 ] * in2[ 0 ][ 2 ] + in1[ 1 ][ 1 ] * in2[ 1 ][ 2 ] +
+		in1[ 1 ][ 2 ] * in2[ 2 ][ 2 ];
+	out[ 2 ][ 0 ] = in1[ 2 ][ 0 ] * in2[ 0 ][ 0 ] + in1[ 2 ][ 1 ] * in2[ 1 ][ 0 ] +
+		in1[ 2 ][ 2 ] * in2[ 2 ][ 0 ];
+	out[ 2 ][ 1 ] = in1[ 2 ][ 0 ] * in2[ 0 ][ 1 ] + in1[ 2 ][ 1 ] * in2[ 1 ][ 1 ] +
+		in1[ 2 ][ 2 ] * in2[ 2 ][ 1 ];
+	out[ 2 ][ 2 ] = in1[ 2 ][ 0 ] * in2[ 0 ][ 2 ] + in1[ 2 ][ 1 ] * in2[ 1 ][ 2 ] +
+		in1[ 2 ][ 2 ] * in2[ 2 ][ 2 ];
+}
+
+
+/*
+================
+R_ConcatTransforms
+================
+*/
+void R_ConcatTransforms( float in1[ 3 ][ 4 ], float in2[ 3 ][ 4 ], float out[ 3 ][ 4 ] )
+{
+	out[ 0 ][ 0 ] = in1[ 0 ][ 0 ] * in2[ 0 ][ 0 ] + in1[ 0 ][ 1 ] * in2[ 1 ][ 0 ] +
+		in1[ 0 ][ 2 ] * in2[ 2 ][ 0 ];
+	out[ 0 ][ 1 ] = in1[ 0 ][ 0 ] * in2[ 0 ][ 1 ] + in1[ 0 ][ 1 ] * in2[ 1 ][ 1 ] +
+		in1[ 0 ][ 2 ] * in2[ 2 ][ 1 ];
+	out[ 0 ][ 2 ] = in1[ 0 ][ 0 ] * in2[ 0 ][ 2 ] + in1[ 0 ][ 1 ] * in2[ 1 ][ 2 ] +
+		in1[ 0 ][ 2 ] * in2[ 2 ][ 2 ];
+	out[ 0 ][ 3 ] = in1[ 0 ][ 0 ] * in2[ 0 ][ 3 ] + in1[ 0 ][ 1 ] * in2[ 1 ][ 3 ] +
+		in1[ 0 ][ 2 ] * in2[ 2 ][ 3 ] + in1[ 0 ][ 3 ];
+	out[ 1 ][ 0 ] = in1[ 1 ][ 0 ] * in2[ 0 ][ 0 ] + in1[ 1 ][ 1 ] * in2[ 1 ][ 0 ] +
+		in1[ 1 ][ 2 ] * in2[ 2 ][ 0 ];
+	out[ 1 ][ 1 ] = in1[ 1 ][ 0 ] * in2[ 0 ][ 1 ] + in1[ 1 ][ 1 ] * in2[ 1 ][ 1 ] +
+		in1[ 1 ][ 2 ] * in2[ 2 ][ 1 ];
+	out[ 1 ][ 2 ] = in1[ 1 ][ 0 ] * in2[ 0 ][ 2 ] + in1[ 1 ][ 1 ] * in2[ 1 ][ 2 ] +
+		in1[ 1 ][ 2 ] * in2[ 2 ][ 2 ];
+	out[ 1 ][ 3 ] = in1[ 1 ][ 0 ] * in2[ 0 ][ 3 ] + in1[ 1 ][ 1 ] * in2[ 1 ][ 3 ] +
+		in1[ 1 ][ 2 ] * in2[ 2 ][ 3 ] + in1[ 1 ][ 3 ];
+	out[ 2 ][ 0 ] = in1[ 2 ][ 0 ] * in2[ 0 ][ 0 ] + in1[ 2 ][ 1 ] * in2[ 1 ][ 0 ] +
+		in1[ 2 ][ 2 ] * in2[ 2 ][ 0 ];
+	out[ 2 ][ 1 ] = in1[ 2 ][ 0 ] * in2[ 0 ][ 1 ] + in1[ 2 ][ 1 ] * in2[ 1 ][ 1 ] +
+		in1[ 2 ][ 2 ] * in2[ 2 ][ 1 ];
+	out[ 2 ][ 2 ] = in1[ 2 ][ 0 ] * in2[ 0 ][ 2 ] + in1[ 2 ][ 1 ] * in2[ 1 ][ 2 ] +
+		in1[ 2 ][ 2 ] * in2[ 2 ][ 2 ];
+	out[ 2 ][ 3 ] = in1[ 2 ][ 0 ] * in2[ 0 ][ 3 ] + in1[ 2 ][ 1 ] * in2[ 1 ][ 3 ] +
+		in1[ 2 ][ 2 ] * in2[ 2 ][ 3 ] + in1[ 2 ][ 3 ];
+}
+
+/*
+===============
+LerpAngleFromCurrent
+
+===============
+*/
+float LerpAngleFromCurrent( float from, float to, float current, float frac ) {
+	float	a;
+
+	if( to - current > 180 ) {
+		to -= 360;
+	}
+	if( to - current < -180 ) {
+		to += 360;
+	}
+	a = from + frac * ( to - from );
+
+	return a;
+}
 
 /*
 =================
@@ -771,6 +1101,36 @@ void SetPlaneSignbits (cplane_t *out) {
 	out->signbits = bits;
 }
 
+//============================================================================
+
+
+float	anglemod( float a )
+{
+#if 0
+	if( a >= 0 )
+		a -= 360 * ( int )( a / 360 );
+	else
+		a += 360 * ( 1 + ( int )( -a / 360 ) );
+#endif
+	a = ( 360.0 / 65536 ) * ( ( int )( a*( 65536 / 360.0 ) ) & 65535 );
+	return a;
+}
+
+float angledist( float ang )
+{
+	float a;
+
+	a = anglemod( ang );
+	if( a > 180 )
+	{
+		a -= 360;
+	}
+
+	return a;
+}
+
+int		i;
+vec3_t	corners[ 2 ];
 
 /*
 ==================
@@ -1118,6 +1478,162 @@ Lerror:
 
 /*
 =================
+CalculateRotatedBounds
+=================
+*/
+void CalculateRotatedBounds( vec3_t angles, vec3_t mins, vec3_t maxs )
+{
+	int i;
+	vec3_t rotmins, rotmaxs;
+	float trans[ 3 ][ 3 ];
+
+	AnglesToAxis( angles, trans );
+	ClearBounds( rotmins, rotmaxs );
+	for( i = 0; i < 8; i++ )
+	{
+		vec3_t   tmp, rottemp;
+
+		if( i & 1 )
+			tmp[ 0 ] = mins[ 0 ];
+		else
+			tmp[ 0 ] = maxs[ 0 ];
+
+		if( i & 2 )
+			tmp[ 1 ] = mins[ 1 ];
+		else
+			tmp[ 1 ] = maxs[ 1 ];
+
+		if( i & 4 )
+			tmp[ 2 ] = mins[ 2 ];
+		else
+			tmp[ 2 ] = maxs[ 2 ];
+
+		MatrixTransformVector( tmp, trans, rottemp );
+		AddPointToBounds( rottemp, rotmins, rotmaxs );
+	}
+	VectorCopy( rotmins, mins );
+	VectorCopy( rotmaxs, maxs );
+}
+
+/*
+=================
+CalculateRotatedBounds2
+=================
+*/
+void CalculateRotatedBounds2( float trans[ 3 ][ 3 ], vec3_t mins, vec3_t maxs )
+{
+	int i;
+	vec3_t rotmins, rotmaxs;
+
+	ClearBounds( rotmins, rotmaxs );
+	for( i = 0; i < 8; i++ )
+	{
+		vec3_t   tmp, rottemp;
+
+		if( i & 1 )
+			tmp[ 0 ] = mins[ 0 ];
+		else
+			tmp[ 0 ] = maxs[ 0 ];
+
+		if( i & 2 )
+			tmp[ 1 ] = mins[ 1 ];
+		else
+			tmp[ 1 ] = maxs[ 1 ];
+
+		if( i & 4 )
+			tmp[ 2 ] = mins[ 2 ];
+		else
+			tmp[ 2 ] = maxs[ 2 ];
+
+		MatrixTransformVector( tmp, trans, rottemp );
+		AddPointToBounds( rottemp, rotmins, rotmaxs );
+	}
+	VectorCopy( rotmins, mins );
+	VectorCopy( rotmaxs, maxs );
+}
+
+#define BBOX_XBITS 9
+#define BBOX_YBITS 8
+#define BBOX_ZBOTTOMBITS 5
+#define BBOX_ZTOPBITS 9
+
+#define BBOX_MAX_X ( 1 << BBOX_XBITS )
+#define BBOX_MAX_Y ( 1 << BBOX_YBITS )
+#define BBOX_MAX_BOTTOM_Z ( 1 << ( BBOX_ZBOTTOMBITS - 1 ) )
+#define BBOX_REALMAX_BOTTOM_Z ( 1 << BBOX_ZBOTTOMBITS )
+#define BBOX_MAX_TOP_Z ( 1 << BBOX_ZTOPBITS )
+
+/*
+=================
+BoundingBoxToInteger
+=================
+*/
+int BoundingBoxToInteger( vec3_t mins, vec3_t maxs )
+{
+	int x, y, zd, zu, result;
+
+	x = maxs[ 0 ];
+	if( x < 0 )
+		x = 0;
+	if( x >= BBOX_MAX_X )
+		x = BBOX_MAX_X - 1;
+
+	y = maxs[ 1 ];
+	if( y < 0 )
+		y = 0;
+	if( y >= BBOX_MAX_Y )
+		y = BBOX_MAX_Y - 1;
+
+	zd = mins[ 2 ] + BBOX_MAX_BOTTOM_Z;
+	if( zd < 0 )
+	{
+		zd = 0;
+	}
+	if( zd >= BBOX_REALMAX_BOTTOM_Z )
+	{
+		zd = BBOX_REALMAX_BOTTOM_Z - 1;
+	}
+
+	zu = maxs[ 2 ];
+	if( zu < 0 )
+		zu = 0;
+	if( zu >= BBOX_MAX_TOP_Z )
+		zu = BBOX_MAX_TOP_Z - 1;
+
+	result = x |
+		( y << BBOX_XBITS ) |
+		( zd << ( BBOX_XBITS + BBOX_YBITS ) ) |
+		( zu << ( BBOX_XBITS + BBOX_YBITS + BBOX_ZBOTTOMBITS ) );
+
+	return result;
+}
+
+/*
+=================
+IntegerToBoundingBox
+=================
+*/
+void IntegerToBoundingBox( int num, vec3_t mins, vec3_t maxs )
+{
+	int x, y, zd, zu;
+
+	x = num & ( BBOX_MAX_X - 1 );
+	y = ( num >> ( BBOX_XBITS ) ) & ( BBOX_MAX_Y - 1 );
+	zd = ( num >> ( BBOX_XBITS + BBOX_YBITS ) ) & ( BBOX_REALMAX_BOTTOM_Z - 1 );
+	zd -= BBOX_MAX_BOTTOM_Z;
+	zu = ( num >> ( BBOX_XBITS + BBOX_YBITS + BBOX_ZBOTTOMBITS ) ) & ( BBOX_MAX_TOP_Z - 1 );
+
+	mins[ 0 ] = -x;
+	mins[ 1 ] = -y;
+	mins[ 2 ] = zd;
+
+	maxs[ 0 ] = x;
+	maxs[ 1 ] = y;
+	maxs[ 2 ] = zu;
+}
+
+/*
+=================
 RadiusFromBounds
 =================
 */
@@ -1136,64 +1652,52 @@ float RadiusFromBounds( const vec3_t mins, const vec3_t maxs ) {
 }
 
 
+#define BOUNDS_CLEAR_VALUE 99999
+
 void ClearBounds( vec3_t mins, vec3_t maxs ) {
-	mins[0] = mins[1] = mins[2] = 99999;
-	maxs[0] = maxs[1] = maxs[2] = -99999;
+	mins[ 0 ] = mins[ 1 ] = mins[ 2 ] = BOUNDS_CLEAR_VALUE;
+	maxs[ 0 ] = maxs[ 1 ] = maxs[ 2 ] = -BOUNDS_CLEAR_VALUE;
 }
-void ZeroBounds(vec3_t mins, vec3_t maxs) {
-	mins[0] = mins[1] = mins[2] = 0;
-	maxs[0] = maxs[1] = maxs[2] = 0;
+
+qboolean BoundsClear( vec3_t mins, vec3_t maxs )
+{
+	if(
+		( mins[ 0 ] == BOUNDS_CLEAR_VALUE ) &&
+		( mins[ 1 ] == BOUNDS_CLEAR_VALUE ) &&
+		( mins[ 2 ] == BOUNDS_CLEAR_VALUE ) &&
+		( maxs[ 0 ] == -BOUNDS_CLEAR_VALUE ) &&
+		( maxs[ 1 ] == -BOUNDS_CLEAR_VALUE ) &&
+		( maxs[ 2 ] == -BOUNDS_CLEAR_VALUE )
+		)
+	{
+		return qtrue;
+	}
+	else
+	{
+		return qfalse;
+	}
 }
 
 void AddPointToBounds( const vec3_t v, vec3_t mins, vec3_t maxs ) {
-	if ( v[0] < mins[0] ) {
-		mins[0] = v[0];
+	if( v[ 0 ] < mins[ 0 ] ) {
+		mins[ 0 ] = v[ 0 ];
 	}
-	if ( v[0] > maxs[0]) {
-		maxs[0] = v[0];
-	}
-
-	if ( v[1] < mins[1] ) {
-		mins[1] = v[1];
-	}
-	if ( v[1] > maxs[1]) {
-		maxs[1] = v[1];
+	if( v[ 0 ] > maxs[ 0 ] ) {
+		maxs[ 0 ] = v[ 0 ];
 	}
 
-	if ( v[2] < mins[2] ) {
-		mins[2] = v[2];
+	if( v[ 1 ] < mins[ 1 ] ) {
+		mins[ 1 ] = v[ 1 ];
 	}
-	if ( v[2] > maxs[2]) {
-		maxs[2] = v[2];
-	}
-}
-
-void BoundsAdd(vec3_t mins, vec3_t maxs, const vec3_t mins2, const vec3_t maxs2)
-{
-	if(mins2[0] < mins[0])
-	{
-		mins[0] = mins2[0];
-	}
-	if(mins2[1] < mins[1])
-	{
-		mins[1] = mins2[1];
-	}
-	if(mins2[2] < mins[2])
-	{
-		mins[2] = mins2[2];
+	if( v[ 1 ] > maxs[ 1 ] ) {
+		maxs[ 1 ] = v[ 1 ];
 	}
 
-	if(maxs2[0] > maxs[0])
-	{
-		maxs[0] = maxs2[0];
+	if( v[ 2 ] < mins[ 2 ] ) {
+		mins[ 2 ] = v[ 2 ];
 	}
-	if(maxs2[1] > maxs[1])
-	{
-		maxs[1] = maxs2[1];
-	}
-	if(maxs2[2] > maxs[2])
-	{
-		maxs[2] = maxs2[2];
+	if( v[ 2 ] > maxs[ 2 ] ) {
+		maxs[ 2 ] = v[ 2 ];
 	}
 }
 
@@ -1245,6 +1749,182 @@ qboolean BoundsIntersectPoint(const vec3_t mins, const vec3_t maxs,
 	return qtrue;
 }
 
+void QuatToMat
+	(
+	const float q[ 4 ],
+	float m[ 3 ][ 3 ]
+	)
+
+{
+	float wx, wy, wz;
+	float xx, yy, yz;
+	float xy, xz, zz;
+	float x2, y2, z2;
+
+	x2 = q[ X ] + q[ X ];
+	y2 = q[ Y ] + q[ Y ];
+	z2 = q[ Z ] + q[ Z ];
+
+	xx = q[ X ] * x2;
+	xy = q[ X ] * y2;
+	xz = q[ X ] * z2;
+
+	yy = q[ Y ] * y2;
+	yz = q[ Y ] * z2;
+	zz = q[ Z ] * z2;
+
+	wx = q[ W ] * x2;
+	wy = q[ W ] * y2;
+	wz = q[ W ] * z2;
+
+	m[ 0 ][ 0 ] = 1.0 - ( yy + zz );
+	m[ 0 ][ 1 ] = xy - wz;
+	m[ 0 ][ 2 ] = xz + wy;
+
+	m[ 1 ][ 0 ] = xy + wz;
+	m[ 1 ][ 1 ] = 1.0 - ( xx + zz );
+	m[ 1 ][ 2 ] = yz - wx;
+
+	m[ 2 ][ 0 ] = xz - wy;
+	m[ 2 ][ 1 ] = yz + wx;
+	m[ 2 ][ 2 ] = 1.0 - ( xx + yy );
+}
+
+void MatToQuat
+	(
+	float srcMatrix[ 3 ][ 3 ],
+	float destQuat[ 4 ]
+	)
+
+{
+	double  	trace, s;
+	int     	i, j, k;
+	static int 	next[ 3 ] = { Y, Z, X };
+
+	trace = srcMatrix[ X ][ X ] + srcMatrix[ Y ][ Y ] + srcMatrix[ Z ][ Z ];
+
+	if( trace > 0.0 )
+	{
+		s = sqrt( trace + 1.0 );
+		destQuat[ W ] = s * 0.5;
+		s = 0.5 / s;
+
+		destQuat[ X ] = ( srcMatrix[ Z ][ Y ] - srcMatrix[ Y ][ Z ] ) * s;
+		destQuat[ Y ] = ( srcMatrix[ X ][ Z ] - srcMatrix[ Z ][ X ] ) * s;
+		destQuat[ Z ] = ( srcMatrix[ Y ][ X ] - srcMatrix[ X ][ Y ] ) * s;
+	}
+	else
+	{
+		i = X;
+		if( srcMatrix[ Y ][ Y ] > srcMatrix[ X ][ X ] )
+			i = Y;
+		if( srcMatrix[ Z ][ Z ] > srcMatrix[ i ][ i ] )
+			i = Z;
+		j = next[ i ];
+		k = next[ j ];
+
+		s = sqrt( ( srcMatrix[ i ][ i ] - ( srcMatrix[ j ][ j ] + srcMatrix[ k ][ k ] ) ) + 1.0 );
+		destQuat[ i ] = s * 0.5;
+
+		s = 0.5 / s;
+
+		destQuat[ W ] = ( srcMatrix[ k ][ j ] - srcMatrix[ j ][ k ] ) * s;
+		destQuat[ j ] = ( srcMatrix[ j ][ i ] + srcMatrix[ i ][ j ] ) * s;
+		destQuat[ k ] = ( srcMatrix[ k ][ i ] + srcMatrix[ i ][ k ] ) * s;
+	}
+}
+
+void EulerToQuat
+	(
+	float ang[ 3 ],
+	float q[ 4 ]
+	)
+
+{
+	float mat[ 3 ][ 3 ];
+	int *i;
+
+	i = ( int * )ang;
+	if( !i[ 0 ] && !i[ 1 ] && !i[ 2 ] )
+	{
+		q[ 0 ] = 0;
+		q[ 1 ] = 0;
+		q[ 2 ] = 0;
+		q[ 3 ] = 1.0f;
+	}
+	else
+	{
+		AnglesToAxis( ang, mat );
+		MatToQuat( mat, q );
+	}
+}
+
+float ProjectPointOnLine
+	(
+	vec_t *i_vStart,
+	vec_t *i_vEnd,
+	vec_t *i_vPoint,
+	vec_t *o_vProj
+	)
+
+{
+	float fDot;
+	vec3_t vDir;
+	vec3_t vDelta;
+
+	VectorSubtract( i_vEnd, i_vStart, vDir );
+	VectorNormalizeFast( vDir );
+
+	VectorSubtract( i_vPoint, i_vStart, vDelta );
+	fDot = DotProduct( vDelta, vDir );
+
+	VectorScale( vDir, fDot, o_vProj );
+	VectorAdd( o_vProj, i_vStart, o_vProj );
+
+	return fDot;
+}
+
+float ProjectLineOnPlane
+	(
+	vec_t *vPlaneNorm,
+	float fPlaneDist,
+	vec_t *vStart,
+	vec_t *vEnd,
+	vec_t *vProj
+	)
+
+{
+	float d1;
+	float d2;
+	float f;
+
+	d1 = DotProduct( vStart, vPlaneNorm ) - fPlaneDist;
+	d2 = DotProduct( vEnd, vPlaneNorm ) - fPlaneDist;
+
+	if( d1 == d2 )
+	{
+		if( vProj )
+		{
+			VectorCopy( vStart, vProj );
+		}
+
+		return 0.0f;
+	}
+	else
+	{
+		f = d1 / ( d1 - d2 );
+
+		if( vProj )
+		{
+			VectorSubtract( vEnd, vStart, vProj );
+			VectorScale( vProj, f, vProj );
+			VectorAdd( vProj, vStart, vProj );
+		}
+
+		return f;
+	}
+}
+
 vec_t VectorNormalize( vec3_t v ) {
 	// NOTE: TTimo - Apple G4 altivec source uses double?
 	float	length, ilength;
@@ -1262,7 +1942,7 @@ vec_t VectorNormalize( vec3_t v ) {
 	return length;
 }
 
-vec_t VectorNormalize2( const vec3_t v, vec3_t out) {
+vec_t VectorNormalize2( const vec3_t v, vec3_t out ) {
 	float	length, ilength;
 
 	length = v[0]*v[0] + v[1]*v[1] + v[2]*v[2];
@@ -1279,7 +1959,50 @@ vec_t VectorNormalize2( const vec3_t v, vec3_t out) {
 	}
 		
 	return length;
+}
 
+vec_t VectorNormalize2D( vec2_t v ) {
+	float	length, ilength;
+
+	length = v[ 0 ] * v[ 0 ] + v[ 1 ] * v[ 1 ];
+	length = sqrt( length );
+
+	if( length ) {
+		ilength = 1 / length;
+		v[ 0 ] *= ilength;
+		v[ 1 ] *= ilength;
+	}
+
+	return length;
+}
+
+vec_t VectorNormalize2D2( const vec2_t v, vec2_t out ) {
+	float	length, ilength;
+
+	length = v[ 0 ] * v[ 0 ] + v[ 1 ] * v[ 1 ];
+	length = sqrt( length );
+
+	if( length )
+	{
+		ilength = 1 / length;
+		out[ 0 ] = v[ 0 ] * ilength;
+		out[ 1 ] = v[ 1 ] * ilength;
+	}
+	else {
+		VectorClear2D( out );
+	}
+
+	return length;
+
+}
+
+void VectorPackTo01( vec3_t v ) {
+	VectorNormalize( v );
+	VectorScale( v, 0.5f, v );
+
+	v[ 0 ] += 0.5f;
+	v[ 1 ] += 0.5f;
+	v[ 2 ] += 0.5f;
 }
 
 void _VectorMA( const vec3_t veca, float scale, const vec3_t vecb, vec3_t vecc) {
@@ -1364,66 +2087,142 @@ int	PlaneTypeForNormal (vec3_t normal) {
 }
 */
 
+/*
+================
+MatrixTransformVector
+================
+*/
+void MatrixTransformVector
+	(
+	const vec3_t in,
+	const float mat[ 3 ][ 3 ],
+	vec3_t out
+	)
+
+{
+	out[ 0 ] = ( in[ 0 ] * mat[ 0 ][ 0 ] ) + ( in[ 1 ] * mat[ 1 ][ 0 ] ) + ( in[ 2 ] * mat[ 2 ][ 0 ] );
+	out[ 1 ] = ( in[ 0 ] * mat[ 0 ][ 1 ] ) + ( in[ 1 ] * mat[ 1 ][ 1 ] ) + ( in[ 2 ] * mat[ 2 ][ 1 ] );
+	out[ 2 ] = ( in[ 0 ] * mat[ 0 ][ 2 ] ) + ( in[ 1 ] * mat[ 1 ][ 2 ] ) + ( in[ 2 ] * mat[ 2 ][ 2 ] );
+}
+
+/*
+================
+MatrixTransformVectorRight
+================
+*/
+void MatrixTransformVectorRight
+(
+const float mat[ 3 ][ 3 ],
+const vec3_t in,
+vec3_t out
+)
+
+{
+	out[ 0 ] = ( in[ 0 ] * mat[ 0 ][ 0 ] ) + ( in[ 1 ] * mat[ 0 ][ 1 ] ) + ( in[ 2 ] * mat[ 0 ][ 2 ] );
+	out[ 1 ] = ( in[ 0 ] * mat[ 1 ][ 0 ] ) + ( in[ 1 ] * mat[ 1 ][ 1 ] ) + ( in[ 2 ] * mat[ 1 ][ 2 ] );
+	out[ 2 ] = ( in[ 0 ] * mat[ 2 ][ 0 ] ) + ( in[ 1 ] * mat[ 2 ][ 1 ] ) + ( in[ 2 ] * mat[ 2 ][ 2 ] );
+}
 
 /*
 ================
 Matrix3x3Multiply
 ================
 */
-void Matrix3x3Multiply(float in1[3][3], float in2[3][3], float out[3][3]) {
-	out[0][0] = in1[0][0] * in2[0][0] + in1[0][1] * in2[1][0] +
-				in1[0][2] * in2[2][0];
-	out[0][1] = in1[0][0] * in2[0][1] + in1[0][1] * in2[1][1] +
-				in1[0][2] * in2[2][1];
-	out[0][2] = in1[0][0] * in2[0][2] + in1[0][1] * in2[1][2] +
-				in1[0][2] * in2[2][2];
-	out[1][0] = in1[1][0] * in2[0][0] + in1[1][1] * in2[1][0] +
-				in1[1][2] * in2[2][0];
-	out[1][1] = in1[1][0] * in2[0][1] + in1[1][1] * in2[1][1] +
-				in1[1][2] * in2[2][1];
-	out[1][2] = in1[1][0] * in2[0][2] + in1[1][1] * in2[1][2] +
-				in1[1][2] * in2[2][2];
-	out[2][0] = in1[2][0] * in2[0][0] + in1[2][1] * in2[1][0] +
-				in1[2][2] * in2[2][0];
-	out[2][1] = in1[2][0] * in2[0][1] + in1[2][1] * in2[1][1] +
-				in1[2][2] * in2[2][1];
-	out[2][2] = in1[2][0] * in2[0][2] + in1[2][1] * in2[1][2] +
-				in1[2][2] * in2[2][2];
+void Matrix3x3Multiply( const float in1[ 3 ][ 3 ], const float in2[ 3 ][ 3 ], float out[ 3 ][ 3 ] ) {
+	out[ 0 ][ 0 ] = in1[ 0 ][ 0 ] * in2[ 0 ][ 0 ] + in1[ 0 ][ 1 ] * in2[ 1 ][ 0 ] +
+		in1[ 0 ][ 2 ] * in2[ 2 ][ 0 ];
+	out[ 0 ][ 1 ] = in1[ 0 ][ 0 ] * in2[ 0 ][ 1 ] + in1[ 0 ][ 1 ] * in2[ 1 ][ 1 ] +
+		in1[ 0 ][ 2 ] * in2[ 2 ][ 1 ];
+	out[ 0 ][ 2 ] = in1[ 0 ][ 0 ] * in2[ 0 ][ 2 ] + in1[ 0 ][ 1 ] * in2[ 1 ][ 2 ] +
+		in1[ 0 ][ 2 ] * in2[ 2 ][ 2 ];
+	out[ 1 ][ 0 ] = in1[ 1 ][ 0 ] * in2[ 0 ][ 0 ] + in1[ 1 ][ 1 ] * in2[ 1 ][ 0 ] +
+		in1[ 1 ][ 2 ] * in2[ 2 ][ 0 ];
+	out[ 1 ][ 1 ] = in1[ 1 ][ 0 ] * in2[ 0 ][ 1 ] + in1[ 1 ][ 1 ] * in2[ 1 ][ 1 ] +
+		in1[ 1 ][ 2 ] * in2[ 2 ][ 1 ];
+	out[ 1 ][ 2 ] = in1[ 1 ][ 0 ] * in2[ 0 ][ 2 ] + in1[ 1 ][ 1 ] * in2[ 1 ][ 2 ] +
+		in1[ 1 ][ 2 ] * in2[ 2 ][ 2 ];
+	out[ 2 ][ 0 ] = in1[ 2 ][ 0 ] * in2[ 0 ][ 0 ] + in1[ 2 ][ 1 ] * in2[ 1 ][ 0 ] +
+		in1[ 2 ][ 2 ] * in2[ 2 ][ 0 ];
+	out[ 2 ][ 1 ] = in1[ 2 ][ 0 ] * in2[ 0 ][ 1 ] + in1[ 2 ][ 1 ] * in2[ 1 ][ 1 ] +
+		in1[ 2 ][ 2 ] * in2[ 2 ][ 1 ];
+	out[ 2 ][ 2 ] = in1[ 2 ][ 0 ] * in2[ 0 ][ 2 ] + in1[ 2 ][ 1 ] * in2[ 1 ][ 2 ] +
+		in1[ 2 ][ 2 ] * in2[ 2 ][ 2 ];
 }
 
 
-void AngleVectors( const vec3_t angles, vec3_t forward, vec3_t right, vec3_t up) {
+void AngleVectors( const vec3_t angles, vec3_t forward, vec3_t right, vec3_t up ) {
 	float		angle;
 	static float		sr, sp, sy, cr, cp, cy;
 	// static to help MS compiler fp bugs
 
-	angle = angles[YAW] * (M_PI*2 / 360);
-	sy = sin(angle);
-	cy = cos(angle);
-	angle = angles[PITCH] * (M_PI*2 / 360);
-	sp = sin(angle);
-	cp = cos(angle);
-	angle = angles[ROLL] * (M_PI*2 / 360);
-	sr = sin(angle);
-	cr = cos(angle);
+	angle = angles[ YAW ] * ( M_PI * 2 / 360 );
+	sy = sin( angle );
+	cy = cos( angle );
+	angle = angles[ PITCH ] * ( M_PI * 2 / 360 );
+	sp = sin( angle );
+	cp = cos( angle );
+	angle = angles[ ROLL ] * ( M_PI * 2 / 360 );
+	sr = sin( angle );
+	cr = cos( angle );
 
-	if (forward)
+	if( forward )
 	{
-		forward[0] = cp*cy;
-		forward[1] = cp*sy;
-		forward[2] = -sp;
+		forward[ 0 ] = cp*cy;
+		forward[ 1 ] = cp*sy;
+		forward[ 2 ] = -sp;
 	}
-	if (right)
+	if( right )
 	{
-		right[0] = (-1*sr*sp*cy+-1*cr*-sy);
-		right[1] = (-1*sr*sp*sy+-1*cr*cy);
-		right[2] = -1*sr*cp;
+		right[ 0 ] = ( -1 * sr*sp*cy + -1 * cr*-sy );
+		right[ 1 ] = ( -1 * sr*sp*sy + -1 * cr*cy );
+		right[ 2 ] = -1 * sr*cp;
 	}
-	if (up)
+	if( up )
 	{
-		up[0] = (cr*sp*cy+-sr*-sy);
-		up[1] = (cr*sp*sy+-sr*cy);
-		up[2] = cr*cp;
+		up[ 0 ] = ( cr*sp*cy + -sr*-sy );
+		up[ 1 ] = ( cr*sp*sy + -sr*cy );
+		up[ 2 ] = cr*cp;
+	}
+}
+
+void AngleVectorsLeft( const vec3_t angles, vec3_t forward, vec3_t left, vec3_t up )
+{
+	float		angle;
+	static float		sr, sp, sy, cr, cp, cy;
+	// static to help MS compiler fp bugs
+
+	angle = angles[ YAW ] * ( M_PI * 2 / 360 );
+	sy = sin( angle );
+	cy = cos( angle );
+	angle = angles[ PITCH ] * ( M_PI * 2 / 360 );
+	sp = sin( angle );
+	cp = cos( angle );
+
+	if( forward )
+	{
+		forward[ 0 ] = cp*cy;
+		forward[ 1 ] = cp*sy;
+		forward[ 2 ] = -sp;
+	}
+
+	if( left || up )
+	{
+		angle = angles[ ROLL ] * ( M_PI * 2 / 360 );
+		sr = sin( angle );
+		cr = cos( angle );
+
+		if( left )
+		{
+			left[ 0 ] = ( sr*sp*cy + cr*-sy );
+			left[ 1 ] = ( sr*sp*sy + cr*cy );
+			left[ 2 ] = sr*cp;
+		}
+		if( up )
+		{
+			up[ 0 ] = ( cr*sp*cy + -sr*-sy );
+			up[ 1 ] = ( cr*sp*sy + -sr*cy );
+			up[ 2 ] = cr*cp;
+		}
 	}
 }
 
@@ -1679,6 +2478,92 @@ Return the smallest distance between two line segments
 vec_t DistanceBetweenLineSegments(const vec3_t sP0, const vec3_t sP1, const vec3_t tP0, const vec3_t tP1, float *s, float *t)
 {
 	return (vec_t) sqrt(DistanceBetweenLineSegmentsSquared(sP0, sP1, tP0, tP1, s, t));
+}
+
+void VectorMatrixInverse( void* DstMatrix, const void* SrcMatrix )
+{
+	typedef float Float4x4[ 4 ][ 4 ];
+	const Float4x4 M;
+	Float4x4 Result;
+	float Det[ 4 ];
+	Float4x4 Tmp;
+
+	memcpy( ( void * )M, SrcMatrix, sizeof( Float4x4 ) );
+
+	Tmp[ 0 ][ 0 ] = M[ 2 ][ 2 ] * M[ 3 ][ 3 ] - M[ 2 ][ 3 ] * M[ 3 ][ 2 ];
+	Tmp[ 0 ][ 1 ] = M[ 1 ][ 2 ] * M[ 3 ][ 3 ] - M[ 1 ][ 3 ] * M[ 3 ][ 2 ];
+	Tmp[ 0 ][ 2 ] = M[ 1 ][ 2 ] * M[ 2 ][ 3 ] - M[ 1 ][ 3 ] * M[ 2 ][ 2 ];
+
+	Tmp[ 1 ][ 0 ] = M[ 2 ][ 2 ] * M[ 3 ][ 3 ] - M[ 2 ][ 3 ] * M[ 3 ][ 2 ];
+	Tmp[ 1 ][ 1 ] = M[ 0 ][ 2 ] * M[ 3 ][ 3 ] - M[ 0 ][ 3 ] * M[ 3 ][ 2 ];
+	Tmp[ 1 ][ 2 ] = M[ 0 ][ 2 ] * M[ 2 ][ 3 ] - M[ 0 ][ 3 ] * M[ 2 ][ 2 ];
+
+	Tmp[ 2 ][ 0 ] = M[ 1 ][ 2 ] * M[ 3 ][ 3 ] - M[ 1 ][ 3 ] * M[ 3 ][ 2 ];
+	Tmp[ 2 ][ 1 ] = M[ 0 ][ 2 ] * M[ 3 ][ 3 ] - M[ 0 ][ 3 ] * M[ 3 ][ 2 ];
+	Tmp[ 2 ][ 2 ] = M[ 0 ][ 2 ] * M[ 1 ][ 3 ] - M[ 0 ][ 3 ] * M[ 1 ][ 2 ];
+
+	Tmp[ 3 ][ 0 ] = M[ 1 ][ 2 ] * M[ 2 ][ 3 ] - M[ 1 ][ 3 ] * M[ 2 ][ 2 ];
+	Tmp[ 3 ][ 1 ] = M[ 0 ][ 2 ] * M[ 2 ][ 3 ] - M[ 0 ][ 3 ] * M[ 2 ][ 2 ];
+	Tmp[ 3 ][ 2 ] = M[ 0 ][ 2 ] * M[ 1 ][ 3 ] - M[ 0 ][ 3 ] * M[ 1 ][ 2 ];
+
+	Det[ 0 ] = M[ 1 ][ 1 ] * Tmp[ 0 ][ 0 ] - M[ 2 ][ 1 ] * Tmp[ 0 ][ 1 ] + M[ 3 ][ 1 ] * Tmp[ 0 ][ 2 ];
+	Det[ 1 ] = M[ 0 ][ 1 ] * Tmp[ 1 ][ 0 ] - M[ 2 ][ 1 ] * Tmp[ 1 ][ 1 ] + M[ 3 ][ 1 ] * Tmp[ 1 ][ 2 ];
+	Det[ 2 ] = M[ 0 ][ 1 ] * Tmp[ 2 ][ 0 ] - M[ 1 ][ 1 ] * Tmp[ 2 ][ 1 ] + M[ 3 ][ 1 ] * Tmp[ 2 ][ 2 ];
+	Det[ 3 ] = M[ 0 ][ 1 ] * Tmp[ 3 ][ 0 ] - M[ 1 ][ 1 ] * Tmp[ 3 ][ 1 ] + M[ 2 ][ 1 ] * Tmp[ 3 ][ 2 ];
+
+	float Determinant = M[ 0 ][ 0 ] * Det[ 0 ] - M[ 1 ][ 0 ] * Det[ 1 ] + M[ 2 ][ 0 ] * Det[ 2 ] - M[ 3 ][ 0 ] * Det[ 3 ];
+	const float	RDet = 1.0f / Determinant;
+
+	Result[ 0 ][ 0 ] = RDet * Det[ 0 ];
+	Result[ 0 ][ 1 ] = -RDet * Det[ 1 ];
+	Result[ 0 ][ 2 ] = RDet * Det[ 2 ];
+	Result[ 0 ][ 3 ] = -RDet * Det[ 3 ];
+	Result[ 1 ][ 0 ] = -RDet * ( M[ 1 ][ 0 ] * Tmp[ 0 ][ 0 ] - M[ 2 ][ 0 ] * Tmp[ 0 ][ 1 ] + M[ 3 ][ 0 ] * Tmp[ 0 ][ 2 ] );
+	Result[ 1 ][ 1 ] = RDet * ( M[ 0 ][ 0 ] * Tmp[ 1 ][ 0 ] - M[ 2 ][ 0 ] * Tmp[ 1 ][ 1 ] + M[ 3 ][ 0 ] * Tmp[ 1 ][ 2 ] );
+	Result[ 1 ][ 2 ] = -RDet * ( M[ 0 ][ 0 ] * Tmp[ 2 ][ 0 ] - M[ 1 ][ 0 ] * Tmp[ 2 ][ 1 ] + M[ 3 ][ 0 ] * Tmp[ 2 ][ 2 ] );
+	Result[ 1 ][ 3 ] = RDet * ( M[ 0 ][ 0 ] * Tmp[ 3 ][ 0 ] - M[ 1 ][ 0 ] * Tmp[ 3 ][ 1 ] + M[ 2 ][ 0 ] * Tmp[ 3 ][ 2 ] );
+	Result[ 2 ][ 0 ] = RDet * (
+		M[ 1 ][ 0 ] * ( M[ 2 ][ 1 ] * M[ 3 ][ 3 ] - M[ 2 ][ 3 ] * M[ 3 ][ 1 ] ) -
+		M[ 2 ][ 0 ] * ( M[ 1 ][ 1 ] * M[ 3 ][ 3 ] - M[ 1 ][ 3 ] * M[ 3 ][ 1 ] ) +
+		M[ 3 ][ 0 ] * ( M[ 1 ][ 1 ] * M[ 2 ][ 3 ] - M[ 1 ][ 3 ] * M[ 2 ][ 1 ] )
+		);
+	Result[ 2 ][ 1 ] = -RDet * (
+		M[ 0 ][ 0 ] * ( M[ 2 ][ 1 ] * M[ 3 ][ 3 ] - M[ 2 ][ 3 ] * M[ 3 ][ 1 ] ) -
+		M[ 2 ][ 0 ] * ( M[ 0 ][ 1 ] * M[ 3 ][ 3 ] - M[ 0 ][ 3 ] * M[ 3 ][ 1 ] ) +
+		M[ 3 ][ 0 ] * ( M[ 0 ][ 1 ] * M[ 2 ][ 3 ] - M[ 0 ][ 3 ] * M[ 2 ][ 1 ] )
+		);
+	Result[ 2 ][ 2 ] = RDet * (
+		M[ 0 ][ 0 ] * ( M[ 1 ][ 1 ] * M[ 3 ][ 3 ] - M[ 1 ][ 3 ] * M[ 3 ][ 1 ] ) -
+		M[ 1 ][ 0 ] * ( M[ 0 ][ 1 ] * M[ 3 ][ 3 ] - M[ 0 ][ 3 ] * M[ 3 ][ 1 ] ) +
+		M[ 3 ][ 0 ] * ( M[ 0 ][ 1 ] * M[ 1 ][ 3 ] - M[ 0 ][ 3 ] * M[ 1 ][ 1 ] )
+		);
+	Result[ 2 ][ 3 ] = -RDet * (
+		M[ 0 ][ 0 ] * ( M[ 1 ][ 1 ] * M[ 2 ][ 3 ] - M[ 1 ][ 3 ] * M[ 2 ][ 1 ] ) -
+		M[ 1 ][ 0 ] * ( M[ 0 ][ 1 ] * M[ 2 ][ 3 ] - M[ 0 ][ 3 ] * M[ 2 ][ 1 ] ) +
+		M[ 2 ][ 0 ] * ( M[ 0 ][ 1 ] * M[ 1 ][ 3 ] - M[ 0 ][ 3 ] * M[ 1 ][ 1 ] )
+		);
+	Result[ 3 ][ 0 ] = -RDet * (
+		M[ 1 ][ 0 ] * ( M[ 2 ][ 1 ] * M[ 3 ][ 2 ] - M[ 2 ][ 2 ] * M[ 3 ][ 1 ] ) -
+		M[ 2 ][ 0 ] * ( M[ 1 ][ 1 ] * M[ 3 ][ 2 ] - M[ 1 ][ 2 ] * M[ 3 ][ 1 ] ) +
+		M[ 3 ][ 0 ] * ( M[ 1 ][ 1 ] * M[ 2 ][ 2 ] - M[ 1 ][ 2 ] * M[ 2 ][ 1 ] )
+		);
+	Result[ 3 ][ 1 ] = RDet * (
+		M[ 0 ][ 0 ] * ( M[ 2 ][ 1 ] * M[ 3 ][ 2 ] - M[ 2 ][ 2 ] * M[ 3 ][ 1 ] ) -
+		M[ 2 ][ 0 ] * ( M[ 0 ][ 1 ] * M[ 3 ][ 2 ] - M[ 0 ][ 2 ] * M[ 3 ][ 1 ] ) +
+		M[ 3 ][ 0 ] * ( M[ 0 ][ 1 ] * M[ 2 ][ 2 ] - M[ 0 ][ 2 ] * M[ 2 ][ 1 ] )
+		);
+	Result[ 3 ][ 2 ] = -RDet * (
+		M[ 0 ][ 0 ] * ( M[ 1 ][ 1 ] * M[ 3 ][ 2 ] - M[ 1 ][ 2 ] * M[ 3 ][ 1 ] ) -
+		M[ 1 ][ 0 ] * ( M[ 0 ][ 1 ] * M[ 3 ][ 2 ] - M[ 0 ][ 2 ] * M[ 3 ][ 1 ] ) +
+		M[ 3 ][ 0 ] * ( M[ 0 ][ 1 ] * M[ 1 ][ 2 ] - M[ 0 ][ 2 ] * M[ 1 ][ 1 ] )
+		);
+	Result[ 3 ][ 3 ] = RDet * (
+		M[ 0 ][ 0 ] * ( M[ 1 ][ 1 ] * M[ 2 ][ 2 ] - M[ 1 ][ 2 ] * M[ 2 ][ 1 ] ) -
+		M[ 1 ][ 0 ] * ( M[ 0 ][ 1 ] * M[ 2 ][ 2 ] - M[ 0 ][ 2 ] * M[ 2 ][ 1 ] ) +
+		M[ 2 ][ 0 ] * ( M[ 0 ][ 1 ] * M[ 1 ][ 2 ] - M[ 0 ][ 2 ] * M[ 1 ][ 1 ] )
+		);
+
+	memcpy( DstMatrix, &Result, 16 * sizeof( float ) );
 }
 
 // *INDENT-OFF*
@@ -2040,6 +2925,32 @@ void Matrix4x4Multiply(const matrix_t a, const matrix_t b, matrix_t out)
 		out[14] = b[12]*a[ 2] + b[13]*a[ 6] + b[14]*a[10] + b[15]*a[14];
 		out[15] = b[12]*a[ 3] + b[13]*a[ 7] + b[14]*a[11] + b[15]*a[15];
 #endif
+}
+
+/*
+================
+MatrixMultiply
+================
+*/
+void MatrixMultiply( const float in1[ 3 ][ 3 ], const float in2[ 3 ][ 3 ], float out[ 3 ][ 3 ] ) {
+	out[ 0 ][ 0 ] = in1[ 0 ][ 0 ] * in2[ 0 ][ 0 ] + in1[ 0 ][ 1 ] * in2[ 1 ][ 0 ] +
+		in1[ 0 ][ 2 ] * in2[ 2 ][ 0 ];
+	out[ 0 ][ 1 ] = in1[ 0 ][ 0 ] * in2[ 0 ][ 1 ] + in1[ 0 ][ 1 ] * in2[ 1 ][ 1 ] +
+		in1[ 0 ][ 2 ] * in2[ 2 ][ 1 ];
+	out[ 0 ][ 2 ] = in1[ 0 ][ 0 ] * in2[ 0 ][ 2 ] + in1[ 0 ][ 1 ] * in2[ 1 ][ 2 ] +
+		in1[ 0 ][ 2 ] * in2[ 2 ][ 2 ];
+	out[ 1 ][ 0 ] = in1[ 1 ][ 0 ] * in2[ 0 ][ 0 ] + in1[ 1 ][ 1 ] * in2[ 1 ][ 0 ] +
+		in1[ 1 ][ 2 ] * in2[ 2 ][ 0 ];
+	out[ 1 ][ 1 ] = in1[ 1 ][ 0 ] * in2[ 0 ][ 1 ] + in1[ 1 ][ 1 ] * in2[ 1 ][ 1 ] +
+		in1[ 1 ][ 2 ] * in2[ 2 ][ 1 ];
+	out[ 1 ][ 2 ] = in1[ 1 ][ 0 ] * in2[ 0 ][ 2 ] + in1[ 1 ][ 1 ] * in2[ 1 ][ 2 ] +
+		in1[ 1 ][ 2 ] * in2[ 2 ][ 2 ];
+	out[ 2 ][ 0 ] = in1[ 2 ][ 0 ] * in2[ 0 ][ 0 ] + in1[ 2 ][ 1 ] * in2[ 1 ][ 0 ] +
+		in1[ 2 ][ 2 ] * in2[ 2 ][ 0 ];
+	out[ 2 ][ 1 ] = in1[ 2 ][ 0 ] * in2[ 0 ][ 1 ] + in1[ 2 ][ 1 ] * in2[ 1 ][ 1 ] +
+		in1[ 2 ][ 2 ] * in2[ 2 ][ 1 ];
+	out[ 2 ][ 2 ] = in1[ 2 ][ 0 ] * in2[ 0 ][ 2 ] + in1[ 2 ][ 1 ] * in2[ 1 ][ 2 ] +
+		in1[ 2 ][ 2 ] * in2[ 2 ][ 2 ];
 }
 
 void MatrixMultiply2(matrix_t m, const matrix_t m2)
@@ -2798,6 +3709,34 @@ void MatrixCrop(matrix_t m, const vec3_t mins, const vec3_t maxs)
 
 // *INDENT-ON*
 
+float ClampAxis( float ang )
+{
+	// returns Angle in the range (-360,360)
+	ang = fmod( ang, 360.f );
+
+	if( ang < 0.f )
+	{
+		// shift to [0,360) range
+		ang += 360.f;
+	}
+
+	return ang;
+}
+
+
+float NormalizeAxis( float ang )
+{
+	// returns Angle in the range [0,360)
+	ang = ClampAxis( ang );
+
+	if( ang > 180.f )
+	{
+		// shift to (-180,180]
+		ang -= 360.f;
+	}
+
+	return ang;
+}
 
 vec_t QuatNormalize(quat_t q)
 {
@@ -2999,19 +3938,47 @@ void QuatFromRotAngleAxis( quat_t q, vec_t angle, const vec3_t axis ) {
 	q[3] = cos( angle*M_PI/360 );
 }
 
-void QuatToAngles(const quat_t q, vec3_t angles)
+void QuatToAngles( const quat_t q, vec3_t angles )
 {
 	quat_t          q2;
 
-	q2[0] = q[0] * q[0];
-	q2[1] = q[1] * q[1];
-	q2[2] = q[2] * q[2];
-	q2[3] = q[3] * q[3];
+	q2[ 0 ] = q[ 0 ] * q[ 0 ];
+	q2[ 1 ] = q[ 1 ] * q[ 1 ];
+	q2[ 2 ] = q[ 2 ] * q[ 2 ];
+	q2[ 3 ] = q[ 3 ] * q[ 3 ];
 
-	angles[PITCH] = RAD2DEG(asin(-2 * (q[2] * q[0] - q[3] * q[1])));
-	angles[YAW] = RAD2DEG(atan2(2 * (q[2] * q[3] + q[0] * q[1]), (q2[2] - q2[3] - q2[0] + q2[1])));
-	angles[ROLL] = RAD2DEG(atan2(2 * (q[3] * q[0] + q[2] * q[1]), (-q2[2] - q2[3] + q2[0] + q2[1])));
+	angles[ PITCH ] = RAD2DEG( asin( -2 * ( q[ 2 ] * q[ 0 ] - q[ 3 ] * q[ 1 ] ) ) );
+	angles[ YAW ] = RAD2DEG( atan2( 2 * ( q[ 2 ] * q[ 3 ] + q[ 0 ] * q[ 1 ] ), ( q2[ 2 ] - q2[ 3 ] - q2[ 0 ] + q2[ 1 ] ) ) );
+	angles[ ROLL ] = RAD2DEG( atan2( 2 * ( q[ 3 ] * q[ 0 ] + q[ 2 ] * q[ 1 ] ), ( -q2[ 2 ] - q2[ 3 ] + q2[ 0 ] + q2[ 1 ] ) ) );
 }
+
+/*void QuatToAngles(const quat_t q, vec3_t angles)
+{
+	const float SingularityTest = q[Z]*q[X] - q[W]*q[Y];
+	const float YawY = 2.f*( q[W]*q[Z] + q[X]*q[Y] );
+	const float YawX = ( 1.f - 2.f*( Square( q[Y] ) + Square( q[Z] ) ) );
+	const float SINGULARITY_THRESHOLD = 0.4999995f;
+	const float RAD_TO_DEG = ( 180.f ) / M_PI;
+
+	if( SingularityTest < -SINGULARITY_THRESHOLD )
+	{
+		angles[ PITCH ] = -90.0f;
+		angles[ YAW ] = atan2( YawY, YawX ) * RAD_TO_DEG;
+		angles[ ROLL ] = NormalizeAxis( -angles[ YAW ] - ( 2.f * atan2( q[ X ], q[ W ] ) * RAD_TO_DEG ) );
+	}
+	else if( SingularityTest > SINGULARITY_THRESHOLD )
+	{
+		angles[ PITCH ] = 90.0f;
+		angles[ YAW ] = atan2( YawY, YawX ) * RAD_TO_DEG;
+		angles[ ROLL ] = NormalizeAxis( angles[ YAW ] - ( 2.f * atan2( q[X], q[W] ) * RAD_TO_DEG ) );
+	}
+	else
+	{
+		angles[ PITCH ] = asin( 2.f*( SingularityTest ) ) * RAD_TO_DEG;
+		angles[ YAW ] = atan2( YawY, YawX ) * RAD_TO_DEG;
+		angles[ ROLL ] = atan2( -2.f*( q[W]*q[X] + q[Y]*q[Z] ), ( 1.f - 2.f*( Square( q[X] ) + Square( q[Y] ) ) ) ) * RAD_TO_DEG;
+	}
+}*/
 
 void QuaternionMultiply( quat_t output, quat_t first, quat_t second )
 {
@@ -3168,4 +4135,57 @@ void QuatTransformVector(const quat_t q, const vec3_t in, vec3_t out)
 
 	MatrixFromQuat(m, q);
 	MatrixTransformNormal(m, in, out);
+}
+
+void MatrixToEulerAngles
+	(
+	const float mat[ 3 ][ 3 ],
+	vec3_t ang
+	)
+
+{
+	double theta;
+	double cp;
+	double sp;
+
+	sp = mat[ 0 ][ 2 ];
+
+	// cap off our sin value so that we don't get any NANs
+	if( sp > 1.0 )
+	{
+		sp = 1.0;
+	}
+	if( sp < -1.0 )
+	{
+		sp = -1.0;
+	}
+
+	theta = -asin( sp );
+	cp = cos( theta );
+
+	if( cp > 8192 * FLT_EPSILON )
+	{
+		ang[ 0 ] = theta * 180 / M_PI;
+		ang[ 1 ] = atan2( mat[ 0 ][ 1 ], mat[ 0 ][ 0 ] ) * 180 / M_PI;
+		ang[ 2 ] = atan2( mat[ 1 ][ 2 ], mat[ 2 ][ 2 ] ) * 180 / M_PI;
+	}
+	else
+	{
+		ang[ 0 ] = theta * 180 / M_PI;
+		ang[ 1 ] = -atan2( mat[ 1 ][ 0 ], mat[ 1 ][ 1 ] ) * 180 / M_PI;
+		ang[ 2 ] = 0;
+	}
+}
+
+void TransposeMatrix( float in[ 3 ][ 3 ], float out[ 3 ][ 3 ] )
+{
+	out[ 0 ][ 0 ] = in[ 0 ][ 0 ];
+	out[ 0 ][ 1 ] = in[ 1 ][ 0 ];
+	out[ 0 ][ 2 ] = in[ 2 ][ 0 ];
+	out[ 1 ][ 0 ] = in[ 0 ][ 1 ];
+	out[ 1 ][ 1 ] = in[ 1 ][ 1 ];
+	out[ 1 ][ 2 ] = in[ 2 ][ 1 ];
+	out[ 2 ][ 0 ] = in[ 0 ][ 2 ];
+	out[ 2 ][ 1 ] = in[ 1 ][ 2 ];
+	out[ 2 ][ 2 ] = in[ 2 ][ 2 ];
 }

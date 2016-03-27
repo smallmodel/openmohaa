@@ -54,7 +54,7 @@ libvar_t *saveroutingcache;
 // Returns:					-
 // Changes Globals:		-
 //===========================================================================
-void QDECL AAS_Error(char *fmt, ...)
+void QDECL AAScriptError(char *fmt, ...)
 {
 	char str[1024];
 	va_list arglist;
@@ -63,7 +63,7 @@ void QDECL AAS_Error(char *fmt, ...)
 	vsprintf(str, fmt, arglist);
 	va_end(arglist);
 	botimport.Print(PRT_FATAL, "%s", str);
-} //end of the function AAS_Error
+} //end of the function AAScriptError
 //===========================================================================
 //
 // Parameter:				-

@@ -75,7 +75,7 @@ static snd_codec_t *S_FindCodecForFile(const char *filename)
 			COM_DefaultExtension(fn, MAX_QPATH, codec->ext);
 
 			// Check it exists
-			if(FS_ReadFile(fn, NULL) != -1)
+			if( FS_ReadFile( fn, NULL ) != -1 )
 				return codec;
 
 			// Nope. Next!
@@ -205,7 +205,7 @@ snd_stream_t *S_CodecUtilOpen(const char *filename, snd_codec_t *codec)
 	int length;
 
 	// Try to open the file
-	length = FS_FOpenFileRead(filename, &hnd, qtrue);
+	length = FS_FOpenFileRead(filename, &hnd, qtrue, qtrue);
 	if(!hnd)
 	{
 		Com_Printf("Can't read sound file %s\n", filename);

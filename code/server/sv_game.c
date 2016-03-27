@@ -24,9 +24,18 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "server.h"
 
 #include "../botlib/botlib.h"
-#include "../qcommon/tiki_local.h"
+#include "../client/snd_public.h"
+#include "../client/client.h"
+#include <localization.h>
+#include <crc.h>
+
+debugline_t *DebugLines;
+int numDebugLines;
+debugstring_t *DebugStrings;
+int numDebugStrings;
 
 botlib_export_t	*botlib_export;
+static int modelUserCount[ MAX_MODELS ];
 
 void SV_GameError( const char *string ) {
 	Com_Error( ERR_DROP, "%s", string );
@@ -38,7 +47,7 @@ void SV_GamePrint( const char *string ) {
 
 // these functions must be used instead of pointer arithmetic, because
 // the game allocates gentities with private information after the server shared part
-int	SV_NumForGentity( sharedEntity_t *ent ) {
+int	SV_NumForGentity( gentity_t *ent ) {
 	int		num;
 
 	num = ( (byte *)ent - (byte *)sv.gentities ) / sv.gentitySize;
@@ -46,10 +55,10 @@ int	SV_NumForGentity( sharedEntity_t *ent ) {
 	return num;
 }
 
-sharedEntity_t *SV_GentityNum( int num ) {
-	sharedEntity_t *ent;
+gentity_t *SV_GentityNum( int num ) {
+	gentity_t *ent;
 
-	ent = (sharedEntity_t *)((byte *)sv.gentities + sv.gentitySize*(num));
+	ent = (gentity_t *)((byte *)sv.gentities + sv.gentitySize*(num));
 
 	return ent;
 }
@@ -62,14 +71,14 @@ playerState_t *SV_GameClientNum( int num ) {
 	return ps;
 }
 
-svEntity_t	*SV_SvEntityForGentity( sharedEntity_t *gEnt ) {
+svEntity_t	*SV_SvEntityForGentity( gentity_t *gEnt ) {
 	if ( !gEnt || gEnt->s.number < 0 || gEnt->s.number >= MAX_GENTITIES ) {
 		Com_Error( ERR_DROP, "SV_SvEntityForGentity: bad gEnt" );
 	}
 	return &sv.svEntities[ gEnt->s.number ];
 }
 
-sharedEntity_t *SV_GEntityForSvEntity( svEntity_t *svEnt ) {
+gentity_t *SV_GEntityForSvEntity( svEntity_t *svEnt ) {
 	int		num;
 
 	num = svEnt - sv.svEntities;
@@ -143,7 +152,7 @@ void SV_InitAllCGMessages ()
 	int i;
 
 	SV_ClearAllCGMessages();
-	for ( i = 0; i < /*svs.iNumClients*/MAX_CLIENTS; ++i )
+	for ( i = 0; i < svs.iNumClients; ++i )
 		SV_InitCGMessage(i);
 }
 
@@ -186,7 +195,7 @@ void PF_MSG_WriteBits (int value, int bits)
 	cgm_t *pCGM;
 	int i;
 	pCGM = g_CGMessages;
-	for(i = 0; i < MAX_CLIENTS/*svs.iMaxClients*/; i++,pCGM++) {
+	for( i = 0; i < svs.iNumClients; i++, pCGM++ ) {
 		if(g_CGMRecieve[i] == 0) 
 			continue;
 		MSG_WriteCGMBits(pCGM,value,bits);
@@ -198,7 +207,7 @@ void PF_MSG_WriteChar (int c)
 	cgm_t *pCGM;
 	int i;
 	pCGM = g_CGMessages;
-	for(i = 0; i < MAX_CLIENTS/*svs.iMaxClients*/; i++,pCGM++) {
+	for(i = 0; i < svs.iNumClients; i++,pCGM++) {
 		if(g_CGMRecieve[i] == 0) 
 			continue;
 		// write 8 bit character
@@ -210,7 +219,7 @@ void PF_MSG_WriteByte (int c)
 	cgm_t *pCGM;
 	int i;
 	pCGM = g_CGMessages;
-	for(i = 0; i < MAX_CLIENTS/*svs.iMaxClients*/; i++,pCGM++) {
+	for(i = 0; i < svs.iNumClients; i++,pCGM++) {
 		if(g_CGMRecieve[i] == 0) 
 			continue;
 		// write 8 bit unsigned byte
@@ -222,7 +231,7 @@ void PF_MSG_WriteSVC (int c)
 	cgm_t *pCGM;
 	int i;
 	pCGM = g_CGMessages;
-	for(i = 0; i < MAX_CLIENTS/*svs.iMaxClients*/; i++,pCGM++) {
+	for(i = 0; i < svs.iNumClients; i++,pCGM++) {
 		if(g_CGMRecieve[i] == 0) 
 			continue;
 		MSG_WriteCGMBits(pCGM,c,8);
@@ -233,7 +242,7 @@ void PF_MSG_WriteShort (int c)
 	cgm_t *pCGM;
 	int i;
 	pCGM = g_CGMessages;
-	for(i = 0; i < MAX_CLIENTS/*svs.iMaxClients*/; i++,pCGM++) {
+	for(i = 0; i < svs.iNumClients; i++,pCGM++) {
 		if(g_CGMRecieve[i] == 0) 
 			continue;
 		MSG_WriteCGMBits(pCGM,c,16);
@@ -244,7 +253,7 @@ void PF_MSG_WriteLong (int c)
  	cgm_t *pCGM;
 	int i;
 	pCGM = g_CGMessages;
-	for(i = 0; i < MAX_CLIENTS/*svs.iMaxClients*/; i++,pCGM++) {
+	for(i = 0; i < svs.iNumClients; i++,pCGM++) {
 		if(g_CGMRecieve[i] == 0) 
 			continue;
 		MSG_WriteCGMBits(pCGM,c,32);
@@ -260,7 +269,7 @@ void PF_MSG_WriteFloat (float f)
 	int i;
 	dat.fl = f;
 	pCGM = g_CGMessages;
-	for(i = 0; i < MAX_CLIENTS/*svs.iMaxClients*/; i++,pCGM++) {
+	for(i = 0; i < svs.iNumClients; i++,pCGM++) {
 		if(g_CGMRecieve[i] == 0) 
 			continue;
 		MSG_WriteCGMBits(pCGM,dat.l,32);
@@ -274,7 +283,7 @@ void PF_MSG_WriteString (const char *s)
 	l = strlen(s);
 	l+=1; // include trailing zero
 	pCGM = g_CGMessages;
-	for(i = 0; i < MAX_CLIENTS/*svs.iMaxClients*/; i++,pCGM++) {
+	for(i = 0; i < svs.iNumClients; i++,pCGM++) {
 		if(g_CGMRecieve[i] == 0) 
 			continue;
 		for(j = 0; j < l; j++) {
@@ -287,7 +296,7 @@ void PF_MSG_WriteAngle8 (float f)
  	cgm_t *pCGM;
 	int i;
 	pCGM = g_CGMessages;
-	for(i = 0; i < MAX_CLIENTS/*svs.iMaxClients*/; i++,pCGM++) {
+	for(i = 0; i < svs.iNumClients; i++,pCGM++) {
 		if(g_CGMRecieve[i] == 0) 
 			continue;
 		MSG_WriteCGMBits(pCGM,f * 256.0 / 360.0,8);
@@ -298,7 +307,7 @@ void PF_MSG_WriteAngle16 (float f)
  	cgm_t *pCGM;
 	int i;
 	pCGM = g_CGMessages;
-	for(i = 0; i < MAX_CLIENTS/*svs.iMaxClients*/; i++,pCGM++) {
+	for(i = 0; i < svs.iNumClients; i++,pCGM++) {
 		if(g_CGMRecieve[i] == 0) 
 			continue;
 		MSG_WriteCGMBits(pCGM,ANGLE2SHORT(f),16);
@@ -318,7 +327,7 @@ void PF_MSG_WriteCoord (float f)
 	}
 
 	pCGM = g_CGMessages;
-	for(i = 0; i < MAX_CLIENTS/*svs.iMaxClients*/; i++,pCGM++) {
+	for(i = 0; i < svs.iNumClients; i++,pCGM++) {
 		if(g_CGMRecieve[i] == 0) 
 			continue;
 		MSG_WriteCGMBits(pCGM, write, 19);
@@ -331,7 +340,7 @@ void PF_MSG_WriteDir (vec_t *dir)
 	byte b;
 	b = DirToByte(dir);
 	pCGM = g_CGMessages;
-	for(i = 0; i < MAX_CLIENTS/*svs.iMaxClients*/; i++,pCGM++) {
+	for(i = 0; i < svs.iNumClients; i++,pCGM++) {
 		if(g_CGMRecieve[i] == 0) 
 			continue;
 		MSG_WriteCGMBits(pCGM,b,8);
@@ -343,7 +352,7 @@ void PF_MSG_StartCGM (int type)
     int i;
 
 	pCGM = g_CGMessages;
-	for(i = 0; i < MAX_CLIENTS/*svs.iMaxClients*/; i++,pCGM++) {
+	for(i = 0; i < svs.iNumClients; i++,pCGM++) {
 		if(g_CGMRecieve[i] == 0) 
 			continue;
 		if(pCGM->cursize <= 0) {
@@ -376,11 +385,11 @@ void MSG_SetBroadcastAll ()
 	int i;
 
 	pCGM = g_CGMessages;
-	for(i = 0; i < MAX_CLIENTS/*svs.iMaxClients*/; i++,pCGM++) {
+	for(i = 0; i < svs.iNumClients; i++,pCGM++) {
 		g_CGMRecieve[i] = qtrue;
 	}
 }
-void MSG_SetBroadcastVisible (vec_t *vPos, vec_t *vPosB)
+void MSG_SetBroadcastVisible( const vec_t *vPos, const vec_t *vPosB)
 {
     byte *clientpvs;
     int posBcluster;
@@ -406,7 +415,7 @@ void MSG_SetBroadcastVisible (vec_t *vPos, vec_t *vPosB)
 
 	pCGM = g_CGMessages;
 	pClient = svs.clients;
-	for(i = 0; i < MAX_CLIENTS/*svs.iMaxClients*/; i++,pCGM++,pClient++) {
+	for(i = 0; i < svs.iNumClients; i++,pCGM++,pClient++) {
 		if(pClient->state != CS_ACTIVE) {
 			g_CGMRecieve[i] = qfalse;
 			continue;
@@ -442,7 +451,7 @@ void MSG_SetBroadcastVisible (vec_t *vPos, vec_t *vPosB)
 	}
 #endif
 }
-void MSG_SetBroadcastHearable (vec_t *vPos, vec_t *vPosB)
+void MSG_SetBroadcastHearable ( const vec_t *vPos, const vec_t *vPosB)
 {
 	// su44: in MoHAA's, MSG_SetBroadcastAll is used here,
 	// but I'd rather use MSG_SetBroadcastVisible with
@@ -487,74 +496,6 @@ void SV_WriteCGMToClient (client_t *client, msg_t *msg)
 		}
 	}
 }
-/*
-===============
-SV_GameSendServerCommand
-
-Sends a command string to a client
-===============
-*/
-void SV_GameSendServerCommand( int clientNum, const char *text ) {
-	if ( clientNum == -1 ) {
-		SV_SendServerCommand( NULL, "%s", text );
-	} else {
-		if ( clientNum < 0 || clientNum >= sv_maxclients->integer ) {
-			return;
-		}
-		SV_SendServerCommand( svs.clients + clientNum, "%s", text );	
-	}
-}
-
-
-/*
-===============
-SV_GameDropClient
-
-Disconnects the client with a message
-===============
-*/
-void SV_GameDropClient( int clientNum, const char *reason ) {
-	if ( clientNum < 0 || clientNum >= sv_maxclients->integer ) {
-		return;
-	}
-	SV_DropClient( svs.clients + clientNum, reason );	
-}
-
-
-/*
-=================
-SV_SetBrushModel
-
-sets mins and maxs for inline bmodels
-=================
-*/
-void SV_SetBrushModel( sharedEntity_t *ent, const char *name ) {
-	clipHandle_t	h;
-	vec3_t			mins, maxs;
-
-	if (!name) {
-		Com_Error( ERR_DROP, "SV_SetBrushModel: NULL" );
-	}
-
-	if (name[0] != '*') {
-		Com_Error( ERR_DROP, "SV_SetBrushModel: %s isn't a brush model", name );
-	}
-
-
-	ent->s.modelindex = atoi( name + 1 );
-
-	h = CM_InlineModel( ent->s.modelindex );
-	CM_ModelBounds( h, mins, maxs );
-	VectorCopy (mins, ent->r.mins);
-	VectorCopy (maxs, ent->r.maxs);
-	ent->r.bmodel = qtrue;
-
-	ent->r.contents = -1;		// we don't know exactly what is in the brushes
-
-	SV_LinkEntity( ent );		// FIXME: remove
-}
-
-
 
 /*
 =================
@@ -615,41 +556,629 @@ qboolean SV_inPVSIgnorePortals( const vec3_t p1, const vec3_t p2)
 	return qtrue;
 }
 
+/*
+===============
+PF_NumAnims
+===============
+*/
+int PF_NumAnims( dtiki_t *tiki )
+{
+	return TIKI_NumAnims( tiki );
+}
+
+/*
+===============
+PF_NumSurfaces
+===============
+*/
+int PF_NumSurfaces( dtiki_t *tiki )
+{
+	return TIKI_NumSurfaces( tiki );
+}
+
+/*
+===============
+PF_NumTags
+===============
+*/
+int PF_NumTags( dtiki_t *tiki )
+{
+	return TIKI_NumTags( tiki );
+}
+
+/*
+===============
+PF_Cross_Time
+===============
+*/
+float PF_Cross_Time( dtiki_t *tiki, int anim )
+{
+	return TIKI_Anim_CrossblendTime( tiki, anim );
+}
+
+/*
+===============
+PF_CalculateBounds
+===============
+*/
+void PF_CalculateBounds( dtiki_t *tiki, float scale, vec3_t mins, vec3_t maxs )
+{
+	TIKI_CalculateBounds( tiki, scale, mins, maxs );
+}
+
+/*
+===============
+PF_Anim_NameForNum
+===============
+*/
+const char *PF_Anim_NameForNum( dtiki_t *tiki, int animnum )
+{
+	return TIKI_Anim_NameForNum( tiki, animnum );
+}
+
+/*
+===============
+PF_Anim_NumForName
+===============
+*/
+int PF_Anim_NumForName( dtiki_t *tiki, const char *name )
+{
+	return TIKI_Anim_NumForName( tiki, name );
+}
+
+/*
+===============
+PF_Anim_Random
+===============
+*/
+int PF_Anim_Random( dtiki_t *tiki, const char *name )
+{
+	return TIKI_Anim_Random( tiki, name );
+}
+
+/*
+===============
+PF_Anim_NumFrames
+===============
+*/
+int PF_Anim_NumFrames( dtiki_t *tiki, int animnum )
+{
+	return TIKI_Anim_NumFrames( tiki, animnum );
+}
+
+/*
+===============
+PF_Anim_Time
+===============
+*/
+float PF_Anim_Time( dtiki_t *tiki, int animnum )
+{
+	return TIKI_Anim_Time( tiki, animnum );
+}
+
+/*
+===============
+PF_Anim_Frametime
+===============
+*/
+float PF_Anim_Frametime( dtiki_t *tiki, int animnum )
+{
+	return TIKI_Anim_Frametime( tiki, animnum );
+}
+
+/*
+===============
+PF_Anim_Delta
+===============
+*/
+void PF_Anim_Delta( dtiki_t *tiki, int animnum, vec3_t delta )
+{
+	TIKI_Anim_Delta( tiki, animnum, delta );
+}
+
+/*
+===============
+PF_Anim_HasDelta
+===============
+*/
+qboolean PF_Anim_HasDelta( dtiki_t *tiki, int animnum )
+{
+	return TIKI_Anim_HasDelta( tiki, animnum );
+}
+
+/*
+===============
+PF_Anim_DeltaOverTime
+===============
+*/
+void PF_Anim_DeltaOverTime( dtiki_t *tiki, int iAnimnum, float fTime1, float fTime2, vec3_t vDelta )
+{
+	TIKI_Anim_DeltaOverTime( tiki, iAnimnum, fTime1, fTime2, vDelta );
+}
+
+/*
+===============
+PF_Anim_Flags
+===============
+*/
+int PF_Anim_Flags( dtiki_t *tiki, int animnum )
+{
+	return TIKI_Anim_Flags( tiki, animnum );
+}
+
+/*
+===============
+PF_Anim_FlagsSkel
+===============
+*/
+int PF_Anim_FlagsSkel( dtiki_t *tiki, int animnum )
+{
+	return TIKI_Anim_FlagsSkel( tiki, animnum );
+}
+
+/*
+===============
+PF_Anim_HasCommands
+===============
+*/
+qboolean PF_Anim_HasCommands( dtiki_t *tiki, int animnum )
+{
+	return TIKI_Anim_HasServerCommands( tiki, animnum );
+}
+
+/*
+===============
+PF_ModelTiki
+===============
+*/
+dtiki_t *PF_ModelTiki( const char *name )
+{
+	return TIKI_RegisterTikiFlags( name, qtrue );
+}
+
+/*
+===============
+PF_ModelTikiAnim
+===============
+*/
+dtikianim_t *PF_ModelTikiAnim( const char *name )
+{
+	return TIKI_RegisterTikiAnimFlags( name, qtrue );
+}
+
+/*
+===============
+PF_NumHeadModels
+===============
+*/
+int PF_NumHeadModels( const char *model )
+{
+	dtikianim_t *tiki = PF_ModelTikiAnim( model );
+	return TIKI_NumHeadModels( tiki );
+}
+
+/*
+===============
+PF_GetHeadModel
+===============
+*/
+void PF_GetHeadModel( const char *model, int num, char *name )
+{
+	dtikianim_t *tiki = PF_ModelTikiAnim( model );
+	TIKI_GetHeadModel( tiki, num, name );
+}
+
+/*
+===============
+PF_NumHeadSkins
+===============
+*/
+int PF_NumHeadSkins( const char *model )
+{
+	dtikianim_t *tiki = PF_ModelTikiAnim( model );
+	return TIKI_NumHeadSkins( tiki );
+}
+
+/*
+===============
+PF_GetHeadSkin
+===============
+*/
+void PF_GetHeadSkin( const char *model, int num, char *name )
+{
+	dtikianim_t *tiki = PF_ModelTikiAnim( model );
+	TIKI_GetHeadSkin( tiki, num, name );
+}
+
+/*
+===============
+PF_Anim_HasClientCommands
+===============
+*/
+qboolean PF_Anim_HasClientCommands( dtiki_t *tiki, int animnum )
+{
+	return TIKI_Anim_HasClientCommands( tiki, animnum );
+}
+
+/*
+===============
+PF_Frame_Commands
+===============
+*/
+qboolean PF_Frame_Commands( dtiki_t *tiki, int animnum, int framenum, tiki_cmd_t *tiki_cmds )
+{
+	return TIKI_Frame_Commands_Server( tiki, animnum, framenum, tiki_cmds );
+}
+
+/*
+===============
+PF_Surface_NameToNum
+===============
+*/
+int PF_Surface_NameToNum( dtiki_t *tiki, const char *name )
+{
+	return TIKI_Surface_NameToNum( tiki, name );
+}
+
+/*
+===============
+PF_Surface_NumToName
+===============
+*/
+const char *PF_Surface_NumToName( dtiki_t *tiki, int num )
+{
+	return TIKI_Surface_NumToName( tiki, num );
+}
+
+/*
+===============
+PF_Tag_NameToNum
+===============
+*/
+int PF_Tag_NameToNum( dtiki_t *tiki, const char *name )
+{
+	return TIKI_Tag_NameToNum( tiki, name );
+}
+
+/*
+===============
+PF_Tag_NumToName
+===============
+*/
+const char *PF_Tag_NumToName( dtiki_t *tiki, int num )
+{
+	return TIKI_Tag_NumToName( tiki, num );
+}
+
+/*
+===============
+PF_TIKI_OrientationInternal
+===============
+*/
+orientation_t PF_TIKI_OrientationInternal( dtiki_t *tiki, int entnum, int num, float scale )
+{
+	return TIKI_OrientationInternal( tiki, entnum, num, scale );
+}
+
+/*
+===============
+PF_TIKI_TransformInternal
+===============
+*/
+void *PF_TIKI_TransformInternal( dtiki_t *tiki, int entnum, int num )
+{
+	return TIKI_TransformInternal( tiki, entnum, num );
+}
+
+/*
+===============
+PF_TIKI_IsOnGroundInternal
+===============
+*/
+qboolean PF_TIKI_IsOnGroundInternal( dtiki_t *tiki, int entnum, int num, float threshold )
+{
+	return TIKI_IsOnGroundInternal( tiki, entnum, num, threshold );
+}
+
+/*
+===============
+PF_SetPoseInternal
+===============
+*/
+void PF_SetPoseInternal( dtiki_t *tiki, int entnum, const frameInfo_t *frameInfo, int *bone_tag, vec4_t *bone_quat, float actionWeight )
+{
+	TIKI_SetPoseInternal( TIKI_GetSkeletor( tiki, entnum ), frameInfo, bone_tag, bone_quat, actionWeight );
+}
+
+/*
+===============
+PF_Alias_Add
+
+===============
+*/
+qboolean PF_Alias_Add( dtiki_t *pmdl, const char *alias, const char *name, const char *parameters )
+{
+	if( !pmdl->a->alias_list ) pmdl->a->alias_list = AliasList_New( pmdl->a->name );
+	return Alias_ListAdd( pmdl->a->alias_list, alias, name, parameters );
+}
+
+/*
+===============
+PF_Alias_FindRandom
+
+===============
+*/
+const char *PF_Alias_FindRandom( dtiki_t *tiki, const char *alias, AliasListNode_t **ret )
+{
+	AliasList_t *alias_list = tiki->a->alias_list;
+
+	alias_list = ( AliasList_t * )tiki->a->alias_list;
+	if( alias_list )
+	{
+		return Alias_ListFindRandom( alias_list, alias, ret );
+	}
+	else
+	{
+		return NULL;
+	}
+}
+
+/*
+===============
+PF_Alias_UpdateDialog
+
+===============
+*/
+void PF_Alias_UpdateDialog( dtikianim_t *tiki, const char *alias )
+{
+	AliasList_t *alias_list = tiki->alias_list;
+
+	if( alias_list )
+	{
+		Alias_ListUpdateDialog( alias_list, alias );
+	}
+}
+
+/*
+===============
+PF_Alias_Dump
+
+===============
+*/
+void PF_Alias_Dump( dtiki_t *tiki )
+{
+	AliasList_t *alias_list = tiki->a->alias_list;
+
+	if( alias_list )
+	{
+		Alias_ListDump( tiki->a->alias_list );
+	}
+}
+
+/*
+===============
+PF_Alias_Clear
+
+===============
+*/
+void PF_Alias_Clear( dtiki_t *tiki )
+{
+	PF_Alias_Dump( tiki );
+}
+
+/*
+===============
+PF_NameForNum
+===============
+*/
+const char *PF_NameForNum( dtiki_t *tiki )
+{
+	return TIKI_Name( tiki );
+}
+
+/*
+===============
+SV_ClearModelUserCounts
+
+Clears model's reference
+===============
+*/
+void SV_ClearModelUserCounts()
+{
+	memset( modelUserCount, 0, sizeof( modelUserCount ) );
+}
+
+/*
+===============
+PF_RegisterTiki
+===============
+*/
+dtiki_t *PF_RegisterTiki( const char *path )
+{
+	modelUserCount[ SV_ModelIndex( path ) ]++;
+	return TIKI_RegisterTiki( path );
+}
+
+static int g_usageIndex = 0;
+
+/*
+===============
+PF_setmodel
+===============
+*/
+qboolean PF_setmodel( gentity_t *ent, const char *name )
+{
+	dtiki_t *tiki;
+	int newModelIndex;
+
+	g_usageIndex++;
+	if( g_usageIndex >= 65535 ) {
+		g_usageIndex = 1;
+	}
+
+	ent->s.usageIndex = g_usageIndex;
+
+	if( !*name )
+	{
+		tiki = NULL;
+	}
+	else
+	{
+		tiki = PF_ModelTiki( name );
+		if( !tiki ) {
+			return qfalse;
+		}
+
+		newModelIndex = SV_ModelIndex( name );
+		if( !newModelIndex ) {
+			return qfalse;
+		}
+
+		// don't reference the model again
+		if( ent->s.modelindex == newModelIndex ) {
+			return qtrue;
+		}
+	}
+
+	if( ent->tiki && ent->s.modelindex )
+	{
+		modelUserCount[ ent->s.modelindex ]--;
+		if( !modelUserCount[ ent->s.modelindex ] )
+			SV_ClearModel( ent->s.modelindex );
+		ent->s.modelindex = 0;
+	}
+
+	ent->tiki = tiki;
+	ent->r.bmodel = qfalse;
+
+	if( ent->tiki )
+	{
+		ent->s.modelindex = newModelIndex;
+		modelUserCount[ newModelIndex ]++;
+	}
+
+	return qtrue;
+}
+
+/*
+===============
+PF_clearmodel
+===============
+*/
+void PF_clearmodel( gentity_t *ent )
+{
+	PF_setmodel( ent, "" );
+}
+
+/*
+===============
+PF_GetSkeletor
+===============
+*/
+void *PF_GetSkeletor( dtiki_t *tiki, int entnum )
+{
+	return TIKI_GetSkeletor( tiki, entnum );
+}
+
+/*
+===============
+SV_GameSendServerCommand
+
+Sends a command string to a client
+===============
+*/
+void SV_GameSendServerCommand( int clientNum, const char *text, ... )
+{
+	va_list va;
+	char buffer[ 500 ];
+
+	va_start( va, text );
+	vsprintf( buffer, text, va );
+	va_end( va );
+
+	if ( clientNum == -1 ) {
+		SV_SendServerCommand( NULL, "%s", buffer );
+	} else {
+		if ( clientNum < 0 || clientNum >= sv_maxclients->integer ) {
+			return;
+		}
+		SV_SendServerCommand( svs.clients + clientNum, "%s", buffer );
+	}
+}
+
+/*
+===============
+SV_GameDropClient
+
+Disconnects the client with a message
+===============
+*/
+void SV_GameDropClient( int clientNum, const char *reason ) {
+	if ( clientNum < 0 || clientNum >= sv_maxclients->integer ) {
+		return;
+	}
+	SV_DropClient( svs.clients + clientNum, reason );	
+}
+
+/*
+=================
+SV_SetBrushModel
+
+sets mins and maxs for inline bmodels
+=================
+*/
+void SV_SetBrushModel( gentity_t *ent, const char *name ) {
+	clipHandle_t	h;
+	vec3_t			mins, maxs;
+
+	if( !name ) {
+		Com_Error( ERR_DROP, "SV_SetBrushModel: NULL" );
+	}
+
+	if( name[ 0 ] != '*' ) {
+		Com_Error( ERR_DROP, "SV_SetBrushModel: %s isn't a brush model", name );
+	}
+
+	ent->s.modelindex = atoi( name + 1 );
+	h = CM_InlineModel( ent->s.modelindex );
+	CM_ModelBounds( h, mins, maxs );
+	VectorCopy( mins, ent->r.mins );
+	VectorCopy( maxs, ent->r.maxs );
+	ent->r.bmodel = qtrue;
+
+	if( !ent->r.contents )
+		ent->r.contents = -1; // we don't know exactly what is in the brushes
+
+	SV_LinkEntity( ent );
+}
 
 /*
 ========================
 SV_AdjustAreaPortalState
 ========================
 */
-void SV_AdjustAreaPortalState( sharedEntity_t *ent, qboolean open ) {
+void SV_AdjustAreaPortalState( gentity_t *ent, qboolean open ) {
 	svEntity_t	*svEnt;
 
 	svEnt = SV_SvEntityForGentity( ent );
-	if ( svEnt->areanum2 == -1 ) {
+	if( svEnt->areanum2 == -1 ) {
 		return;
 	}
 	CM_AdjustAreaPortalState( svEnt->areanum, svEnt->areanum2, open );
 }
 
-
 /*
-==================
-SV_GameAreaEntities
-==================
+========================
+SV_EntityContact
+========================
 */
-qboolean	SV_EntityContact( vec3_t mins, vec3_t maxs, const sharedEntity_t *gEnt, int capsule ) {
-	const float	*origin, *angles;
-	clipHandle_t	ch;
-	trace_t			trace;
-
-	// check for exact collision
-	origin = gEnt->r.currentOrigin;
-	angles = gEnt->r.currentAngles;
+qboolean SV_EntityContact( vec3_t mins, vec3_t maxs, gentity_t *gEnt )
+{
+	clipHandle_t ch;
+	trace_t trace;
 
 	ch = SV_ClipHandleForEntity( gEnt );
-	CM_TransformedBoxTrace ( &trace, vec3_origin, vec3_origin, mins, maxs,
-		ch, -1, origin, angles, capsule );
-
+	CM_TransformedBoxTrace( &trace, vec3_origin, vec3_origin, mins, maxs, ch, -1, gEnt->s.origin, gEnt->r.currentAngles, qfalse );
 	return trace.startsolid;
 }
 
@@ -661,7 +1190,7 @@ SV_GetServerinfo
 ===============
 */
 void SV_GetServerinfo( char *buffer, int bufferSize ) {
-	if ( bufferSize < 1 ) {
+	if( bufferSize < 1 ) {
 		Com_Error( ERR_DROP, "SV_GetServerinfo: bufferSize == %i", bufferSize );
 	}
 	Q_strncpyz( buffer, Cvar_InfoString( CVAR_SERVERINFO ), bufferSize );
@@ -673,9 +1202,9 @@ SV_LocateGameData
 
 ===============
 */
-void SV_LocateGameData( sharedEntity_t *gEnts, int numGEntities, int sizeofGEntity_t,
-					   playerState_t *clients, int sizeofGameClient ) {
-	sv.gentities = gEnts;
+void SV_LocateGameData( gentity_t *gEnts, int numGEntities, int sizeofGEntity_t,
+	playerState_t *clients, int sizeofGameClient ) {
+	sv.gentities = ( gentity_t * )gEnts;
 	sv.gentitySize = sizeofGEntity_t;
 	sv.num_entities = numGEntities;
 
@@ -683,662 +1212,117 @@ void SV_LocateGameData( sharedEntity_t *gEnts, int numGEntities, int sizeofGEnti
 	sv.gameClientSize = sizeofGameClient;
 }
 
+/*
+===============
+SV_SetFarPlane
+===============
+*/
+void SV_SetFarPlane( int farplane )
+{
+	if( farplane )
+	{
+		sv.farplane = ( farplane + 32 ) * ( farplane + 32 );
+	}
+	else
+	{
+		sv.farplane = 0;
+	}
+}
+
+/*
+===============
+SV_SetSkyPortal
+===============
+*/
+void SV_SetSkyPortal( qboolean skyportal )
+{
+	sv.skyportal = skyportal;
+}
 
 /*
 ===============
 SV_GetUsercmd
-
 ===============
 */
 void SV_GetUsercmd( int clientNum, usercmd_t *cmd ) {
-	if ( clientNum < 0 || clientNum >= sv_maxclients->integer ) {
+	if( clientNum < 0 || clientNum >= sv_maxclients->integer ) {
 		Com_Error( ERR_DROP, "SV_GetUsercmd: bad clientNum:%i", clientNum );
 	}
-	*cmd = svs.clients[clientNum].lastUsercmd;
-}
-
-//==============================================
-
-static int	FloatAsInt( float f ) {
-	union
-	{
-	    int i;
-	    float f;
-	} temp;
-	
-	temp.f = f;
-	return temp.i;
+	*cmd = svs.clients[ clientNum ].lastUsercmd;
 }
 
 /*
-====================
-SV_GameSystemCalls
-
-The module is making a system call
-====================
+===============
+PF_centerprintf
+===============
 */
-intptr_t SV_GameSystemCalls( intptr_t *args ) {
-	switch( args[0] ) {
-	case G_PRINT:
-		Com_Printf( "%s", (const char*)VMA(1) );
-		return 0;
-	case G_ERROR:
-		Com_Error( ERR_DROP, "%s", (const char*)VMA(1) );
-		return 0;
-	case G_MILLISECONDS:
-		return Sys_Milliseconds();
-	case G_CVAR_REGISTER:
-		Cvar_Register( VMA(1), VMA(2), VMA(3), args[4] ); 
-		return 0;
-	case G_CVAR_UPDATE:
-		Cvar_Update( VMA(1) );
-		return 0;
-	case G_CVAR_SET:
-		Cvar_Set( (const char *)VMA(1), (const char *)VMA(2) );
-		return 0;
-	case G_CVAR_VARIABLE_INTEGER_VALUE:
-		return Cvar_VariableIntegerValue( (const char *)VMA(1) );
-	case G_CVAR_VARIABLE_STRING_BUFFER:
-		Cvar_VariableStringBuffer( VMA(1), VMA(2), args[3] );
-		return 0;
-	case G_ARGC:
-		return Cmd_Argc();
-	case G_ARGV:
-		Cmd_ArgvBuffer( args[1], VMA(2), args[3] );
-		return 0;
-	case G_SEND_CONSOLE_COMMAND:
-		Cbuf_ExecuteText( args[1], VMA(2) );
-		return 0;
+void PF_centerprintf( gentity_t *ent, const char *fmt, ... )
+{
+	va_list va;
+	char msg[ 2048 ];
 
-	case G_FS_FOPEN_FILE:
-		return FS_FOpenFileByMode( VMA(1), VMA(2), args[3] );
-	case G_FS_READ:
-		FS_Read2( VMA(1), args[2], args[3] );
-		return 0;
-	case G_FS_WRITE:
-		FS_Write( VMA(1), args[2], args[3] );
-		return 0;
-	case G_FS_FCLOSE_FILE:
-		FS_FCloseFile( args[1] );
-		return 0;
-	case G_FS_GETFILELIST:
-		return FS_GetFileList( VMA(1), VMA(2), VMA(3), args[4] );
-	case G_FS_SEEK:
-		return FS_Seek( args[1], args[2], args[3] );
-
-	case G_LOCATE_GAME_DATA:
-		SV_LocateGameData( VMA(1), args[2], args[3], VMA(4), args[5] );
-		return 0;
-	case G_DROP_CLIENT:
-		SV_GameDropClient( args[1], VMA(2) );
-		return 0;
-	case G_SEND_SERVER_COMMAND:
-		SV_GameSendServerCommand( args[1], VMA(2) );
-		return 0;
-	case G_LINKENTITY:
-		SV_LinkEntity( VMA(1) );
-		return 0;
-	case G_UNLINKENTITY:
-		SV_UnlinkEntity( VMA(1) );
-		return 0;
-	case G_ENTITIES_IN_BOX:
-		return SV_AreaEntities( VMA(1), VMA(2), VMA(3), args[4] );
-	case G_ENTITY_CONTACT:
-		return SV_EntityContact( VMA(1), VMA(2), VMA(3), /*int capsule*/ qfalse );
-	case G_ENTITY_CONTACTCAPSULE:
-		return SV_EntityContact( VMA(1), VMA(2), VMA(3), /*int capsule*/ qtrue );
-	case G_TRACE:
-		SV_Trace( VMA(1), VMA(2), VMA(3), VMA(4), VMA(5), args[6], args[7], /*int capsule*/ qfalse );
-		return 0;
-	case G_TRACECAPSULE:
-		SV_Trace( VMA(1), VMA(2), VMA(3), VMA(4), VMA(5), args[6], args[7], /*int capsule*/ qtrue );
-		return 0;
-	case G_POINT_CONTENTS:
-		return SV_PointContents( VMA(1), args[2] );
-	case G_SET_BRUSH_MODEL:
-		SV_SetBrushModel( VMA(1), VMA(2) );
-		return 0;
-	case G_IN_PVS:
-		return SV_inPVS( VMA(1), VMA(2) );
-	case G_IN_PVS_IGNORE_PORTALS:
-		return SV_inPVSIgnorePortals( VMA(1), VMA(2) );
-
-	case G_SET_CONFIGSTRING:
-		SV_SetConfigstring( args[1], VMA(2) );
-		return 0;
-	case G_GET_CONFIGSTRING:
-		SV_GetConfigstring( args[1], VMA(2), args[3] );
-		return 0;
-	case G_SET_USERINFO:
-		SV_SetUserinfo( args[1], VMA(2) );
-		return 0;
-	case G_GET_USERINFO:
-		SV_GetUserinfo( args[1], VMA(2), args[3] );
-		return 0;
-	case G_GET_SERVERINFO:
-		SV_GetServerinfo( VMA(1), args[2] );
-		return 0;
-	case G_ADJUST_AREA_PORTAL_STATE:
-		SV_AdjustAreaPortalState( VMA(1), args[2] );
-		return 0;
-	case G_AREAS_CONNECTED:
-		return CM_AreasConnected( args[1], args[2] );
-
-	case G_BOT_ALLOCATE_CLIENT:
-		return SV_BotAllocateClient();
-	case G_BOT_FREE_CLIENT:
-		SV_BotFreeClient( args[1] );
-		return 0;
-
-	case G_GET_USERCMD:
-		SV_GetUsercmd( args[1], VMA(2) );
-		return 0;
-	case G_GET_ENTITY_TOKEN:
-		{
-			const char	*s;
-
-			s = COM_Parse( &sv.entityParsePoint );
-			Q_strncpyz( VMA(1), s, args[2] );
-			if ( !sv.entityParsePoint && !s[0] ) {
-				return qfalse;
-			} else {
-				return qtrue;
-			}
-		}
-
-	case G_DEBUG_POLYGON_CREATE:
-		return BotImport_DebugPolygonCreate( args[1], args[2], VMA(3) );
-	case G_DEBUG_POLYGON_DELETE:
-		BotImport_DebugPolygonDelete( args[1] );
-		return 0;
-	case G_REAL_TIME:
-		return Com_RealTime( VMA(1) );
-	case G_SNAPVECTOR:
-		Sys_SnapVector( VMA(1) );
-		return 0;
-
-		//====================================
-
-	case BOTLIB_SETUP:
-		return SV_BotLibSetup();
-	case BOTLIB_SHUTDOWN:
-		return SV_BotLibShutdown();
-	case BOTLIB_LIBVAR_SET:
-		return botlib_export->BotLibVarSet( VMA(1), VMA(2) );
-	case BOTLIB_LIBVAR_GET:
-		return botlib_export->BotLibVarGet( VMA(1), VMA(2), args[3] );
-
-	case BOTLIB_PC_ADD_GLOBAL_DEFINE:
-		return botlib_export->PC_AddGlobalDefine( VMA(1) );
-	case BOTLIB_PC_LOAD_SOURCE:
-		return botlib_export->PC_LoadSourceHandle( VMA(1) );
-	case BOTLIB_PC_FREE_SOURCE:
-		return botlib_export->PC_FreeSourceHandle( args[1] );
-	case BOTLIB_PC_READ_TOKEN:
-		return botlib_export->PC_ReadTokenHandle( args[1], VMA(2) );
-	case BOTLIB_PC_SOURCE_FILE_AND_LINE:
-		return botlib_export->PC_SourceFileAndLine( args[1], VMA(2), VMA(3) );
-
-	case BOTLIB_START_FRAME:
-		return botlib_export->BotLibStartFrame( VMF(1) );
-	case BOTLIB_LOAD_MAP:
-		return botlib_export->BotLibLoadMap( VMA(1) );
-	case BOTLIB_UPDATENTITY:
-		return botlib_export->BotLibUpdateEntity( args[1], VMA(2) );
-	case BOTLIB_TEST:
-		return botlib_export->Test( args[1], VMA(2), VMA(3), VMA(4) );
-
-	case BOTLIB_GET_SNAPSHOT_ENTITY:
-		return SV_BotGetSnapshotEntity( args[1], args[2] );
-	case BOTLIB_GET_CONSOLE_MESSAGE:
-		return SV_BotGetConsoleMessage( args[1], VMA(2), args[3] );
-	case BOTLIB_USER_COMMAND:
-		SV_ClientThink( &svs.clients[args[1]], VMA(2) );
-		return 0;
-
-	case BOTLIB_AAS_BBOX_AREAS:
-		return botlib_export->aas.AAS_BBoxAreas( VMA(1), VMA(2), VMA(3), args[4] );
-	case BOTLIB_AAS_AREA_INFO:
-		return botlib_export->aas.AAS_AreaInfo( args[1], VMA(2) );
-	case BOTLIB_AAS_ALTERNATIVE_ROUTE_GOAL:
-		return botlib_export->aas.AAS_AlternativeRouteGoals( VMA(1), args[2], VMA(3), args[4], args[5], VMA(6), args[7], args[8] );
-	case BOTLIB_AAS_ENTITY_INFO:
-		botlib_export->aas.AAS_EntityInfo( args[1], VMA(2) );
-		return 0;
-
-	case BOTLIB_AAS_INITIALIZED:
-		return botlib_export->aas.AAS_Initialized();
-	case BOTLIB_AAS_PRESENCE_TYPE_BOUNDING_BOX:
-		botlib_export->aas.AAS_PresenceTypeBoundingBox( args[1], VMA(2), VMA(3) );
-		return 0;
-	case BOTLIB_AAS_TIME:
-		return FloatAsInt( botlib_export->aas.AAS_Time() );
-
-	case BOTLIB_AAS_POINT_AREA_NUM:
-		return botlib_export->aas.AAS_PointAreaNum( VMA(1) );
-	case BOTLIB_AAS_POINT_REACHABILITY_AREA_INDEX:
-		return botlib_export->aas.AAS_PointReachabilityAreaIndex( VMA(1) );
-	case BOTLIB_AAS_TRACE_AREAS:
-		return botlib_export->aas.AAS_TraceAreas( VMA(1), VMA(2), VMA(3), VMA(4), args[5] );
-
-	case BOTLIB_AAS_POINT_CONTENTS:
-		return botlib_export->aas.AAS_PointContents( VMA(1) );
-	case BOTLIB_AAS_NEXT_BSP_ENTITY:
-		return botlib_export->aas.AAS_NextBSPEntity( args[1] );
-	case BOTLIB_AAS_VALUE_FOR_BSP_EPAIR_KEY:
-		return botlib_export->aas.AAS_ValueForBSPEpairKey( args[1], VMA(2), VMA(3), args[4] );
-	case BOTLIB_AAS_VECTOR_FOR_BSP_EPAIR_KEY:
-		return botlib_export->aas.AAS_VectorForBSPEpairKey( args[1], VMA(2), VMA(3) );
-	case BOTLIB_AAS_FLOAT_FOR_BSP_EPAIR_KEY:
-		return botlib_export->aas.AAS_FloatForBSPEpairKey( args[1], VMA(2), VMA(3) );
-	case BOTLIB_AAS_INT_FOR_BSP_EPAIR_KEY:
-		return botlib_export->aas.AAS_IntForBSPEpairKey( args[1], VMA(2), VMA(3) );
-
-	case BOTLIB_AAS_AREA_REACHABILITY:
-		return botlib_export->aas.AAS_AreaReachability( args[1] );
-
-	case BOTLIB_AAS_AREA_TRAVEL_TIME_TO_GOAL_AREA:
-		return botlib_export->aas.AAS_AreaTravelTimeToGoalArea( args[1], VMA(2), args[3], args[4] );
-	case BOTLIB_AAS_ENABLE_ROUTING_AREA:
-		return botlib_export->aas.AAS_EnableRoutingArea( args[1], args[2] );
-	case BOTLIB_AAS_PREDICT_ROUTE:
-		return botlib_export->aas.AAS_PredictRoute( VMA(1), args[2], VMA(3), args[4], args[5], args[6], args[7], args[8], args[9], args[10], args[11] );
-
-	case BOTLIB_AAS_SWIMMING:
-		return botlib_export->aas.AAS_Swimming( VMA(1) );
-	case BOTLIB_AAS_PREDICT_CLIENT_MOVEMENT:
-		return botlib_export->aas.AAS_PredictClientMovement( VMA(1), args[2], VMA(3), args[4], args[5],
-			VMA(6), VMA(7), args[8], args[9], VMF(10), args[11], args[12], args[13] );
-
-	case BOTLIB_EA_SAY:
-		botlib_export->ea.EA_Say( args[1], VMA(2) );
-		return 0;
-	case BOTLIB_EA_SAY_TEAM:
-		botlib_export->ea.EA_SayTeam( args[1], VMA(2) );
-		return 0;
-	case BOTLIB_EA_COMMAND:
-		botlib_export->ea.EA_Command( args[1], VMA(2) );
-		return 0;
-
-	case BOTLIB_EA_ACTION:
-		botlib_export->ea.EA_Action( args[1], args[2] );
-		break;
-	case BOTLIB_EA_GESTURE:
-		botlib_export->ea.EA_Gesture( args[1] );
-		return 0;
-	case BOTLIB_EA_TALK:
-		botlib_export->ea.EA_Talk( args[1] );
-		return 0;
-	case BOTLIB_EA_ATTACK:
-		botlib_export->ea.EA_Attack( args[1] );
-		return 0;
-	case BOTLIB_EA_USE:
-		botlib_export->ea.EA_Use( args[1] );
-		return 0;
-	case BOTLIB_EA_RESPAWN:
-		botlib_export->ea.EA_Respawn( args[1] );
-		return 0;
-	case BOTLIB_EA_CROUCH:
-		botlib_export->ea.EA_Crouch( args[1] );
-		return 0;
-	case BOTLIB_EA_MOVE_UP:
-		botlib_export->ea.EA_MoveUp( args[1] );
-		return 0;
-	case BOTLIB_EA_MOVE_DOWN:
-		botlib_export->ea.EA_MoveDown( args[1] );
-		return 0;
-	case BOTLIB_EA_MOVE_FORWARD:
-		botlib_export->ea.EA_MoveForward( args[1] );
-		return 0;
-	case BOTLIB_EA_MOVE_BACK:
-		botlib_export->ea.EA_MoveBack( args[1] );
-		return 0;
-	case BOTLIB_EA_MOVE_LEFT:
-		botlib_export->ea.EA_MoveLeft( args[1] );
-		return 0;
-	case BOTLIB_EA_MOVE_RIGHT:
-		botlib_export->ea.EA_MoveRight( args[1] );
-		return 0;
-
-	case BOTLIB_EA_SELECT_WEAPON:
-		botlib_export->ea.EA_SelectWeapon( args[1], args[2] );
-		return 0;
-	case BOTLIB_EA_JUMP:
-		botlib_export->ea.EA_Jump( args[1] );
-		return 0;
-	case BOTLIB_EA_DELAYED_JUMP:
-		botlib_export->ea.EA_DelayedJump( args[1] );
-		return 0;
-	case BOTLIB_EA_MOVE:
-		botlib_export->ea.EA_Move( args[1], VMA(2), VMF(3) );
-		return 0;
-	case BOTLIB_EA_VIEW:
-		botlib_export->ea.EA_View( args[1], VMA(2) );
-		return 0;
-
-	case BOTLIB_EA_END_REGULAR:
-		botlib_export->ea.EA_EndRegular( args[1], VMF(2) );
-		return 0;
-	case BOTLIB_EA_GET_INPUT:
-		botlib_export->ea.EA_GetInput( args[1], VMF(2), VMA(3) );
-		return 0;
-	case BOTLIB_EA_RESET_INPUT:
-		botlib_export->ea.EA_ResetInput( args[1] );
-		return 0;
-
-	case BOTLIB_AI_LOAD_CHARACTER:
-		return botlib_export->ai.BotLoadCharacter( VMA(1), VMF(2) );
-	case BOTLIB_AI_FREE_CHARACTER:
-		botlib_export->ai.BotFreeCharacter( args[1] );
-		return 0;
-	case BOTLIB_AI_CHARACTERISTIC_FLOAT:
-		return FloatAsInt( botlib_export->ai.Characteristic_Float( args[1], args[2] ) );
-	case BOTLIB_AI_CHARACTERISTIC_BFLOAT:
-		return FloatAsInt( botlib_export->ai.Characteristic_BFloat( args[1], args[2], VMF(3), VMF(4) ) );
-	case BOTLIB_AI_CHARACTERISTIC_INTEGER:
-		return botlib_export->ai.Characteristic_Integer( args[1], args[2] );
-	case BOTLIB_AI_CHARACTERISTIC_BINTEGER:
-		return botlib_export->ai.Characteristic_BInteger( args[1], args[2], args[3], args[4] );
-	case BOTLIB_AI_CHARACTERISTIC_STRING:
-		botlib_export->ai.Characteristic_String( args[1], args[2], VMA(3), args[4] );
-		return 0;
-
-	case BOTLIB_AI_ALLOC_CHAT_STATE:
-		return botlib_export->ai.BotAllocChatState();
-	case BOTLIB_AI_FREE_CHAT_STATE:
-		botlib_export->ai.BotFreeChatState( args[1] );
-		return 0;
-	case BOTLIB_AI_QUEUE_CONSOLE_MESSAGE:
-		botlib_export->ai.BotQueueConsoleMessage( args[1], args[2], VMA(3) );
-		return 0;
-	case BOTLIB_AI_REMOVE_CONSOLE_MESSAGE:
-		botlib_export->ai.BotRemoveConsoleMessage( args[1], args[2] );
-		return 0;
-	case BOTLIB_AI_NEXT_CONSOLE_MESSAGE:
-		return botlib_export->ai.BotNextConsoleMessage( args[1], VMA(2) );
-	case BOTLIB_AI_NUM_CONSOLE_MESSAGE:
-		return botlib_export->ai.BotNumConsoleMessages( args[1] );
-	case BOTLIB_AI_INITIAL_CHAT:
-		botlib_export->ai.BotInitialChat( args[1], VMA(2), args[3], VMA(4), VMA(5), VMA(6), VMA(7), VMA(8), VMA(9), VMA(10), VMA(11) );
-		return 0;
-	case BOTLIB_AI_NUM_INITIAL_CHATS:
-		return botlib_export->ai.BotNumInitialChats( args[1], VMA(2) );
-	case BOTLIB_AI_REPLY_CHAT:
-		return botlib_export->ai.BotReplyChat( args[1], VMA(2), args[3], args[4], VMA(5), VMA(6), VMA(7), VMA(8), VMA(9), VMA(10), VMA(11), VMA(12) );
-	case BOTLIB_AI_CHAT_LENGTH:
-		return botlib_export->ai.BotChatLength( args[1] );
-	case BOTLIB_AI_ENTER_CHAT:
-		botlib_export->ai.BotEnterChat( args[1], args[2], args[3] );
-		return 0;
-	case BOTLIB_AI_GET_CHAT_MESSAGE:
-		botlib_export->ai.BotGetChatMessage( args[1], VMA(2), args[3] );
-		return 0;
-	case BOTLIB_AI_STRING_CONTAINS:
-		return botlib_export->ai.StringContains( VMA(1), VMA(2), args[3] );
-	case BOTLIB_AI_FIND_MATCH:
-		return botlib_export->ai.BotFindMatch( VMA(1), VMA(2), args[3] );
-	case BOTLIB_AI_MATCH_VARIABLE:
-		botlib_export->ai.BotMatchVariable( VMA(1), args[2], VMA(3), args[4] );
-		return 0;
-	case BOTLIB_AI_UNIFY_WHITE_SPACES:
-		botlib_export->ai.UnifyWhiteSpaces( VMA(1) );
-		return 0;
-	case BOTLIB_AI_REPLACE_SYNONYMS:
-		botlib_export->ai.BotReplaceSynonyms( VMA(1), args[2] );
-		return 0;
-	case BOTLIB_AI_LOAD_CHAT_FILE:
-		return botlib_export->ai.BotLoadChatFile( args[1], VMA(2), VMA(3) );
-	case BOTLIB_AI_SET_CHAT_GENDER:
-		botlib_export->ai.BotSetChatGender( args[1], args[2] );
-		return 0;
-	case BOTLIB_AI_SET_CHAT_NAME:
-		botlib_export->ai.BotSetChatName( args[1], VMA(2), args[3] );
-		return 0;
-
-	case BOTLIB_AI_RESET_GOAL_STATE:
-		botlib_export->ai.BotResetGoalState( args[1] );
-		return 0;
-	case BOTLIB_AI_RESET_AVOID_GOALS:
-		botlib_export->ai.BotResetAvoidGoals( args[1] );
-		return 0;
-	case BOTLIB_AI_REMOVE_FROM_AVOID_GOALS:
-		botlib_export->ai.BotRemoveFromAvoidGoals( args[1], args[2] );
-		return 0;
-	case BOTLIB_AI_PUSH_GOAL:
-		botlib_export->ai.BotPushGoal( args[1], VMA(2) );
-		return 0;
-	case BOTLIB_AI_POP_GOAL:
-		botlib_export->ai.BotPopGoal( args[1] );
-		return 0;
-	case BOTLIB_AI_EMPTY_GOAL_STACK:
-		botlib_export->ai.BotEmptyGoalStack( args[1] );
-		return 0;
-	case BOTLIB_AI_DUMP_AVOID_GOALS:
-		botlib_export->ai.BotDumpAvoidGoals( args[1] );
-		return 0;
-	case BOTLIB_AI_DUMP_GOAL_STACK:
-		botlib_export->ai.BotDumpGoalStack( args[1] );
-		return 0;
-	case BOTLIB_AI_GOAL_NAME:
-		botlib_export->ai.BotGoalName( args[1], VMA(2), args[3] );
-		return 0;
-	case BOTLIB_AI_GET_TOP_GOAL:
-		return botlib_export->ai.BotGetTopGoal( args[1], VMA(2) );
-	case BOTLIB_AI_GET_SECOND_GOAL:
-		return botlib_export->ai.BotGetSecondGoal( args[1], VMA(2) );
-	case BOTLIB_AI_CHOOSE_LTG_ITEM:
-		return botlib_export->ai.BotChooseLTGItem( args[1], VMA(2), VMA(3), args[4] );
-	case BOTLIB_AI_CHOOSE_NBG_ITEM:
-		return botlib_export->ai.BotChooseNBGItem( args[1], VMA(2), VMA(3), args[4], VMA(5), VMF(6) );
-	case BOTLIB_AI_TOUCHING_GOAL:
-		return botlib_export->ai.BotTouchingGoal( VMA(1), VMA(2) );
-	case BOTLIB_AI_ITEM_GOAL_IN_VIS_BUT_NOT_VISIBLE:
-		return botlib_export->ai.BotItemGoalInVisButNotVisible( args[1], VMA(2), VMA(3), VMA(4) );
-	case BOTLIB_AI_GET_LEVEL_ITEM_GOAL:
-		return botlib_export->ai.BotGetLevelItemGoal( args[1], VMA(2), VMA(3) );
-	case BOTLIB_AI_GET_NEXT_CAMP_SPOT_GOAL:
-		return botlib_export->ai.BotGetNextCampSpotGoal( args[1], VMA(2) );
-	case BOTLIB_AI_GET_MAP_LOCATION_GOAL:
-		return botlib_export->ai.BotGetMapLocationGoal( VMA(1), VMA(2) );
-	case BOTLIB_AI_AVOID_GOAL_TIME:
-		return FloatAsInt( botlib_export->ai.BotAvoidGoalTime( args[1], args[2] ) );
-	case BOTLIB_AI_SET_AVOID_GOAL_TIME:
-		botlib_export->ai.BotSetAvoidGoalTime( args[1], args[2], VMF(3));
-		return 0;
-	case BOTLIB_AI_INIT_LEVEL_ITEMS:
-		botlib_export->ai.BotInitLevelItems();
-		return 0;
-	case BOTLIB_AI_UPDATE_ENTITY_ITEMS:
-		botlib_export->ai.BotUpdateEntityItems();
-		return 0;
-	case BOTLIB_AI_LOAD_ITEM_WEIGHTS:
-		return botlib_export->ai.BotLoadItemWeights( args[1], VMA(2) );
-	case BOTLIB_AI_FREE_ITEM_WEIGHTS:
-		botlib_export->ai.BotFreeItemWeights( args[1] );
-		return 0;
-	case BOTLIB_AI_INTERBREED_GOAL_FUZZY_LOGIC:
-		botlib_export->ai.BotInterbreedGoalFuzzyLogic( args[1], args[2], args[3] );
-		return 0;
-	case BOTLIB_AI_SAVE_GOAL_FUZZY_LOGIC:
-		botlib_export->ai.BotSaveGoalFuzzyLogic( args[1], VMA(2) );
-		return 0;
-	case BOTLIB_AI_MUTATE_GOAL_FUZZY_LOGIC:
-		botlib_export->ai.BotMutateGoalFuzzyLogic( args[1], VMF(2) );
-		return 0;
-	case BOTLIB_AI_ALLOC_GOAL_STATE:
-		return botlib_export->ai.BotAllocGoalState( args[1] );
-	case BOTLIB_AI_FREE_GOAL_STATE:
-		botlib_export->ai.BotFreeGoalState( args[1] );
-		return 0;
-
-	case BOTLIB_AI_RESET_MOVE_STATE:
-		botlib_export->ai.BotResetMoveState( args[1] );
-		return 0;
-	case BOTLIB_AI_ADD_AVOID_SPOT:
-		botlib_export->ai.BotAddAvoidSpot( args[1], VMA(2), VMF(3), args[4] );
-		return 0;
-	case BOTLIB_AI_MOVE_TO_GOAL:
-		botlib_export->ai.BotMoveToGoal( VMA(1), args[2], VMA(3), args[4] );
-		return 0;
-	case BOTLIB_AI_MOVE_IN_DIRECTION:
-		return botlib_export->ai.BotMoveInDirection( args[1], VMA(2), VMF(3), args[4] );
-	case BOTLIB_AI_RESET_AVOID_REACH:
-		botlib_export->ai.BotResetAvoidReach( args[1] );
-		return 0;
-	case BOTLIB_AI_RESET_LAST_AVOID_REACH:
-		botlib_export->ai.BotResetLastAvoidReach( args[1] );
-		return 0;
-	case BOTLIB_AI_REACHABILITY_AREA:
-		return botlib_export->ai.BotReachabilityArea( VMA(1), args[2] );
-	case BOTLIB_AI_MOVEMENT_VIEW_TARGET:
-		return botlib_export->ai.BotMovementViewTarget( args[1], VMA(2), args[3], VMF(4), VMA(5) );
-	case BOTLIB_AI_PREDICT_VISIBLE_POSITION:
-		return botlib_export->ai.BotPredictVisiblePosition( VMA(1), args[2], VMA(3), args[4], VMA(5) );
-	case BOTLIB_AI_ALLOC_MOVE_STATE:
-		return botlib_export->ai.BotAllocMoveState();
-	case BOTLIB_AI_FREE_MOVE_STATE:
-		botlib_export->ai.BotFreeMoveState( args[1] );
-		return 0;
-	case BOTLIB_AI_INIT_MOVE_STATE:
-		botlib_export->ai.BotInitMoveState( args[1], VMA(2) );
-		return 0;
-
-	case BOTLIB_AI_CHOOSE_BEST_FIGHT_WEAPON:
-		return botlib_export->ai.BotChooseBestFightWeapon( args[1], VMA(2) );
-	case BOTLIB_AI_GET_WEAPON_INFO:
-		botlib_export->ai.BotGetWeaponInfo( args[1], args[2], VMA(3) );
-		return 0;
-	case BOTLIB_AI_LOAD_WEAPON_WEIGHTS:
-		return botlib_export->ai.BotLoadWeaponWeights( args[1], VMA(2) );
-	case BOTLIB_AI_ALLOC_WEAPON_STATE:
-		return botlib_export->ai.BotAllocWeaponState();
-	case BOTLIB_AI_FREE_WEAPON_STATE:
-		botlib_export->ai.BotFreeWeaponState( args[1] );
-		return 0;
-	case BOTLIB_AI_RESET_WEAPON_STATE:
-		botlib_export->ai.BotResetWeaponState( args[1] );
-		return 0;
-
-	case BOTLIB_AI_GENETIC_PARENTS_AND_CHILD_SELECTION:
-		return botlib_export->ai.GeneticParentsAndChildSelection(args[1], VMA(2), VMA(3), VMA(4), VMA(5));
-
-	case G_TIKI_REGISTERMODEL:
-		return TIKI_RegisterModel(VMA(1));
-	case G_TIKI_GETBONES:
-		return TIKI_GetBones(VMA(1));
-	case G_TIKI_SETCHANNELS:
-		TIKI_SetChannels(VMA(1),args[2],VMF(3),VMF(4),VMA(5));
-		return 0;
-	case G_TIKI_APPENDFRAMEBOUNDSANDRADIUS:
-		TIKI_AppendFrameBoundsAndRadius(VMA(1),args[2],VMF(3),args[4],args[5]);
-		return 0;
-	case G_TIKI_ANIMATE:
-		TIKI_Animate(VMA(1),VMA(2));
-		return 0;
-	case G_TIKI_GETBONENAMEINDEX:
-		return TIKI_RegisterBoneName(args[1]);
-
-	case G_MSG_WRITEBITS:
-		PF_MSG_WriteBits(args[1],args[2]);
-		return 0;
-	case G_MSG_WRITECHAR:
-		PF_MSG_WriteChar(args[1]);
-		return 0;
-	case G_MSG_WRITEBYTE:
-		PF_MSG_WriteByte(args[1]);
-		return 0;
-	case G_MSG_WRITESVC:
-		PF_MSG_WriteSVC(args[1]);
-		return 0;
-	case G_MSG_WRITESHORT:
-		PF_MSG_WriteShort(args[1]);
-		return 0;
-	case G_MSG_WRITELONG:
-		PF_MSG_WriteLong(args[1]);
-		return 0;
-	case G_MSG_WRITEFLOAT:
-		PF_MSG_WriteFloat(VMF(1));
-		return 0;
-	case G_MSG_WRITESTR:
-		PF_MSG_WriteString(args[1]);
-		return 0;
-	case G_MSG_WRITEANGLE8:
-		PF_MSG_WriteAngle8(VMF(1));
-		return 0;
-	case G_MSG_WRITEANGLE16:
-		PF_MSG_WriteAngle16(VMF(1));
-		return 0;
-	case G_MSG_WRITECOORD:
-		PF_MSG_WriteCoord(VMF(1));
-		return 0;
-	case G_MSG_WRITEDIR:
-		PF_MSG_WriteDir(args[1]);
-		return 0;
-	case G_MSG_STARTCGM:
-		PF_MSG_StartCGM(args[1]);
-		return 0;
-	case G_MSG_ENDCGM:
-		PF_MSG_EndCGM(args[1]);
-		return 0;
-	case G_MSG_SETCLIENT:
-		PF_MSG_SetClient(args[1]);
-		return 0;
-	case G_MSG_BROADCASTALL:
-		MSG_SetBroadcastAll();
-		return 0;
-	case G_MSG_BROADCASTVISIBLE:
-		MSG_SetBroadcastVisible(args[1],args[2]);
-		return 0;
-	case G_MSG_BROADCASTHEARABLE:
-		MSG_SetBroadcastHearable(args[1],args[2]);
-		return 0;
-	case TRAP_MEMSET:
-		Com_Memset( VMA(1), args[2], args[3] );
-		return 0;
-
-	case TRAP_MEMCPY:
-		Com_Memcpy( VMA(1), VMA(2), args[3] );
-		return 0;
-
-	case TRAP_STRNCPY:
-		strncpy( VMA(1), VMA(2), args[3] );
-		return args[1];
-
-	case TRAP_SIN:
-		return FloatAsInt( sin( VMF(1) ) );
-
-	case TRAP_COS:
-		return FloatAsInt( cos( VMF(1) ) );
-
-	case TRAP_ATAN2:
-		return FloatAsInt( atan2( VMF(1), VMF(2) ) );
-
-	case TRAP_SQRT:
-		return FloatAsInt( sqrt( VMF(1) ) );
-
-	case TRAP_MATRIXMULTIPLY:
-		Matrix3x3Multiply( VMA(1), VMA(2), VMA(3) );
-		return 0;
-
-	case TRAP_ANGLEVECTORS:
-		AngleVectors( VMA(1), VMA(2), VMA(3), VMA(4) );
-		return 0;
-
-	case TRAP_PERPENDICULARVECTOR:
-		PerpendicularVector( VMA(1), VMA(2) );
-		return 0;
-
-	case TRAP_FLOOR:
-		return FloatAsInt( floor( VMF(1) ) );
-
-	case TRAP_CEIL:
-		return FloatAsInt( ceil( VMF(1) ) );
-
-
-	default:
-		Com_Error( ERR_DROP, "Bad game system trap: %ld", (long int) args[0] );
+	if( ent->s.number > svs.iNumClients )
+	{
+		return;
 	}
-	return -1;
+
+	va_start( va, fmt );
+	vsprintf( msg, fmt, va );
+	va_end( va );
+
+	if( strlen( msg ) > 256 ) {
+		Com_DPrintf( "Centerprint text exceeds buffer size\n" );
+	}
+
+	strncpy( svs.clients[ ent->s.number ].centerprint, msg, 256 );
+}
+
+/*
+===============
+PF_locationprintf
+===============
+*/
+void PF_locationprintf( gentity_t *ent, int x, int y, const char *fmt, ... )
+{
+	va_list va;
+	char msg[ 2048 ];
+
+	if( ent->s.number > svs.iNumClients )
+	{
+		return;
+	}
+
+	va_start( va, fmt );
+	vsprintf( msg, fmt, va );
+	va_end( va );
+
+	if( strlen( msg ) > 256 ) {
+		Com_DPrintf( "Locationprint text exceeds buffer size\n" );
+	}
+
+	strncpy( svs.clients[ ent->s.number ].centerprint, msg, 256 );
+	svs.clients[ ent->s.number ].XOffset = x;
+	svs.clients[ ent->s.number ].YOffset = y;
+	svs.clients[ ent->s.number ].locprint = qtrue;
+}
+
+/*
+=====================
+SV_AddGameCommand
+=====================
+*/
+void SV_AddGameCommand( const char *cmdName, xcommand_t function ) {
+	Cmd_AddCommand( cmdName, function );
+}
+
+/*
+===============
+SV_Malloc
+===============
+*/
+void *SV_Malloc( int size )
+{
+	return Z_TagMalloc( size, TAG_GAME );
 }
 
 /*
@@ -1349,64 +1333,117 @@ Called every time a map changes
 ===============
 */
 void SV_ShutdownGameProgs( void ) {
-	if ( !gvm ) {
+	if( !ge ) {
 		return;
 	}
-	VM_Call( gvm, GAME_SHUTDOWN, qfalse );
-	VM_Free( gvm );
-	gvm = NULL;
+
+	ge->Shutdown();
+	Sys_UnloadGame();
+
+	ge = NULL;
 }
 
 /*
-==================
-SV_InitGameVM
-
-Called for both a full init and a restart
-==================
+===============
+PF_UI_PopMenu
+===============
 */
-static void SV_InitGameVM( qboolean restart ) {
-	int		i;
-
-	// start the entity parsing at the beginning
-	sv.entityParsePoint = CM_EntityString();
-
-	// clear all gentity pointers that might still be set from
-	// a previous level
-	// https://zerowing.idsoftware.com/bugzilla/show_bug.cgi?id=522
-	//   now done before GAME_INIT call
-	for ( i = 0 ; i < sv_maxclients->integer ; i++ ) {
-		svs.clients[i].gentity = NULL;
-	}
-	
-	// use the current msec count for a random seed
-	// init for this gamestate
-	VM_Call (gvm, GAME_INIT, sv.time, Com_Milliseconds(), restart);
+void PF_UI_PopMenu( int iClient, int i )
+{
+	SV_GameSendServerCommand( iClient, "stufftext \"popmenu %i\"\n", i );
 }
-
-
 
 /*
-===================
-SV_RestartGameProgs
-
-Called on a map_restart, but not on a normal map change
-===================
+===============
+PF_UI_ShowMenu
+===============
 */
-void SV_RestartGameProgs( void ) {
-	if ( !gvm ) {
-		return;
-	}
-	VM_Call( gvm, GAME_SHUTDOWN, qtrue );
-
-	// do a restart instead of a free
-	gvm = VM_Restart( gvm );
-	if ( !gvm ) {
-		Com_Error( ERR_FATAL, "VM_Restart on game failed" );
-	}
-
-	SV_InitGameVM( qtrue );
+void PF_UI_ShowMenu( int iClient, const char *name, qboolean bForce )
+{
+	SV_GameSendServerCommand( iClient, "stufftext \"showmenu %s %i\"\n", name,  bForce );
 }
 
+/*
+===============
+PF_UI_HideMenu
+===============
+*/
+void PF_UI_HideMenu( int iClient, const char *name, qboolean bForce )
+{
+	SV_GameSendServerCommand( iClient, "stufftext \"hidemenu %s %i\"\n", name, bForce );
+}
+
+/*
+===============
+PF_UI_PushMenu
+===============
+*/
+void PF_UI_PushMenu( int iClient, const char *name )
+{
+	SV_GameSendServerCommand( iClient, "stufftext \"pushmenu %s\"\n", name );
+}
+
+/*
+===============
+PF_UI_HideMouse_f
+===============
+*/
+void PF_UI_HideMouse_f( int iClient )
+{
+	SV_GameSendServerCommand( iClient, "stufftext \"ui_hidemouse\"\n" );
+}
+
+/*
+===============
+PF_UI_ShowMouse_f
+===============
+*/
+void PF_UI_ShowMouse_f( int iClient )
+{
+	SV_GameSendServerCommand( iClient, "stufftext \"ui_showmouse\"\n" );
+}
+
+/*
+===============
+PF_Key_StringToKeynum
+===============
+*/
+int PF_Key_StringToKeynum( const char *str )
+{
+	if( com_cl_running->integer ) {
+		return PF_Key_StringToKeynum( str );
+	} else {
+		return 0;
+	}
+}
+
+/*
+===============
+PF_Key_KeynumToBindString
+===============
+*/
+const char *PF_Key_KeynumToBindString( int keynum )
+{	if( com_cl_running->integer ) {
+		return Key_KeynumToBindString( keynum );
+	} else {
+		return 0;
+	}
+}
+
+/*
+===============
+PF_Key_GetKeysForCommand
+===============
+*/
+void PF_Key_GetKeysForCommand( const char *command, int *key1, int *key2 )
+{
+	if( com_cl_running->integer ) {
+		Key_GetKeysForCommand( command, key1, key2 );
+	} else {
+		*key1 = 0;
+		*key2 = 0;
+	}
+}
 
 /*
 ===============
@@ -1416,25 +1453,220 @@ Called on a normal map change, not on a map_restart
 ===============
 */
 void SV_InitGameProgs( void ) {
-	cvar_t	*var;
-	//FIXME these are temp while I make bots run in vm
-	extern int	bot_enable;
+	gameImport_t import;
+	const char *err;
+	int i;
 
-	var = Cvar_Get( "bot_enable", "1", CVAR_LATCH );
-	if ( var ) {
-		bot_enable = var->integer;
-	}
-	else {
-		bot_enable = 0;
+	import.Printf						= Com_Printf;
+	import.DPrintf						= Com_DPrintf;
+	import.Error						= Com_Error;
+	import.GetArchiveFileName			= Com_GetArchiveFileName;
+	import.Milliseconds					= Sys_Milliseconds;
+	import.LV_ConvertString				= Sys_LV_CL_ConvertString;
+
+	import.SendServerCommand			= SV_GameSendServerCommand;
+	import.DropClient					= SV_GameDropClient;
+
+	import.MSG_WriteBits				= PF_MSG_WriteBits;
+	import.MSG_WriteChar				= PF_MSG_WriteChar;
+	import.MSG_WriteByte				= PF_MSG_WriteByte;
+	import.MSG_WriteSVC					= PF_MSG_WriteSVC;
+	import.MSG_WriteShort				= PF_MSG_WriteShort;
+	import.MSG_WriteLong				= PF_MSG_WriteLong;
+	import.MSG_WriteFloat				= PF_MSG_WriteFloat;
+	import.MSG_WriteString				= PF_MSG_WriteString;
+	import.MSG_WriteAngle8				= PF_MSG_WriteAngle8;
+	import.MSG_WriteAngle16				= PF_MSG_WriteAngle16;
+	import.MSG_WriteCoord				= PF_MSG_WriteCoord;
+	import.MSG_WriteDir					= PF_MSG_WriteDir;
+	import.MSG_StartCGM					= PF_MSG_StartCGM;
+	import.MSG_EndCGM					= PF_MSG_EndCGM;
+	import.MSG_SetClient				= PF_MSG_SetClient;
+	import.SetBroadcastVisible			= MSG_SetBroadcastVisible;
+	import.SetBroadcastHearable			= MSG_SetBroadcastHearable;
+	import.SetBroadcastAll				= MSG_SetBroadcastAll;
+
+	import.LinkEntity					= SV_LinkEntity;
+	import.UnlinkEntity					= SV_UnlinkEntity;
+
+	import.AreaEntities					= SV_AreaEntities;
+	
+	import.SightTraceEntity				= SV_SightTraceEntity;
+	import.SightTrace					= SV_SightTrace;
+	import.Trace						= SV_Trace;
+	import.GetShader					= SV_GetShaderPointer;
+	import.PointContents				= SV_PointContents;
+	import.PointBrushnum				= CM_PointBrushNum;
+	import.SetBrushModel				= SV_SetBrushModel;
+	import.ModelBoundsFromName			= CM_ModelBoundsFromName;
+	import.ClipToEntity					= SV_ClipToEntity;
+	import.SetConfigstring				= SV_SetConfigstring;
+	import.GetConfigstring				= SV_GetConfigstring;
+	import.GetUserinfo					= SV_GetUserinfo;
+	import.SetUserinfo					= SV_SetUserinfo;
+
+	import.Malloc						= SV_Malloc;
+	import.Free							= Z_Free;
+
+	import.Cvar_Get						= Cvar_Get;
+	import.Cvar_Set						= Cvar_Set;
+	import.cvar_set2					= Cvar_Set2;
+	import.NextCvar						= Cvar_Next;
+
+	import.Argc							= Cmd_Argc;
+	import.Args							= Cmd_Args;
+	import.Argv							= Cmd_Argv;
+
+	import.AddCommand					= SV_AddGameCommand;
+	import.SendConsoleCommand			= Cbuf_AddText;
+
+	import.FS_ReadFile					= FS_ReadFileEx;
+	import.FS_FreeFile					= FS_FreeFile;
+	import.FS_WriteFile					= FS_WriteFile;
+	import.FS_FOpenFileWrite			= FS_FOpenFileWrite;
+	import.FS_FOpenFileAppend			= FS_FOpenFileAppend;
+	import.FS_PrepFileWrite				= FS_PrepFileWrite;
+	import.FS_Write						= FS_Write;
+	import.FS_Read						= FS_Read;
+	import.FS_FCloseFile				= FS_FCloseFile;
+	import.FS_Tell						= FS_FTell;
+	import.FS_Seek						= FS_Seek;
+	import.FS_Flush						= FS_ForceFlush;
+	import.FS_FileNewer					= FS_FileNewer;
+	import.FS_CanonicalFilename			= FS_CanonicalFilename;
+	import.FS_ListFiles					= FS_ListFiles;
+	import.FS_FreeFileList				= FS_FreeFileList;
+
+	import.DebugGraph					= SCR_DebugGraph;
+	import.AdjustAreaPortalState		= SV_AdjustAreaPortalState;
+	import.AreasConnected				= CM_AreasConnected;
+	import.AreaForPoint					= CM_AreaForPoint;
+	import.InPVS						= CM_inPVS;
+	import.GameDir						= FS_Gamedir;
+
+	import.setmodel						= PF_setmodel;
+	import.clearmodel					= PF_clearmodel;
+	import.TIKI_NumAnims				= PF_NumAnims;
+	import.NumSurfaces					= PF_NumSurfaces;
+	import.NumTags						= PF_NumTags;
+	import.CalculateBounds				= PF_CalculateBounds;
+	import.TIKI_GetSkeletor				= PF_GetSkeletor;
+	import.Anim_NameForNum				= PF_Anim_NameForNum;
+	import.Anim_NumForName				= PF_Anim_NumForName;
+	import.Anim_Random					= PF_Anim_Random;
+	import.Anim_NumFrames				= PF_Anim_NumFrames;
+	import.Anim_Time					= PF_Anim_Time;
+	import.Anim_Frametime				= PF_Anim_Frametime;
+	import.Anim_CrossTime				= PF_Cross_Time;
+	import.Anim_Delta					= PF_Anim_Delta;
+	import.Anim_HasDelta				= PF_Anim_HasDelta;
+	import.Anim_DeltaOverTime			= PF_Anim_DeltaOverTime;
+	import.Anim_Flags					= PF_Anim_Flags;
+	import.Anim_FlagsSkel				= PF_Anim_FlagsSkel;
+	import.Anim_HasCommands				= PF_Anim_HasCommands;
+	import.NumHeadModels				= PF_NumHeadModels;
+	import.GetHeadModel					= PF_GetHeadModel;
+	import.NumHeadSkins					= PF_NumHeadSkins;
+	import.GetHeadSkin					= PF_GetHeadSkin;
+	import.Frame_Commands				= PF_Frame_Commands;
+	import.Surface_NameToNum			= PF_Surface_NameToNum;
+	import.Surface_NumToName			= PF_Surface_NumToName;
+	import.Tag_NumForName				= PF_Tag_NameToNum;
+	import.Tag_NameForNum				= PF_Tag_NumToName;
+	import.TIKI_OrientationInternal		= PF_TIKI_OrientationInternal;
+	import.TIKI_TransformInternal		= PF_TIKI_TransformInternal;
+	import.TIKI_IsOnGroundInternal		= PF_TIKI_IsOnGroundInternal;
+	import.TIKI_SetPoseInternal			= PF_SetPoseInternal;
+
+	import.CM_GetHitLocationInfo			= CM_GetHitLocationInfo;
+	import.CM_GetHitLocationInfoSecondary	= CM_GetHitLocationInfoSecondary;
+
+	import.Alias_Add					= PF_Alias_Add;
+	import.Alias_FindRandom				= PF_Alias_FindRandom;
+	import.Alias_Dump					= PF_Alias_Dump;
+	import.Alias_Clear					= PF_Alias_Clear;
+	import.Alias_UpdateDialog			= PF_Alias_UpdateDialog;
+	import.GlobalAlias_Add				= Alias_Add;
+	import.GlobalAlias_FindRandom		= Alias_FindRandom;
+	import.GlobalAlias_Dump				= Alias_Dump;
+	import.GlobalAlias_Clear			= Alias_Clear;
+
+	import.TIKI_NameForNum				= PF_NameForNum;
+	import.TIKI_RegisterModel			= PF_RegisterTiki;
+	import.modeltiki					= PF_ModelTiki;
+	import.modeltikianim				= PF_ModelTikiAnim;
+	import.soundindex					= SV_SoundIndex;
+	import.imageindex					= SV_ImageIndex;
+	import.itemindex					= SV_ItemIndex;
+	import.SetLightStyle				= SV_SetLightStyle;
+
+	import.DebugLines					= &DebugLines;
+	import.numDebugLines				= &numDebugLines;
+	import.DebugStrings					= &DebugStrings;
+	import.numDebugStrings				= &numDebugStrings;
+
+	import.CalcCRC						= CRC_Block;
+
+	import.Sound						= SV_Sound;
+	import.StopSound					= SV_StopSound;
+	import.S_IsSoundPlaying				= S_IsSoundPlaying;
+	import.centerprintf					= PF_centerprintf;
+	import.locationprintf				= PF_locationprintf;
+	import.LocateGameData				= SV_LocateGameData;
+	import.SetFarPlane					= SV_SetFarPlane;
+	import.SetSkyPortal					= SV_SetSkyPortal;
+
+	import.Popmenu						= PF_UI_PopMenu;
+	import.Showmenu						= PF_UI_ShowMenu;
+	import.Hidemenu						= PF_UI_HideMenu;
+	import.Pushmenu						= PF_UI_PushMenu;
+	import.HideMouseCursor				= PF_UI_HideMouse_f;
+	import.ShowMouseCursor				= PF_UI_ShowMouse_f;
+	import.MapTime						= CM_MapTime;
+	import.LoadResource					= UI_LoadResource;
+	import.ClearResource				= UI_ClearResource;
+
+	import.Key_StringToKeynum			= PF_Key_StringToKeynum;
+	import.Key_KeynumToBindString		= PF_Key_KeynumToBindString;
+	import.Key_GetKeysForCommand		= PF_Key_GetKeysForCommand;
+	import.ArchiveLevel					= SV_ArchiveLevel;
+	import.AddSvsTimeFixup				= SV_AddSvsTimeFixup;
+	import.HudDrawShader				= SV_HudDrawShader;
+	import.HudDrawAlign					= SV_HudDrawAlign;
+	import.HudDrawRect					= SV_HudDrawRect;
+	import.HudDrawVirtualSize			= SV_HudDrawVirtualSize;
+	import.HudDrawColor					= SV_HudDrawColor;
+	import.HudDrawAlpha					= SV_HudDrawAlpha;
+	import.HudDrawString				= SV_HudDrawString;
+	import.HudDrawFont					= SV_HudDrawFont;
+	import.SanitizeName					= Com_SanitizeName;
+	import.fsDebug						= fs_debug;
+
+	ge = Sys_GetGameAPI( &import );
+
+	if( !ge ) {
+		Com_Error( ERR_DROP, "failed to load game DLL" );
 	}
 
-	// load the dll or bytecode
-	gvm = VM_Create( "game", SV_GameSystemCalls, Cvar_VariableValue( "vm_game" ) );
-	if ( !gvm ) {
-		Com_Error( ERR_FATAL, "VM_Create on game failed" );
+	if( ge->apiversion != GAME_API_VERSION )
+	{
+		Com_Error( ERR_DROP, "game is version %i, not %i", ge->apiversion,
+			GAME_API_VERSION );
 	}
 
-	SV_InitGameVM( qfalse );
+	ge->Init( svs.startTime, Com_Milliseconds() );
+
+	err = ge->errorMessage;
+	if( err )
+	{
+		ge->errorMessage = NULL;
+		Com_Error( ERR_DROP, err );
+	}
+
+	for( i = 0; i < svs.iNumClients; i++ )
+	{
+		svs.clients[ i ].gentity = NULL;
+	}
 }
 
 
@@ -1450,6 +1682,6 @@ qboolean SV_GameCommand( void ) {
 		return qfalse;
 	}
 
-	return VM_Call( gvm, GAME_CONSOLE_COMMAND );
+	return ge->ConsoleCommand();
 }
 

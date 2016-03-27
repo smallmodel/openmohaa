@@ -61,7 +61,7 @@ char *Sys_DefaultHomePath(void)
 			{
 				if( errno != EEXIST )
 				{
-					Sys_Error( "Unable to create directory \"%s\", error is %s(%d)\n",
+					Com_Error( "Unable to create directory \"%s\", error is %s(%d)\n",
 							homePath, strerror( errno ), errno );
 				}
 			}

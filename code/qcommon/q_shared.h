@@ -96,8 +96,6 @@ extern "C" {
 
  **********************************************************************/
 
-#include "../game/bg_lib.h"
-
 #ifndef Q3_VM
 
 #include <assert.h>
@@ -110,33 +108,43 @@ extern "C" {
 #include <ctype.h>
 #include <limits.h>
 
+#ifdef _MSC_VER
+#include <io.h>
+
+	typedef __int64 int64_t;
+	typedef __int32 int32_t;
+	typedef __int16 int16_t;
+	typedef __int8 int8_t;
+	typedef unsigned __int64 uint64_t;
+	typedef unsigned __int32 uint32_t;
+	typedef unsigned __int16 uint16_t;
+	typedef unsigned __int8 uint8_t;
+
+	// vsnprintf is ISO/IEC 9899:1999
+	// abstracting this to make it portable
+	int Q_vsnprintf( char *str, size_t size, const char *format, va_list ap );
+#else
+#include <stdint.h>
+
+#define Q_vsnprintf vsnprintf
+#endif
+
+#define HAVE_STDINT_H
+#define _HAVE_STDINT_H 1
+
 #endif
 
 #include "q_platform.h"
 
 //=============================================================
 
-#ifdef Q3_VM
-   typedef int intptr_t;
-#else
-  #ifndef _MSC_VER
-    #include <stdint.h>
-  #else
-    #include <io.h>
-    typedef __int64 int64_t;
-    typedef __int32 int32_t;
-    typedef __int16 int16_t;
-    typedef __int8 int8_t;
-    typedef unsigned __int64 uint64_t;
-    typedef unsigned __int32 uint32_t;
-    typedef unsigned __int16 uint16_t;
-    typedef unsigned __int8 uint8_t;
-  #endif
-#endif
-
 typedef unsigned char 		byte;
+typedef unsigned char		uchar;
 
-typedef enum {qfalse, qtrue}	qboolean;
+#define qfalse 0
+#define qtrue 1
+
+typedef int	qboolean;
 
 typedef int		qhandle_t;
 typedef int		sfxHandle_t;
@@ -151,6 +159,17 @@ typedef int		clipHandle_t;
 #define ALIGN(x)
 #endif
 
+#define PAD(base, alignment)	(((base)+(alignment)-1) & ~((alignment)-1))
+#define PADLEN(base, alignment)	(PAD((base), (alignment)) - (base))
+
+#define PADP(base, alignment)	((void *) PAD((intptr_t) (base), (alignment)))
+
+#ifdef __GNUC__
+#define QALIGN(x) __attribute__((aligned(x)))
+#else
+#define QALIGN(x)
+#endif
+
 #ifndef NULL
 #define NULL ((void *)0)
 #endif
@@ -159,14 +178,25 @@ typedef int		clipHandle_t;
 #define BIT(x)				(1 << x)
 #endif
 
+#define STRING(s)			#s
+// expand constants before stringifying them
+#define XSTRING(s)			STRING(s)
+
 #define	MAX_QINT			0x7fffffff
 #define	MIN_QINT			(-MAX_QINT-1)
 
+#define ARRAY_LEN(x)			(sizeof(x) / sizeof(*(x)))
+#define STRARRAY_LEN(x)			(ARRAY_LEN(x) - 1)
 
 // angle indexes
 #define	PITCH				0		// up / down
 #define	YAW					1		// left / right
 #define	ROLL				2		// fall over
+
+#ifndef WIN32
+#define stricmp strcasecmp
+#define strnicmp strncasecmp
+#endif
 
 // plane sides
 typedef enum
@@ -177,18 +207,26 @@ typedef enum
 	SIDE_CROSS = 3
 } planeSide_t;
 
+typedef enum
+{
+	SOLID_NOT,			// no interaction with other objects
+	SOLID_TRIGGER,		// only touch when inside, after moving
+	SOLID_BBOX,			// touch on edge
+	SOLID_BSP			// bsp clip, touch on edge
+} solid_t;
+
 // the game guarantees that no string from the network will ever
 // exceed MAX_STRING_CHARS
 #define	MAX_STRING_CHARS	2048	// max length of a string passed to Cmd_TokenizeString
 #define	MAX_STRING_TOKENS	1024	// max tokens resulting from Cmd_TokenizeString
 #define	MAX_TOKEN_CHARS		1024	// max length of an individual token
 
-#define	MAX_INFO_STRING		1024
+#define	MAX_INFO_STRING		1350
 #define	MAX_INFO_KEY		  1024
 #define	MAX_INFO_VALUE		1024
 
 #define	BIG_INFO_STRING		8192  // used for system info key only
-#define	BIG_INFO_KEY		  8192
+#define	BIG_INFO_KEY		8192
 #define	BIG_INFO_VALUE		8192
 
 
@@ -222,6 +260,7 @@ typedef enum {
 typedef enum {
 	PRINT_ALL,
 	PRINT_DEVELOPER,		// only print when "developer 1"
+	PRINT_DEVELOPER_2,		// print when "developer 2"
 	PRINT_WARNING,
 	PRINT_ERROR
 } printParm_t;
@@ -265,19 +304,6 @@ typedef enum {
 
 #if defined(_DEBUG) && !defined(BSPC)
 	#define HUNK_DEBUG
-#endif
-
-typedef enum {
-	h_high,
-	h_low,
-	h_dontcare
-} ha_pref;
-
-#ifdef HUNK_DEBUG
-#define Hunk_Alloc( size, preference )				Hunk_AllocDebug(size, preference, #size, __FILE__, __LINE__)
-void *Hunk_AllocDebug( int size, ha_pref preference, char *label, char *file, int line );
-#else
-void *Hunk_Alloc( int size, ha_pref preference );
 #endif
 
 #define Com_Memset memset
@@ -359,6 +385,14 @@ extern	vec4_t		colorLtGrey;
 extern	vec4_t		colorMdGrey;
 extern	vec4_t		colorDkGrey;
 
+enum {
+	MESSAGE_YELLOW = 1,
+	MESSAGE_CHAT_WHITE,
+	MESSAGE_WHITE,
+	MESSAGE_CHAT_RED,
+	MESSAGE_MAX
+};
+
 #define Q_COLOR_ESCAPE	'^'
 #define Q_IsColorString(p)	( p && *(p) == Q_COLOR_ESCAPE && *((p)+1) && isalnum(*((p)+1)) ) // ^[0-9a-zA-Z]
 
@@ -381,6 +415,39 @@ extern	vec4_t		colorDkGrey;
 #define S_COLOR_MAGENTA	"^6"
 #define S_COLOR_WHITE	"^7"
 
+#define HUD_MESSAGE_YELLOW			"\x01"
+#define HUD_MESSAGE_WHITE			"\x03"
+#define HUD_MESSAGE_CHAT_WHITE		"\x02"
+#define HUD_MESSAGE_CHAT_RED		"\x04"
+
+#define CGM_HUDDRAW_SHADER			27
+#define CGM_HUDDRAW_ALIGN			28
+#define CGM_HUDDRAW_RECT			29
+#define CGM_HUDDRAW_VIRTUALSIZE		30
+#define CGM_HUDDRAW_COLOR			31
+#define CGM_HUDDRAW_ALPHA			32
+#define CGM_HUDDRAW_STRING			33
+#define CGM_HUDDRAW_FONT			34
+#define CGM_HUDDRAW_TIMER			38
+#define CGM_HUDDRAW_3D				39
+#define CGM_HUDDRAW_BREAK3D			40
+#define CGM_HUDDRAW_FADE			41
+#define CGM_HUDDRAW_MOVE			42
+#define CGM_HUDDRAW_SCALE			43
+#define CGM_VIEWMODELANIM			44
+#define CGM_VIEWMODELPREFIX			45
+#define CGM_MODHEIGHTFLOAT			46
+#define CGM_SETVMASPEED				47
+#define CGM_HINTSTRING				48
+#define CGM_PLAYLOCALSOUND			49
+#define CGM_SETLOCALSOUNDRATE		50
+#define CGM_STOPLOCALSOUND			51
+#define CGM_HUDDRAW_RECTX			52
+#define CGM_HUDDRAW_RECTY			53
+#define CGM_HUDDRAW_RECTWH			54
+#define CGM_REPLICATION				55
+#define CGM_HUDDRAW_DELETE			56
+
 extern vec4_t	g_color_table[8];
 
 #define	MAKERGB( v, r, g, b ) v[0]=r;v[1]=g;v[2]=b
@@ -394,6 +461,18 @@ extern vec4_t	g_color_table[8];
 #define Q_bound(a, b, c) (Q_max(a, Q_min(b, c)))
 #define Q_clamp(a, b, c) ((b) >= (c) ? (a)=(b) : (a) < (b) ? (a)=(b) : (a) > (c) ? (a)=(c) : (a))
 #define Q_lerp(from, to, frac) (from + ((to - from) * frac))
+
+#define LERP( a, b, w ) ( ( a ) * ( 1.0f - ( w ) ) + ( b ) * ( w ) )
+#define LUMA( red, green, blue ) ( 0.2126f * ( red ) + 0.7152f * ( green ) + 0.0722f * ( blue ) )
+
+#ifndef min
+#define min(a,b)  (((a) < (b)) ? (a) : (b))
+#endif
+#ifndef max
+#define max(a,b)  (((a) > (b)) ? (a) : (b))
+#endif
+
+#define bound(a,minval,maxval)  ( ((a) > (minval)) ? ( ((a) < (maxval)) ? (a) : (maxval) ) : (minval) )
 
 struct cplane_s;
 
@@ -452,13 +531,35 @@ byte ClampByte(int i);
 signed char ClampChar( int i );
 signed short ClampShort( int i );
 
+double		dEpsilon( void );
+double 		dIdentity( void );
+double		dSign( const double number );
+double		dClamp( const double value, const double min, const double max );
+double		dDistance( const double value1, const double value2 );
+qboolean	dCloseEnough( const double value1, const double value2, const double epsilon );
+qboolean	dSmallEnough( const double value, const double epsilon );
+
+float		fEpsilon( void );
+float 		fIdentity( void );
+float		fSign( const float number );
+float		fClamp( const float value, const float min, const float max );
+float		fDistance( const float value1, const float value2 );
+qboolean	fCloseEnough( const float value1, const float value2, const float epsilon );
+qboolean	fSmallEnough( const float value, const float epsilon );
+
+int			iSign( const int number );
+int			iClamp( const int value, const int min, const int max );
+
 // this isn't a real cheap function to call!
 int DirToByte( vec3_t dir );
 void ByteToDir( int b, vec3_t dir );
 
 #if	1
 
+#define ftol(x)		((int)(x))
+
 #define DotProduct(x,y)			((x)[0]*(y)[0]+(x)[1]*(y)[1]+(x)[2]*(y)[2])
+#define DotProduct2D(x,y)		((x)[0]*(y)[0]+(x)[1]*(y)[1])
 #define VectorSubtract(a,b,c)	((c)[0]=(a)[0]-(b)[0],(c)[1]=(a)[1]-(b)[1],(c)[2]=(a)[2]-(b)[2])
 #define VectorAdd(a,b,c)		((c)[0]=(a)[0]+(b)[0],(c)[1]=(a)[1]+(b)[1],(c)[2]=(a)[2]+(b)[2])
 #define VectorCopy(a,b)			((b)[0]=(a)[0],(b)[1]=(a)[1],(b)[2]=(a)[2])
@@ -487,6 +588,11 @@ typedef struct {
 #endif
 #endif
 
+#define VectorClear2D(a)			((a)[0]=(a)[1]=0)
+#define VectorLength2DSquared(a)	((a)[0]*(a)[0]+(a)[1]*(a)[1])
+#define VectorLength2D(a)			(sqrt(VectorLength2DSquared(a)))
+#define VectorSet2D(v, x, y)		((v)[0]=(x), (v)[1]=(y))
+
 #define VectorClear(a)			((a)[0]=(a)[1]=(a)[2]=0)
 #define VectorNegate(a,b)		((b)[0]=-(a)[0],(b)[1]=-(a)[1],(b)[2]=-(a)[2])
 #define VectorSet(v, x, y, z)	((v)[0]=(x), (v)[1]=(y), (v)[2]=(z))
@@ -503,6 +609,8 @@ typedef struct {
 #define VectorClear4(a)			((a)[0]=(a)[1]=(a)[2]=(a)[3]=0)
 #define VectorNegate4(a,b)		((b)[0]=-(a)[0],(b)[1]=-(a)[1],(b)[2]=-(a)[2],(b)[3]=-(a)[3])
 #define VectorSet4(v,x,y,z,w)	((v)[0]=(x),(v)[1]=(y),(v)[2]=(z),(v)[3]=(w))
+
+#define VectorCopy5(a,b)		((b)[0]=(a)[0],(b)[1]=(a)[1],(b)[2]=(a)[2],(b)[3]=(a)[3],(b)[4]=(a)[4])
 
 // just in case you do't want to use the macros
 vec_t _DotProduct( const vec3_t v1, const vec3_t v2 );
@@ -532,11 +640,40 @@ static ID_INLINE int VectorCompare( const vec3_t v1, const vec3_t v2 ) {
 	return 1;
 }
 
+static ID_INLINE int VectorCompare2D( const vec2_t v1, const vec2_t v2 ) {
+	if( v1[ 0 ] != v2[ 0 ] || v1[ 1 ] != v2[ 1 ] ) {
+		return 0;
+	}
+	return 1;
+}
+
 static ID_INLINE int VectorCompare4(const vec4_t v1, const vec4_t v2)
 {
 	if(v1[0] != v2[0] || v1[1] != v2[1] || v1[2] != v2[2] || v1[3] != v2[3])
 	{
 		return 0;
+	}
+	return 1;
+}
+
+static ID_INLINE int VectorCompare5( const vec5_t v1, const vec5_t v2 )
+{
+	if( v1[ 0 ] != v2[ 0 ] || v1[ 1 ] != v2[ 1 ] || v1[ 2 ] != v2[ 2 ] || v1[ 3 ] != v2[ 3 ] || v1[ 4 ] != v2[ 4 ] )
+	{
+		return 0;
+	}
+	return 1;
+}
+
+static ID_INLINE int VectorCompareEpsilon( const vec3_t v1, const vec3_t v2, float fEpsilon )
+{
+	int i;
+
+	for( i = 0; i < 3; i++ )
+	{
+		if( fabs( v1[ i ] - v2[ i ] ) > fEpsilon ) {
+			return 0;
+		}
 	}
 	return 1;
 }
@@ -609,6 +746,9 @@ void CrossProduct( const vec3_t v1, const vec3_t v2, vec3_t cross );
 
 vec_t VectorNormalize (vec3_t v);		// returns vector length
 vec_t VectorNormalize2( const vec3_t v, vec3_t out );
+vec_t VectorNormalize2D( vec2_t v );
+vec_t VectorNormalize2D2( const vec2_t v, vec2_t out );
+void VectorPackTo01( vec3_t v );
 void Vector4Scale( const vec4_t in, vec_t scale, vec4_t out );
 void VectorRotate( vec3_t in, vec3_t matrix[3], vec3_t out );
 
@@ -622,17 +762,42 @@ float	Q_random( int *seed );
 float	Q_crandom( int *seed );
 
 #define random()	((rand () & 0x7fff) / ((float)0x7fff))
+#define random2()	((rand () & 0x7fff) * (1.0 / ((float)0x7fff)))
 #define crandom()	(2.0 * (random() - 0.5))
 
-void vectoangles( const vec3_t value1, vec3_t angles);
+float grandom( void );
+float erandom( float mean );
+
+#define AnglesToMat AnglesToAxis
+
+void vectoangles( const vec3_t value1, vec3_t angles );
+void VectorToAngles( const vec3_t vec, vec3_t angles );
 void AnglesToAxis( const vec3_t angles, vec3_t axis[3] );
 
+void	R_ConcatRotations( float in1[ 3 ][ 3 ], float in2[ 3 ][ 3 ], float out[ 3 ][ 3 ] );
+void	R_ConcatTransforms( float in1[ 3 ][ 4 ], float in2[ 3 ][ 4 ], float out[ 3 ][ 4 ] );
+
+void	MatrixToEulerAngles( const float mat[ 3 ][ 3 ], vec3_t ang );
+void	QuatToMat( const float q[ 4 ], float m[ 3 ][ 3 ] );
+void	EulerToQuat( float ang[ 3 ], float q[ 4 ] );
+void	MatToQuat( float srcMatrix[ 3 ][ 3 ], float destQuat[ 4 ] );
+
+float ProjectPointOnLine( vec_t *i_vStart, vec_t *i_vEnd, vec_t *i_vPoint, vec_t *o_vProj );
+float ProjectLineOnPlane( vec_t *vPlaneNorm, float fPlaneDist, vec_t *vStart, vec_t *vEnd, vec_t *vProj );
+
+float anglemod( float a );
+float angledist( float ang );
+
 void AxisClear( vec3_t axis[3] );
-void AxisCopy( vec3_t in[3], vec3_t out[3] );
+void AxisCopy( const vec3_t in[3], vec3_t out[3] );
 
 void SetPlaneSignbits( struct cplane_s *out );
 int BoxOnPlaneSide (vec3_t emins, vec3_t emaxs, struct cplane_s *plane);
 
+void  CalculateRotatedBounds( vec3_t angles, vec3_t mins, vec3_t maxs );
+void  CalculateRotatedBounds2( float trans[ 3 ][ 3 ], vec3_t mins, vec3_t maxs );
+int   BoundingBoxToInteger( vec3_t mins, vec3_t maxs );
+void  IntegerToBoundingBox( int num, vec3_t mins, vec3_t maxs );
 qboolean BoundsIntersect(const vec3_t mins, const vec3_t maxs,
 		const vec3_t mins2, const vec3_t maxs2);
 qboolean BoundsIntersectSphere(const vec3_t mins, const vec3_t maxs,
@@ -642,6 +807,7 @@ qboolean BoundsIntersectPoint(const vec3_t mins, const vec3_t maxs,
 
 float	AngleMod(float a);
 float	LerpAngle (float from, float to, float frac);
+float	LerpAngleFromCurrent( float from, float to, float current, float frac );
 float	AngleSubtract( float a1, float a2 );
 void	AnglesSubtract( vec3_t v1, vec3_t v2, vec3_t v3 );
 
@@ -660,8 +826,11 @@ void MakeNormalVectors( const vec3_t forward, vec3_t right, vec3_t up );
 
 //int	PlaneTypeForNormal (vec3_t normal);
 
-void Matrix3x3Multiply(float in1[3][3], float in2[3][3], float out[3][3]);
-void AngleVectors( const vec3_t angles, vec3_t forward, vec3_t right, vec3_t up);
+void  MatrixTransformVector( const vec3_t in, const float mat[ 3 ][ 3 ], vec3_t out );
+void  MatrixTransformVectorRight( const float mat[ 3 ][ 3 ], const vec3_t in, vec3_t out );
+void Matrix3x3Multiply( const float in1[ 3 ][ 3 ], const float in2[ 3 ][ 3 ], float out[ 3 ][ 3 ] );
+void AngleVectors( const vec3_t angles, vec3_t forward, vec3_t right, vec3_t up );
+void AngleVectorsLeft( const vec3_t angles, vec3_t forward, vec3_t left, vec3_t up );
 void PerpendicularVector( vec3_t dst, const vec3_t src );
 
 void            GetPerpendicularViewVector(const vec3_t point, const vec3_t p1, const vec3_t p2, vec3_t up);
@@ -683,6 +852,8 @@ vec_t           DistanceBetweenLineSegmentsSquared(const vec3_t sP0, const vec3_
 vec_t           DistanceBetweenLineSegments(const vec3_t sP0, const vec3_t sP1,
 											const vec3_t tP0, const vec3_t tP1, float *s, float *t);
 
+void			VectorMatrixInverse( void* DstMatrix, const void* SrcMatrix );
+
 void            MatrixIdentity(matrix_t m);
 void            MatrixClear(matrix_t m);
 void            MatrixCopy(const matrix_t in, matrix_t out);
@@ -699,7 +870,8 @@ void            MatrixSetupTranslation(matrix_t m, vec_t x, vec_t y, vec_t z);
 void            MatrixSetupScale(matrix_t m, vec_t x, vec_t y, vec_t z);
 void            MatrixSetupShear(matrix_t m, vec_t x, vec_t y);
 void            Matrix4x4Multiply(const matrix_t a, const matrix_t b, matrix_t out);
-void            MatrixMultiply2(matrix_t m, const matrix_t m2);
+void			MatrixMultiply( const float in1[ 3 ][ 3 ], const float in2[ 3 ][ 3 ], float out[ 3 ][ 3 ] );
+void            MatrixMultiply2( matrix_t m, const matrix_t m2 );
 void            MatrixMultiplyRotation(matrix_t m, vec_t pitch, vec_t yaw, vec_t roll);
 void            MatrixMultiplyZRotation(matrix_t m, vec_t degrees);
 void            MatrixMultiplyTranslation(matrix_t m, vec_t x, vec_t y, vec_t z);
@@ -744,6 +916,8 @@ void            MatrixLookAtLH(matrix_t output, const vec3_t pos, const vec3_t d
 void            MatrixLookAtRH(matrix_t m, const vec3_t eye, const vec3_t dir, const vec3_t up);
 void            MatrixScaleTranslateToUnitCube(matrix_t m, const vec3_t mins, const vec3_t maxs);
 void            MatrixCrop(matrix_t m, const vec3_t mins, const vec3_t maxs);
+
+void			TransposeMatrix( float in[ 3 ][ 3 ], float out[ 3 ][ 3 ] );
 
 static ID_INLINE void AnglesToMatrix(const vec3_t angles, matrix_t m)
 {
@@ -872,6 +1046,8 @@ int             Com_AddToGrowList(growList_t * list, void *data);
 void           *Com_GrowListElement(const growList_t * list, int index);
 int             Com_IndexForGrowListElement(const growList_t * list, const void *element);
 
+unsigned long long rdtsc( void );
+
 
 //=============================================
 
@@ -884,8 +1060,10 @@ void	COM_DefaultExtension( char *path, int maxSize, const char *extension );
 
 void	COM_BeginParseSession( const char *name );
 int		COM_GetCurrentParseLine( void );
-char	*COM_Parse( char **data_p );
+const char	*COM_Parse( char **data_p );
 char	*COM_ParseExt( char **data_p, qboolean allowLineBreak );
+char	*COM_ParseExtIgnoreQuotes( char **data_p, qboolean allowLineBreak );
+const char *COM_GetToken( const char **data_p, qboolean crossline );
 void	Com_SkipRestOfLine(char **data);
 void	Com_SkipBracedSection(char **program);
 void	Com_Parse1DMatrix(char **buf_p, int x, float *m, qboolean checkBrackets);
@@ -918,17 +1096,21 @@ typedef struct pc_token_s
 
 void	COM_MatchToken( char**buf_p, char *match );
 
-void SkipBracedSection (char **program);
+qboolean SkipBracedSection (char **program);
+qboolean SkipBracedSectionEx (char **program, int depth);
 void SkipRestOfLine ( char **data );
 
 void Parse1DMatrix (char **buf_p, int x, float *m);
 void Parse2DMatrix (char **buf_p, int y, int x, float *m);
 void Parse3DMatrix (char **buf_p, int z, int y, int x, float *m);
 
+int Com_HexStrToInt( const char *str );
+
 void	QDECL Com_sprintf (char *dest, int size, const char *fmt, ...) __attribute__ ((format (printf, 3, 4)));
 
 char *Com_SkipTokens( char *s, int numTokens, char *sep );
 char *Com_SkipCharset( char *s, char *sep );
+void Com_BackslashToSlash( char *str );
 
 void Com_RandomBytes( byte *string, int len );
 
@@ -955,8 +1137,8 @@ int Q_isalpha( int c );
 
 // portable case insensitive compare
 int		Q_stricmp (const char *s1, const char *s2);
-int		Q_strncmp (const char *s1, const char *s2, int n);
-int		Q_stricmpn (const char *s1, const char *s2, int n);
+int		Q_strncmp( const char *s1, const char *s2, size_t n );
+int		Q_stricmpn (const char *s1, const char *s2, size_t n);
 char	*Q_strlwr( char *s1 );
 char	*Q_strupr( char *s1 );
 char	*Q_strrchr( const char* string, int c );
@@ -964,13 +1146,28 @@ const char	*Q_stristr( const char *s, const char *find);
 qboolean Q_strreplace(char *dest, int destsize, const char *find, const char *replace);
 
 // buffer size safe library replacements
-void	Q_strncpyz( char *dest, const char *src, int destsize );
+void	Q_strncpyz( char *dest, const char *src, size_t destsize );
 void	Q_strcat( char *dest, int size, const char *src );
 
 // strlen that discounts Quake color sequences
 int Q_PrintStrlen( const char *string );
 // removes color sequences from string
 char *Q_CleanStr( char *string );
+
+//=============================================
+
+extern qboolean bigendian;
+
+short	BigShort( short l );
+short	LittleShort( short l );
+int	BigLong( int l );
+int	LittleLong( int l );
+float	BigFloat( float l );
+float	LittleFloat( float l );
+unsigned short	LittleUnsignedShort( unsigned short l );
+unsigned short	BigUnsignedShort( unsigned short l );
+
+void	Swap_Init( void );
 
 //=============================================
 
@@ -988,25 +1185,17 @@ typedef struct
 	byte	b7;
 } qint64;
 
-//=============================================
-/*
-short	BigShort(short l);
-short	LittleShort(short l);
-int		BigLong (int l);
-int		LittleLong (int l);
-qint64  BigLong64 (qint64 l);
-qint64  LittleLong64 (qint64 l);
-float	BigFloat (const float *l);
-float	LittleFloat (const float *l);
-
-void	Swap_Init (void);
-*/
-char	* QDECL va(char *format, ...) __attribute__ ((format (printf, 1, 2)));
+const char *va( const char *format, ... ) __attribute__ ((format (printf, 1, 2)));
 
 #define TRUNCATE_LENGTH	64
 void Com_TruncateLongString( char *buffer, const char *s );
 
 //=============================================
+
+int MusicMood_NameToNum( const char * name );
+const char * MusicMood_NumToName( int num );
+int EAXMode_NameToNum( const char * name );
+const char * EAXMode_NumToName( int num );
 
 //
 // key / value info strings
@@ -1036,27 +1225,37 @@ default values.
 ==========================================================
 */
 
-#define	CVAR_ARCHIVE		1	// set to cause it to be saved to vars.rc
-								// used for system variables, not for player
-								// specific configurations
-#define	CVAR_USERINFO		2	// sent to server on connect or change
-#define	CVAR_SERVERINFO		4	// sent in response to front end requests
-#define	CVAR_SYSTEMINFO		8	// these cvars will be duplicated on all clients
-#define	CVAR_INIT			16	// don't allow change from console at all,
-								// but can be set from the command line
-#define	CVAR_LATCH			32	// will only change when C code next does
-								// a Cvar_Get(), so it can't be changed
-								// without proper initialization.  modified
-								// will be set, even though the value hasn't
-								// changed yet
-#define	CVAR_ROM			64	// display only, cannot be set by user at all
-#define	CVAR_USER_CREATED	128	// created by a set command
-#define	CVAR_TEMP			256	// can be set even when cheats are disabled, but is not archived
-#define CVAR_CHEAT			512	// can not be changed if cheats are disabled
-#define CVAR_NORESTART		1024	// do not clear when a cvar_restart is issued
+#define	CVAR_ARCHIVE			1			// set to cause it to be saved to vars.rc
+											// used for system variables, not for player
+											// specific configurations
+#define	CVAR_USERINFO			2			// sent to server on connect or change
+#define	CVAR_SERVERINFO			4			// sent in response to front end requests
+#define	CVAR_SYSTEMINFO			8			// these cvars will be duplicated on all clients
+#define	CVAR_INIT				16			// don't allow change from console at all,
+											// but can be set from the command line
+#define	CVAR_LATCH				32			// will only change when C code next does
+											// a Cvar_Get(), so it can't be changed
+											// without proper initialization.  modified
+											// will be set, even though the value hasn't
+											// changed yet
+#define	CVAR_ROM				64			// display only, cannot be set by user at all
+#define	CVAR_USER_CREATED		128			// created by a set command
+#define	CVAR_TEMP				256			// can be set even when cheats are disabled, but is not archived
+#define CVAR_CHEAT				512			// can not be changed if cheats are disabled
+#define CVAR_NORESTART			1024		// do not clear when a cvar_restart is issued
 
-#define CVAR_SERVER_CREATED	2048	// cvar was created by a server the client connected to.
-#define CVAR_NONEXISTENT	0xFFFFFFFF	// Cvar doesn't exist.
+#define CVAR_SERVER_CREATED		2048		// cvar was created by a server the client connected to.
+#define	CVAR_SOUND_LATCH		4096		// specifically for sound will only change 
+											// when C code next does a Cvar_Get(), so it 
+											// can't be changed without proper initialization.
+											// modified will be set, even though the value hasn't
+											// changed yet
+
+#define	CVAR_TERRAIN_LATCH		8192		// specifically for terrain will only change
+
+#define	CVAR_SAVEGAME			16384		// cvar will be saved when saving to file
+
+#define CVAR_NONEXISTENT		0xFFFFFFFF	// Cvar doesn't exist.
 
 // nothing outside the Cvar_*() functions should modify these fields!
 typedef struct cvar_s {
@@ -1150,23 +1349,54 @@ typedef struct {
 	vec3_t		endpos;		// final position
 	cplane_t	plane;		// surface normal at impact, transformed to world space
 	int			surfaceFlags;	// surface hit
-int shaderNum;
+	int			shaderNum;
 	int			contents;	// contents on other side of surface hit
-	int			entityNum;	// entity the contacted sirface is a part of
+	int			entityNum;	// entity the contacted surface is a part of
 
-  int location; /* bitsize 32, bitpos 480 */
-  struct gentity_s /* id 50 */ *ent; /* bitsize 32, bitpos 512 */
+	int			location;
+	struct gentity_s *ent;
 } trace_t;
 
 // trace->entityNum can also be 0 to (MAX_GENTITIES-1)
 // or ENTITYNUM_NONE, ENTITYNUM_WORLD
 
+typedef struct {
+	int version;
+	int time;
+	int mapTime;
+	char comment[ 64 ];
+	char mapName[ 64 ];
+	char saveName[ 64 ];
+	char tm_filename[ 64 ];
+	int tm_loopcount;
+	int tm_offset;
+} savegamestruct_t;
 
 // markfragments are returned by CM_MarkFragments()
 typedef struct {
 	int		firstPoint;
 	int		numPoints;
 } markFragment_t;
+
+typedef struct treadMark_s {
+	int			iReferenceNumber;
+	int			iLastTime;
+	qhandle_t	hTreadShader;
+	int			iState;
+	float		fWidth;
+	vec3_t		vStartDir;
+	vec3_t		vStartVerts[ 2 ];
+	float		fStartTexCoord;
+	float		fStartAlpha;
+	vec3_t		vMidPos;
+	vec3_t		vMidVerts[ 2 ];
+	float		fMidTexCoord;
+	float		fMidAlpha;
+	vec3_t		vEndPos;
+	vec3_t		vEndVerts[ 2 ];
+	float		fEndTexCoord;
+	float		fEndAlpha;
+} treadMark_t;
 
 typedef struct {
 	vec3_t p;
@@ -1175,7 +1405,7 @@ typedef struct {
 
 typedef struct {
 	vec3_t		origin;
-	vec3_t		axis[3];
+	vec3_t		axis[ 3 ];
 } orientation_t;
 
 //=====================================================================
@@ -1218,6 +1448,69 @@ typedef enum {
 	CHAN_MAX
 } soundChannel_t;
 
+#define DEFAULT_MIN_DIST  -1.0
+#define DEFAULT_VOL  -1.0
+
+#define LEVEL_WIDE_MIN_DIST  10000	// full volume the entire level
+#define LEVEL_WIDE_STRING "levelwide"
+
+#define  SOUND_SYNCH             0x1
+#define  SOUND_SYNCH_FADE        0x2
+#define  SOUND_RANDOM_PITCH_20   0x4
+#define  SOUND_RANDOM_PITCH_40   0x8
+#define  SOUND_LOCAL_DIALOG      0x10
+
+typedef enum
+{
+	mood_none,
+	mood_normal,
+	mood_action,
+	mood_suspense,
+	mood_mystery,
+	mood_success,
+	mood_failure,
+	mood_surprise,
+	mood_special,
+	mood_aux1,
+	mood_aux2,
+	mood_aux3,
+	mood_aux4,
+	mood_aux5,
+	mood_aux6,
+	mood_aux7,
+	mood_totalnumber
+} music_mood_t;
+
+typedef enum
+{
+	eax_generic,
+	eax_paddedcell,
+	eax_room,
+	eax_bathroom,
+	eax_livingroom,
+	eax_stoneroom,
+	eax_auditorium,
+	eax_concerthall,
+	eax_cave,
+	eax_arena,
+	eax_hangar,
+	eax_carpetedhallway,
+	eax_hallway,
+	eax_stonecorridor,
+	eax_alley,
+	eax_forest,
+	eax_city,
+	eax_mountains,
+	eax_quarry,
+	eax_plain,
+	eax_parkinglot,
+	eax_sewerpipe,
+	eax_underwater,
+	eax_drugged,
+	eax_dizzy,
+	eax_psychotic,
+	eax_totalnumber
+} eax_mode_t;
 
 /*
 ========================================================================
@@ -1228,6 +1521,7 @@ typedef enum {
 */
 
 #define	ANGLE2SHORT(x)	((int)((x)*65536/360) & 65535)
+#define	BYTE2ANGLE(x)	((x)*(360.0/255))
 #define	SHORT2ANGLE(x)	((x)*(360.0/65536))
 
 #define	SNAPFLAG_RATE_DELAYED	1
@@ -1240,6 +1534,10 @@ typedef enum {
 #define	MAX_CLIENTS			64		// absolute limit
 #define MAX_LOCATIONS		64
 
+#define MAX_MAP_BOUNDS          8192
+#define MIN_MAP_BOUNDS          ( -MAX_MAP_BOUNDS )
+#define MAP_SIZE                ( MAX_MAP_BOUNDS - MIN_MAP_BOUNDS )
+
 #define	GENTITYNUM_BITS		10		// don't need to send any more
 #define	MAX_GENTITIES		(1<<GENTITYNUM_BITS)
 
@@ -1250,12 +1548,14 @@ typedef enum {
 #define	ENTITYNUM_WORLD		(MAX_GENTITIES-2)
 #define	ENTITYNUM_MAX_NORMAL	(MAX_GENTITIES-2)
 
+#define MAX_SERVER_SOUNDS			64
+#define MAX_SERVER_SOUNDS_BITS		(MAX_SERVER_SOUNDS-1)
 
 #define	MAX_MODELS			1024		// these are sent over the net as 8 bits
 #define	MAX_SOUNDS			512		// so they cannot be blindly increased
 #define MAX_OBJECTIVES		20
 #define MAX_LIGHTSTYLES		32
-
+#define MAX_WEAPONS			48
 
 #define	MAX_CONFIGSTRINGS	2736
 
@@ -1290,9 +1590,9 @@ typedef struct server_sound_s {
 } server_sound_t;
 
 typedef struct usereyes_s {
-	signed char ofs[3];
-	float angles[2];
-}usereyes_t;
+	signed char ofs[ 3 ];
+	float angles[ 2 ];
+} usereyes_t;
 
 // bit field limits
 #define	MAX_STATS				32
@@ -1303,7 +1603,6 @@ typedef struct usereyes_s {
 
 #define	MAX_PERSISTANT			16
 #define	MAX_POWERUPS			16
-#define	MAX_WEAPONS				16
 
 #define	MAX_PS_EVENTS			2
 
@@ -1335,7 +1634,7 @@ typedef struct playerState_s {
 	int			delta_angles[3];	// add to command angles to get view direction
 									// changed by spawns, rotating objects, and teleporters
 
-	int			groundEntityNum;// ENTITYNUM_NONE = in air
+	int			groundEntityNum;	// ENTITYNUM_NONE = in air
 
 	qboolean	walking;
 	qboolean	groundPlane;
@@ -1352,11 +1651,11 @@ typedef struct playerState_s {
 	int			iViewModelAnim;
 	int			iViewModelAnimChanged;
 
-	int			stats[MAX_STATS];
-	int			activeItems[8];
-	int			ammo_name_index[16];
-	int			ammo_amount[16];
-	int			max_ammo_amount[16];
+	int			stats[ MAX_STATS ];
+	int			activeItems[ 8 ];
+	int			ammo_name_index[ 16 ];
+	int			ammo_amount[ 16 ];
+	int			max_ammo_amount[ 16 ];
 
 	int			current_music_mood;
 	int			fallback_music_mood;
@@ -1382,6 +1681,15 @@ typedef struct playerState_s {
 
 //====================================================================
 
+#define	BUTTON_ATTACKRIGHT_BITINDEX 		0
+#define	BUTTON_ATTACKLEFT_BITINDEX  		1
+#define	BUTTON_SNEAK_BITINDEX				2
+#define	BUTTON_RUN_BITINDEX					3
+#define	BUTTON_HOLSTERWEAPON_BITINDEX		4
+#define	BUTTON_USE_BITINDEX					5
+#define	BUTTON_TALK_BITINDEX				6			// displays talk balloon and disables actions
+#define	BUTTON_ANY_BITINDEX					11			// any key whatsoever
+#define BUTTON_MOUSE_BITINDEX				14			// mouse move
 
 //
 // usercmd_t->button bits, many of which are generated by the client system,
@@ -1389,14 +1697,14 @@ typedef struct playerState_s {
 //
 #define	BUTTON_ATTACK		1	// +/-attackprimary
 #define	BUTTON_ATTACK2		2	// +/-attacksecondary
-#define	BUTTON_WALKING		4	// +/-speed
+#define	BUTTON_RUN			4	// +/-speed
 										// walking can't just be infered from MOVE_RUN
 										// because a key pressed late in the frame will
 										// only generate a small move value for that frame
 										// walking will use different animations and
 										// won't generate footsteps
 
-#define	BUTTON_USE		8
+#define	BUTTON_USE			8
 #define	BUTTON_LEANLEFT		16	// +/-leanleft
 #define BUTTON_LEANRIGHT	32	// +/-leanright
 #define	BUTTON_NEGATIVE		64
@@ -1406,22 +1714,21 @@ typedef struct playerState_s {
 #define BUTTON_PATROL		512
 #define BUTTON_FOLLOWME		1024
 
-#define	BUTTON_ANY			2048			// any key whatsoever
+#define BUTTON_HOLSTER		32768
 
-// those buttons are not avaible in mohaa, but they would give compile errors when deleted
-#define BUTTON_AFFIRMATIVE	4096
-#define BUTTON_GESTURE		8192
-#define BUTTON_TALK			16384
+#define	BUTTON_TALK				( 1 << BUTTON_TALK_BITINDEX )			// displays talk balloon and disables actions
+#define	BUTTON_ANY				( 1 << BUTTON_ANY_BITINDEX )				// any key whatsoever
+#define BUTTON_MOUSE			( 1 << BUTTON_MOUSE_BITINDEX )
 
 #define	MOVE_RUN			120			// if forwardmove or rightmove are >= MOVE_RUN,
 										// then BUTTON_WALKING should be set
 
 // usercmd_t is sent to the server each client frame
 typedef struct usercmd_s {
-	int			serverTime;
-	byte		msec;
-	int			buttons;
-	int			angles[3];
+	int					serverTime;
+	byte				msec;
+	short unsigned int	buttons;
+	short int			angles[3];
 	//int	weapon; // su44: there is no 'weapon' field
 	// in MoHAA's usercmd_s - weapon commands are encoded 
 	// into buttons bits. See CL_CmdButtons from cl_input.c.
@@ -1429,6 +1736,13 @@ typedef struct usercmd_s {
 } usercmd_t;
 
 //===================================================================
+
+//
+// Animation flags
+//
+#define  MDL_ANIM_DELTA_DRIVEN   ( 1 << 0 )
+#define  MDL_ANIM_DEFAULT_ANGLES ( 1 << 3 )
+#define  MDL_ANIM_NO_TIMECHECK   ( 1 << 4 )
 
 // if entityState->solid == SOLID_BMODEL, modelindex is an inline model number
 #define	SOLID_BMODEL	0xffffff
@@ -1438,33 +1752,62 @@ typedef struct usercmd_s {
 // render flags are set by "renderEffects" event
 // and sent to cgame trough entityState_t
 // TODO: find out rest of them
-#define RF_DEPTHHACK			4		// for view weapon Z crunching
-#define RF_VIEWLENSFLARE		8
-#define RF_DONTDRAW				128
-#define RF_LENSFLARE			256
-#define RF_SHADOW				2048
-#define RF_SKYORIGIN			8192
-#define RF_FULLBRIGHT			262144
-#define RF_LIGHTSTYLEDYNAMIC	8388608
-#define RF_PRECISESHADOW		16777216
-#define RF_INVISIBLE			33554432
+#define	RF_THIRD_PERSON			(1<<0)   	// don't draw through eyes, only mirrors (player bodies, chat sprites)
+#define	RF_FIRST_PERSON			(1<<1)		// only draw through eyes (view weapon, damage blood blob)
+#define	RF_DEPTHHACK			(1<<2)		// hack the z-depth so that view weapons do not clip into walls
+#define	RF_VIEWLENSFLARE		(1<<3)		// View dependent lensflare
+#define	RF_FRAMELERP			(1<<4)		// interpolate between current and next state
+#define	RF_BEAM					(1<<5)		// draw a beam between origin and origin2
+#define RF_DONTDRAW				(1<<7)		// don't draw this entity but send it over
+#define RF_LENSFLARE			(1<<8)		// add a lens flare to this
+#define RF_EXTRALIGHT			(1<<9)		// use good lighting on this entity
+#define RF_DETAIL				(1<<10)		// Culls a model based on the distance away from you
+#define RF_SHADOW				(1<<11)		// whether or not to draw a shadow
+#define	RF_PORTALSURFACE		(1<<12)   	// don't draw, but use to set portal views
+#define	RF_SKYORIGIN   			(1<<13)   	// don't draw, but use to set sky portal origin and coordinate system
+#define	RF_SKYENTITY   			(1<<14)   	// this entity is only visible through a skyportal
+#define	RF_LIGHTOFFSET   		(1<<15)   	// this entity has a light offset
+#define	RF_CUSTOMSHADERPASS		(1<<16)		// draw the custom shader on top of the base geometry
+#define	RF_MINLIGHT				(1<<17)		// allways have some light (viewmodel, some items)
+#define	RF_FULLBRIGHT			(1<<18)		// allways have full lighting
+#define RF_LIGHTING_ORIGIN		(1<<19)		// use refEntity->lightingOrigin instead of refEntity->origin
+// for lighting.  This allows entities to sink into the floor
+// with their origin going solid, and allows all parts of a
+// player to get the same lighting
+#define	RF_SHADOW_PLANE			(1<<20)		// use refEntity->shadowPlane
+#define	RF_WRAP_FRAMES			(1<<21)		// mod the model frames by the maxframes to allow continuous
+// animation without needing to know the frame count
+//#define RF_PORTALENTITY			(1<<22)		// this entity should only be drawn from a portal
+//#define RF_DUALENTITY			(1<<23)		// this entity is drawn both in the portal and outside it.
+#define RF_ADDITIVE_DLIGHT		(1<<22)		// this entity has an additive dynamic light
+#define RF_LIGHTSTYLE_DLIGHT	(1<<23)		// this entity has a dynamic light that uses a light style
+#define RF_SHADOW_PRECISE		(1<<24)		// this entity can have a precise shadow applied to it
+#define RF_INVISIBLE			(1<<25)		// This entity is invisible, and only negative lights will light it up
+#define RF_VIEWMODEL			(1<<26)		// This entity is invisible, and only negative lights will light it up
+#define RF_PRECISESHADOW		(1<<28)		// This entity is invisible, and only negative lights will light it up
+#define RF_ALWAYSDRAW			(1<<30)
+//
+// use this mask when propagating renderfx from one entity to another
+//
+#define  RF_FLAGS_NOT_INHERITED ( RF_LENSFLARE | RF_VIEWLENSFLARE | RF_BEAM | RF_EXTRALIGHT | RF_SKYORIGIN | RF_SHADOW | RF_SHADOW_PRECISE | RF_SHADOW_PLANE )
+
 
 //#define RF_ADDICTIVEDYNAMICLIGHT ?????
 
-// q3 remnants
-#define	RF_MINLIGHT			1		// allways have some light (viewmodel, some items)
-#define	RF_THIRD_PERSON		2		// don't draw through eyes, only mirrors (player bodies, chat sprites)
-#define	RF_FIRST_PERSON		32		// only draw through eyes (view weapon, damage blood blob)
-#define	RF_NOSHADOW			64		// don't add stencil shadows
-
-#define RF_LIGHTING_ORIGIN	512		// use refEntity->lightingOrigin instead of refEntity->origin
-									// for lighting.  This allows entities to sink into the floor
-									// with their origin going solid, and allows all parts of a
-									// player to get the same lighting
-#define	RF_SHADOW_PLANE		4096		// use refEntity->shadowPlane
-#define	RF_WRAP_FRAMES		16384		// mod the model frames by the maxframes to allow continuous
-									// animation without needing to know the frame count
 #define RF_FORCENOLOD		1024
+
+#define BEAM_LIGHTNING_EFFECT   (1<<0)
+#define BEAM_USEMODEL           (1<<1)
+#define BEAM_PERSIST_EFFECT     (1<<2)
+#define BEAM_SPHERE_EFFECT      (1<<3)
+#define BEAM_RANDOM_DELAY       (1<<4)
+#define BEAM_TOGGLE             (1<<5)
+#define BEAM_RANDOM_TOGGLEDELAY (1<<6)
+#define BEAM_WAVE_EFFECT        (1<<7)
+#define BEAM_USE_NOISE          (1<<8)
+#define BEAM_PARENT             (1<<9)
+#define BEAM_TILESHADER         (1<<10)
+#define BEAM_OFFSET_ENDPOINTS   (1<<11)
 
 typedef enum {
 	TR_STATIONARY,
@@ -1472,15 +1815,13 @@ typedef enum {
 	TR_LINEAR,
 	TR_LINEAR_STOP,
 	TR_SINE,					// value = base + sin( time / duration ) * delta
-	TR_GRAVITY
+	TR_GRAVITY,
+	TR_LERP
 } trType_t;
 
 typedef struct {
-	trType_t	trType;
-	int		trTime;
-	int		trDuration;			// if non 0, trTime + trDuration = stop time
-	vec3_t	trBase;
-	vec3_t	trDelta;			// velocity, etc
+	int trTime;
+	vec3_t trDelta;
 } trajectory_t;
 
 typedef struct frameInfo_s {
@@ -1489,12 +1830,28 @@ typedef struct frameInfo_s {
 	float weight;
 } frameInfo_t;
 
-typedef struct trajectoryMOH_s {
-  int trTime;
-  float trDelta[3];
-} trajectoryMOH_t;
-
 #define NUM_BONE_CONTROLLERS 5
+
+#define NUM_MORPH_CONTROLLERS 10
+
+#define MAX_MODEL_SURFACES   32 // this needs to be the same in qfiles.h for TIKI_MAX_SURFACES
+
+#define  MDL_SURFACE_SKINOFFSET_BIT0  ( 1 << 0 )
+#define  MDL_SURFACE_SKINOFFSET_BIT1  ( 1 << 1 )
+#define  MDL_SURFACE_NODRAW           ( 1 << 2 )
+#define  MDL_SURFACE_SURFACETYPE_BIT0 ( 1 << 3 )
+#define  MDL_SURFACE_SURFACETYPE_BIT1 ( 1 << 4 )
+#define  MDL_SURFACE_SURFACETYPE_BIT2 ( 1 << 5 )
+#define  MDL_SURFACE_CROSSFADE_SKINS  ( 1 << 6 )
+#define  MDL_SURFACE_SKIN_NO_DAMAGE   ( 1 << 7 )
+
+#define CROUCH_HEIGHT		36
+#define CROUCH_EYE_HEIGHT	30
+#define STAND_HEIGHT			72
+#define STAND_EYE_HEIGHT	66
+
+#define MAX_FRAMEINFOS			16
+#define FRAMEINFO_BLEND			( MAX_FRAMEINFOS >> 1 )
 
 // entityState_t is the information conveyed from the server
 // in an update message about entities that the client will
@@ -1508,16 +1865,13 @@ typedef struct entityState_s {
 	int		eType;			// entityType_t
 	int		eFlags;
 
-	trajectoryMOH_t pos;
+	trajectory_t pos;
 
-	int		time;
-	int		time2;
-
-	float	netorigin[3];
+	vec3_t	netorigin;
 	vec3_t	origin;
 	vec3_t	origin2;
 
-	float	netangles[3];
+	vec3_t	netangles;
 	vec3_t	angles;
 
 	int		constantLight;	// r + (g<<8) + (b<<16) + (intensity<<24)
@@ -1532,7 +1886,7 @@ typedef struct entityState_s {
 	int		tag_num;
 
 	qboolean	attach_use_angles;
-	float		attach_offset[3];
+	vec3_t		attach_offset;
 
 	int		beam_entnum;
 
@@ -1540,26 +1894,26 @@ typedef struct entityState_s {
 	int		usageIndex;
 	int		skinNum;
 	int		wasframe;
-	frameInfo_t frameInfo[16];
+	frameInfo_t frameInfo[ MAX_FRAMEINFOS ];
 	float	actionWeight;
-	int		bone_tag[NUM_BONE_CONTROLLERS];
-	float	bone_angles[NUM_BONE_CONTROLLERS][3];
-	float	bone_quat[NUM_BONE_CONTROLLERS][4]; // not sent over
-	byte	surfaces[32];
 
-	int		clientNum;		// 0 to (MAX_CLIENTS - 1), for players and corpses
+	int		bone_tag[ NUM_BONE_CONTROLLERS ];
+	vec3_t	bone_angles[ NUM_BONE_CONTROLLERS ];
+	quat_t	bone_quat[ NUM_BONE_CONTROLLERS ]; // not sent over
+	byte	surfaces[ 32 ];
 
+	int		clientNum;			// 0 to (MAX_CLIENTS - 1), for players and corpses
 	int		groundEntityNum;	// -1 = in air
 
-	int		solid;			// for client side prediction, trap_linkentity sets this properly
+	int		solid;				// for client side prediction, trap_linkentity sets this properly
 
 	float	scale;
 	float	alpha;
 	int		renderfx;
-	float	shader_data[2];
+	float	shader_data[ 2 ];
 	float	shader_time;
-	float	quat[4];
-	float	eyeVector[3];
+	quat_t	quat;
+	vec3_t	eyeVector;
 } entityState_t;
 
 typedef enum {
@@ -1575,7 +1929,89 @@ typedef enum {
 	CA_CINEMATIC		// playing a cinematic or a static pic, not connected to a server
 } connstate_t;
 
+typedef struct qtime_s {
+	int		tm_sec;
+	int		tm_min;
+	int		tm_hour;
+	int		tm_mday;
+	int		tm_mon;
+	int		tm_year;
+	int		tm_wday;
+	int		tm_yday;
+	int		tm_isdst;
+} qtime_t;
+
+typedef struct {
+	float			start[ 3 ];
+	float			end[ 3 ];
+	float			color[ 3 ];
+	float			alpha;
+	float			width;
+	unsigned short	factor;
+	unsigned short	pattern;
+} debugline_t;
+
+typedef struct {
+	char	szText[ 64 ];
+	float	pos[ 3 ];
+	float	scale;
+	float	color[ 4 ];
+} debugstring_t;
+
 // font support
+
+typedef struct {
+	float pos[ 2 ];
+	float size[ 2 ];
+} letterloc_t;
+
+typedef struct {
+	int				indirection[ 256 ];
+	letterloc_t		locations[ 256 ];
+	char			name[ 64 ];
+	float			height;
+	float			aspectRatio;
+	void			*shader;
+	int				trhandle;
+} fontheader_t;
+
+/*typedef struct hdelement_s {
+	qhandle_t		hShader;
+	char			shaderName[ 64 ];
+
+	int				iX;
+	int				iY;
+	int				iWidth;
+	int				iHeight;
+
+	float			vColor[ 4 ];
+
+	int				iHorizontalAlign;
+	int				iVerticalAlign;
+	qboolean		bVirtualScreen;
+
+	char			string[ 2048 ];
+	char			fontName[ 64 ];
+
+	fontheader_t	*pFont;
+} hdelement_t;*/
+
+/*typedef struct {
+	frameInfo_t	g_VMFrameInfo[ 16 ];
+
+	int			g_iLastVMAnim;
+	int			g_iLastVMAnimChanged;
+	int			g_iCurrentVMAnimSlot;
+	int			g_iCurrentVMDuration;
+
+	qboolean	g_bCrossblending;
+
+	int			g_iLastEquippedWeaponStat;
+	char		g_szLastActiveItem[ 80 ];
+	int			g_iLastAnimPrefixIndex;
+
+	float		g_vCurrentVMPosOffset[ 3 ];
+} clientAnim_t;*/
 
 #define GLYPH_START 0
 #define GLYPH_END 255
@@ -1609,20 +2045,6 @@ typedef struct {
 // real time
 //=============================================
 
-
-typedef struct qtime_s {
-	int tm_sec;     /* seconds after the minute - [0,59] */
-	int tm_min;     /* minutes after the hour - [0,59] */
-	int tm_hour;    /* hours since midnight - [0,23] */
-	int tm_mday;    /* day of the month - [1,31] */
-	int tm_mon;     /* months since January - [0,11] */
-	int tm_year;    /* years since 1900 */
-	int tm_wday;    /* days since Sunday - [0,6] */
-	int tm_yday;    /* days since January 1 - [0,365] */
-	int tm_isdst;   /* daylight savings time flag */
-} qtime_t;
-
-
 // server browser sources
 // TTimo: AS_MPLAYER is no longer used
 #define AS_LOCAL			0
@@ -1651,9 +2073,7 @@ typedef enum _flag_status {
 	FLAG_DROPPED
 } flagStatus_t;
 
-
-
-#define	MAX_GLOBAL_SERVERS				4096
+#define	MAX_GLOBAL_SERVERS				2048
 #define	MAX_OTHER_SERVERS					128
 #define MAX_PINGREQUESTS					32
 #define MAX_SERVERSTATUSREQUESTS	16
@@ -1664,6 +2084,67 @@ typedef enum _flag_status {
 
 #define CDKEY_LEN 16
 #define CDCHKSUM_LEN 2
+
+#define FLOAT_TO_INT( x, fracbits ) ( ( x ) * ( 1 << ( fracbits ) ) )
+
+#define FLOAT_TO_PKT( x, dest, wholebits, fracbits )                            \
+   {                                                                            \
+   if ( ( x ) >= ( 1 << ( wholebits ) ) )                                       \
+         {                                                                         \
+      ( dest ) = FLOAT_TO_INT( ( 1 << ( wholebits ) ), ( fracbits ) ) - 1; \
+         }                                                                         \
+      else if ( ( x ) < 0 )                                                        \
+      {                                                                         \
+      ( dest ) = 0;                                                             \
+      }                                                                         \
+      else                                                                         \
+      {                                                                         \
+      ( dest ) = FLOAT_TO_INT( ( x ), ( fracbits ) );               \
+      }                                                                         \
+   }
+
+#define SIGNED_FLOAT_TO_PKT( x, dest, wholebits, fracbits )                   \
+   {                                                                          \
+   float temp_x;                                                              \
+   temp_x = ( x ) + ( 1 << ( wholebits ) );                                   \
+   if ( temp_x >= ( 1 << ( ( wholebits ) + 1 ) ) )                            \
+      ( dest ) = FLOAT_TO_INT( ( 1 << ( ( wholebits ) + 1 ) ), ( fracbits ) ) - 1;    \
+      else if ( temp_x < 0 )                                                     \
+      (dest) = 0;                                                             \
+      else                                                                       \
+      ( dest ) = FLOAT_TO_INT( temp_x, ( fracbits ) );                        \
+   }
+
+#define INT_TO_FLOAT( x, wholebits, fracbits ) ( ( float )( ( ( float )( x ) ) / ( float )( 1 << ( fracbits ) ) - ( float )( 1 << ( wholebits ) ) ) )
+#define UINT_TO_FLOAT( x, fracbits ) ( ( float )( ( ( float )( x ) ) / ( float )( 1 << ( fracbits ) ) ) )
+
+#define TRANSLATION_TO_PKT( x, dest ) FLOAT_TO_PKT( ( x ), ( dest ), 4, 11 )
+#define PKT_TO_TRANSLATION( x ) UINT_TO_FLOAT( ( x ), 11 )
+
+#define OFFSET_TO_PKT( x, dest ) FLOAT_TO_PKT( ( x ), ( dest ), 1, 14 )
+#define PKT_TO_OFFSET( x ) UINT_TO_FLOAT( ( x ), 14 )
+
+#define ROTATE_TO_PKT( x, dest ) FLOAT_TO_PKT( ( x ), ( dest ), 9, 6 )
+#define PKT_TO_ROTATE( x ) UINT_TO_FLOAT( ( x ), 6 )
+
+#define BASE_TO_PKT( x, dest ) SIGNED_FLOAT_TO_PKT( ( x ), ( dest ), 3, 4 )
+#define PKT_TO_BASE( x ) INT_TO_FLOAT( ( x ), 3, 4 )
+
+#define AMPLITUDE_TO_PKT( x, dest ) FLOAT_TO_PKT( ( x ), ( dest ), 4, 4 )
+#define PKT_TO_AMPLITUDE( x ) UINT_TO_FLOAT( ( x ), 4 )
+
+#define PHASE_TO_PKT( x, dest ) SIGNED_FLOAT_TO_PKT( ( x ), ( dest ), 3, 4 )
+#define PKT_TO_PHASE( x ) INT_TO_FLOAT( ( x ), 3, 4 )
+
+#define FREQUENCY_TO_PKT( x, dest ) FLOAT_TO_PKT( ( x ), ( dest ), 4, 4 )
+#define PKT_TO_FREQUENCY( x ) UINT_TO_FLOAT( ( x ), 4 )
+
+#define BEAM_PARM_TO_PKT( x, dest ) FLOAT_TO_PKT( ( x ), ( dest ), 4, 4 )
+#define PKT_TO_BEAM_PARM( x ) UINT_TO_FLOAT( ( x ), 4 )
+
+#define STUB() printf( "STUB: function %s in %s line %d.\n", __FUNCTION__, __FILE__, __LINE__ )
+#define STUB_DESC( description ) printf( "STUB: %s in %s line %d.\n", ##description, __FILE__, __LINE__ )
+#define UNIMPLEMENTED() Com_Printf( "FIXME: (%s) is unimplemented (file %s:%d)\n", __FUNCTION__, __FILE__, __LINE__ )
 
 #if defined(__cplusplus)
 }

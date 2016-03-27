@@ -35,7 +35,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 static void CG_FootstepMain(trace_t *trace, int iRunning, int iEquipment) {
     char sSoundName[MAX_QPATH] = "snd_step_";
 
-    int surftype;
     int contents;
 	int surfaceFlags;
 	vec3_t pos;
@@ -53,7 +52,7 @@ static void CG_FootstepMain(trace_t *trace, int iRunning, int iEquipment) {
 	if ( iEquipment ) {
 		snd = CG_GetUbersound( "snd_step_equipment" );
 		if (snd)
-			trap_S_StartSound( trace->endpos, trace->entityNum, CHAN_ITEM, snd->sfxHandle );
+			cgi.S_StartSound( trace->endpos, trace->entityNum, CHAN_ITEM, snd->sfxHandle );
 	}
 
 	surfaceFlags = trace->surfaceFlags;
@@ -120,7 +119,7 @@ static void CG_FootstepMain(trace_t *trace, int iRunning, int iEquipment) {
 		}
 		return;
 	}
-	trap_S_StartSound( trace->endpos, trace->entityNum, CHAN_BODY, snd->sfxHandle );
+	cgi.S_StartSound( trace->endpos, trace->entityNum, CHAN_BODY, snd->sfxHandle );
 }
 
 void CG_MeleeImpact(float *vStart, float *vEnd) {
@@ -164,7 +163,7 @@ void CG_Footstep(char *szTagName, centity_t *ent, /*refEntity_t *pREnt,*/
 		}	
 
 		// find tag in tiki
-		boneName = trap_TIKI_GetBoneNameIndex(szTagName); 
+		boneName = cgi.TIKI_GetBoneNameIndex(szTagName); 
 		for(tagIndex = 0; tagIndex < tiki->numBones; tagIndex++) {
 			if(tiki->boneNames[tagIndex] == boneName) {
 				break;

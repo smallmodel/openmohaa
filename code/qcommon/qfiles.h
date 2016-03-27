@@ -91,7 +91,7 @@ typedef struct {
     unsigned short	bytes_per_line;
     unsigned short	palette_type;
     char	filler[58];
-    unsigned char	data;			// unbounded
+    unsigned char	data[1];			// unbounded
 } pcx_t;
 
 
@@ -111,7 +111,22 @@ typedef struct _TargaHeader {
 	unsigned char	pixel_size, attributes;
 } TargaHeader;
 
+/*
+========================================================================
 
+FTX files are pre mipmapped files for OpenMOHAA
+
+========================================================================
+*/
+#define FENCEMASK_VERSION			2
+#define FTX_EXTENSION				".ftx"
+
+typedef struct ftx_s {
+	int width;
+	int height;
+	int has_alpha;
+	// data follows
+} ftx_t;
 
 /*
 ========================================================================
@@ -438,171 +453,6 @@ typedef struct {
 /*
 ==============================================================================
 
-SKD file format
-
-==============================================================================
-*/
-
-#define SKD_IDENT			(('D'<<24)+('M'<<16)+('K'<<8)+'S')
-#define SKD_VERSION			5
-#define	SKD_MAX_BONES		128
-#define SKD_SURFACE_IDENT	((' '<<24)+('L'<<16)+('K'<<8)+'S')
-
-typedef struct {
-	int			boneIndex;
-} skdHitbox_t;
-
-typedef struct {
-	int			boneIndex;		// these are indexes into the boneReferences,
-	float		boneWeight;		// not the global per-frame bone list
-	vec3_t		offset;
-} skdWeight_t;
-
-typedef struct {
-	int			index;
-	float		f1;
-	float		f2;
-	float		f3;
-} skdMorph_t;
-
-typedef struct {
-	vec3_t		normal;
-	vec2_t		texCoords;
-	int			numWeights;
-	int			numMorphs;
-	/*skdWeight_t	weights[1];		// variable sized
-	skdMorph_t	morphs[1];*/
-} skdVertex_t;
-
-typedef struct {
-	int			indexes[3];
-} skdTriangle_t;
-
-typedef struct {
-	int			ident;
-
-	char		name[MAX_QPATH];	// polyset name
-
-	int			numTriangles;
-	int			numVerts;
-	int			staticSurfProcessed;
-	int			ofsTriangles;
-	int			ofsVerts;
-	int			ofsCollapse;
-
-	int			ofsEnd;				// next surface follows
-
-	int			ofsCollapseIndex;
-} skdSurface_t;
-
-typedef enum {
-	JT_ROTATION, //24 bytes
-	JT_POSROT_SKC,
-	JT_SHOULDER, //40 bytes
-	JT_ELBOW, //24 bytes
-	JT_WRIST, //24 bytes
-	JT_HOSEROT, //40 bytes
-	JT_AVROT, //28 bytes
-	JT_ZERO,
-	JT_NUMBONETYPES, 
-
-	JT_WORLD,
-	JT_HOSEROTBOTH,
-	JT_HOSEROTPARENT,
-	//JT_POSROTFK,
-	JT_MAX = 0x7fffffff			// ensures that sizeof( skdJointType_t ) == sizeof( int )
-} skdJointType_t;
-
-typedef struct {
-	char		name[32];
-	char		parent[32];
-	int			jointType;
-	int			ofsValues;
-	int			ofsChannels;
-	int			ofsRefs;
-	int			ofsEnd;
-} skdBone_t;
-
-typedef struct {
-	int			ident;
-	int			version;
-
-	char		name[MAX_QPATH];	// model name
-
-	int			numSurfaces;
-	int			numBones;
-	int			ofsBones;		// char	name[ MAX_QPATH ]
-	int			ofsSurfaces;			// skdFrame_t[numFrames]
-
-	int			ofsEnd;				// end of file
-	int			lodIndex[10];
-	int			numBoxes;
-	int			ofsBoxes;
-	int			numMorphTargets;
-	int			ofsMorphTargets;
-} skdHeader_t;
-
-/*
-==============================================================================
-
-SKC file format
-
-==============================================================================
-*/
-
-#define SKC_IDENT			(('N'<<24)+('A'<<16)+('K'<<8)+'S')
-#define SKC_VERSION			13
-#define SKC_MAX_CHANNEL_CHARS	32
-
-typedef struct {
-	float		floatVal[4];
-} skcBone_t;
-
-typedef struct {
-	vec3_t		bounds[2];			// bounds of all surfaces of all LOD's for this frame
-	float		radius;				// dist from localOrigin to corner
-	vec3_t		delta;
-	/*int			i1;
-	int			ofsBones;*/
-	float		unknown;
-	//int			numChannels;
-	int			ofsValues;
-} skcFrame_t;
-
-typedef struct {
-	int			ident;
-	int			version;
-
-	int			type;
-
-	int			ofsEnd;
-
-	float		frameTime;
-
-	// su44: what are these?
-	float		dummy1; // 40, -40, etc (so certainly NOT totalTime)
-	float		dummy[3]; // totalDelta ?
-
-	int			numChannels;
-	int			ofsChannels;
-	int			numFrames;
-} skcHeader_t;
-
-/*
-==============================================================================
-
-  .TIK file format
-
-==============================================================================
-*/
-
-#define TIKI_IDENT			(('I'<<24)+('K'<<16)+('I'<<8)+'T')	// little-endian "TIKI"
-
-// nothing else really required since it's a human-readable text format
-
-/*
-==============================================================================
-
   .BSP file format
 
 ==============================================================================
@@ -612,33 +462,39 @@ typedef struct {
 #define BSP_IDENT	(('5'<<24)+('1'<<16)+('0'<<8)+'2')
 		// little-endian "2015"
 
-#define BSP_VERSION			19	// vanilla Allied Assault
+#define BSP_BETA_VERSION	18	// Beta Allied Assault
+#define BSP_BASE_VERSION	19	// vanilla Allied Assault
+#define BSP_VERSION			19	// current Allied Assault
 
 
 // there shouldn't be any problem with increasing these values at the
 // expense of more memory allocation in the utilities
-#define	MAX_MAP_MODELS		0x400
-#define	MAX_MAP_BRUSHES		0x8000
-#define	MAX_MAP_ENTITIES	0x2000		// 0x800 // su44: increased for t2l1.map
-#define	MAX_MAP_ENTSTRING	0x100000	//0x40000 // su44: increased for t2l1.map
-#define	MAX_MAP_SHADERS		0x400
+#define	MAX_MAP_MODELS			0x400
+#define	MAX_MAP_BRUSHES			0x8000
+#define	MAX_MAP_ENTITIES		0x2000		// 0x800 // su44: increased for t2l1.map
+#define	MAX_MAP_ENTSTRING		0x100000	//0x40000 // su44: increased for t2l1.map
+#define	MAX_MAP_SHADERS			0x400
 
-#define	MAX_MAP_AREAS		0x100	// MAX_MAP_AREA_BYTES in q_shared must match!
-#define	MAX_MAP_FOGS		0x100
-#define	MAX_MAP_PLANES		0x20000
-#define	MAX_MAP_NODES		0x20000
-#define	MAX_MAP_BRUSHSIDES	0x20000
-#define	MAX_MAP_LEAFS		0x20000
-#define	MAX_MAP_LEAFFACES	0x20000
-#define	MAX_MAP_LEAFBRUSHES 0x40000
-#define	MAX_MAP_PORTALS		0x20000
-#define	MAX_MAP_LIGHTING	0x800000
-#define	MAX_MAP_LIGHTGRID	0x800000
-#define	MAX_MAP_VISIBILITY	0x200000
+#define	MAX_MAP_AREAS			0x100		// MAX_MAP_AREA_BYTES in q_shared must match!
+#define	MAX_MAP_FOGS			0x100
+#define	MAX_MAP_PLANES			0x20000
+#define	MAX_MAP_NODES			0x20000
+#define	MAX_MAP_BRUSHSIDES		0x20000
+#define	MAX_MAP_LEAFS			0x20000
+#define	MAX_MAP_LEAFFACES		0x20000
+#define	MAX_MAP_LEAFBRUSHES		0x40000
+#define	MAX_MAP_PORTALS			0x20000
+#define	MAX_MAP_LIGHTING		0x800000
+#define	MAX_MAP_LIGHTGRID		0x800000
+#define	MAX_MAP_VISIBILITY		0x200000
 
-#define	MAX_MAP_DRAW_SURFS	0x20000
-#define	MAX_MAP_DRAW_VERTS	0x80000
+#define	MAX_MAP_DRAW_SURFS		0x20000
+#define	MAX_MAP_DRAW_VERTS		0x80000
 #define	MAX_MAP_DRAW_INDEXES	0x80000
+#define MAX_MAP_SPHERE_L_SIZE	1532
+
+
+#define MIN_MAP_SUBDIVISIONS	16
 
 
 // key / value pair sizes in the entities lump
@@ -659,11 +515,61 @@ typedef struct {
 
 //=============================================================================
 
+typedef struct fcm_s {
+	int iWidth;
+	int iHeight;
+} fcm_t;
+
+typedef struct varnode_s {
+	unsigned short flags;
+} varnode_t;
+
+typedef struct cTerraPatch_s {
+	byte	flags;
+	byte	lmapScale;
+	byte	s;
+	byte	t;
+
+	float	texCoord[ 2 ][ 2 ][ 2 ];
+
+	char	x;
+	char	y;
+
+	short			iBaseHeight;
+	unsigned short	iShader;
+	unsigned short	iLightMap;
+
+	short	iNorth;
+	short	iEast;
+	short	iSouth;
+	short	iWest;
+
+	varnode_t		varTree[ 2 ][ 63 ];
+
+	unsigned char	heightmap[ 9 * 9 ];
+} cTerraPatch_t;
+
+typedef struct cStaticModel_s {
+	char model[ 128 ];
+	float origin[ 3 ];
+	float angles[ 3 ];
+	float scale;
+	int firstVertexData;
+	int numVertexData;
+} cStaticModel_t;
+
+typedef struct {
+	void	*buffer;
+	int		length;
+} gamelump_t;
 
 typedef struct {
 	int		fileofs, filelen;
 } lump_t;
 
+
+#define LUMP_FOGS				0
+#define	LUMP_LIGHTGRID			0
 // new lump defines. lump numbers are different in mohaa
 #define LUMP_SHADERS			0
 #define LUMP_PLANES				1
@@ -703,9 +609,9 @@ typedef struct {
 typedef struct {
 	int			ident;
 	int			version;
-	int			dummy;
+	int			checksum;
 
-	lump_t		lumps[HEADER_LUMPS];
+	lump_t		lumps[ HEADER_LUMPS ];
 } dheader_t;
 
 typedef struct {
@@ -715,12 +621,18 @@ typedef struct {
 } dmodel_t;
 
 typedef struct {
-	char		shader[MAX_QPATH];
-	int			surfaceFlags;
-	int			contentFlags;
-	int			subdivisions;
-	char		fenceMaskImage[MAX_QPATH];
+	char shader[ 64 ];
+	int surfaceFlags;
+	int contentFlags;
+	int subdivisions;
+	char fenceMaskImage[ 64 ];
 } dshader_t;
+
+typedef struct baseshader_s {
+	char shader[ 64 ];
+	int surfaceFlags;
+	int contentFlags;
+} baseshader_t;
 
 // planes x^1 is allways the opposite of plane x
 
@@ -750,19 +662,37 @@ typedef struct {
 	int			numLeafBrushes;
 
 	//added for mohaa
-	int			dummy1;
-	int			dummy2;
+	int			firstTerraPatch;
+	int			numTerraPatches;
 	int			firstStaticModel;
 	int			numStaticModels;
 } dleaf_t;
+
+// old leaf version
+typedef struct {
+	int		cluster;
+	int		area;
+
+	int		mins[ 3 ];
+	int		maxs[ 3 ];
+
+	int		firstLeafSurface;
+	int		numLeafSurfaces;
+
+	int		firstLeafBrush;
+	int		numLeafBrushes;
+
+	int		firstTerraPatch;
+	int		numTerraPatches;
+} dleaf_t_ver17;
 
 // su44: It seems that sideEquations 
 // are somehow related to fencemasks...
 // MoHAA loads them only in CM (CM_LoadMap).
 typedef struct {
-  float fSeq[4];
-  float fTeq[4];
-} dsideEquation_t;
+	float fSeq[ 4 ];
+	float fTeq[ 4 ];
+} dsideequation_t;
 
 typedef struct {
 	int			planeNum;			// positive plane side faces out of the leaf
@@ -792,6 +722,15 @@ typedef struct {
 	byte		color[4];
 } drawVert_t;
 
+typedef struct {
+	vec3_t		xyz;
+	float		st[ 2 ];
+	int			collapseMap;
+	float		lodExtra; // depending on the vertexNumber, will be 0 - minLOD, 1 - lodScale or 2 - lodBias
+	vec3_t		normal;
+	byte		color[ 4 ];
+} drawSoupVert_t;
+
 #define drawVert_t_cleared(x) drawVert_t (x) = {{0, 0, 0}, {0, 0}, {0, 0}, {0, 0, 0}, {0, 0, 0, 0}}
 
 typedef enum {
@@ -799,7 +738,8 @@ typedef enum {
 	MST_PLANAR,
 	MST_PATCH,
 	MST_TRIANGLE_SOUP,
-	MST_FLARE
+	MST_FLARE,
+	MST_TERRAIN
 } mapSurfaceType_t;
 
 typedef struct {
@@ -818,13 +758,13 @@ typedef struct {
 	int			lightmapWidth, lightmapHeight;
 
 	vec3_t		lightmapOrigin;
-	vec3_t		lightmapVecs[3];	// for patches, [0] and [1] are lodbounds
+	vec3_t		lightmapVecs[ 3 ];	// for patches, [0] and [1] are lodbounds
 
 	int			patchWidth;
 	int			patchHeight;
 
 	//added for mohaa
-	float		dummy;
+	float		subdivisions;
 } dsurface_t;
 
 // IneQuation was here
@@ -883,5 +823,16 @@ typedef struct {
 	float lightSubdivide;
 	qboolean autosprite;
 } dlightdef_t;
+
+typedef struct {
+	vec3_t origin;
+	vec3_t color;
+	float intensity;
+	int leaf;
+	qboolean needs_trace;
+	qboolean spot_light;
+	vec3_t spot_dir;
+	float spot_radiusbydistance;
+} mapspherel_t;
 
 #endif

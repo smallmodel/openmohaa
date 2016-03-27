@@ -302,7 +302,7 @@ char *AAS_LoadAASLump(fileHandle_t fp, int offset, int length, int *lastoffset, 
 		botimport.Print(PRT_WARNING, "AAS file not sequentially read\n");
 		if (botimport.FS_Seek(fp, offset, FS_SEEK_SET))
 		{
-			AAS_Error("can't seek to aas lump\n");
+			AAScriptError("can't seek to aas lump\n");
 			AAS_DumpAASData();
 			botimport.FS_FCloseFile(fp);
 			return NULL;
@@ -353,7 +353,7 @@ int AAS_LoadAASFile(char *filename)
 	botimport.FS_FOpenFile( filename, &fp, FS_READ );
 	if (!fp)
 	{
-		AAS_Error("can't open %s\n", filename);
+		AAScriptError("can't open %s\n", filename);
 		return BLERR_CANNOTOPENAASFILE;
 	} //end if
 	//read the header
@@ -363,7 +363,7 @@ int AAS_LoadAASFile(char *filename)
 	header.ident = LittleLong(header.ident);
 	if (header.ident != AASID)
 	{
-		AAS_Error("%s is not an AAS file\n", filename);
+		AAScriptError("%s is not an AAS file\n", filename);
 		botimport.FS_FCloseFile(fp);
 		return BLERR_WRONGAASFILEID;
 	} //end if
@@ -372,7 +372,7 @@ int AAS_LoadAASFile(char *filename)
 	//
 	if (header.version != AASVERSION_OLD && header.version != AASVERSION)
 	{
-		AAS_Error("aas file %s is version %i, not %i\n", filename, header.version, AASVERSION);
+		AAScriptError("aas file %s is version %i, not %i\n", filename, header.version, AASVERSION);
 		botimport.FS_FCloseFile(fp);
 		return BLERR_WRONGAASFILEVERSION;
 	} //end if
@@ -385,7 +385,7 @@ int AAS_LoadAASFile(char *filename)
 	aasworld.bspchecksum = atoi(LibVarGetString( "sv_mapChecksum"));
 	if (LittleLong(header.bspchecksum) != aasworld.bspchecksum)
 	{
-		AAS_Error("aas file %s is out of date\n", filename);
+		AAScriptError("aas file %s is out of date\n", filename);
 		botimport.FS_FCloseFile(fp);
 		return BLERR_WRONGAASFILEVERSION;
 	} //end if

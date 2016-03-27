@@ -1023,12 +1023,12 @@ typedef unsigned long  ulg;
 #ifdef _ZIP_DEBUG_
    int z_verbose = 0;
 #  define Assert(cond,msg) assert(cond);
-   //{if(!(cond)) Sys_Error(msg);}
-#  define Trace(x) {if (z_verbose>=0) Sys_Error x ;}
-#  define Tracev(x) {if (z_verbose>0) Sys_Error x ;}
-#  define Tracevv(x) {if (z_verbose>1) Sys_Error x ;}
-#  define Tracec(c,x) {if (z_verbose>0 && (c)) Sys_Error x ;}
-#  define Tracecv(c,x) {if (z_verbose>1 && (c)) Sys_Error x ;}
+   //{if(!(cond)) SyScriptError(msg);}
+#  define Trace(x) {if (z_verbose>=0) SyScriptError x ;}
+#  define Tracev(x) {if (z_verbose>0) SyScriptError x ;}
+#  define Tracevv(x) {if (z_verbose>1) SyScriptError x ;}
+#  define Tracec(c,x) {if (z_verbose>0 && (c)) SyScriptError x ;}
+#  define Tracecv(c,x) {if (z_verbose>1 && (c)) SyScriptError x ;}
 #else
 #  define Assert(cond,msg)
 #  define Trace(x)
@@ -1949,6 +1949,29 @@ extern int unzOpenCurrentFile (unzFile file)
     return UNZ_OK;
 }
 
+/*
+  Returns success if the current file is open
+*/
+extern qboolean unzIsCurrentFileOpen (unzFile file)
+{
+	unz_s* s;
+	file_in_zip_read_info_s* pfile_in_zip_read_info;
+
+	s = file;
+
+	if(!s)
+		return qfalse;
+
+	pfile_in_zip_read_info = s->pfile_in_zip_read;
+
+	if(!pfile_in_zip_read_info)
+		return qfalse;
+
+	if(!pfile_in_zip_read_info->read_buffer)
+		return qfalse;
+
+	return qtrue;
+}
 
 /*
   Read bytes from the current file.
@@ -2098,6 +2121,54 @@ extern long unztell (unzFile file)
 		return UNZ_PARAMERROR;
 
 	return (long)pfile_in_zip_read_info->stream.total_out;
+}
+
+/*
+Seek to the specified offset according to the origin in uncompressed data
+*/
+extern long unzseek (unzFile file, long int offset, int origin)
+{
+	int new_origin;
+	int current_origin;
+	int amount;
+	unz_s* s = file;
+	char data[32000];
+
+	current_origin = unztell(file);
+	new_origin = current_origin;
+
+	switch(origin)
+	{
+	case SEEK_CUR:
+		new_origin = offset + current_origin;
+		break;
+	case SEEK_SET:
+		new_origin = offset;
+		break;
+	case SEEK_END:
+		new_origin = s->cur_file_info.uncompressed_size - offset;
+		break;
+	}
+
+	if(new_origin < current_origin)
+	{
+		return -1;
+	}
+
+
+	for( ; current_origin < new_origin; current_origin += amount )
+	{
+		amount = new_origin - current_origin;
+
+		if(new_origin - current_origin > sizeof(data))
+		{
+			amount = sizeof( data );
+		}
+
+		unzReadCurrentFile(file, data, amount);
+	}
+
+	return 0;
 }
 
 

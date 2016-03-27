@@ -328,6 +328,8 @@ cvar_t	*r_ext_max_anisotropy;
 // IneQuation
 cvar_t	*r_ext_multisample_samples;
 
+cvar_t	*r_texturebits;
+
 
 static void AssertCvarRange(cvar_t * cv, float minVal, float maxVal, qboolean shouldBeIntegral)
 {
@@ -1445,6 +1447,7 @@ void R_Register(void)
 	r_compressNormalMaps = ri.Cvar_Get("r_compressNormalMaps", "0", CVAR_ARCHIVE | CVAR_LATCH);
 	r_heatHazeFix = ri.Cvar_Get("r_heatHazeFix", "0", CVAR_CHEAT);
 	r_noMarksOnTrisurfs = ri.Cvar_Get("r_noMarksOnTrisurfs", "1", CVAR_CHEAT);
+	r_texturebits = ri.Cvar_Get( "r_texturebits", "16", CVAR_ARCHIVE | CVAR_LATCH );
 
 	r_forceFog = ri.Cvar_Get("r_forceFog", "0", CVAR_CHEAT /* | CVAR_LATCH */ );
 	AssertCvarRange(r_forceFog, 0.0f, 1.0f, qfalse);
@@ -2119,9 +2122,11 @@ void R_Init(void)
 	err = glGetError();
 	if(err != GL_NO_ERROR)
 	{
-		ri.Error(ERR_FATAL, "R_Init() - glGetError() failed = 0x%x\n", err);
-		//ri.Printf(PRINT_ALL, "glGetError() = 0x%x\n", err);
+		//ri.Error(ERR_FATAL, "R_Init() - glGetError() failed = 0x%x\n", err);
+		ri.Printf(PRINT_ALL, "glGetError() = 0x%x\n", err);
 	}
+
+	tr.smpFrame = 0;
 
 	ri.Printf(PRINT_ALL, "----- finished R_Init -----\n");
 }
@@ -2285,9 +2290,6 @@ int	RE_GetShaderHeight(qhandle_t shader) {
 GetRefAPI
 =====================
 */
-//#if defined(__cplusplus)
-//extern "C" {
-//#endif
 refexport_t* GetRefAPI(int apiVersion, refimport_t * rimp)
 {
 	static refexport_t re;
@@ -2437,55 +2439,6 @@ refexport_t* GetRefAPI(int apiVersion, refimport_t * rimp)
 
 	return &re;
 }
-
-
-#ifndef REF_HARD_LINKED
-
-// this is only here so the functions in q_shared.c and q_math.c can link
-
-#if defined(__cplusplus)
-extern "C" {
-#endif
-void QDECL Com_Printf(const char *msg, ...)
-{
-	va_list         argptr;
-	char            text[1024];
-
-	va_start(argptr, msg);
-	Q_vsnprintf(text, sizeof(text), msg, argptr);
-	va_end(argptr);
-
-	ri.Printf(PRINT_ALL, "%s", text);
-}
-
-void QDECL Com_DPrintf(const char *msg, ...)
-{
-	va_list         argptr;
-	char            text[1024];
-
-	va_start(argptr, msg);
-	Q_vsnprintf(text, sizeof(text), msg, argptr);
-	va_end(argptr);
-
-	ri.Printf(PRINT_DEVELOPER, "%s", text);
-}
-
-void QDECL Com_Error(int level, const char *error, ...)
-{
-	va_list         argptr;
-	char            text[1024];
-
-	va_start(argptr, error);
-	Q_vsnprintf(text, sizeof(text), error, argptr);
-	va_end(argptr);
-
-	ri.Error(level, "%s", text);
-}
-#if defined(__cplusplus)
-}
-#endif
-
-#endif
 
 #if defined(__cplusplus)
 }

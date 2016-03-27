@@ -21,7 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 //
 #include "../qcommon/q_shared.h"
-#include "../renderer/tr_types.h"
+#include "../renderercommon/tr_types.h"
 #include "../game/bg_public.h"
 #include "../qcommon/tiki_local.h"
 #include "cg_public.h"
@@ -72,7 +72,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define TEAM_OVERLAY_MAXNAME_WIDTH	12
 #define TEAM_OVERLAY_MAXLOCATION_WIDTH	16
 
-#define	DEFAULT_MODEL			"sarge"
+#define	DEFAULT_MODEL			"american_army"
 
 //=================================================
 
@@ -385,12 +385,6 @@ typedef struct {
 	int			bobcycle;
 	float		xyspeed;
 	int     nextOrbitTime;
-	int		lastViewModelAnim; // su44: for MoHAA
-	float	viewModelAnimTime; // viewmodelanims
-	refEntity_t viewModelEnt;
-	tiki_t		*viewModelTiki;
-	//vec3_t		viewModelEntRot;
-	vec3_t g_vCurrentVMPosOffset; // cgi.anim->g_vCurrentVMPosOffset
 
 	float fCurrentViewBobAmp;
 	float fCurrentViewBobPhase;
@@ -518,120 +512,120 @@ extern	cg_t			cg;
 extern	centity_t		cg_entities[MAX_GENTITIES];
 extern	markPoly_t		cg_markPolys[MAX_MARK_POLYS];
 
-extern	vmCvar_t		cg_centertime;
-extern	vmCvar_t		cg_locationtime;
-extern	vmCvar_t		cg_runpitch;
-extern	vmCvar_t		cg_runroll;
-extern	vmCvar_t		cg_bobup;
-extern	vmCvar_t		cg_bobpitch;
-extern	vmCvar_t		cg_bobroll;
-extern	vmCvar_t		cg_swingSpeed;
-extern	vmCvar_t		cg_shadows;
-extern	vmCvar_t		cg_gibs;
-extern	vmCvar_t		cg_drawTimer;
-extern	vmCvar_t		cg_drawFPS;
-extern	vmCvar_t		cg_drawSnapshot;
-extern	vmCvar_t		cg_draw3dIcons;
-extern	vmCvar_t		cg_drawIcons;
-extern	vmCvar_t		cg_drawAmmoWarning;
-extern	vmCvar_t		cg_drawCrosshair;
-extern	vmCvar_t		cg_drawCrosshairNames;
-extern	vmCvar_t		cg_drawRewards;
-extern	vmCvar_t		cg_drawTeamOverlay;
-extern	vmCvar_t		cg_teamOverlayUserinfo;
-extern	vmCvar_t		cg_crosshairX;
-extern	vmCvar_t		cg_crosshairY;
-extern	vmCvar_t		cg_crosshairSize;
-extern	vmCvar_t		cg_crosshairHealth;
-extern	vmCvar_t		cg_drawStatus;
-extern	vmCvar_t		cg_draw2D;
-extern	vmCvar_t		cg_animSpeed;
-extern	vmCvar_t		cg_debugAnim;
-extern	vmCvar_t		cg_debugPosition;
-extern	vmCvar_t		cg_debugEvents;
-extern	vmCvar_t		cg_railTrailTime;
-extern	vmCvar_t		cg_errorDecay;
-extern	vmCvar_t		cg_nopredict;
-extern	vmCvar_t		cg_noPlayerAnims;
-extern	vmCvar_t		cg_showmiss;
-extern	vmCvar_t		cg_footsteps;
-extern	vmCvar_t		cg_addMarks;
-extern	vmCvar_t		cg_brassTime;
-extern	vmCvar_t		cg_gun_frame;
-extern	vmCvar_t		cg_gun_x;
-extern	vmCvar_t		cg_gun_y;
-extern	vmCvar_t		cg_gun_z;
-extern	vmCvar_t		cg_drawGun;
-extern	vmCvar_t		cg_viewsize;
-extern	vmCvar_t		cg_tracerChance;
-extern	vmCvar_t		cg_tracerWidth;
-extern	vmCvar_t		cg_tracerLength;
-extern	vmCvar_t		cg_autoswitch;
-extern	vmCvar_t		cg_ignore;
-extern	vmCvar_t		cg_simpleItems;
-extern	vmCvar_t		cg_fov;
-extern	vmCvar_t		cg_zoomFov;
-extern	vmCvar_t		cg_thirdPersonRange;
-extern	vmCvar_t		cg_thirdPersonAngle;
-extern	vmCvar_t		cg_thirdPerson;
-extern	vmCvar_t		cg_stereoSeparation;
-extern	vmCvar_t		cg_lagometer;
-extern	vmCvar_t		cg_drawAttacker;
-extern	vmCvar_t		cg_synchronousClients;
-extern	vmCvar_t		cg_teamChatTime;
-extern	vmCvar_t		cg_teamChatHeight;
-extern	vmCvar_t		cg_stats;
-extern	vmCvar_t 		cg_forceModel;
-extern	vmCvar_t 		cg_buildScript;
-extern	vmCvar_t		cg_paused;
-extern	vmCvar_t		cg_blood;
-extern	vmCvar_t		cg_predictItems;
-extern	vmCvar_t		cg_deferPlayers;
-extern	vmCvar_t		cg_drawFriend;
-extern	vmCvar_t		cg_teamChatsOnly;
-extern	vmCvar_t		cg_noVoiceChats;
-extern	vmCvar_t		cg_noVoiceText;
-extern  vmCvar_t		cg_scorePlum;
-extern	vmCvar_t		cg_smoothClients;
-extern	vmCvar_t		pmove_fixed;
-extern	vmCvar_t		pmove_msec;
-//extern	vmCvar_t		cg_pmove_fixed;
-extern	vmCvar_t		cg_cameraOrbit;
-extern	vmCvar_t		cg_cameraOrbitDelay;
-extern	vmCvar_t		cg_timescaleFadeEnd;
-extern	vmCvar_t		cg_timescaleFadeSpeed;
-extern	vmCvar_t		cg_timescale;
-extern	vmCvar_t		cg_cameraMode;
-extern  vmCvar_t		cg_smallFont;
-extern  vmCvar_t		cg_bigFont;
-extern	vmCvar_t		cg_noTaunt;
-extern	vmCvar_t		cg_noProjectileTrail;
-extern	vmCvar_t		cg_trueLightning;
+extern	cvar_t			*cg_centertime;
+extern	cvar_t			*cg_locationtime;
+extern	cvar_t			*cg_runpitch;
+extern	cvar_t			*cg_runroll;
+extern	cvar_t			*cg_bobup;
+extern	cvar_t			*cg_bobpitch;
+extern	cvar_t			*cg_bobroll;
+extern	cvar_t			*cg_swingSpeed;
+extern	cvar_t			*cg_shadows;
+extern	cvar_t			*cg_gibs;
+extern	cvar_t			*cg_drawTimer;
+extern	cvar_t			*cg_drawFPS;
+extern	cvar_t			*cg_drawSnapshot;
+extern	cvar_t			*cg_draw3dIcons;
+extern	cvar_t			*cg_drawIcons;
+extern	cvar_t			*cg_drawAmmoWarning;
+extern	cvar_t			*cg_drawCrosshair;
+extern	cvar_t			*cg_drawCrosshairNames;
+extern	cvar_t			*cg_drawRewards;
+extern	cvar_t			*cg_drawTeamOverlay;
+extern	cvar_t			*cg_teamOverlayUserinfo;
+extern	cvar_t			*cg_crosshairX;
+extern	cvar_t			*cg_crosshairY;
+extern	cvar_t			*cg_crosshairSize;
+extern	cvar_t			*cg_crosshairHealth;
+extern	cvar_t			*cg_drawStatus;
+extern	cvar_t			*cg_draw2D;
+extern	cvar_t			*cg_animSpeed;
+extern	cvar_t			*cg_debugAnim;
+extern	cvar_t			*cg_debugPosition;
+extern	cvar_t			*cg_debugEvents;
+extern	cvar_t			*cg_railTrailTime;
+extern	cvar_t			*cg_errorDecay;
+extern	cvar_t			*cg_nopredict;
+extern	cvar_t			*cg_noPlayerAnims;
+extern	cvar_t			*cg_showmiss;
+extern	cvar_t			*cg_footsteps;
+extern	cvar_t			*cg_addMarks;
+extern	cvar_t			*cg_brassTime;
+extern	cvar_t			*cg_gun_frame;
+extern	cvar_t			*cg_gun_x;
+extern	cvar_t			*cg_gun_y;
+extern	cvar_t			*cg_gun_z;
+extern	cvar_t			*cg_drawGun;
+extern	cvar_t			*cg_viewsize;
+extern	cvar_t			*cg_tracerChance;
+extern	cvar_t			*cg_tracerWidth;
+extern	cvar_t			*cg_tracerLength;
+extern	cvar_t			*cg_autoswitch;
+extern	cvar_t			*cg_ignore;
+extern	cvar_t			*cg_simpleItems;
+extern	cvar_t			*cg_fov;
+extern	cvar_t			*cg_zoomFov;
+extern	cvar_t			*cg_thirdPersonRange;
+extern	cvar_t			*cg_thirdPersonAngle;
+extern	cvar_t			*cg_thirdPerson;
+extern	cvar_t			*cg_stereoSeparation;
+extern	cvar_t			*cg_lagometer;
+extern	cvar_t			*cg_drawAttacker;
+extern	cvar_t			*cg_synchronousClients;
+extern	cvar_t			*cg_teamChatTime;
+extern	cvar_t			*cg_teamChatHeight;
+extern	cvar_t			*cg_stats;
+extern	cvar_t			*cg_forceModel;
+extern	cvar_t			*cg_buildScript;
+extern	cvar_t			*cg_paused;
+extern	cvar_t			*cg_blood;
+extern	cvar_t			*cg_predictItems;
+extern	cvar_t			*cg_deferPlayers;
+extern	cvar_t			*cg_drawFriend;
+extern	cvar_t			*cg_teamChatsOnly;
+extern	cvar_t			*cg_noVoiceChats;
+extern	cvar_t			*cg_noVoiceText;
+extern  cvar_t			*cg_scorePlum;
+extern	cvar_t			*cg_smoothClients;
+extern	cvar_t			*pmove_fixed;
+extern	cvar_t			*pmove_msec;
+//extern	cvar_t		*cg_pmove_fixed;
+extern	cvar_t		*cg_cameraOrbit;
+extern	cvar_t		*cg_cameraOrbitDelay;
+extern	cvar_t		*cg_timescaleFadeEnd;
+extern	cvar_t		*cg_timescaleFadeSpeed;
+extern	cvar_t		*cg_timescale;
+extern	cvar_t		*cg_cameraMode;
+extern  cvar_t		*cg_smallFont;
+extern  cvar_t		*cg_bigFont;
+extern	cvar_t		*cg_noTaunt;
+extern	cvar_t		*cg_noProjectileTrail;
+extern	cvar_t		*cg_trueLightning;
 
-extern	vmCvar_t		vm_offset_max;
-extern	vmCvar_t		vm_offset_speed;
-extern	vmCvar_t		vm_sway_front;
-extern	vmCvar_t		vm_sway_side;
-extern	vmCvar_t		vm_sway_up;
-extern	vmCvar_t		vm_offset_air_front;
-extern	vmCvar_t		vm_offset_air_side;
-extern	vmCvar_t		vm_offset_air_up;
-extern	vmCvar_t		vm_offset_crouch_front;
-extern	vmCvar_t		vm_offset_crouch_side;
-extern	vmCvar_t		vm_offset_crouch_up;
-extern	vmCvar_t		vm_offset_rocketcrouch_front;
-extern	vmCvar_t		vm_offset_rocketcrouch_side;
-extern	vmCvar_t		vm_offset_rocketcrouch_up;
-extern	vmCvar_t		vm_offset_shotguncrouch_front;
-extern	vmCvar_t		vm_offset_shotguncrouch_side;
-extern	vmCvar_t		vm_offset_shotguncrouch_up;
-extern	vmCvar_t		vm_offset_vel_base;
-extern	vmCvar_t		vm_offset_vel_front;
-extern	vmCvar_t		vm_offset_vel_side;
-extern	vmCvar_t		vm_offset_vel_up;
-extern	vmCvar_t		vm_offset_upvel;
-extern	vmCvar_t		vm_lean_lower;
-extern	vmCvar_t		cg_debugCGMessages; // su44: for debuging in cg_parsemsg.c
+extern	cvar_t		*vm_offset_max;
+extern	cvar_t		*vm_offset_speed;
+extern	cvar_t		*vm_sway_front;
+extern	cvar_t		*vm_sway_side;
+extern	cvar_t		*vm_sway_up;
+extern	cvar_t		*vm_offset_air_front;
+extern	cvar_t		*vm_offset_air_side;
+extern	cvar_t		*vm_offset_air_up;
+extern	cvar_t		*vm_offset_crouch_front;
+extern	cvar_t		*vm_offset_crouch_side;
+extern	cvar_t		*vm_offset_crouch_up;
+extern	cvar_t		*vm_offset_rocketcrouch_front;
+extern	cvar_t		*vm_offset_rocketcrouch_side;
+extern	cvar_t		*vm_offset_rocketcrouch_up;
+extern	cvar_t		*vm_offset_shotguncrouch_front;
+extern	cvar_t		*vm_offset_shotguncrouch_side;
+extern	cvar_t		*vm_offset_shotguncrouch_up;
+extern	cvar_t		*vm_offset_vel_base;
+extern	cvar_t		*vm_offset_vel_front;
+extern	cvar_t		*vm_offset_vel_side;
+extern	cvar_t		*vm_offset_vel_up;
+extern	cvar_t		*vm_offset_upvel;
+extern	cvar_t		*vm_lean_lower;
+extern	cvar_t		*cg_debugCGMessages; // su44: for debuging in cg_parsemsg.c
 
 // UBERSOUND
 #define UBERSOUND_FILE	"ubersound/ubersound.scr"
@@ -666,6 +660,9 @@ typedef struct ubersound_s {
 //
 // cg_main.c
 //
+extern	clientGameImport_t		cgi;
+extern	clientGameExport_t		cge;
+
 const char *CG_ConfigString( int index );
 const char *CG_Argv( int arg );
 
@@ -710,6 +707,7 @@ void CG_Draw2D( int serverTime, stereoFrame_t stereoView, qboolean demoPlayback 
 void CG_AdjustFrom640( float *x, float *y, float *w, float *h );
 void CG_FillRect( float x, float y, float width, float height, const float *color );
 void CG_DrawPic( float x, float y, float width, float height, qhandle_t hShader );
+int CG_DrawStrlen( const char *str );
 
 float	*CG_FadeColor( int startMsec, int totalMsec );
 float *CG_TeamColor( int team );
@@ -721,6 +719,9 @@ void UI_DrawProportionalString( int x, int y, const char* str, int style, vec4_t
 void CG_DrawRect( float x, float y, float width, float height, float size, const float *color );
 void CG_DrawSides(float x, float y, float w, float h, float size);
 void CG_DrawTopBottom(float x, float y, float w, float h, float size);
+void CG_DrawBigString( int x, int y, const char *s, float alpha );
+void CG_DrawStringExt( int x, int y, const char *string, const float *setColor,
+	qboolean forceColor, qboolean shadow, int charWidth, int charHeight, int maxChars );
 
 
 //
@@ -781,6 +782,8 @@ void CG_BuildSolidList( void );
 int	CG_PointContents( const vec3_t point, int passEntityNum );
 void CG_Trace( trace_t *result, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end,
 					 int skipNumber, int mask );
+void CG_PlayerTrace( trace_t *result, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end,
+					 int skipNumber, int mask, int capsule, qboolean traceDeep );
 void CG_PredictPlayerState( void );
 
 //
@@ -911,6 +914,14 @@ void CG_CentBoneLocal2World(bone_t *b, centity_t *cent, vec3_t outPos, vec3_t ou
 void CG_CentBoneIndexLocal2World(int boneIndex, centity_t *cent, vec3_t outPos, vec3_t outRot);
 
 //
+// cg_viewmodelanim.c
+//
+void CG_RegisterItemName( int index, const char *str );
+const char *CG_GetItemName( int index );
+void CG_AddViewModelAnimAttachment( refEntity_t *ent, centity_t *cent );
+void CG_ViewModelAnim();
+
+//
 // cg_eventSystem.c
 //
 void CG_InitEventSystem(); // called once from CG_Init
@@ -920,218 +931,11 @@ void CG_ProcessPendingEvents(); // called every frame
 
 //===============================================
 
-//
-// system traps
-// These functions are how the cgame communicates with the main game system
-//
-
-// print message on the local console
-void		trap_Print( const char *fmt );
-
-// abort the game
-void		trap_Error( const char *fmt );
-
-// milliseconds should only be used for performance tuning, never
-// for anything game related.  Get time from the CG_DrawActiveFrame parameter
-int			trap_Milliseconds( void );
-
-// console variable interaction
-void		trap_Cvar_Register( vmCvar_t *vmCvar, const char *varName, const char *defaultValue, int flags );
-void		trap_Cvar_Update( vmCvar_t *vmCvar );
-void		trap_Cvar_Set( const char *var_name, const char *value );
-void		trap_Cvar_VariableStringBuffer( const char *var_name, char *buffer, int bufsize );
-
-// ServerCommand and ConsoleCommand parameter access
-int			trap_Argc( void );
-void		trap_Argv( int n, char *buffer, int bufferLength );
-void		trap_Args( char *buffer, int bufferLength );
-
-// filesystem access
-// returns length of file
-int			trap_FS_FOpenFile( const char *qpath, fileHandle_t *f, fsMode_t mode );
-void		trap_FS_Read( void *buffer, int len, fileHandle_t f );
-void		trap_FS_Write( const void *buffer, int len, fileHandle_t f );
-void		trap_FS_FCloseFile( fileHandle_t f );
-int			trap_FS_Seek( fileHandle_t f, long offset, int origin ); // fsOrigin_t
-
-// add commands to the local console as if they were typed in
-// for map changing, etc.  The command is not executed immediately,
-// but will be executed in order the next time console commands
-// are processed
-void		trap_SendConsoleCommand( const char *text );
-
-// register a command name so the console can perform command completion.
-// FIXME: replace this with a normal console command "defineCommand"?
-void		trap_AddCommand( const char *cmdName );
-
-// send a string to the server over the network
-void		trap_SendClientCommand( const char *s );
-
-// force a screen update, only used during gamestate load
-void		trap_UpdateScreen( void );
-
-// model collision
-void		trap_CM_LoadMap( const char *mapname );
-int			trap_CM_NumInlineModels( void );
-clipHandle_t trap_CM_InlineModel( int index );		// 0 = world, 1+ = bmodels
-clipHandle_t trap_CM_TempBoxModel( const vec3_t mins, const vec3_t maxs );
-int			trap_CM_PointContents( const vec3_t p, clipHandle_t model );
-int			trap_CM_TransformedPointContents( const vec3_t p, clipHandle_t model, const vec3_t origin, const vec3_t angles );
-void		trap_CM_BoxTrace( trace_t *results, const vec3_t start, const vec3_t end,
-					  const vec3_t mins, const vec3_t maxs,
-					  clipHandle_t model, int brushmask );
-void		trap_CM_TransformedBoxTrace( trace_t *results, const vec3_t start, const vec3_t end,
-					  const vec3_t mins, const vec3_t maxs,
-					  clipHandle_t model, int brushmask,
-					  const vec3_t origin, const vec3_t angles );
-
-// Returns the projection of a polygon onto the solid brushes in the world
-int			trap_CM_MarkFragments( int numPoints, const vec3_t *points,
-			const vec3_t projection,
-			int maxPoints, vec3_t pointBuffer,
-			int maxFragments, markFragment_t *fragmentBuffer );
-
-// normal sounds will have their volume dynamically changed as their entity
-// moves and the listener moves
-void		trap_S_StartSound( vec3_t origin, int entityNum, int entchannel, sfxHandle_t sfx );
-void		trap_S_StopLoopingSound(int entnum);
-
-// a local sound is always played full volume
-void		trap_S_StartLocalSound( sfxHandle_t sfx, int channelNum );
-void		trap_S_ClearLoopingSounds( qboolean killall );
-void		trap_S_AddLoopingSound( int entityNum, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfx );
-void		trap_S_AddRealLoopingSound( int entityNum, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfx );
-void		trap_S_UpdateEntityPosition( int entityNum, const vec3_t origin );
-
-// respatialize recalculates the volumes of sound as they should be heard by the
-// given entityNum and position
-void		trap_S_Respatialize( int entityNum, const vec3_t origin, vec3_t axis[3], int inwater );
-sfxHandle_t	trap_S_RegisterSound( const char *sample, qboolean compressed );		// returns buzz if not found
-void		trap_S_StartBackgroundTrack( const char *intro, const char *loop );	// empty name stops music
-void	trap_S_StopBackgroundTrack( void );
-
-
-void		trap_R_LoadWorldMap( const char *mapname );
-
-// all media should be registered during level startup to prevent
-// hitches during gameplay
-qhandle_t	trap_R_RegisterModel( const char *name );			// returns rgb axis if not found
-qhandle_t	trap_R_RegisterSkin( const char *name );			// returns all white if not found
-qhandle_t	trap_R_RegisterShader( const char *name );			// returns all white if not found
-qhandle_t	trap_R_RegisterShaderNoMip( const char *name );			// returns all white if not found
-
-// a scene is built up by calls to R_ClearScene and the various R_Add functions.
-// Nothing is drawn until R_RenderScene is called.
-void		trap_R_ClearScene( void );
-void		trap_R_AddRefEntityToScene( const refEntity_t *re );
-
-// polys are intended for simple wall marks, not really for doing
-// significant construction
-void		trap_R_AddPolyToScene( qhandle_t hShader , int numVerts, const polyVert_t *verts );
-void		trap_R_AddPolysToScene( qhandle_t hShader , int numVerts, const polyVert_t *verts, int numPolys );
-void		trap_R_AddLightToScene( const vec3_t org, float intensity, float r, float g, float b );
-int			trap_R_LightForPoint( vec3_t point, vec3_t ambientLight, vec3_t directedLight, vec3_t lightDir );
-void		trap_R_RenderScene( const refdef_t *fd );
-void		trap_R_SetColor( const float *rgba );	// NULL = 1,1,1,1
-void		trap_R_DrawStretchPic( float x, float y, float w, float h,
-			float s1, float t1, float s2, float t2, qhandle_t hShader );
-void		trap_R_ModelBounds( clipHandle_t model, vec3_t mins, vec3_t maxs );
-int			trap_R_LerpTag( orientation_t *tag, clipHandle_t mod, int startFrame, int endFrame,
-					   float frac, const char *tagName );
-void		trap_R_RemapShader( const char *oldShader, const char *newShader, const char *timeOffset );
-
-// The glconfig_t will not change during the life of a cgame.
-// If it needs to change, the entire cgame will be restarted, because
-// all the qhandle_t are then invalid.
-void		trap_GetGlconfig( glconfig_t *glconfig );
-
-// the gamestate should be grabbed at startup, and whenever a
-// configstring changes
-void		trap_GetGameState( gameState_t *gamestate );
-
-// cgame will poll each frame to see if a newer snapshot has arrived
-// that it is interested in.  The time is returned seperately so that
-// snapshot latency can be calculated.
-void		trap_GetCurrentSnapshotNumber( int *snapshotNumber, int *serverTime );
-
-// a snapshot get can fail if the snapshot (or the entties it holds) is so
-// old that it has fallen out of the client system queue
-qboolean	trap_GetSnapshot( int snapshotNumber, snapshot_t *snapshot );
-
-// retrieve a text command from the server stream
-// the current snapshot will hold the number of the most recent command
-// qfalse can be returned if the client system handled the command
-// argc() / argv() can be used to examine the parameters of the command
-qboolean	trap_GetServerCommand( int serverCommandNumber );
-
-// returns the most recent command number that can be passed to GetUserCmd
-// this will always be at least one higher than the number in the current
-// snapshot, and it may be quite a few higher if it is a fast computer on
-// a lagged connection
-int			trap_GetCurrentCmdNumber( void );
-
-qboolean	trap_GetUserCmd( int cmdNumber, usercmd_t *ucmd );
-
-// used for the weapon select and zoom
-void		trap_SetUserCmdValue( int stateValue, float sensitivityScale );
-
-// aids for VM testing
-void		testPrintInt( char *string, int i );
-void		testPrintFloat( char *string, float f );
-
-int			trap_MemoryRemaining( void );
-void		trap_R_RegisterFont(const char *fontName, int pointSize, fontInfo_t *font);
-qboolean	trap_Key_IsDown( int keynum );
-int			trap_Key_GetCatcher( void );
-void		trap_Key_SetCatcher( int catcher );
-int			trap_Key_GetKey( const char *binding );
-
-// IneQuation, wombat
-int			trap_R_Text_Width(fontInfo_t *font, const char *text, int limit, qboolean useColourCodes);
-int			trap_R_Text_Height(fontInfo_t *font, const char *text, int limit, qboolean useColourCodes);
-void		trap_R_Text_Paint(fontInfo_t *font, float x, float y, float scale, float alpha, const char *text, float adjust, int limit, qboolean useColourCodes, qboolean is640);
-void		trap_R_Text_PaintChar(fontInfo_t *font, float x, float y, float scale, int c, qboolean is640);
-// su44: MoHAA TIKI model system API
-tiki_t*		trap_TIKI_RegisterModel( const char *fname );
-bone_t*		trap_TIKI_GetBones( int numBones );
-void		trap_TIKI_SetChannels( struct tiki_s *tiki, int animIndex, float animTime, float animWeight, bone_t *bones );
-void		trap_TIKI_AppendFrameBoundsAndRadius( struct tiki_s *tiki, int animIndex, float animTime, float *outRadius, vec3_t outBounds[2] );
-void		trap_TIKI_Animate( struct tiki_s *tiki, bone_t *bones );
-int			trap_TIKI_GetBoneNameIndex( const char *boneName );
-int			trap_TIKI_GetAnimIndex( tiki_t *tiki, const char *animName ); // returns -1 if not found
-int			trap_TIKI_GetBoneIndex( tiki_t *tiki, const char *boneName ); // returns -1 if not found
-void		trap_SetEyeInfo( vec3_t origin, vec3_t angles );
-// su44: these are here only for cg_parsemsg.c
-int			trap_MSG_ReadBits( int bits );
-int			trap_MSG_ReadByte() ;
-int			trap_MSG_ReadShort();
-float		trap_MSG_ReadCoord();
-void		trap_MSG_ReadDir( vec3_t dir );
-char		*trap_MSG_ReadString();
-// su44: I need these for cg_beam.c
-int			trap_R_GetShaderWidth(qhandle_t shader);
-int			trap_R_GetShaderHeight(qhandle_t shader);
-
 typedef enum {
   SYSTEM_PRINT,
   CHAT_PRINT,
   TEAMCHAT_PRINT
 } q3print_t;
-
-
-int trap_CIN_PlayCinematic( const char *arg0, int xpos, int ypos, int width, int height, int bits);
-e_status trap_CIN_StopCinematic(int handle);
-e_status trap_CIN_RunCinematic (int handle);
-void trap_CIN_DrawCinematic (int handle);
-void trap_CIN_SetExtents (int handle, int x, int y, int w, int h);
-
-void trap_SnapVector( float *v );
-
-qboolean	trap_loadCamera(const char *name);
-void		trap_startCamera(int time);
-qboolean	trap_getCameraInfo(int time, vec3_t *origin, vec3_t *angles);
-
-qboolean	trap_GetEntityToken( char *buffer, int bufferSize );
 
 void	CG_ClearParticles (void);
 void	CG_AddParticles (void);

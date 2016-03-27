@@ -966,7 +966,7 @@ void AAS_WriteRouteCache(void)
 	botimport.FS_FOpenFile( filename, &fp, FS_WRITE );
 	if (!fp)
 	{
-		AAS_Error("Unable to open file: %s\n", filename);
+		AAScriptError("Unable to open file: %s\n", filename);
 		return;
 	} //end if
 	//create the header
@@ -1065,34 +1065,34 @@ int AAS_ReadRouteCache(void)
 	botimport.FS_Read(&routecacheheader, sizeof(routecacheheader_t), fp );
 	if (routecacheheader.ident != RCID)
 	{
-		AAS_Error("%s is not a route cache dump\n");
+		AAScriptError("%s is not a route cache dump\n");
 		return qfalse;
 	} //end if
 	if (routecacheheader.version != RCVERSION)
 	{
-		AAS_Error("route cache dump has wrong version %d, should be %d", routecacheheader.version, RCVERSION);
+		AAScriptError("route cache dump has wrong version %d, should be %d", routecacheheader.version, RCVERSION);
 		return qfalse;
 	} //end if
 	if (routecacheheader.numareas != aasworld.numareas)
 	{
-		//AAS_Error("route cache dump has wrong number of areas\n");
+		//AAScriptError("route cache dump has wrong number of areas\n");
 		return qfalse;
 	} //end if
 	if (routecacheheader.numclusters != aasworld.numclusters)
 	{
-		//AAS_Error("route cache dump has wrong number of clusters\n");
+		//AAScriptError("route cache dump has wrong number of clusters\n");
 		return qfalse;
 	} //end if
 	if (routecacheheader.areacrc !=
 		CRC_ProcessString( (unsigned char *)aasworld.areas, sizeof(aas_area_t) * aasworld.numareas ))
 	{
-		//AAS_Error("route cache dump area CRC incorrect\n");
+		//AAScriptError("route cache dump area CRC incorrect\n");
 		return qfalse;
 	} //end if
 	if (routecacheheader.clustercrc !=
 		CRC_ProcessString( (unsigned char *)aasworld.clusters, sizeof(aas_cluster_t) * aasworld.numclusters ))
 	{
-		//AAS_Error("route cache dump cluster CRC incorrect\n");
+		//AAScriptError("route cache dump cluster CRC incorrect\n");
 		return qfalse;
 	} //end if
 	//read all the portal cache

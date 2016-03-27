@@ -24,6 +24,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "q_shared.h"
 #include "qcommon.h"
 
+#ifndef STANDALONE
+#include "server.h"
+#endif
+
 cvar_t		*cvar_vars;
 cvar_t		*cvar_cheats;
 int			cvar_modifiedFlags;
@@ -34,8 +38,6 @@ int			cvar_numIndexes;
 
 #define FILE_HASH_SIZE		256
 static	cvar_t*		hashTable[FILE_HASH_SIZE];
-
-cvar_t *Cvar_Set2( const char *var_name, const char *value, qboolean force);
 
 /*
 ================
@@ -84,7 +86,7 @@ static qboolean Cvar_ValidateString( const char *s ) {
 Cvar_FindVar
 ============
 */
-static cvar_t *Cvar_FindVar( const char *var_name ) {
+cvar_t *Cvar_FindVar( const char *var_name ) {
 	cvar_t	*var;
 	long hash;
 
@@ -161,6 +163,68 @@ void Cvar_VariableStringBuffer( const char *var_name, char *buffer, int bufsize 
 	}
 }
 
+
+/*
+============
+Cvar_CompleteVariable
+============
+*/
+const char *Cvar_CompleteVariable( const char *partial )
+{
+	cvar_t *cvar;
+	size_t len;
+
+	len = strlen( partial );
+	if( !len ) {
+		return NULL;
+	}
+
+	for( cvar = cvar_vars; cvar != NULL; cvar = cvar->next )
+	{
+		if( !Q_stricmp( partial, cvar->name ) ) {
+			return cvar->name;
+		}
+	}
+
+	for( cvar = cvar_vars; cvar != NULL; cvar = cvar->next )
+	{
+		if( !Q_stricmpn( partial, cvar->name, len ) ) {
+			return cvar->name;
+		}
+	}
+
+	return NULL;
+}
+
+/*
+============
+Cvar_CompleteVariableByNumber
+============
+*/
+const char *Cvar_CompleteVariableByNumber( const char *partial, int number )
+{
+	cvar_t *cvar;
+	size_t len;
+
+	len = strlen( partial );
+	if( !len ) {
+		return NULL;
+	}
+
+	for( cvar = cvar_vars; cvar != NULL; cvar = cvar->next )
+	{
+		if( !Q_stricmpn( partial, cvar->name, len ) )
+		{
+			if( !number ) {
+				return cvar->name;
+			}
+			number--;
+		}
+	}
+
+	return NULL;
+}
+
 /*
 ============
 Cvar_Flags
@@ -189,6 +253,21 @@ void	Cvar_CommandCompletion( void(*callback)(const char *s) ) {
 	}
 }
 
+/*
+============
+Cvar_SetDefault
+============
+*/
+void Cvar_SetDefault( cvar_t *var, const char *var_value )
+{
+	if( !strcmp( var->resetString, var_value ) ) {
+		return;
+	}
+
+	var->flags |= CVAR_USER_CREATED;
+	Z_Free( var->resetString );
+	var->resetString = CopyString( var_value );
+}
 
 /*
 ============
@@ -218,6 +297,10 @@ cvar_t *Cvar_Get( const char *var_name, const char *var_value, int flags ) {
 	}
 #endif
 
+	if( ( flags & CVAR_ARCHIVE ) && ( flags & CVAR_SAVEGAME ) ) {
+		Com_Error( ERR_FATAL, "Cvar_Get: cvar flagged with both CVAR_ARCHIVE and CVAR_SAVEGAME" );
+	}
+
 	var = Cvar_FindVar (var_name);
 	if ( var ) {
 		// if the C code is now specifying a variable that the user already
@@ -239,7 +322,7 @@ cvar_t *Cvar_Get( const char *var_name, const char *var_value, int flags ) {
 			// we don't have a reset string yet
 			Z_Free( var->resetString );
 			var->resetString = CopyString( var_value );
-		} else if ( var_value[0] && strcmp( var->resetString, var_value ) ) {
+		} else if ( var_value[0] && strcmp( var->resetString, var_value ) && developer->integer == 2 ) {
 			Com_DPrintf( "Warning: cvar \"%s\" given initial values: \"%s\" and \"%s\"\n",
 				var_name, var->resetString, var_value );
 		}
@@ -294,6 +377,8 @@ cvar_t *Cvar_Get( const char *var_name, const char *var_value, int flags ) {
 	return var;
 }
 
+qboolean cvar_global_force = qfalse;
+
 /*
 ============
 Cvar_Set2
@@ -302,19 +387,14 @@ Cvar_Set2
 cvar_t *Cvar_Set2( const char *var_name, const char *value, qboolean force ) {
 	cvar_t	*var;
 
-//	Com_DPrintf( "Cvar_Set2: %s %s\n", var_name, value );
+	if( developer && developer->integer == 2 ) {
+		Com_DPrintf( "Cvar_Set2: %s %s\n", var_name, value );
+	}
 
 	if ( !Cvar_ValidateString( var_name ) ) {
 		Com_Printf("invalid cvar name string: %s\n", var_name );
 		var_name = "BADNAME";
 	}
-
-#if 0	// FIXME
-	if ( value && !Cvar_ValidateString( value ) ) {
-		Com_Printf("invalid cvar value string: %s\n", value );
-		var_value = "BADVALUE";
-	}
-#endif
 
 	var = Cvar_FindVar (var_name);
 	if (!var) {
@@ -322,7 +402,7 @@ cvar_t *Cvar_Set2( const char *var_name, const char *value, qboolean force ) {
 			return NULL;
 		}
 		// create it
-		if ( !force ) {
+		if ( !force && !cvar_global_force ) {
 			return Cvar_Get( var_name, value, CVAR_USER_CREATED );
 		} else {
 			return Cvar_Get (var_name, value, 0);
@@ -420,6 +500,19 @@ void Cvar_Set( const char *var_name, const char *value) {
 
 /*
 ============
+Cvar_Next
+============
+*/
+cvar_t *Cvar_Next( cvar_t *var ) {
+	if( var ) {
+		return var->next;
+	} else {
+		return cvar_vars;
+	}
+}
+
+/*
+============
 Cvar_SetLatched
 ============
 */
@@ -508,14 +601,14 @@ qboolean Cvar_Command( void ) {
 
 	// perform a variable print or set
 	if ( Cmd_Argc() == 1 ) {
-		Com_Printf ("\"%s\" is:\"%s" S_COLOR_WHITE "\"",
+		Com_Printf ("\"%s\" is:\"%s\"",
 				v->name, v->string );
 
 		if ( !( v->flags & CVAR_ROM ) ) {
 			if ( !Q_stricmp( v->string, v->resetString ) ) {
 				Com_Printf (", the default" );
 			} else {
-				Com_Printf (" default:\"%s" S_COLOR_WHITE "\"",
+				Com_Printf (" default:\"%s\"",
 						v->resetString );
 			}
 		}
@@ -564,7 +657,8 @@ weren't declared in C code.
 ============
 */
 void Cvar_Set_f( void ) {
-	int		i, c, l, len;
+	int		i, c;
+	size_t	l, len;
 	char	combined[MAX_STRING_TOKENS];
 
 	c = Cmd_Argc();
@@ -846,7 +940,41 @@ void Cvar_Restart_f( void ) {
 	}
 }
 
+/*
+============
+Cvar_SaveGameRestart_f
+============
+*/
+void Cvar_SaveGameRestart_f( void ) {
+	cvar_t	*var;
+	cvar_t	**prev;
 
+	prev = &cvar_vars;
+	while( 1 ) {
+		var = *prev;
+		if( !var ) {
+			break;
+		}
+
+		if( !( var->flags & CVAR_SAVEGAME ) ) {
+			prev = &var->next;
+			continue;
+		}
+
+		if( var->flags & ( CVAR_ROM | CVAR_INIT | CVAR_NORESTART ) ) {
+			prev = &var->next;
+			continue;
+		}
+
+		Cvar_Set( var->name, var->resetString );
+
+		prev = &var->next;
+	}
+
+#ifndef STANDALONE
+	SV_ClearSvsTimeFixups();
+#endif
+}
 
 /*
 =====================

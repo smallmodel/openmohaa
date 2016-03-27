@@ -805,7 +805,7 @@ static void R_LoadLightmaps(lump_t * l, const char *bspName)
 			R_SyncRenderThread();
 
 			// load HDR lightmaps
-			lightmapFiles = ri.FS_ListFiles(mapName, ".hdr", &numLightmaps);
+			lightmapFiles = ri.FS_ListFiles(mapName, ".hdr", qfalse, &numLightmaps);
 
 			qsort(lightmapFiles, numLightmaps, sizeof(char *), LightmapNameCompare);
 
@@ -828,12 +828,13 @@ static void R_LoadLightmaps(lump_t * l, const char *bspName)
 					ri.Printf(PRINT_ALL, "...loading external lightmap as RGB 16 bit half HDR '%s/%s'\n", mapName, lightmapFiles[i]);
 
 					width = height = 0;
-					//LoadRGBEToFloats(va("%s/%s", mapName, lightmapFiles[i]), &hdrImage, &width, &height, qtrue, qfalse, qtrue);
-					LoadRGBEToHalfs(va("%s/%s", mapName, lightmapFiles[i]), &hdrImage, &width, &height);
+					LoadRGBEToFloats(va("%s/%s", mapName, lightmapFiles[i]), &hdrImage, &width, &height, qtrue, qfalse, qtrue);
+					//LoadRGBEToHalfs(va("%s/%s", mapName, lightmapFiles[i]), &hdrImage, &width, &height);
 
 					//ri.Printf(PRINT_ALL, "...converted '%s/%s' to HALF format\n", mapName, lightmapFiles[i]);
 
 					image = R_AllocImage(va("%s/%s", mapName, lightmapFiles[i]), qtrue);
+
 					if(!image) {
 						Com_Dealloc(hdrImage);
 						break;
@@ -912,11 +913,11 @@ static void R_LoadLightmaps(lump_t * l, const char *bspName)
 			if(tr.worldDeluxeMapping)
 			{
 				// load deluxemaps
-				lightmapFiles = ri.FS_ListFiles(mapName, ".png", &numLightmaps);
+				lightmapFiles = ri.FS_ListFiles( mapName, ".png", qfalse, &numLightmaps );
 
 				if(!lightmapFiles || !numLightmaps)
 				{
-					lightmapFiles = ri.FS_ListFiles(mapName, ".tga", &numLightmaps);
+					lightmapFiles = ri.FS_ListFiles( mapName, ".tga", qfalse, &numLightmaps );
 
 					if(!lightmapFiles || !numLightmaps)
 					{
@@ -940,11 +941,11 @@ static void R_LoadLightmaps(lump_t * l, const char *bspName)
 		}
 		else
 		{
-			lightmapFiles = ri.FS_ListFiles(mapName, ".png", &numLightmaps);
+			lightmapFiles = ri.FS_ListFiles( mapName, ".png", qfalse, &numLightmaps );
 
 			if(!lightmapFiles || !numLightmaps)
 			{
-				lightmapFiles = ri.FS_ListFiles(mapName, ".tga", &numLightmaps);
+				lightmapFiles = ri.FS_ListFiles( mapName, ".tga", qfalse, &numLightmaps );
 
 				if(!lightmapFiles || !numLightmaps)
 				{

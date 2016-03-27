@@ -35,10 +35,10 @@ void CG_LoadingString( const char *s ) {
 
 	Q_strncpyz( cg.infoScreenText, s, sizeof( cg.infoScreenText ) );
 	Q_snprintf( buffer, sizeof(buffer), "%f", (float)cgs.loadingStage/6 );
-	trap_Cvar_Set( "loadingbar", buffer );
+	cgi.Cvar_Set( "loadingbar", buffer );
 
 	cgs.loadingStage++;
-	trap_UpdateScreen();
+	cgi.UpdateScreen();
 }
 
 /*

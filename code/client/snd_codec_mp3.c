@@ -543,7 +543,7 @@ snd_stream_t *S_MP3_CodecOpenStream(const char *filename)
 	if(S_MP3_Scanfile(stream) < 0)
 	{
 		// scanning didn't work out...
-		S_CodecUtilClose(stream);
+		S_CodecUtilClose(&stream);
 		return NULL;
 	}
 
@@ -551,7 +551,7 @@ snd_stream_t *S_MP3_CodecOpenStream(const char *filename)
 	mp3info = Z_Malloc(sizeof(*mp3info));
 	if(!mp3info)
 	{
-		S_CodecUtilClose(stream);
+		S_CodecUtilClose(&stream);
 		return NULL;
 	}
 

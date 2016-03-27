@@ -283,6 +283,11 @@ extern int unzGetCurrentFileInfo (unzFile file, unz_file_info *pfile_info, char 
 extern int unzOpenCurrentFile (unzFile file);
 
 /*
+  Returns success if the current file is open
+*/
+extern qboolean unzIsCurrentFileOpen (unzFile file);
+
+/*
   Open for reading data the current file in the zipfile.
   If there is no error, the return value is UNZ_OK.
 */
@@ -308,7 +313,13 @@ extern int unzReadCurrentFile (unzFile file, void* buf, unsigned len);
     (UNZ_ERRNO for IO error, or zLib error for uncompress error)
 */
 
-extern long unztell(unzFile file);
+extern long unztell (unzFile file);
+
+/*
+  Seek to the specified offset according to the origin in uncompressed data
+*/
+
+extern long unzseek (unzFile file, long int offset, int origin);
 
 /*
   Give the current position in uncompressed data

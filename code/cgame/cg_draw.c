@@ -69,7 +69,7 @@ void CG_Draw3DModel( float x, float y, float w, float h, qhandle_t model, qhandl
 	refdef_t		refdef;
 	refEntity_t		ent;
 
-	if ( !cg_draw3dIcons.integer || !cg_drawIcons.integer ) {
+	if ( !cg_draw3dIcons->integer || !cg_drawIcons->integer ) {
 		return;
 	}
 
@@ -80,9 +80,9 @@ void CG_Draw3DModel( float x, float y, float w, float h, qhandle_t model, qhandl
 	memset( &ent, 0, sizeof( ent ) );
 	AnglesToAxis( angles, ent.axis );
 	VectorCopy( origin, ent.origin );
-	ent.hModel = model;
+	ent.model = model;
 	ent.customSkin = skin;
-	ent.renderfx = RF_NOSHADOW;		// no stencil shadows
+	ent.renderfx &= ~RF_SHADOW;		// no stencil shadows
 
 	refdef.rdflags = RDF_NOWORLDMODEL;
 
@@ -98,9 +98,9 @@ void CG_Draw3DModel( float x, float y, float w, float h, qhandle_t model, qhandl
 
 	refdef.time = cg.time;
 
-	trap_R_ClearScene();
-	trap_R_AddRefEntityToScene( &ent );
-	trap_R_RenderScene( &refdef );
+	cgi.R_ClearScene();
+	cgi.R_AddRefEntityToScene( &ent );
+	cgi.R_RenderScene( &refdef );
 }
 
 
@@ -122,12 +122,12 @@ flag in the left down corner of the screen
 */
 #define ATTACKER_X 80
 #define ATTACKER_Y 400
-static float CG_DrawAttacker() {
+static void CG_DrawAttacker() {
 	int clientNum;
 	clientInfo_t *info;
 	qhandle_t handle;
 
-	if ( cg_drawAttacker.integer == 0)
+	if ( cg_drawAttacker->integer == 0)
 		return;
 
 	clientNum = cg.predictedPlayerState.stats[STAT_ATTACKERCLIENT];
@@ -137,15 +137,15 @@ static float CG_DrawAttacker() {
 	
 	info = &cgs.clientinfo[clientNum];
 
-	trap_R_SetColor( color_red );
-	trap_R_Text_Paint(&cgs.media.verdana, ATTACKER_X,ATTACKER_Y,1,0,info->name,0,0,qfalse,qtrue);
-	trap_R_SetColor( NULL );
+	cgi.R_SetColor( color_red );
+	cgi.R_Text_Paint(&cgs.media.verdana, ATTACKER_X,ATTACKER_Y,1,0,info->name,0,0,qfalse,qtrue);
+	cgi.R_SetColor( NULL );
 
 	if(info->team == TEAM_AXIS) {
-		handle = trap_R_RegisterShader("textures/hud/axis");
+		handle = cgi.R_RegisterShader("textures/hud/axis");
 		CG_DrawPic(ATTACKER_X-30,ATTACKER_Y-4,24,24,handle);
 	} else if(info->team == TEAM_ALLIES) {
-		handle = trap_R_RegisterShader("textures/hud/allies");
+		handle = cgi.R_RegisterShader("textures/hud/allies");
 		CG_DrawPic(ATTACKER_X-30,ATTACKER_Y-4,24,24,handle);
 	}
 }
@@ -186,7 +186,7 @@ static float CG_DrawFPS( float y ) {
 
 	// don't use serverTime, because that will be drifting to
 	// correct for internet lag changes, timescales, timedemos, etc
-	t = trap_Milliseconds();
+	t = cgi.Milliseconds();
 	frameTime = t - previous;
 	previous = t;
 
@@ -257,7 +257,7 @@ static float CG_DrawTeamOverlay( float y, qboolean right, qboolean upper ) {
 //	clientInfo_t *ci;
 //	int ret_y, count;
 //
-//	if ( !cg_drawTeamOverlay.integer ) {
+//	if ( !cg_drawTeamOverlay->integer ) {
 //		return y;
 //	}
 //
@@ -327,9 +327,9 @@ static float CG_DrawTeamOverlay( float y, qboolean right, qboolean upper ) {
 //		hcolor[2] = 1.0f;
 //		hcolor[3] = 0.33f;
 //	}
-//	trap_R_SetColor( hcolor );
+//	cgi.R_SetColor( hcolor );
 //	CG_DrawPic( x, y, w, h, cgs.media.teamStatusBar );
-//	trap_R_SetColor( NULL );
+//	cgi.R_SetColor( NULL );
 //
 //	for (i = 0; i < count; i++) {
 //		ci = cgs.clientinfo + sortedTeamPlayers[i];
@@ -394,7 +394,7 @@ static float CG_DrawTeamOverlay( float y, qboolean right, qboolean upper ) {
 //
 //					if (item) {
 //						CG_DrawPic( xx, y, TINYCHAR_WIDTH, TINYCHAR_HEIGHT, 
-//						trap_R_RegisterShader( item->icon ) );
+//						cgi.R_RegisterShader( item->icon ) );
 //						if (right) {
 //							xx -= TINYCHAR_WIDTH;
 //						} else {
@@ -425,16 +425,16 @@ static void CG_DrawUpperRight( void ) {
 
 	y = 0;
 
-	if ( cgs.gametype >= GT_TEAM && cg_drawTeamOverlay.integer == 1 ) {
+	if ( cgs.gametype >= GT_TEAM && cg_drawTeamOverlay->integer == 1 ) {
 		y = CG_DrawTeamOverlay( y, qtrue, qtrue );
 	} 
-	if ( cg_drawSnapshot.integer ) {
+	if ( cg_drawSnapshot->integer ) {
 		y = CG_DrawSnapshot( y );
 	}
-	if ( cg_drawFPS.integer ) {
+	if ( cg_drawFPS->integer ) {
 		y = CG_DrawFPS( y );
 	}
-	if ( cg_drawTimer.integer ) {
+	if ( cg_drawTimer->integer ) {
 		y = CG_DrawTimer( y );
 	}
 }
@@ -461,7 +461,7 @@ static void CG_DrawUpperRight( void ) {
 //
 //	y = 480 - ICON_SIZE;
 //
-//	if ( cgs.gametype >= GT_TEAM && cg_drawTeamOverlay.integer == 2 ) {
+//	if ( cgs.gametype >= GT_TEAM && cg_drawTeamOverlay->integer == 2 ) {
 //		y = CG_DrawTeamOverlay( y, qtrue, qfalse );
 //	} 
 //
@@ -548,8 +548,8 @@ static void CG_DrawDisconnect( void ) {
 	int			w;
 
 	// draw the phone jack if we are completely past our buffers
-	cmdNum = trap_GetCurrentCmdNumber() - CMD_BACKUP + 1;
-	trap_GetUserCmd( cmdNum, &cmd );
+	cmdNum = cgi.GetCurrentCmdNumber() - CMD_BACKUP + 1;
+	cgi.GetUserCmd( cmdNum, &cmd );
 	if ( cmd.serverTime <= cg.snap->ps.commandTime
 		|| cmd.serverTime > cg.time ) {	// special check for map_restart
 		return;
@@ -568,7 +568,7 @@ static void CG_DrawDisconnect( void ) {
 	x = 640 - 48;
 	y = 480 - 48;
 
-	CG_DrawPic( x, y, 48, 48, trap_R_RegisterShader("gfx/2d/net.tga" ) );
+	CG_DrawPic( x, y, 48, 48, cgi.R_RegisterShader("gfx/2d/net.tga" ) );
 }
 
 
@@ -587,7 +587,7 @@ static void CG_DrawLagometer( void ) {
 	int		color;
 	float	vscale;
 
-	if ( !cg_lagometer.integer || cgs.localServer ) {
+	if ( !cg_lagometer->integer || cgs.localServer ) {
 		CG_DrawDisconnect();
 		return;
 	}
@@ -603,7 +603,7 @@ static void CG_DrawLagometer( void ) {
 	y = 480 - 48;
 #endif
 
-	trap_R_SetColor( NULL );
+	cgi.R_SetColor( NULL );
 //	CG_DrawPic( x, y, 48, 48, cgs.media.lagometerShader );
 
 	ax = x;
@@ -626,22 +626,22 @@ static void CG_DrawLagometer( void ) {
 		if ( v > 0 ) {
 			if ( color != 1 ) {
 				color = 1;
-				trap_R_SetColor( g_color_table[ColorIndex(COLOR_YELLOW)] );
+				cgi.R_SetColor( g_color_table[ColorIndex(COLOR_YELLOW)] );
 			}
 			if ( v > range ) {
 				v = range;
 			}
-			trap_R_DrawStretchPic ( ax + aw - a, mid - v, 1, v, 0, 0, 0, 0, cgs.media.whiteShader );
+			cgi.R_DrawStretchPic ( ax + aw - a, mid - v, 1, v, 0, 0, 0, 0, cgs.media.whiteShader );
 		} else if ( v < 0 ) {
 			if ( color != 2 ) {
 				color = 2;
-				trap_R_SetColor( g_color_table[ColorIndex(COLOR_BLUE)] );
+				cgi.R_SetColor( g_color_table[ColorIndex(COLOR_BLUE)] );
 			}
 			v = -v;
 			if ( v > range ) {
 				v = range;
 			}
-			trap_R_DrawStretchPic( ax + aw - a, mid, 1, v, 0, 0, 0, 0, cgs.media.whiteShader );
+			cgi.R_DrawStretchPic( ax + aw - a, mid, 1, v, 0, 0, 0, 0, cgs.media.whiteShader );
 		}
 	}
 
@@ -656,31 +656,31 @@ static void CG_DrawLagometer( void ) {
 			if ( lagometer.snapshotFlags[i] & SNAPFLAG_RATE_DELAYED ) {
 				if ( color != 5 ) {
 					color = 5;	// YELLOW for rate delay
-					trap_R_SetColor( g_color_table[ColorIndex(COLOR_YELLOW)] );
+					cgi.R_SetColor( g_color_table[ColorIndex(COLOR_YELLOW)] );
 				}
 			} else {
 				if ( color != 3 ) {
 					color = 3;
-					trap_R_SetColor( g_color_table[ColorIndex(COLOR_GREEN)] );
+					cgi.R_SetColor( g_color_table[ColorIndex(COLOR_GREEN)] );
 				}
 			}
 			v = v * vscale;
 			if ( v > range ) {
 				v = range;
 			}
-			trap_R_DrawStretchPic( ax + aw - a, ay + ah - v, 1, v, 0, 0, 0, 0, cgs.media.whiteShader );
+			cgi.R_DrawStretchPic( ax + aw - a, ay + ah - v, 1, v, 0, 0, 0, 0, cgs.media.whiteShader );
 		} else if ( v < 0 ) {
 			if ( color != 4 ) {
 				color = 4;		// RED for dropped snapshots
-				trap_R_SetColor( g_color_table[ColorIndex(COLOR_RED)] );
+				cgi.R_SetColor( g_color_table[ColorIndex(COLOR_RED)] );
 			}
-			trap_R_DrawStretchPic( ax + aw - a, ay + ah - range, 1, range, 0, 0, 0, 0, cgs.media.whiteShader );
+			cgi.R_DrawStretchPic( ax + aw - a, ay + ah - range, 1, range, 0, 0, 0, 0, cgs.media.whiteShader );
 		}
 	}
 
-	trap_R_SetColor( NULL );
+	cgi.R_SetColor( NULL );
 
-	if ( cg_nopredict.integer || cg_synchronousClients.integer ) {
+	if ( cg_nopredict->integer || cg_synchronousClients->integer ) {
 		CG_DrawBigString( ax, ay, "snc", 1.0 );
 	}
 
@@ -761,12 +761,12 @@ static void CG_DrawCenterString( void ) {
 		return;
 	}
 
-	color = CG_FadeColor( cg.centerPrintTime, 1000 * cg_centertime.value );
+	color = CG_FadeColor( cg.centerPrintTime, 1000 * cg_centertime->value );
 	if ( !color ) {
 		return;
 	}
 
-	trap_R_SetColor( color );
+	cgi.R_SetColor( color );
 
 	start = cg.centerPrint;
 
@@ -802,7 +802,7 @@ static void CG_DrawCenterString( void ) {
 		start++;
 	}
 
-	trap_R_SetColor( NULL );
+	cgi.R_SetColor( NULL );
 }
 
 /*
@@ -820,12 +820,12 @@ static void CG_DrawLocationString( void ) {
 		return;
 	}
 
-	color = CG_FadeColor( cg.locationPrintTime, 1000 * cg_locationtime.value );
+	color = CG_FadeColor( cg.locationPrintTime, 1000 * cg_locationtime->value );
 	if ( !color ) {
 		return;
 	}
 
-	trap_R_SetColor( color );
+	cgi.R_SetColor( color );
 
 	start = cg.locationPrint;
 
@@ -860,7 +860,7 @@ static void CG_DrawLocationString( void ) {
 		start++;
 	}
 
-	trap_R_SetColor( NULL );
+	cgi.R_SetColor( NULL );
 }
 
 /*
@@ -887,14 +887,14 @@ static void CG_DrawGameMessages( void ) {
 			break;
 
 		if ( cg.gameMessageTypes[ptr] == SMT_YELLOW )
-			trap_R_SetColor( color_hud );
+			cgi.R_SetColor( color_hud );
 		else
-			trap_R_SetColor( color_white );
+			cgi.R_SetColor( color_white );
 		if ( cg.gameMessages[ptr] ) {
-			trap_R_Text_Paint( &cgs.media.facfont, 0, 128 + i*14, 1, 1, cg.gameMessages[ptr], 1, 0, qfalse, qtrue );
+			cgi.R_Text_Paint( &cgs.media.facfont, 0, 128 + i*14, 1, 1, cg.gameMessages[ptr], 1, 0, qfalse, qtrue );
 		}
 	}
-	trap_R_SetColor( NULL );
+	cgi.R_SetColor( NULL );
 }
 
 /*
@@ -920,15 +920,15 @@ static void CG_DrawChatDeathMessages( void ) {
 			break;
 
 		if ( cg.chatDeathMessageTypes[ptr] == SMT_DEATH )
-			trap_R_SetColor( color_lightRed );
+			cgi.R_SetColor( color_lightRed );
 		else
-			trap_R_SetColor( color_grey );
+			cgi.R_SetColor( color_grey );
 
 		if ( cg.chatDeathMessages[ptr] ) {
-			trap_R_Text_Paint( &cgs.media.facfont, 128, i*14, 1, 1, cg.chatDeathMessages[ptr], 1, 0, qfalse, qtrue );
+			cgi.R_Text_Paint( &cgs.media.facfont, 128, i*14, 1, 1, cg.chatDeathMessages[ptr], 1, 0, qfalse, qtrue );
 		}
 	}
-	trap_R_SetColor( NULL );
+	cgi.R_SetColor( NULL );
 }
 
 
@@ -981,7 +981,7 @@ static qboolean CG_DrawFollow( void ) {
 	vec4_t		color;
 	const char	*name;
 
-	if ( !(cg.snap->ps.pm_flags & PMF_FOLLOW) ) {
+	if ( !(cg.snap->ps.pm_flags & PMF_SPECTATE_FOLLOW) ) {
 		return qfalse;
 	}
 	color[0] = 1;
@@ -1012,9 +1012,7 @@ CG_DrawWarmup
 static void CG_DrawWarmup( void ) {
 	int			w;
 	int			sec;
-	int			i;
 	float scale;
-	clientInfo_t	*ci1, *ci2;
 	int			cw;
 	const char	*s;
 
@@ -1065,13 +1063,13 @@ static void CG_DrawWarmup( void ) {
 		cg.warmupCount = sec;
 		switch ( sec ) {
 		case 0:
-//			trap_S_StartLocalSound( cgs.media.count1Sound, CHAN_ANNOUNCER );
+//			cgi.S_StartLocalSound( cgs.media.count1Sound, CHAN_ANNOUNCER );
 			break;
 		case 1:
-//			trap_S_StartLocalSound( cgs.media.count2Sound, CHAN_ANNOUNCER );
+//			cgi.S_StartLocalSound( cgs.media.count2Sound, CHAN_ANNOUNCER );
 			break;
 		case 2:
-//			trap_S_StartLocalSound( cgs.media.count3Sound, CHAN_ANNOUNCER );
+//			cgi.S_StartLocalSound( cgs.media.count3Sound, CHAN_ANNOUNCER );
 			break;
 		default:
 			break;
@@ -1140,7 +1138,7 @@ void CG_DrawScores( void ) {
 		// the scores are more than two seconds out of data,
 		// so request new ones
 		cg.scoresRequestTime = cg.time;
-		trap_SendClientCommand( "score" );
+		cgi.SendClientCommand( "score" );
 	}
 
 	Q_strncpyz( buffer, cg.aScore, sizeof(buffer) );
@@ -1160,56 +1158,56 @@ void CG_DrawScores( void ) {
 			if ( 56+i*verdanaheight >= 448 )
 				break;
 			clientNum = atoi( extractValues( &ptr ) );
-			trap_R_Text_Paint( font, 32, 56+i*verdanaheight,1,1,Info_ValueForKey(CG_ConfigString(CS_PLAYERS+clientNum),"name"),1,32,qtrue,qtrue); // name
-			trap_R_Text_Paint( font, 160, 56+i*verdanaheight,1,1,extractValues( &ptr ),1,32,qtrue,qtrue);
-			trap_R_Text_Paint( font, 224, 56+i*verdanaheight,1,1,extractValues( &ptr ),1,32,qtrue,qtrue);
-			trap_R_Text_Paint( font, 288, 56+i*verdanaheight,1,1,extractValues( &ptr ),1,32,qtrue,qtrue);
-			trap_R_Text_Paint( font, 352, 56+i*verdanaheight,1,1,extractValues( &ptr ),1,32,qtrue,qtrue);
+			cgi.R_Text_Paint( font, 32, 56 + i*verdanaheight, 1, 1, Info_ValueForKey( CG_ConfigString( CS_PLAYERS + clientNum ), "name" ), 1, 32, qtrue, qfalse ); // name
+			cgi.R_Text_Paint( font, 160, 56 + i*verdanaheight, 1, 1, extractValues( &ptr ), 1, 32, qtrue, qfalse );
+			cgi.R_Text_Paint( font, 224, 56 + i*verdanaheight, 1, 1, extractValues( &ptr ), 1, 32, qtrue, qfalse );
+			cgi.R_Text_Paint( font, 288, 56 + i*verdanaheight, 1, 1, extractValues( &ptr ), 1, 32, qtrue, qfalse );
+			cgi.R_Text_Paint( font, 352, 56 + i*verdanaheight, 1, 1, extractValues( &ptr ), 1, 32, qtrue, qfalse );
 		}
 	} else {
 		for ( i=0; i<numScores; i++ ) {
 			int clientNum;
-			team_t team;
+			teamtype_t team;
 
 			if ( 56+i*verdanaheight >= 448 )
 				break;
 			clientNum = atoi( extractValues( &ptr ) );
-			team = (team_t)atoi( extractValues( &ptr ) );
+			team = (teamtype_t)atoi( extractValues( &ptr ) );
 			switch ( team ) {
 				case TEAM_AXIS:
 					if ( clientNum == -1 )
-						trap_R_SetColor( color_transreddk );
+						cgi.R_SetColor( color_transreddk );
 					else
-						trap_R_SetColor( color_transred );
+						cgi.R_SetColor( color_transred );
 					CG_DrawBox( 33,56+i*verdanaheight,384,verdanaheight,qfalse);
-					trap_R_SetColor( NULL );
+					cgi.R_SetColor( NULL );
 					break;
 				case TEAM_ALLIES:
 					if ( clientNum == -1 )
-						trap_R_SetColor( color_transgreendk );
+						cgi.R_SetColor( color_transgreendk );
 					else
-						trap_R_SetColor( color_transgreen );
+						cgi.R_SetColor( color_transgreen );
 					CG_DrawBox( 33,56+i*verdanaheight,384,verdanaheight,qfalse);
-					trap_R_SetColor( NULL );
+					cgi.R_SetColor( NULL );
 					break;
 				default: break;
 			}
 			if ( clientNum == -1 ) {
 				font = &cgs.media.facfont;
 				if ( team == TEAM_ALLIES )
-					trap_R_Text_Paint( font, 32, 56+i*verdanaheight,1,1,"Allies",1,32,qtrue,qtrue);
+					cgi.R_Text_Paint( font, 32, 56 + i*verdanaheight, 1, 1, "Allies", 1, 32, qtrue, qfalse );
 				else if ( team == TEAM_AXIS )
-					trap_R_Text_Paint( font, 32, 56+i*verdanaheight,1,1,"Axis",1,32,qtrue,qtrue);
+					cgi.R_Text_Paint( font, 32, 56 + i*verdanaheight, 1, 1, "Axis", 1, 32, qtrue, qfalse );
 				else if ( team == TEAM_SPECTATOR )
-					trap_R_Text_Paint( font, 32, 56+i*verdanaheight,1,1,"Spectators",1,32,qtrue,qtrue);
+					cgi.R_Text_Paint( font, 32, 56 + i*verdanaheight, 1, 1, "Spectators", 1, 32, qtrue, qfalse );
 			} else {
 				font = &cgs.media.verdana;
-				trap_R_Text_Paint( font, 32, 56+i*verdanaheight,1,1,Info_ValueForKey(CG_ConfigString(CS_PLAYERS+clientNum),"name"),1,32,qtrue,qtrue); // name
+				cgi.R_Text_Paint( font, 32, 56 + i*verdanaheight, 1, 1, Info_ValueForKey( CG_ConfigString( CS_PLAYERS + clientNum ), "name" ), 1, 32, qtrue, qfalse ); // name
 			}
-			trap_R_Text_Paint( font, 160, 56+i*verdanaheight,1,1,extractValues( &ptr ),1,32,qtrue,qtrue);
-			trap_R_Text_Paint( font, 224, 56+i*verdanaheight,1,1,extractValues( &ptr ),1,32,qtrue,qtrue);
-			trap_R_Text_Paint( font, 288, 56+i*verdanaheight,1,1,extractValues( &ptr ),1,32,qtrue,qtrue);
-			trap_R_Text_Paint( font, 352, 56+i*verdanaheight,1,1,extractValues( &ptr ),1,32,qtrue,qtrue);
+			cgi.R_Text_Paint( font, 160, 56 + i*verdanaheight, 1, 1, extractValues( &ptr ), 1, 32, qtrue, qfalse );
+			cgi.R_Text_Paint( font, 224, 56 + i*verdanaheight, 1, 1, extractValues( &ptr ), 1, 32, qtrue, qfalse );
+			cgi.R_Text_Paint( font, 288, 56 + i*verdanaheight, 1, 1, extractValues( &ptr ), 1, 32, qtrue, qfalse );
+			cgi.R_Text_Paint( font, 352, 56 + i*verdanaheight, 1, 1, extractValues( &ptr ), 1, 32, qtrue, qfalse );
 		}
 	}
 }
@@ -1221,21 +1219,21 @@ Draws team icon of local player
 =================
 */
 void CG_DrawPlayerTeam() {
-	//if ( cg_hud.integer )
+	//if ( cg_hud->integer )
 	{
 		if ( cg.snap ) {
 			if ( cgs.gametype > GT_FFA ) {
 				qhandle_t handle = 0;
 
 				if ( cg.snap->ps.stats[STAT_TEAM] == TEAM_ALLIES ) {
-					handle = trap_R_RegisterShader("textures/hud/allies");
+					handle = cgi.R_RegisterShader("textures/hud/allies");
 				} else {
 					if ( cg.snap->ps.stats[STAT_TEAM] == TEAM_AXIS )
-						handle = trap_R_RegisterShader("textures/hud/axis");
+						handle = cgi.R_RegisterShader("textures/hud/axis");
 				}
 				if ( handle ) {
-					trap_R_SetColor(0);
-					trap_R_DrawStretchPic(96.f, (cgs.glconfig.vidHeight - 46), 24.f, 24.f, 0.f, 0.f, 1.f, 1.f, handle);
+					cgi.R_SetColor(0);
+					cgi.R_DrawStretchPic(96.f, (cgs.glconfig.vidHeight - 46), 24.f, 24.f, 0.f, 0.f, 1.f, 1.f, handle);
 				}
 			}
 		}
@@ -1251,23 +1249,23 @@ static void CG_DrawOverlayTopBottom(qhandle_t handleTop, qhandle_t handleBottom,
 	color[1] = 1.f;
 	color[2] = 1.f;
 	color[3] = fAlpha;
-	trap_R_SetColor(color);
+	cgi.R_SetColor(color);
 
 	halfH = cgs.glconfig.vidHeight >> 1;
 	ofs = (cgs.glconfig.vidWidth - cgs.glconfig.vidHeight) >> 1;
 	ofsHR = ofs + halfH;
 
 	// draw overlay square
-	trap_R_DrawStretchPic( ofs, 0, halfH, halfH, 1.f, 0, 0, 1.f, handleTop);
-	trap_R_DrawStretchPic( ofsHR, 0, halfH, halfH, 0, 0, 1.f, 1.f, handleTop);
-	trap_R_DrawStretchPic( ofs, halfH, halfH, halfH, 1.f, 0, 0, 1.f, handleBottom);
-	trap_R_DrawStretchPic( ofsHR, halfH, halfH, halfH, 0, 0, 1.f, 1.f, handleBottom);
+	cgi.R_DrawStretchPic( ofs, 0, halfH, halfH, 1.f, 0, 0, 1.f, handleTop);
+	cgi.R_DrawStretchPic( ofsHR, 0, halfH, halfH, 0, 0, 1.f, 1.f, handleTop);
+	cgi.R_DrawStretchPic( ofs, halfH, halfH, halfH, 1.f, 0, 0, 1.f, handleBottom);
+	cgi.R_DrawStretchPic( ofsHR, halfH, halfH, halfH, 0, 0, 1.f, 1.f, handleBottom);
 
 	// draw black borders
 	VectorSet(color,0,0,0);
-	trap_R_SetColor(color);
-	trap_R_DrawStretchPic( 0, 0, ofs, cgs.glconfig.vidHeight, 0, 0, 1.f, 1.f, cgs.media.blackShader);
-	trap_R_DrawStretchPic( cgs.glconfig.vidWidth - ofs, 0, ofs, cgs.glconfig.vidHeight,
+	cgi.R_SetColor(color);
+	cgi.R_DrawStretchPic( 0, 0, ofs, cgs.glconfig.vidHeight, 0, 0, 1.f, 1.f, cgs.media.blackShader);
+	cgi.R_DrawStretchPic( cgs.glconfig.vidWidth - ofs, 0, ofs, cgs.glconfig.vidHeight,
 		0, 0, 1.f, 1.f, cgs.media.blackShader);
 }
 
@@ -1284,24 +1282,24 @@ static void CG_DrawOverlayMiddle(qhandle_t handle, float fAlpha ) {
 	// probably something is wrong with our shader system
 	// maybe "textures/hud/zoomoverlay" cGen is broken?
 	color[3] = 1.f - fAlpha; // should be: "color[3] = fAlpha;
-	trap_R_SetColor(color);
+	cgi.R_SetColor(color);
 
 	halfH = cgs.glconfig.vidHeight >> 1;
 	ofs = (cgs.glconfig.vidWidth - cgs.glconfig.vidHeight) >> 1;
 	ofsHR = ofs + halfH;
 
 	// draw overlay square
-	trap_R_DrawStretchPic(ofs, 0, halfH, halfH, 0, 0, 1.f, 1.f, handle);
-	trap_R_DrawStretchPic( ofsHR, 0, halfH, halfH, 1.f, 0, 0, 1.f, handle);
-	trap_R_DrawStretchPic( ofs, halfH, halfH, halfH, 0, 1.f, 1.f, 0, handle);
-	trap_R_DrawStretchPic( ofsHR, halfH, halfH, halfH, 1.f, 1.f, 0, 0, handle);
+	cgi.R_DrawStretchPic(ofs, 0, halfH, halfH, 0, 0, 1.f, 1.f, handle);
+	cgi.R_DrawStretchPic( ofsHR, 0, halfH, halfH, 1.f, 0, 0, 1.f, handle);
+	cgi.R_DrawStretchPic( ofs, halfH, halfH, halfH, 0, 1.f, 1.f, 0, handle);
+	cgi.R_DrawStretchPic( ofsHR, halfH, halfH, halfH, 1.f, 1.f, 0, 0, handle);
 
 	// draw black borders
 	VectorSet(color,0,0,0);
 	color[3] = fAlpha;
-	trap_R_SetColor(color);
-	trap_R_DrawStretchPic( 0, 0, ofs, cgs.glconfig.vidHeight, 0, 0, 1.f, 1.f, cgs.media.blackShader);
-	trap_R_DrawStretchPic(cgs.glconfig.vidWidth - ofs, 0, cgs.glconfig.vidWidth - ofs,
+	cgi.R_SetColor(color);
+	cgi.R_DrawStretchPic( 0, 0, ofs, cgs.glconfig.vidHeight, 0, 0, 1.f, 1.f, cgs.media.blackShader);
+	cgi.R_DrawStretchPic(cgs.glconfig.vidWidth - ofs, 0, cgs.glconfig.vidWidth - ofs,
 		cgs.glconfig.vidHeight, 0, 0, 1.f, 1.f, cgs.media.blackShader);
 }
 static void CG_DrawOverlayFullScreen(qhandle_t handle, float fAlpha) {
@@ -1311,15 +1309,15 @@ static void CG_DrawOverlayFullScreen(qhandle_t handle, float fAlpha) {
 
 	VectorSet(color,1.f,1.f,1.f);
 	color[3] = fAlpha;
-	trap_R_SetColor(color);
+	cgi.R_SetColor(color);
 
 	halfH = cgs.glconfig.vidHeight >> 1;
 	halfW = cgs.glconfig.vidWidth >> 1;
 
-	trap_R_DrawStretchPic( 0, 0, halfW, halfH, 1.f, 0, 0, 1.f, handle );
-	trap_R_DrawStretchPic( halfW, 0, halfW, halfH, 1.f, 0, 0, 1.f, handle );
-	trap_R_DrawStretchPic( 0, halfH, halfW, halfH, 0, 1.f, 1.f, 0, handle );
-	trap_R_DrawStretchPic( halfW, halfH, halfW, halfH, 1.f, 1.f, 0, 0, handle );
+	cgi.R_DrawStretchPic( 0, 0, halfW, halfH, 1.f, 0, 0, 1.f, handle );
+	cgi.R_DrawStretchPic( halfW, 0, halfW, halfH, 1.f, 0, 0, 1.f, handle );
+	cgi.R_DrawStretchPic( 0, halfH, halfW, halfH, 0, 1.f, 1.f, 0, handle );
+	cgi.R_DrawStretchPic( halfW, halfH, halfW, halfH, 1.f, 1.f, 0, 0, handle );
 }
 
 /*
@@ -1330,7 +1328,7 @@ CG_DrawZoomOverlay
 static float cg_alpha;
 static int cg_zoomType;
 static void CG_DrawZoomOverlay() {
-	char *itemName;
+	const char *itemName;
 	int drawOverlay;
 	int itemIndex;
 	signed int inZoom;
@@ -1406,11 +1404,11 @@ static void CG_DrawCrosshairPlayerInfo() {
 
 	info = &cgs.clientinfo[clientNum];
 
-	trap_R_SetColor(color_green);
-	trap_R_Text_Paint( &cgs.media.facfont, 64, 280, 1, 1, info->name, 1, 0, qfalse, qtrue );
-	trap_R_SetColor(color_green);
-	trap_R_Text_Paint( &cgs.media.facfont, 64, 296, 1, 1, va("%i",
-		cg.snap->ps.stats[STAT_INFOCLIENT_HEALTH]), 1, 0, qfalse, qtrue );
+	cgi.R_SetColor(color_green);
+	cgi.R_Text_Paint( &cgs.media.facfont, 64, 280, 1, 1, info->name, 1, 0, qfalse, qfalse );
+	cgi.R_SetColor(color_green);
+	cgi.R_Text_Paint( &cgs.media.facfont, 64, 296, 1, 1, va("%i",
+		cg.snap->ps.stats[ STAT_INFOCLIENT_HEALTH ] ), 1, 0, qfalse, qfalse );
 
 }
 /*
@@ -1427,7 +1425,7 @@ void CG_Draw2D( int serverTime, stereoFrame_t stereoView, qboolean demoPlayback 
 		return;
 	}
 
-	if ( cg_draw2D.integer == 0 ) {
+	if ( cg_draw2D->integer == 0 ) {
 		return;
 	}
 
@@ -1490,22 +1488,15 @@ void CG_DrawActive( stereoFrame_t stereoView ) {
 		return;
 	}
 
-	// optionally draw the tournement scoreboard instead
-	if ( cg.snap->ps.stats[STAT_TEAM] == TEAM_SPECTATOR &&
-		( cg.snap->ps.pm_flags & PMF_SCOREBOARD ) ) {
-		CG_DrawTourneyScoreboard();
-		return;
-	}
-
 	switch ( stereoView ) {
 	case STEREO_CENTER:
 		separation = 0;
 		break;
 	case STEREO_LEFT:
-		separation = -cg_stereoSeparation.value / 2;
+		separation = -cg_stereoSeparation->value / 2;
 		break;
 	case STEREO_RIGHT:
-		separation = cg_stereoSeparation.value / 2;
+		separation = cg_stereoSeparation->value / 2;
 		break;
 	default:
 		separation = 0;
@@ -1523,7 +1514,7 @@ void CG_DrawActive( stereoFrame_t stereoView ) {
 	}
 
 	// draw 3D view
-	trap_R_RenderScene( &cg.refdef );
+	cgi.R_RenderScene( &cg.refdef );
 
 	// restore original viewpoint if running stereo
 	if ( separation != 0 ) {
@@ -1552,14 +1543,14 @@ void	CG_DrawBox( int x, int y, int w, int h, qboolean ctrCoord ) {
 		y -= h/2;
 	}
 
-//	trap_R_SetColor( color_gray );
-	trap_R_DrawStretchPic( x*cgs.screenXScale, y*cgs.screenYScale, w*cgs.screenXScale, h*cgs.screenYScale, 0, 0, 16, 16, cgs.media.whiteShader );
-//	trap_R_SetColor( color_white );
-//	trap_R_DrawStretchPic( x*cgs.screenXScale, y*cgs.screenYScale, w*cgs.screenXScale, LINE_THICKNESS*cgs.screenYScale, 0, 0, 32, 32, cgs.media.blackShader );
-//	trap_R_DrawStretchPic( x*cgs.screenXScale, y*cgs.screenYScale, LINE_THICKNESS*cgs.screenXScale, h*cgs.screenYScale, 0, 0, 32, 32, cgs.media.blackShader );
-//	trap_R_DrawStretchPic( x*cgs.screenXScale, (y+h)*cgs.screenYScale, w*cgs.screenXScale, LINE_THICKNESS*cgs.screenYScale, 0, 0, 32, 32, cgs.media.blackShader );
-//	trap_R_DrawStretchPic( (x+w)*cgs.screenXScale, y*cgs.screenYScale, LINE_THICKNESS*cgs.screenXScale, (h+LINE_THICKNESS)*cgs.screenYScale, 0, 0, 32, 32, cgs.media.blackShader );
-//	trap_R_SetColor( NULL );
+//	cgi.R_SetColor( color_gray );
+	cgi.R_DrawStretchPic( x*cgs.screenXScale, y*cgs.screenYScale, w*cgs.screenXScale, h*cgs.screenYScale, 0, 0, 16, 16, cgs.media.whiteShader );
+//	cgi.R_SetColor( color_white );
+//	cgi.R_DrawStretchPic( x*cgs.screenXScale, y*cgs.screenYScale, w*cgs.screenXScale, LINE_THICKNESS*cgs.screenYScale, 0, 0, 32, 32, cgs.media.blackShader );
+//	cgi.R_DrawStretchPic( x*cgs.screenXScale, y*cgs.screenYScale, LINE_THICKNESS*cgs.screenXScale, h*cgs.screenYScale, 0, 0, 32, 32, cgs.media.blackShader );
+//	cgi.R_DrawStretchPic( x*cgs.screenXScale, (y+h)*cgs.screenYScale, w*cgs.screenXScale, LINE_THICKNESS*cgs.screenYScale, 0, 0, 32, 32, cgs.media.blackShader );
+//	cgi.R_DrawStretchPic( (x+w)*cgs.screenXScale, y*cgs.screenYScale, LINE_THICKNESS*cgs.screenXScale, (h+LINE_THICKNESS)*cgs.screenYScale, 0, 0, 32, 32, cgs.media.blackShader );
+//	cgi.R_SetColor( NULL );
 }
 
 void	CG_DrawStdBox( int x, int y, int w, int h, qboolean ctrCoord ) {
@@ -1569,14 +1560,14 @@ void	CG_DrawStdBox( int x, int y, int w, int h, qboolean ctrCoord ) {
 		y -= h/2;
 	}
 
-	trap_R_SetColor( color_gray );
-	trap_R_DrawStretchPic( x*cgs.screenXScale, y*cgs.screenYScale, w*cgs.screenXScale, h*cgs.screenYScale, 0, 0, 16, 16, cgs.media.blackShader );
-	trap_R_SetColor( color_white );
-	trap_R_DrawStretchPic( x*cgs.screenXScale, y*cgs.screenYScale, w*cgs.screenXScale, LINE_THICKNESS*cgs.screenYScale, 0, 0, 32, 32, cgs.media.blackShader );
-	trap_R_DrawStretchPic( x*cgs.screenXScale, y*cgs.screenYScale, LINE_THICKNESS*cgs.screenXScale, h*cgs.screenYScale, 0, 0, 32, 32, cgs.media.blackShader );
-	trap_R_DrawStretchPic( x*cgs.screenXScale, (y+h)*cgs.screenYScale, w*cgs.screenXScale, LINE_THICKNESS*cgs.screenYScale, 0, 0, 32, 32, cgs.media.blackShader );
-	trap_R_DrawStretchPic( (x+w)*cgs.screenXScale, y*cgs.screenYScale, LINE_THICKNESS*cgs.screenXScale, (h+LINE_THICKNESS)*cgs.screenYScale, 0, 0, 32, 32, cgs.media.blackShader );
-	trap_R_SetColor( NULL );
+	cgi.R_SetColor( color_gray );
+	cgi.R_DrawStretchPic( x*cgs.screenXScale, y*cgs.screenYScale, w*cgs.screenXScale, h*cgs.screenYScale, 0, 0, 16, 16, cgs.media.blackShader );
+	cgi.R_SetColor( color_white );
+	cgi.R_DrawStretchPic( x*cgs.screenXScale, y*cgs.screenYScale, w*cgs.screenXScale, LINE_THICKNESS*cgs.screenYScale, 0, 0, 32, 32, cgs.media.blackShader );
+	cgi.R_DrawStretchPic( x*cgs.screenXScale, y*cgs.screenYScale, LINE_THICKNESS*cgs.screenXScale, h*cgs.screenYScale, 0, 0, 32, 32, cgs.media.blackShader );
+	cgi.R_DrawStretchPic( x*cgs.screenXScale, (y+h)*cgs.screenYScale, w*cgs.screenXScale, LINE_THICKNESS*cgs.screenYScale, 0, 0, 32, 32, cgs.media.blackShader );
+	cgi.R_DrawStretchPic( (x+w)*cgs.screenXScale, y*cgs.screenYScale, LINE_THICKNESS*cgs.screenXScale, (h+LINE_THICKNESS)*cgs.screenYScale, 0, 0, 32, 32, cgs.media.blackShader );
+	cgi.R_SetColor( NULL );
 }
 
 

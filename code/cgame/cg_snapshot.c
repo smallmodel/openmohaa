@@ -52,7 +52,7 @@ static int TIKI_FrameNumForTime(tiki_t *tiki, int animIndex, float animTime) {
 	tikiAnim_t *anim;
 	if(tiki->numAnims <= animIndex) {
 		Com_Printf("TIKI_FrameNumForTime: animIndex %i out of range %i\n",animIndex,tiki->numAnims);
-		return;
+		return 0;
 	}
 	anim = tiki->anims[animIndex];
 	if(anim->numFrames == 1) {
@@ -95,7 +95,7 @@ static void CG_TransitionEntity( centity_t *cent ) {
 	tiki_t *tiki0,*tiki1;
 	tikiAnim_t *a0, *a1;
 	int f0, f1;
-	int i,j;
+	int i;
 	
 	tiki0 = cgs.gameTIKIs[cent->currentState.modelindex];
 	tiki1 = cgs.gameTIKIs[cent->nextState.modelindex];
@@ -245,10 +245,10 @@ static void CG_TransitionSnapshot( void ) {
 		if ( snd->sound_index == 0 )	// wombat: we get these sometimes, no clue why
 			continue;
 		if (snd->stop_flag) {
-			trap_S_StopLoopingSound( snd->entity_number );
+			cgi.S_StopLoopingSound( snd->entity_number );
 		}
 		else {
-			trap_S_StartSound( snd->origin, snd->entity_number, snd->channel, cgs.gameSounds[snd->sound_index] );
+			cgi.S_StartSound( snd->origin, snd->entity_number, snd->channel, cgs.gameSounds[snd->sound_index] );
 		}
 	}
 
@@ -268,7 +268,7 @@ static void CG_TransitionSnapshot( void ) {
 		// if we are not doing client side movement prediction for any
 		// reason, then the client events and view changes will be issued now
 		if ( cg.demoPlayback /*|| (cg.snap->ps.pm_flags & PMF_FOLLOW)*/
-			|| cg_nopredict.integer || cg_synchronousClients.integer ) {
+			|| cg_nopredict->integer || cg_synchronousClients->integer ) {
 			CG_TransitionPlayerState( ps, ops );
 		}
 	}
@@ -364,9 +364,9 @@ static snapshot_t *CG_ReadNextSnapshot( void ) {
 
 		// try to read the snapshot from the client system
 		cgs.processedSnapshotNum++;
-		r = trap_GetSnapshot( cgs.processedSnapshotNum, dest );
+		r = cgi.GetSnapshot( cgs.processedSnapshotNum, dest );
 
-		// FIXME: why would trap_GetSnapshot return a snapshot with the same server time
+		// FIXME: why would cgi.GetSnapshot return a snapshot with the same server time
 		if ( cg.snap && r && dest->serverTime == cg.snap->serverTime ) {
 			//continue;
 		}
@@ -418,7 +418,7 @@ void CG_ProcessSnapshots( void ) {
 	int				n;
 
 	// see what the latest snapshot the client system has is
-	trap_GetCurrentSnapshotNumber( &n, &cg.latestSnapshotTime );
+	cgi.GetCurrentSnapshotNumber( &n, &cg.latestSnapshotTime );
 	if ( n != cg.latestSnapshotNum ) {
 		if ( n < cg.latestSnapshotNum ) {
 			// this should never happen

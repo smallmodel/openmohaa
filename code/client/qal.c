@@ -83,7 +83,7 @@ LPALBUFFERDATA qalBufferData;
 LPALGETBUFFERF qalGetBufferf;
 LPALGETBUFFERI qalGetBufferi;
 LPALDOPPLERFACTOR qalDopplerFactor;
-LPALDOPPLERVELOCITY qalDopplerVelocity;
+LPALSPEEDOFSOUND qalSpeedOfSound;
 LPALDISTANCEMODEL qalDistanceModel;
 
 LPALCCREATECONTEXT qalcCreateContext;
@@ -101,6 +101,11 @@ LPALCGETPROCADDRESS qalcGetProcAddress;
 LPALCGETENUMVALUE qalcGetEnumValue;
 LPALCGETSTRING qalcGetString;
 LPALCGETINTEGERV qalcGetIntegerv;
+LPALCCAPTUREOPENDEVICE qalcCaptureOpenDevice;
+LPALCCAPTURECLOSEDEVICE qalcCaptureCloseDevice;
+LPALCCAPTURESTART qalcCaptureStart;
+LPALCCAPTURESTOP qalcCaptureStop;
+LPALCCAPTURESAMPLES qalcCaptureSamples;
 
 static void *OpenALLib = NULL;
 
@@ -139,23 +144,8 @@ qboolean QAL_Init(const char *libname)
 	if(OpenALLib)
 		return qtrue;
 
-	Com_Printf( "Loading \"%s\"...\n", libname);
-	if( (OpenALLib = Sys_LoadLibrary(libname)) == 0 )
-	{
-#ifdef _WIN32
+	if(!(OpenALLib = Sys_LoadDll(libname, qtrue)))
 		return qfalse;
-#else
-		char fn[1024];
-		Q_strncpyz( fn, Sys_Cwd( ), sizeof( fn ) );
-		strncat(fn, "/", sizeof(fn) - strlen(fn) - 1);
-		strncat(fn, libname, sizeof(fn) - strlen(fn) - 1);
-
-		if( (OpenALLib = Sys_LoadLibrary(fn)) == 0 )
-		{
-			return qfalse;
-		}
-#endif
-	}
 
 	alinit_fail = qfalse;
 
@@ -211,7 +201,7 @@ qboolean QAL_Init(const char *libname)
 	qalGetBufferf = GPA("alGetBufferf");
 	qalGetBufferi = GPA("alGetBufferi");
 	qalDopplerFactor = GPA("alDopplerFactor");
-	qalDopplerVelocity = GPA("alDopplerVelocity");
+	qalSpeedOfSound = GPA("alSpeedOfSound");
 	qalDistanceModel = GPA("alDistanceModel");
 
 	qalcCreateContext = GPA("alcCreateContext");
@@ -229,6 +219,11 @@ qboolean QAL_Init(const char *libname)
 	qalcGetEnumValue = GPA("alcGetEnumValue");
 	qalcGetString = GPA("alcGetString");
 	qalcGetIntegerv = GPA("alcGetIntegerv");
+	qalcCaptureOpenDevice = GPA("alcCaptureOpenDevice");
+	qalcCaptureCloseDevice = GPA("alcCaptureCloseDevice");
+	qalcCaptureStart = GPA("alcCaptureStart");
+	qalcCaptureStop = GPA("alcCaptureStop");
+	qalcCaptureSamples = GPA("alcCaptureSamples");
 
 	if(alinit_fail)
 	{
@@ -305,7 +300,7 @@ void QAL_Shutdown( void )
 	qalGetBufferf = NULL;
 	qalGetBufferi = NULL;
 	qalDopplerFactor = NULL;
-	qalDopplerVelocity = NULL;
+	qalSpeedOfSound = NULL;
 	qalDistanceModel = NULL;
 
 	qalcCreateContext = NULL;
@@ -323,6 +318,11 @@ void QAL_Shutdown( void )
 	qalcGetEnumValue = NULL;
 	qalcGetString = NULL;
 	qalcGetIntegerv = NULL;
+	qalcCaptureOpenDevice = NULL;
+	qalcCaptureCloseDevice = NULL;
+	qalcCaptureStart = NULL;
+	qalcCaptureStop = NULL;
+	qalcCaptureSamples = NULL;
 }
 #else
 qboolean QAL_Init(const char *libname)

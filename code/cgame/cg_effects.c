@@ -39,7 +39,7 @@ void CG_BubbleTrail( vec3_t start, vec3_t end, float spacing ) {
 	//float		len;
 	//int			i;
 
-	//if ( cg_noProjectileTrail.integer ) {
+	//if ( cg_noProjectileTrail->integer ) {
 	//	return;
 	//}
 
@@ -175,7 +175,7 @@ void CG_ScorePlum( int client, vec3_t org, int score ) {
 	static vec3_t lastPos;
 
 	// only visualize for the client that scored
-	if (client != cg.predictedPlayerState.clientNum || cg_scorePlum.integer == 0) {
+	if (client != cg.predictedPlayerState.clientNum || cg_scorePlum->integer == 0) {
 		return;
 	}
 
@@ -190,9 +190,9 @@ void CG_ScorePlum( int client, vec3_t org, int score ) {
 	le->color[0] = le->color[1] = le->color[2] = le->color[3] = 1.0;
 	le->radius = score;
 	
-	VectorCopy( org, le->pos.trBase );
+	VectorCopy( org, le->pos.trDelta );
 	if (org[2] >= lastPos[2] - 20 && org[2] <= lastPos[2] + 20) {
-		le->pos.trBase[2] -= 20;
+		le->pos.trDelta[ 2 ] -= 20;
 	}
 
 	//CG_Printf( "Plum origin %i %i %i -- %i\n", (int)org[0], (int)org[1], (int)org[2], (int)Distance(org, lastPos));
@@ -257,7 +257,7 @@ localEntity_t *CG_MakeExplosion( vec3_t origin, vec3_t dir,
 	// bias the time so all shader effects start correctly
 	ex->refEntity.shaderTime = ex->startTime / 1000.0f;
 
-	ex->refEntity.hModel = hModel;
+	ex->refEntity.model = hModel;
 	ex->refEntity.customShader = shader;
 
 	// set origin
@@ -280,7 +280,7 @@ This is the spurt of blood when a character gets hit
 void CG_Bleed( vec3_t origin, int entityNum ) {
 	localEntity_t	*ex;
 
-	if ( !cg_blood.integer ) {
+	if ( !cg_blood->integer ) {
 		return;
 	}
 
@@ -323,10 +323,9 @@ void CG_LaunchGib( vec3_t origin, vec3_t velocity, qhandle_t hModel ) {
 
 	VectorCopy( origin, re->origin );
 	AxisCopy( axisDefault, re->axis );
-	re->hModel = hModel;
+	re->model = hModel;
 
-	le->pos.trType = TR_GRAVITY;
-	VectorCopy( origin, le->pos.trBase );
+	VectorCopy( origin, le->pos.trDelta );
 	VectorCopy( velocity, le->pos.trDelta );
 	le->pos.trTime = cg.time;
 
@@ -348,7 +347,7 @@ Generated a bunch of gibs launching out from the bodies location
 void CG_GibPlayer( vec3_t playerOrigin ) {
 	//vec3_t	origin, velocity;
 
-	//if ( !cg_blood.integer ) {
+	//if ( !cg_blood->integer ) {
 	//	return;
 	//}
 
@@ -363,7 +362,7 @@ void CG_GibPlayer( vec3_t playerOrigin ) {
 	//}
 
 	//// allow gibs to be turned off for speed
-	//if ( !cg_gibs.integer ) {
+	//if ( !cg_gibs->integer ) {
 	//	return;
 	//}
 
@@ -440,10 +439,9 @@ void CG_LaunchExplode( vec3_t origin, vec3_t velocity, qhandle_t hModel ) {
 
 	VectorCopy( origin, re->origin );
 	AxisCopy( axisDefault, re->axis );
-	re->hModel = hModel;
+	re->model = hModel;
 
-	le->pos.trType = TR_GRAVITY;
-	VectorCopy( origin, le->pos.trBase );
+	VectorCopy( origin, le->pos.trDelta );
 	VectorCopy( velocity, le->pos.trDelta );
 	le->pos.trTime = cg.time;
 

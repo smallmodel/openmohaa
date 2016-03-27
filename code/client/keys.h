@@ -21,6 +21,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 #include "keycodes.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct {
 	qboolean	down;
 	int			repeats;		// if > 1, it is autorepeating
@@ -45,6 +49,7 @@ extern	int				anykeydown;
 extern	qboolean	chat_team;
 extern	int			chat_playerNum;
 
+int Key_StringToKeynum( const char *str );
 void Key_WriteBindings( fileHandle_t f );
 void Key_SetBinding( int keynum, const char *binding );
 char *Key_GetBinding( int keynum );
@@ -53,3 +58,8 @@ qboolean Key_GetOverstrikeMode( void );
 void Key_SetOverstrikeMode( qboolean state );
 void Key_ClearStates( void );
 int Key_GetKey(const char *binding);
+const char *Key_GetKeynameForCommand( const char *command );
+
+#ifdef __cplusplus
+}
+#endif

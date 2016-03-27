@@ -31,6 +31,10 @@ qboolean CM_PositionTestInTerPatchCollide(traceWork_t *tw, const struct terPatch
 #ifndef CM_TERRAIN_H
 #define CM_TERRAIN_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define TER_QUADS_PER_ROW	8
 #define TER_TRIS_PER_PATCH	(TER_QUADS_PER_ROW * TER_QUADS_PER_ROW * 2)
 #define TER_PLANES_PER_TRI	5
@@ -42,9 +46,27 @@ typedef struct terTriangle_s {
 typedef struct terPatchCollide_s {
 	vec3_t			bounds[2];
 
-	dshader_t		*shader;
+	baseshader_t	*shader;
 
 	terTriangle_t	tris[TER_TRIS_PER_PATCH];
 } terPatchCollide_t;
+
+typedef struct terrainCollideSquare_s {
+	vec4_t plane[ 2 ];
+	int eMode;
+} terrainCollideSquare_t;
+
+typedef struct terrainCollide_s {
+	vec3_t vBounds[ 2 ];
+	terrainCollideSquare_t squares[ 8 ][ 8 ];
+} terrainCollide_t;
+
+void CM_PrepareGenerateTerrainCollide( void );
+void CM_GenerateTerrainCollide( cTerraPatch_t *patch, terrainCollide_t *tc );
+int CM_TerrainSquareType( int iTerrainPatch, int i, int j );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // CM_TERRAIN_H

@@ -23,13 +23,15 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // cg_main.c -- initialization and primary entry point for cgame
 #include "cg_local.h"
 
+clientGameImport_t		cgi;
+clientGameExport_t		cge;
 
 int forceModelModificationCount = -1;
 
 void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum, int randomSeed );
 void CG_Shutdown( void );
 
-
+#if 0
 /*
 ================
 vmMain
@@ -83,131 +85,131 @@ intptr_t vmMain( int command, int arg0, int arg1, int arg2, int arg3, int arg4, 
 	}
 	return -1;
 }
-
+#endif
 
 cg_t				cg;
 cgs_t				cgs;
-centity_t			cg_entities[MAX_GENTITIES];
+centity_t			cg_entities[ MAX_GENTITIES ];
 
-vmCvar_t	cg_railTrailTime;
-vmCvar_t	cg_centertime;
-vmCvar_t	cg_locationtime;
-vmCvar_t	cg_runpitch;
-vmCvar_t	cg_runroll;
-vmCvar_t	cg_bobup;
-vmCvar_t	cg_bobpitch;
-vmCvar_t	cg_bobroll;
-vmCvar_t	cg_swingSpeed;
-vmCvar_t	cg_shadows;
-vmCvar_t	cg_gibs;
-vmCvar_t	cg_drawTimer;
-vmCvar_t	cg_drawFPS;
-vmCvar_t	cg_drawSnapshot;
-vmCvar_t	cg_draw3dIcons;
-vmCvar_t	cg_drawIcons;
-vmCvar_t	cg_drawAmmoWarning;
-vmCvar_t	cg_drawCrosshair;
-vmCvar_t	cg_drawCrosshairNames;
-vmCvar_t	cg_drawRewards;
-vmCvar_t	cg_crosshairSize;
-vmCvar_t	cg_crosshairX;
-vmCvar_t	cg_crosshairY;
-vmCvar_t	cg_crosshairHealth;
-vmCvar_t	cg_draw2D;
-vmCvar_t	cg_drawStatus;
-vmCvar_t	cg_animSpeed;
-vmCvar_t	cg_debugAnim;
-vmCvar_t	cg_debugPosition;
-vmCvar_t	cg_debugEvents;
-vmCvar_t	cg_errorDecay;
-vmCvar_t	cg_nopredict;
-vmCvar_t	cg_noPlayerAnims;
-vmCvar_t	cg_showmiss;
-vmCvar_t	cg_footsteps;
-vmCvar_t	cg_addMarks;
-vmCvar_t	cg_brassTime;
-vmCvar_t	cg_viewsize;
-vmCvar_t	cg_drawGun;
-vmCvar_t	cg_gun_frame;
-vmCvar_t	cg_gun_x;
-vmCvar_t	cg_gun_y;
-vmCvar_t	cg_gun_z;
-vmCvar_t	cg_tracerChance;
-vmCvar_t	cg_tracerWidth;
-vmCvar_t	cg_tracerLength;
-vmCvar_t	cg_autoswitch;
-vmCvar_t	cg_ignore;
-vmCvar_t	cg_simpleItems;
-vmCvar_t	cg_fov;
-vmCvar_t	cg_zoomFov;
-vmCvar_t	cg_thirdPerson;
-vmCvar_t	cg_thirdPersonRange;
-vmCvar_t	cg_thirdPersonAngle;
-vmCvar_t	cg_stereoSeparation;
-vmCvar_t	cg_lagometer;
-vmCvar_t	cg_drawAttacker;
-vmCvar_t	cg_synchronousClients;
-vmCvar_t 	cg_teamChatTime;
-vmCvar_t 	cg_teamChatHeight;
-vmCvar_t 	cg_stats;
-vmCvar_t 	cg_buildScript;
-vmCvar_t 	cg_forceModel;
-vmCvar_t	cg_paused;
-vmCvar_t	cg_blood;
-vmCvar_t	cg_predictItems;
-vmCvar_t	cg_deferPlayers;
-vmCvar_t	cg_drawTeamOverlay;
-vmCvar_t	cg_teamOverlayUserinfo;
-vmCvar_t	cg_drawFriend;
-vmCvar_t	cg_teamChatsOnly;
-vmCvar_t	cg_noVoiceChats;
-vmCvar_t	cg_noVoiceText;
-vmCvar_t	cg_hudFiles;
-vmCvar_t 	cg_scorePlum;
-vmCvar_t 	cg_smoothClients;
-vmCvar_t	pmove_fixed;
-//vmCvar_t	cg_pmove_fixed;
-vmCvar_t	pmove_msec;
-vmCvar_t	cg_pmove_msec;
-vmCvar_t	cg_cameraMode;
-vmCvar_t	cg_cameraOrbit;
-vmCvar_t	cg_cameraOrbitDelay;
-vmCvar_t	cg_timescaleFadeEnd;
-vmCvar_t	cg_timescaleFadeSpeed;
-vmCvar_t	cg_timescale;
-vmCvar_t	cg_smallFont;
-vmCvar_t	cg_bigFont;
-vmCvar_t	cg_noTaunt;
-vmCvar_t	cg_noProjectileTrail;
-vmCvar_t	cg_trueLightning;
+cvar_t	*cg_railTrailTime;
+cvar_t	*cg_centertime;
+cvar_t	*cg_locationtime;
+cvar_t	*cg_runpitch;
+cvar_t	*cg_runroll;
+cvar_t	*cg_bobup;
+cvar_t	*cg_bobpitch;
+cvar_t	*cg_bobroll;
+cvar_t	*cg_swingSpeed;
+cvar_t	*cg_shadows;
+cvar_t	*cg_gibs;
+cvar_t	*cg_drawTimer;
+cvar_t	*cg_drawFPS;
+cvar_t	*cg_drawSnapshot;
+cvar_t	*cg_draw3dIcons;
+cvar_t	*cg_drawIcons;
+cvar_t	*cg_drawAmmoWarning;
+cvar_t	*cg_drawCrosshair;
+cvar_t	*cg_drawCrosshairNames;
+cvar_t	*cg_drawRewards;
+cvar_t	*cg_crosshairSize;
+cvar_t	*cg_crosshairX;
+cvar_t	*cg_crosshairY;
+cvar_t	*cg_crosshairHealth;
+cvar_t	*cg_draw2D;
+cvar_t	*cg_drawStatus;
+cvar_t	*cg_animSpeed;
+cvar_t	*cg_debugAnim;
+cvar_t	*cg_debugPosition;
+cvar_t	*cg_debugEvents;
+cvar_t	*cg_errorDecay;
+cvar_t	*cg_nopredict;
+cvar_t	*cg_noPlayerAnims;
+cvar_t	*cg_showmiss;
+cvar_t	*cg_footsteps;
+cvar_t	*cg_addMarks;
+cvar_t	*cg_brassTime;
+cvar_t	*cg_viewsize;
+cvar_t	*cg_drawGun;
+cvar_t	*cg_gun_frame;
+cvar_t	*cg_gun_x;
+cvar_t	*cg_gun_y;
+cvar_t	*cg_gun_z;
+cvar_t	*cg_tracerChance;
+cvar_t	*cg_tracerWidth;
+cvar_t	*cg_tracerLength;
+cvar_t	*cg_autoswitch;
+cvar_t	*cg_ignore;
+cvar_t	*cg_simpleItems;
+cvar_t	*cg_fov;
+cvar_t	*cg_zoomFov;
+cvar_t	*cg_thirdPerson;
+cvar_t	*cg_thirdPersonRange;
+cvar_t	*cg_thirdPersonAngle;
+cvar_t	*cg_stereoSeparation;
+cvar_t	*cg_lagometer;
+cvar_t	*cg_drawAttacker;
+cvar_t	*cg_synchronousClients;
+cvar_t	*cg_teamChatTime;
+cvar_t	*cg_teamChatHeight;
+cvar_t	*cg_stats;
+cvar_t	*cg_buildScript;
+cvar_t	*cg_forceModel;
+cvar_t	*cg_paused;
+cvar_t	*cg_blood;
+cvar_t	*cg_predictItems;
+cvar_t	*cg_deferPlayers;
+cvar_t	*cg_drawTeamOverlay;
+cvar_t	*cg_teamOverlayUserinfo;
+cvar_t	*cg_drawFriend;
+cvar_t	*cg_teamChatsOnly;
+cvar_t	*cg_noVoiceChats;
+cvar_t	*cg_noVoiceText;
+cvar_t	*cg_hudFiles;
+cvar_t	*cg_scorePlum;
+cvar_t	*cg_smoothClients;
+cvar_t	*pmove_fixed;
+cvar_t	*cg_pmove_fixed;
+cvar_t	*pmove_msec;
+cvar_t	*cg_pmove_msec;
+cvar_t	*cg_cameraMode;
+cvar_t	*cg_cameraOrbit;
+cvar_t	*cg_cameraOrbitDelay;
+cvar_t	*cg_timescaleFadeEnd;
+cvar_t	*cg_timescaleFadeSpeed;
+cvar_t	*cg_timescale;
+cvar_t	*cg_smallFont;
+cvar_t	*cg_bigFont;
+cvar_t	*cg_noTaunt;
+cvar_t	*cg_noProjectileTrail;
+cvar_t	*cg_trueLightning;
 
-vmCvar_t	vm_offset_max;
-vmCvar_t	vm_offset_speed;
-vmCvar_t	vm_sway_front;
-vmCvar_t	vm_sway_side;
-vmCvar_t	vm_sway_up;
-vmCvar_t	vm_offset_air_front;
-vmCvar_t	vm_offset_air_side;
-vmCvar_t	vm_offset_air_up;
-vmCvar_t	vm_offset_crouch_front;
-vmCvar_t	vm_offset_crouch_side;
-vmCvar_t	vm_offset_crouch_up;
-vmCvar_t	vm_offset_rocketcrouch_front;
-vmCvar_t	vm_offset_rocketcrouch_side;
-vmCvar_t	vm_offset_rocketcrouch_up;
-vmCvar_t	vm_offset_shotguncrouch_front;
-vmCvar_t	vm_offset_shotguncrouch_side;
-vmCvar_t	vm_offset_shotguncrouch_up;
-vmCvar_t	vm_offset_vel_base;
-vmCvar_t	vm_offset_vel_front;
-vmCvar_t	vm_offset_vel_side;
-vmCvar_t	vm_offset_vel_up;
-vmCvar_t	vm_offset_upvel;
-vmCvar_t	vm_lean_lower;
-vmCvar_t	cg_debugCGMessages;
+cvar_t	*vm_offset_max;
+cvar_t	*vm_offset_speed;
+cvar_t	*vm_sway_front;
+cvar_t	*vm_sway_side;
+cvar_t	*vm_sway_up;
+cvar_t	*vm_offset_air_front;
+cvar_t	*vm_offset_air_side;
+cvar_t	*vm_offset_air_up;
+cvar_t	*vm_offset_crouch_front;
+cvar_t	*vm_offset_crouch_side;
+cvar_t	*vm_offset_crouch_up;
+cvar_t	*vm_offset_rocketcrouch_front;
+cvar_t	*vm_offset_rocketcrouch_side;
+cvar_t	*vm_offset_rocketcrouch_up;
+cvar_t	*vm_offset_shotguncrouch_front;
+cvar_t	*vm_offset_shotguncrouch_side;
+cvar_t	*vm_offset_shotguncrouch_up;
+cvar_t	*vm_offset_vel_base;
+cvar_t	*vm_offset_vel_front;
+cvar_t	*vm_offset_vel_side;
+cvar_t	*vm_offset_vel_up;
+cvar_t	*vm_offset_upvel;
+cvar_t	*vm_lean_lower;
+cvar_t	*cg_debugCGMessages;
 
 typedef struct {
-	vmCvar_t	*vmCvar;
+	cvar_t		**cvar;
 	char		*cvarName;
 	char		*defaultString;
 	int			cvarFlags;
@@ -344,20 +346,20 @@ CG_RegisterCvars
 void CG_RegisterCvars( void ) {
 	int			i;
 	cvarTable_t	*cv;
-	char		var[MAX_TOKEN_CHARS];
+	cvar_t		*sv_running;
 
 	for ( i = 0, cv = cvarTable ; i < cvarTableSize ; i++, cv++ ) {
-		trap_Cvar_Register( cv->vmCvar, cv->cvarName,
-			cv->defaultString, cv->cvarFlags );
+		*cv->cvar = cgi.Cvar_Get( cv->cvarName, cv->defaultString, cv->cvarFlags );
 	}
 
+	sv_running = cgi.Cvar_Get( "sv_running", "", 0 );
+
 	// see if we are also running the server on this machine
-	trap_Cvar_VariableStringBuffer( "sv_running", var, sizeof( var ) );
-	cgs.localServer = atoi( var );
+	cgs.localServer = sv_running->integer;
 
-	forceModelModificationCount = cg_forceModel.modificationCount;
+	forceModelModificationCount = cg_forceModel->modificationCount;
 
-	trap_Cvar_Register(NULL, "model", DEFAULT_MODEL, CVAR_USERINFO | CVAR_ARCHIVE );
+	cgi.Cvar_Get( "model", DEFAULT_MODEL, CVAR_USERINFO | CVAR_ARCHIVE );
 }
 
 /*
@@ -385,30 +387,23 @@ CG_UpdateCvars
 =================
 */
 void CG_UpdateCvars( void ) {
-	int			i;
-	cvarTable_t	*cv;
-
-	for ( i = 0, cv = cvarTable ; i < cvarTableSize ; i++, cv++ ) {
-		trap_Cvar_Update( cv->vmCvar );
-	}
-
 	// check for modications here
 
 	// If team overlay is on, ask for updates from the server.  If its off,
 	// let the server know so we don't receive it
-	if ( drawTeamOverlayModificationCount != cg_drawTeamOverlay.modificationCount ) {
-		drawTeamOverlayModificationCount = cg_drawTeamOverlay.modificationCount;
+	if ( drawTeamOverlayModificationCount != cg_drawTeamOverlay->modificationCount ) {
+		drawTeamOverlayModificationCount = cg_drawTeamOverlay->modificationCount;
 
-		if ( cg_drawTeamOverlay.integer > 0 ) {
-			trap_Cvar_Set( "teamoverlay", "1" );
+		if ( cg_drawTeamOverlay->integer > 0 ) {
+			cgi.Cvar_Set( "teamoverlay", "1" );
 		} else {
-			trap_Cvar_Set( "teamoverlay", "0" );
+			cgi.Cvar_Set( "teamoverlay", "0" );
 		}
 	}
 
 	// if force model changed
-	if ( forceModelModificationCount != cg_forceModel.modificationCount ) {
-		forceModelModificationCount = cg_forceModel.modificationCount;
+	if ( forceModelModificationCount != cg_forceModel->modificationCount ) {
+		forceModelModificationCount = cg_forceModel->modificationCount;
 		CG_ForceModelChange();
 	}
 }
@@ -434,7 +429,7 @@ void QDECL CG_Printf( const char *msg, ... ) {
 	vsprintf (text, msg, argptr);
 	va_end (argptr);
 
-	trap_Print( text );
+	cgi.Printf( text );
 }
 
 void QDECL CG_Error( const char *msg, ... ) {
@@ -445,7 +440,7 @@ void QDECL CG_Error( const char *msg, ... ) {
 	vsprintf (text, msg, argptr);
 	va_end (argptr);
 
-	trap_Error( text );
+	cgi.Error( ERR_DROP, text );
 }
 
 void QDECL Com_Error( int level, const char *error, ... ) {
@@ -476,11 +471,7 @@ CG_Argv
 ================
 */
 const char *CG_Argv( int arg ) {
-	static char	buffer[MAX_STRING_CHARS];
-
-	trap_Argv( arg, buffer, sizeof( buffer ) );
-
-	return buffer;
+	return cgi.Argv( arg );
 }
 
 
@@ -509,7 +500,7 @@ static void CG_RegisterSounds( void ) {
 		Q_strncpyz( buffer, soundName, sizeof(buffer) );
 		if (buffer[strlen( buffer )-1] == '0' || buffer[strlen( buffer )-1] == '1')
 			buffer[strlen( buffer )-1] = 0;
-		cgs.gameSounds[i] = trap_S_RegisterSound( buffer, qfalse );
+		cgs.gameSounds[i] = cgi.S_RegisterSound( buffer, qfalse );
 	}
 }
 
@@ -530,41 +521,41 @@ static void CG_RegisterGraphics( void ) {
 
 	// clear any references to old media
 	memset( &cg.refdef, 0, sizeof( cg.refdef ) );
-	trap_R_ClearScene();
+	cgi.R_ClearScene();
 
 	CG_LoadingString( cgs.mapname );
 
-	trap_R_LoadWorldMap( cgs.mapname );
+	cgi.R_LoadWorldMap( cgs.mapname );
 
 	// precache status bar pics
 	CG_LoadingString( "game media" );
 
 
-	cgs.media.crosshairShader[0] = trap_R_RegisterShader( "gfx/2d/BLANK" );
-	cgs.media.crosshairShader[1] = trap_R_RegisterShader( "textures/hud/crosshair" );
-	cgs.media.crosshairShader[2] = trap_R_RegisterShader( "gfx/2d/crosshair" );
+	cgs.media.crosshairShader[0] = cgi.R_RegisterShader( "gfx/2d/BLANK" );
+	cgs.media.crosshairShader[1] = cgi.R_RegisterShader( "textures/hud/crosshair" );
+	cgs.media.crosshairShader[2] = cgi.R_RegisterShader( "gfx/2d/crosshair" );
 
-	cgs.media.backTileShader = trap_R_RegisterShader( "gfx/2d/backtile" );
+	cgs.media.backTileShader = cgi.R_RegisterShader( "gfx/2d/backtile" );
 
-	cgs.media.shadowMarkShader = trap_R_RegisterShader( "markShadow" );
-	cgs.media.wakeMarkShader = trap_R_RegisterShader( "wake" );
+	cgs.media.shadowMarkShader = cgi.R_RegisterShader( "markShadow" );
+	cgs.media.wakeMarkShader = cgi.R_RegisterShader( "wake" );
 
 	// su44: MoHAA zoom overlays
-	cgs.media.zoomOverlayShader = trap_R_RegisterShader("textures/hud/zoomoverlay");
-	cgs.media.kar98TopOverlayShader = trap_R_RegisterShader("textures/hud/kartop.tga");
-	cgs.media.kar98BottomOverlayShader = trap_R_RegisterShader("textures/hud/karbottom.tga");
-	cgs.media.binocularsOverlayShader = trap_R_RegisterShader("textures/hud/binocularsoverlay");
+	cgs.media.zoomOverlayShader = cgi.R_RegisterShader("textures/hud/zoomoverlay");
+	cgs.media.kar98TopOverlayShader = cgi.R_RegisterShader("textures/hud/kartop.tga");
+	cgs.media.kar98BottomOverlayShader = cgi.R_RegisterShader("textures/hud/karbottom.tga");
+	cgs.media.binocularsOverlayShader = cgi.R_RegisterShader("textures/hud/binocularsoverlay");
 
 	// register the inline models
-	cgs.numInlineModels = trap_CM_NumInlineModels();
+	cgs.numInlineModels = cgi.CM_NumInlineModels();
 	for ( i = 1 ; i < cgs.numInlineModels ; i++ ) {
 		char	name[10];
 		vec3_t			mins, maxs;
 		int				j;
 
 		Com_sprintf( name, sizeof(name), "*%i", i );
-		cgs.inlineDrawModel[i] = trap_R_RegisterModel( name );
-		trap_R_ModelBounds( cgs.inlineDrawModel[i], mins, maxs );
+		cgs.inlineDrawModel[i] = cgi.R_RegisterModel( name );
+		cgi.R_ModelBounds( cgs.inlineDrawModel[i], mins, maxs );
 		for ( j = 0 ; j < 3 ; j++ ) {
 			cgs.inlineModelMidpoints[i][j] = mins[j] + 0.5 * ( maxs[j] - mins[j] );
 		}
@@ -578,9 +569,9 @@ static void CG_RegisterGraphics( void ) {
 		if ( !modelName[0] ) {
 			break;
 		}
-		cgs.gameModels[i] = trap_R_RegisterModel( modelName );
+		cgs.gameModels[i] = cgi.R_RegisterModel( modelName );
 		if( modelName[0] != '*')	{
-			cgs.gameTIKIs[i] = trap_TIKI_RegisterModel( modelName );
+			cgs.gameTIKIs[i] = cgi.TIKI_RegisterModel( modelName );
 			if(cgs.gameTIKIs[i] == 0) {
 				CG_Printf("CG_RegisterGraphics: failed to load  tiki file  %s (%i)\n",modelName,i);
 			}
@@ -653,7 +644,7 @@ CG_StartMusic
 */
 void CG_StartMusic( void ) {
 
-	trap_S_StartBackgroundTrack( CG_LoadMusic(CG_ConfigString(CS_MUSIC)),"" );
+	cgi.S_StartBackgroundTrack( CG_LoadMusic(CG_ConfigString(CS_MUSIC)),"" );
 }
 
 /*
@@ -679,28 +670,28 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum, in
 	cgs.processedSnapshotNum = serverMessageNum;
 	cgs.serverCommandSequence = serverCommandSequence;
 
-	trap_R_RegisterFont( "facfont-20", 0, &cgs.media.facfont );
-	trap_R_RegisterFont( "verdana-14", 0, &cgs.media.verdana );
+	cgi.R_RegisterFont( "facfont-20", 0, &cgs.media.facfont );
+	cgi.R_RegisterFont( "verdana-14", 0, &cgs.media.verdana );
 
 	// load a few needed things before we do any screen updates
-//	cgs.media.charsetShader		= trap_R_RegisterShader( "gfx/2d/bigchars" );
-	cgs.media.whiteShader		= trap_R_RegisterShader( "*white" );
-//	cgs.media.charsetProp		= trap_R_RegisterShaderNoMip( "menu/art/font1_prop.tga" );
-//	cgs.media.charsetPropGlow	= trap_R_RegisterShaderNoMip( "menu/art/font1_prop_glo.tga" );
-//	cgs.media.charsetPropB		= trap_R_RegisterShaderNoMip( "menu/art/font2_prop.tga" );
-	cgs.media.blackShader = trap_R_RegisterShaderNoMip( "textures/mohmenu/black.tga" );
+//	cgs.media.charsetShader		= cgi.R_RegisterShader( "gfx/2d/bigchars" );
+	cgs.media.whiteShader		= cgi.R_RegisterShader( "*white" );
+//	cgs.media.charsetProp		= cgi.R_RegisterShaderNoMip( "menu/art/font1_prop.tga" );
+//	cgs.media.charsetPropGlow	= cgi.R_RegisterShaderNoMip( "menu/art/font1_prop_glo.tga" );
+//	cgs.media.charsetPropB		= cgi.R_RegisterShaderNoMip( "menu/art/font2_prop.tga" );
+	cgs.media.blackShader = cgi.R_RegisterShaderNoMip( "textures/mohmenu/black.tga" );
 
 	CG_RegisterCvars();
 
 	CG_InitConsoleCommands();
 
 	// get the rendering configuration from the client system
-	trap_GetGlconfig( &cgs.glconfig );
+	cgi.GetGlconfig( &cgs.glconfig );
 	cgs.screenXScale = cgs.glconfig.vidWidth / 640.0;
 	cgs.screenYScale = cgs.glconfig.vidHeight / 480.0;
 
 	// get the gamestate from the client system
-	trap_GetGameState( &cgs.gameState );
+	cgi.GetGameState( &cgs.gameState );
 
 	// check version
 	s = CG_ConfigString( CS_GAME_VERSION );
@@ -716,7 +707,7 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum, in
 	// load the new map
 	CG_LoadingString( "collision map" );
 
-	trap_CM_LoadMap( cgs.mapname );
+	cgi.CM_LoadMap( cgs.mapname );
 
 	CG_LoadingString( "sounds" );
 
@@ -751,7 +742,7 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum, in
 
 	CG_LoadingString( "" );
 
-	trap_S_ClearLoopingSounds( qtrue );
+	cgi.S_ClearLoopingSounds( qtrue );
 }
 
 /*
@@ -766,6 +757,39 @@ void CG_Shutdown( void ) {
 	// like closing files or archiving session data
 }
 
+/*
+================
+GetCGameAPI
+
+Gets client game imports and returns client game exports
+================
+*/
+clientGameExport_t* GetCGameAPI( clientGameImport_t *import )
+{
+	cgi = *import;
+
+	cge.CG_Init				= CG_Init;
+	cge.CG_Shutdown			= CG_Shutdown;
+
+	cge.CG_ConsoleCommand	= CG_ConsoleCommand;
+
+	cge.CG_DrawActiveFrame	= CG_DrawActiveFrame;
+	cge.CG_Draw2D			= CG_Draw2D;
+
+	cge.CG_CrosshairPlayer	= CG_CrosshairPlayer;
+	cge.CG_LastAttacker		= CG_LastAttacker;
+
+	cge.CG_KeyEvent			= CG_KeyEvent;
+	cge.CG_MouseEvent		= CG_MouseEvent;
+	cge.CG_EventHandling	= CG_EventHandling;
+
+	cge.CG_CenterPrint		= CG_CenterPrint;
+	cge.CG_LocationPrint	= CG_LocationPrint;
+
+	cge.CG_ParseCGMessage	= CG_ParseCGMessage;
+
+	return &cge;
+}
 
 /*
 ==================

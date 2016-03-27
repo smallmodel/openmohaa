@@ -293,7 +293,7 @@ static void CG_AddBeamsFromList(int owner, int beamshader) {
 				}
 			}
 
-			trap_R_AddPolyToScene( beamshader, 4, newpoints/*, be->renderfx*/ );
+			cgi.R_AddPolyToScene( beamshader, 4, newpoints/*, be->renderfx*/ );
 		}
 	}
 }
@@ -321,7 +321,7 @@ static void RenderSegment(vec3_t pt1a, vec3_t pt1b, vec3_t pt2a, vec3_t pt2b,
 	}
 
 	// Add a segment to the list
-	trap_R_AddPolyToScene( beamshader, 4, points/*, renderfx */);
+	cgi.R_AddPolyToScene( beamshader, 4, points/*, renderfx */);
 }
 
 #define MAX_SUBPOINTS 256
@@ -398,7 +398,7 @@ void CG_MultiBeamEnd( float scale, int renderfx, const char *beamshadername,
 	qboolean       prevptvalid=qfalse;
 	int            i,beamshader;
 
-	beamshader  = trap_R_RegisterShader( beamshadername );
+	beamshader  = cgi.R_RegisterShader( beamshadername );
 
 	VectorCopy(subpoints[0],prevpt);
 	prevptvalid = qfalse;
@@ -411,9 +411,9 @@ void CG_MultiBeamEnd( float scale, int renderfx, const char *beamshadername,
 		VectorSubtract(currpt,cg.refdef.vieworg,v2);
 
 #if 0
-		trap_R_DebugLine( prevpt, currpt, 1,1,1,1);
+		cgi.R_DebugLine( prevpt, currpt, 1,1,1,1);
 		vec3_t pt = prevpt + up * 5;
-		trap_R_DebugLine( prevpt, pt, 0,0,1,1);
+		cgi.R_DebugLine( prevpt, pt, 0,0,1,1);
 #endif
 
 		CrossProduct(v1,v2,up);
@@ -557,8 +557,8 @@ void CG_MultiBeam(centity_t *cent) {
 
 	// This is the top of the beam ent list, build up a renderer beam based on all the children
 	beamshadername = CG_ConfigString( CS_IMAGES + s1->surfaces[1] ); // index for shader configstring
-	beamshader     = trap_R_RegisterShader( beamshadername );
-	//beamshader     = trap_R_RegisterShader( "<default>" );
+	beamshader     = cgi.R_RegisterShader( beamshadername );
+	//beamshader     = cgi.R_RegisterShader( "<default>" );
 	for ( i=0;i<4;i++ )
 		modulate[i] = cent->color[i] * 255;
 
@@ -576,9 +576,9 @@ void CG_MultiBeam(centity_t *cent) {
 		VectorSubtract(prevpt,cg.refdef.vieworg,v1);
 		VectorSubtract(currpt,cg.refdef.vieworg,v2);
 #if 0
-		trap_R_DebugLine( prevpt, currpt, 1,1,1,1);
+		cgi.R_DebugLine( prevpt, currpt, 1,1,1,1);
 		vec3_t pt = prevpt + up * 5;
-		trap_R_DebugLine( prevpt, pt, 0,0,1,1);
+		cgi.R_DebugLine( prevpt, pt, 0,0,1,1);
 #endif
 
 		CrossProduct(v1,v2,up);
@@ -607,7 +607,7 @@ void CG_MultiBeam(centity_t *cent) {
 		VectorCopy(currpt2,prevpt2);
 	}      
 }
-float trap_R_Noise( float x, float y, float z, float t ) {
+float R_Noise( float x, float y, float z, float t ) {
 	return 1.f; // TODO
 }
 static void CG_BuildRendererBeam( vec3_t start, vec3_t end, float angleVar, int numSubdivisions,
@@ -632,9 +632,9 @@ static void CG_BuildRendererBeam( vec3_t start, vec3_t end, float angleVar, int 
 	}
 
 	// For debugging texture coords
-	//beamshader = trap_R_RegisterShader( "<default>" );   
+	//beamshader = cgi.R_RegisterShader( "<default>" );   
 
-	picW = trap_R_GetShaderWidth( beamshader );
+	picW = cgi.R_GetShaderWidth( beamshader );
 
 	// calcluate length of beam segment
 	VectorSubtract(end,start,delta);
@@ -673,9 +673,9 @@ static void CG_BuildRendererBeam( vec3_t start, vec3_t end, float angleVar, int 
 				float phase = p2[0] + p2[1];
 				p2[2] += sin( phase + cg.time ) * angleVar;
 			} else if ( flags & BEAM_USE_NOISE ) {
-				p2[0] += trap_R_Noise( p2[0],p2[1],p2[2],cg.time ) * angleVar;
-				p2[1] += trap_R_Noise( p2[0],p2[1],p2[2],cg.time ) * angleVar;
-				p2[2] += trap_R_Noise( p2[0],p2[1],p2[2],cg.time ) * angleVar;
+				p2[0] += R_Noise( p2[0],p2[1],p2[2],cg.time ) * angleVar;
+				p2[1] += R_Noise( p2[0],p2[1],p2[2],cg.time ) * angleVar;
+				p2[2] += R_Noise( p2[0],p2[1],p2[2],cg.time ) * angleVar;
 			} else {
 				p2[0] += Q_crandom( &seed ) * angleVar;
 				p2[1] += Q_crandom( &seed ) * angleVar;
@@ -729,7 +729,7 @@ static void CG_BuildRendererBeam( vec3_t start, vec3_t end, float angleVar, int 
 			AddBeamSegmentToList( owner, points, beamnum, segnum++, renderfx );
 		} else {            
 			// Add it to the ref
-			trap_R_AddPolyToScene( beamshader, 4, points/*, renderfx*/ );
+			cgi.R_AddPolyToScene( beamshader, 4, points/*, renderfx*/ );
 		}
 
 
@@ -762,10 +762,10 @@ static void CG_CreateModelBeam(beam_t *b, vec3_t org, vec3_t dist, float total_l
 	int         i;
 
 	// Find the length of a single beam
-	tiki = trap_TIKIForModel( b->hModel );
+	tiki = cgi.TIKIForModel( b->hModel );
 
 	// Calculate the bounds of the model to get it's length
-	trap_TIKI_AppendFrameBoundsAndRadius(tiki,0,0,&t,bounds);
+	cgi.TIKI_AppendFrameBoundsAndRadius(tiki,0,0,&t,bounds);
 
 	single_beam_length = bounds[1][0] - bounds[0][0];
 
@@ -866,7 +866,7 @@ static void CG_CreateModelBeam(beam_t *b, vec3_t org, vec3_t dist, float total_l
 		AnglesToAxis( angles, ent.axis );
 
 		// Add in this beam to the ref
-		trap_R_AddRefEntityToScene( &ent );
+		cgi.R_AddRefEntityToScene( &ent );
 	}
 #endif
 }
@@ -1014,7 +1014,7 @@ void CG_CreateBeam(vec3_t start, vec3_t dir, int owner, qhandle_t hModel, float 
 					b->min_offset        = min_offset;
 					b->max_offset        = max_offset;
 					b->alpha             = alpha;
-					b->beamshader        = trap_R_RegisterShader( beamshadername );
+					b->beamshader        = cgi.R_RegisterShader( beamshadername );
 					b->numSubdivisions   = numSubdivisions;
 					b->delay             = delay;
 					b->life              = life;
@@ -1054,7 +1054,7 @@ void CG_CreateBeam(vec3_t start, vec3_t dir, int owner, qhandle_t hModel, float 
 			b->overlap           = overlap;
 			b->min_offset        = min_offset;
 			b->max_offset        = max_offset;
-			b->beamshader        = trap_R_RegisterShader( beamshadername );
+			b->beamshader        = cgi.R_RegisterShader( beamshadername );
 			b->numSubdivisions   = numSubdivisions;
 			b->delay             = delay;
 			b->update_time       = 0;//cg.time + delay;
@@ -1064,7 +1064,7 @@ void CG_CreateBeam(vec3_t start, vec3_t dir, int owner, qhandle_t hModel, float 
 			b->active            = qtrue;
 			b->toggledelay       = toggledelay;
 			b->renderfx          = renderfx;
-			strcpy( b->name,  name);
+			strcpy( b->name, name );
 
 			// take the alpha from the entity if less than 1, else grab it from the client commands version
 			if ( alpha < 1 )
@@ -1136,9 +1136,9 @@ void CG_Rope(centity_t *cent) {
 
 	// This is the top of the beam ent list, build up a renderer beam based on all the children
 	beamshadername = CG_ConfigString( CS_IMAGES + s1->surfaces[0] ); // index for shader configstring
-	beamshader     = trap_R_RegisterShader( beamshadername );
+	beamshader     = cgi.R_RegisterShader( beamshadername );
 
-	picH = trap_R_GetShaderHeight( beamshader );
+	picH = cgi.R_GetShaderHeight( beamshader );
 
 	for ( i=0;i<4;i++ )
 		modulate[i] = cent->color[i] * 255;
@@ -1195,7 +1195,7 @@ void CG_Rope(centity_t *cent) {
 	points[2].st[1] = 0;
 
 	// Add a segment to the list
-	trap_R_AddPolyToScene( beamshader, 4, points/*, s1->renderfx*/ );
+	cgi.R_AddPolyToScene( beamshader, 4, points/*, s1->renderfx*/ );
 
 	if ( s1->alpha > 0 ) {
 		// draw the bottom section
@@ -1224,7 +1224,7 @@ void CG_Rope(centity_t *cent) {
 		points[3].st[1] = endT;
 
 		// Add a segment to the list
-		trap_R_AddPolyToScene( beamshader, 4, points/*, s1->renderfx*/ );
+		cgi.R_AddPolyToScene( beamshader, 4, points/*, s1->renderfx*/ );
 	}
 }
 

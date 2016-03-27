@@ -30,6 +30,16 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <string.h>
 #include <ctype.h>
 #include <errno.h>
+#include <localization.h>
+#include "../client/snd_public.h"
+
+#ifdef WIN32
+#include <direct.h>
+#define GetCurrentDir _getcwd
+#else
+#include <unistd.h>
+#define GetCurrentDir getcwd
+#endif
 
 #ifndef DEDICATED
 #ifdef USE_LOCAL_HEADERS
@@ -112,8 +122,7 @@ Restart the input subsystem
 */
 void Sys_In_Restart_f( void )
 {
-	IN_Shutdown();
-	IN_Init();
+	IN_Restart();
 }
 
 /*
@@ -175,12 +184,8 @@ cpuFeatures_t Sys_GetProcessorFeatures( void )
 #ifndef DEDICATED
 	if( SDL_HasRDTSC( ) )    features |= CF_RDTSC;
 	if( SDL_HasMMX( ) )      features |= CF_MMX;
-	if( SDL_HasMMXExt( ) )   features |= CF_MMX_EXT;
-	if( SDL_Has3DNow( ) )    features |= CF_3DNOW;
-	if( SDL_Has3DNowExt( ) ) features |= CF_3DNOW_EXT;
 	if( SDL_HasSSE( ) )      features |= CF_SSE;
 	if( SDL_HasSSE2( ) )     features |= CF_SSE2;
-	if( SDL_HasAltiVec( ) )  features |= CF_ALTIVEC;
 #endif
 
 	return features;
@@ -280,10 +285,10 @@ void Sys_Print( const char *msg )
 
 /*
 =================
-Sys_Error
+SyScriptError
 =================
 */
-void Sys_Error( const char *error, ... )
+void SyScriptError( const char *error, ... )
 {
 	va_list argptr;
 	char    string[1024];
@@ -294,7 +299,7 @@ void Sys_Error( const char *error, ... )
 	Q_vsnprintf (string, sizeof(string), error, argptr);
 	va_end (argptr);
 
-	Sys_ErrorDialog( string );
+	//SyScriptErrorDialog( string );
 
 	Sys_Exit( 1 );
 }
@@ -347,6 +352,257 @@ void Sys_UnloadDll( void *dllHandle )
 	}
 
 	Sys_UnloadLibrary(dllHandle);
+}
+
+static void *cgame_library;
+static void *game_library;
+
+/*
+=================
+Sys_UnloadGame
+=================
+*/
+void Sys_UnloadGame( void )
+{
+	Com_Printf( "------ Unloading Game ------\n" );
+
+	if( game_library ) {
+		Sys_UnloadLibrary( game_library );
+	}
+
+	game_library = NULL;
+}
+
+/*
+=================
+Sys_GetGameAPI
+=================
+*/
+void *Sys_GetGameAPI( void *parms )
+{
+	void	*( *GetGameAPI ) ( void * );
+	const char	*basepath;
+	const char	*cdpath;
+	const char	*gamedir;
+	const char	*homepath;
+#ifdef MACOS_X
+	const char *apppath;
+#endif
+	const char	*fn;
+	const char *gamename = "game" ARCH_STRING DLL_EXT;
+
+	if( game_library )
+		Com_Error( ERR_FATAL, "Sys_GetGameAPI without calling Sys_UnloadGame" );
+
+	// check the current debug directory first for development purposes
+	homepath = Cvar_VariableString( "fs_homepath" );
+	basepath = Cvar_VariableString( "fs_basepath" );
+	cdpath = Cvar_VariableString( "fs_cdpath" );
+	gamedir = Cvar_VariableString( "fs_game" );
+#ifdef MACOS_X
+	apppath = Cvar_VariableString( "fs_apppath" );
+#endif
+
+	fn = FS_BuildOSPath( basepath, gamedir, gamename );
+
+	game_library = Sys_LoadLibrary( fn );
+
+	//First try in mod directories. basepath -> homepath -> cdpath
+	if( !game_library ) {
+		if( homepath[ 0 ] ) {
+			Com_Printf( "Sys_GetGameAPI(%s) failed: \"%s\"\n", fn, Sys_LibraryError() );
+			fn = FS_BuildOSPath( homepath, gamedir, gamename );
+			game_library = Sys_LoadLibrary( fn );
+		}
+	}
+#ifdef MACOS_X
+	if( !game_library ) {
+		if( apppath[ 0 ] ) {
+			Com_Printf( "Sys_GetGameAPI(%s) failed: \"%s\"\n", fn, Sys_LibraryError() );
+			fn = FS_BuildOSPath( apppath, gamedir, gamename );
+			game_library = Sys_LoadLibrary( fn );
+		}
+	}
+#endif
+	if( !game_library ) {
+		if( cdpath[ 0 ] ) {
+			Com_Printf( "Sys_GetGameAPI(%s) failed: \"%s\"\n", fn, Sys_LibraryError() );
+			fn = FS_BuildOSPath( cdpath, gamedir, gamename );
+			game_library = Sys_LoadLibrary( fn );
+		}
+	}
+
+	//Now try in base. basepath -> homepath -> cdpath
+	if( !game_library ) {
+		Com_Printf( "Sys_GetGameAPI(%s) failed: \"%s\"\n", fn, Sys_LibraryError() );
+		fn = FS_BuildOSPath( basepath, PRODUCT_NAME, gamename );
+		game_library = Sys_LoadLibrary( fn );
+	}
+
+	if( !game_library ) {
+		if( homepath[ 0 ] ) {
+			Com_Printf( "Sys_GetGameAPI(%s) failed: \"%s\"\n", fn, Sys_LibraryError() );
+			fn = FS_BuildOSPath( homepath, PRODUCT_NAME, gamename );
+			game_library = Sys_LoadLibrary( fn );
+		}
+	}
+#ifdef MACOS_X
+	if( !game_library ) {
+		if( apppath[ 0 ] ) {
+			Com_Printf( "Sys_GetGameAPI(%s) failed: \"%s\"\n", fn, Sys_LibraryError() );
+			fn = FS_BuildOSPath( apppath, OPENJKGAME, gamename );
+			game_library = Sys_LoadLibrary( fn );
+		}
+	}
+#endif
+	if( !game_library ) {
+		if( cdpath[ 0 ] ) {
+			Com_Printf( "Sys_GetGameAPI(%s) failed: \"%s\"\n", fn, Sys_LibraryError() );
+			fn = FS_BuildOSPath( cdpath, PRODUCT_NAME, gamename );
+			game_library = Sys_LoadLibrary( fn );
+		}
+	}
+
+	//Still couldn't find it.
+	if( !game_library ) {
+		Com_Printf( "Sys_GetGameAPI(%s) failed: \"%s\"\n", fn, Sys_LibraryError() );
+		Com_Error( ERR_FATAL, "Couldn't load game" );
+	}
+
+	Com_Printf( "Sys_GetGameAPI(%s): succeeded ...\n", fn );
+	GetGameAPI = ( void *( *)( void * ) )Sys_LoadFunction( game_library, "GetGameAPI" );
+
+	if( !GetGameAPI )
+	{
+		Sys_UnloadGame();
+		return NULL;
+	}
+
+	return GetGameAPI( parms );
+}
+
+/*
+=================
+Sys_UnloadCGame
+=================
+*/
+void Sys_UnloadCGame( void )
+{
+	Com_Printf( "------ Unloading ClientGame ------\n" );
+
+	if( cgame_library ) {
+		Sys_UnloadLibrary( cgame_library );
+	}
+
+	cgame_library = NULL;
+}
+
+/*
+=================
+Sys_GetCGameAPI
+=================
+*/
+void *Sys_GetCGameAPI( void *parms )
+{
+	void	*( *GetCGameAPI ) ( void * );
+	const char	*basepath;
+	const char	*cdpath;
+	const char	*gamedir;
+	const char	*homepath;
+#ifdef MACOS_X
+	const char *apppath;
+#endif
+	const char	*fn;
+	const char *gamename = "cgame" ARCH_STRING DLL_EXT;
+
+	if( cgame_library )
+		Com_Error( ERR_FATAL, "Sys_GetCGameAPI without calling Sys_UnloadCGame" );
+
+	// check the current debug directory first for development purposes
+	homepath = Cvar_VariableString( "fs_homepath" );
+	basepath = Cvar_VariableString( "fs_basepath" );
+	cdpath = Cvar_VariableString( "fs_cdpath" );
+	gamedir = Cvar_VariableString( "fs_game" );
+#ifdef MACOS_X
+	apppath = Cvar_VariableString( "fs_apppath" );
+#endif
+
+	fn = FS_BuildOSPath( basepath, gamedir, gamename );
+
+	cgame_library = Sys_LoadLibrary( fn );
+
+	//First try in mod directories. basepath -> homepath -> cdpath
+	if( !cgame_library ) {
+		if( homepath[ 0 ] ) {
+			Com_Printf( "Sys_GetCGameAPI(%s) failed: \"%s\"\n", fn, Sys_LibraryError() );
+			fn = FS_BuildOSPath( homepath, gamedir, gamename );
+			cgame_library = Sys_LoadLibrary( fn );
+		}
+	}
+#ifdef MACOS_X
+	if( !cgame_library ) {
+		if( apppath[ 0 ] ) {
+			Com_Printf( "Sys_GetCGameAPI(%s) failed: \"%s\"\n", fn, Sys_LibraryError() );
+			fn = FS_BuildOSPath( apppath, gamedir, gamename );
+			cgame_library = Sys_LoadLibrary( fn );
+		}
+	}
+#endif
+	if( !cgame_library ) {
+		if( cdpath[ 0 ] ) {
+			Com_Printf( "Sys_GetCGameAPI(%s) failed: \"%s\"\n", fn, Sys_LibraryError() );
+			fn = FS_BuildOSPath( cdpath, gamedir, gamename );
+			cgame_library = Sys_LoadLibrary( fn );
+		}
+	}
+
+	//Now try in base. basepath -> homepath -> cdpath
+	if( !cgame_library ) {
+		Com_Printf( "Sys_GetCGameAPI(%s) failed: \"%s\"\n", fn, Sys_LibraryError() );
+		fn = FS_BuildOSPath( basepath, PRODUCT_NAME, gamename );
+		cgame_library = Sys_LoadLibrary( fn );
+	}
+
+	if( !cgame_library ) {
+		if( homepath[ 0 ] ) {
+			Com_Printf( "Sys_GetCGameAPI(%s) failed: \"%s\"\n", fn, Sys_LibraryError() );
+			fn = FS_BuildOSPath( homepath, PRODUCT_NAME, gamename );
+			cgame_library = Sys_LoadLibrary( fn );
+		}
+	}
+#ifdef MACOS_X
+	if( !cgame_library ) {
+		if( apppath[ 0 ] ) {
+			Com_Printf( "Sys_GetCGameAPI(%s) failed: \"%s\"\n", fn, Sys_LibraryError() );
+			fn = FS_BuildOSPath( apppath, OPENJKGAME, gamename );
+			cgame_library = Sys_LoadLibrary( fn );
+		}
+	}
+#endif
+	if( !cgame_library ) {
+		if( cdpath[ 0 ] ) {
+			Com_Printf( "Sys_GetCGameAPI(%s) failed: \"%s\"\n", fn, Sys_LibraryError() );
+			fn = FS_BuildOSPath( cdpath, PRODUCT_NAME, gamename );
+			cgame_library = Sys_LoadLibrary( fn );
+		}
+	}
+
+	//Still couldn't find it.
+	if( !cgame_library ) {
+		Com_Printf( "Sys_GetCGameAPI(%s) failed: \"%s\"\n", fn, Sys_LibraryError() );
+		Com_Error( ERR_FATAL, "Couldn't load game" );
+	}
+
+	Com_Printf( "Sys_GetCGameAPI(%s): succeeded ...\n", fn );
+	GetCGameAPI = ( void *( *)( void * ) )Sys_LoadFunction( cgame_library, "GetCGameAPI" );
+
+	if( !GetCGameAPI )
+	{
+		Sys_UnloadCGame();
+		return NULL;
+	}
+
+	return GetCGameAPI( parms );
 }
 
 /*
@@ -451,42 +707,6 @@ void *Sys_LoadDll( const char *name, char *fqpath ,
 
 /*
 =================
-Sys_Idle
-=================
-*/
-static void Sys_Idle( void )
-{
-#ifndef DEDICATED
-	int appState = SDL_GetAppState( );
-	int sleep = 0;
-
-	// If we have no input focus at all, sleep a bit
-	if( !( appState & ( SDL_APPMOUSEFOCUS | SDL_APPINPUTFOCUS ) ) )
-	{
-		Cvar_SetValue( "com_unfocused", 1 );
-		sleep += 16;
-	}
-	else
-		Cvar_SetValue( "com_unfocused", 0 );
-
-	// If we're minimised, sleep a bit more
-	if( !( appState & SDL_APPACTIVE ) )
-	{
-		Cvar_SetValue( "com_minimized", 1 );
-		sleep += 32;
-	}
-	else
-		Cvar_SetValue( "com_minimized", 0 );
-
-	if( !com_dedicated->integer && sleep )
-		SDL_Delay( sleep );
-#else
-	// Dedicated server idles via NET_Sleep
-#endif
-}
-
-/*
-=================
 Sys_ParseArgs
 =================
 */
@@ -552,6 +772,7 @@ int main( int argc, char **argv )
 {
 	int   i;
 	char  commandLine[ MAX_STRING_CHARS ] = { 0 };
+	char  szPath[ MAX_QPATH ];
 
 #ifndef DEDICATED
 	// SDL version check
@@ -562,26 +783,30 @@ int main( int argc, char **argv )
 #	endif
 
 	// Run time
-	const SDL_version *ver = SDL_Linked_Version( );
+	SDL_version ver;
+	SDL_GetVersion( &ver );
 
-#define STRING(s) #s
-#define XSTRING(s) STRING(s)
 #define MINSDL_VERSION \
 	XSTRING(MINSDL_MAJOR) "." \
 	XSTRING(MINSDL_MINOR) "." \
 	XSTRING(MINSDL_PATCH)
 
-	if( SDL_VERSIONNUM( ver->major, ver->minor, ver->patch ) <
-			SDL_VERSIONNUM( MINSDL_MAJOR, MINSDL_MINOR, MINSDL_PATCH ) )
+	if( SDL_VERSIONNUM( ver.major, ver.minor, ver.patch ) <
+		SDL_VERSIONNUM( MINSDL_MAJOR, MINSDL_MINOR, MINSDL_PATCH ) )
 	{
-		Sys_Print( "SDL version " MINSDL_VERSION " or greater required\n" );
+		Sys_Dialog( DT_ERROR, va( "SDL version " MINSDL_VERSION " or greater is required, "
+			"but only version %d.%d.%d was found. You may be able to obtain a more recent copy "
+			"from http://www.libsdl.org/.", ver.major, ver.minor, ver.patch ), "SDL Library Too Old" );
+
 		Sys_Exit( 1 );
 	}
 #endif
 
 	Sys_ParseArgs( argc, argv );
-	Sys_SetBinaryPath( Sys_Dirname( argv[ 0 ] ) );
+	GetCurrentDir( szPath, sizeof( szPath ) );
+	Sys_SetBinaryPath( szPath );
 	Sys_SetDefaultInstallPath( DEFAULT_BASEDIR );
+	SetProgramPath( DEFAULT_BASEDIR );
 
 	// Concatenate the command line for passing to Com_Init
 	for( i = 1; i < argc; i++ )
@@ -591,9 +816,12 @@ int main( int argc, char **argv )
 	}
 
 	Com_Init( commandLine );
+	Sys_InitLocalization();
 	NET_Init( );
 
 	CON_Init( );
+
+#ifndef _DEBUG
 
 #ifndef _WIN32
 	// Windows doesn't have these signals
@@ -610,9 +838,10 @@ int main( int argc, char **argv )
 	signal( SIGSEGV, Sys_SigHandler );
 	signal( SIGTERM, Sys_SigHandler );
 
+#endif
+
 	while( 1 )
 	{
-		Sys_Idle( );
 		IN_Frame( );
 		Com_Frame( );
 	}

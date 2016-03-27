@@ -23,10 +23,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "q_shared.h"
 #include "qcommon.h"
 #include "cm_polylib.h"
+#include "cm_terrain.h"
 
-#define	MAX_SUBMODELS			512 // 256 su44: increased for m6l2a 
-#define	BOX_MODEL_HANDLE		511 // 255
-#define CAPSULE_MODEL_HANDLE	510 // 254
+#define	MAX_SUBMODELS			1024
+#define	BOX_MODEL_HANDLE		(MAX_SUBMODELS-1)
+#define CAPSULE_MODEL_HANDLE	510
 
 
 typedef struct {
@@ -45,9 +46,24 @@ typedef struct {
 	int			numLeafSurfaces;
 
 	//added for mohaa
-	int			dummy1;
-	int			dummy2;
+	int			firstLeafTerrain;
+	int			numLeafTerrains;
 } cLeaf_t;
+
+typedef struct cfencemask_s {
+	char name[ 64 ];
+	int iWidth;
+	int iHeight;
+	byte *pData;
+	struct cfencemask_s *pNext;
+} cfencemask_t;
+
+typedef struct {
+	char shader[ 64 ];
+	int surfaceFlags;
+	int contentFlags;
+	cfencemask_t *mask;
+} cshader_t;
 
 typedef struct cmodel_s {
 	vec3_t		mins, maxs;
@@ -55,11 +71,11 @@ typedef struct cmodel_s {
 } cmodel_t;
 
 typedef struct {
-	cplane_t	*plane;
-	int			surfaceFlags;
-	int			shaderNum;
+	cplane_t			*plane;
+	int					surfaceFlags;
+	int					shaderNum;
 
-	void	*dummy;
+	dsideequation_t		*pEq;
 } cbrushside_t;
 
 typedef struct {
@@ -77,12 +93,19 @@ typedef struct {
 	int			surfaceFlags;
 	int			contents;
 
-	int			dummy1;
-	int			dummy2;
+	int			shaderNum;
+	int			subdivisions;
 
 	struct patchCollide_s	*pc;
 } cPatch_t;
 
+typedef struct {
+	int checkcount;
+	int surfaceFlags;
+	int contents;
+	int shaderNum;
+	terrainCollide_t tc;
+} cTerrain_t;
 
 typedef struct {
 	int			floodnum;
@@ -97,70 +120,69 @@ typedef struct {
 } cterPatch_t;
 
 typedef struct {
-	char		name[MAX_QPATH];
+	char			name[ MAX_QPATH ];
 
-	int			numShaders;
-	dshader_t	*shaders;
+	int				numShaders;
+	cfencemask_t	*fencemasks;
+	cshader_t		*shaders;
 
-	int			numBrushSides;
-	cbrushside_t *brushsides;
+	int				numSideEquations;
+	dsideequation_t	*sideequations;
 
-	int			numPlanes;
-	cplane_t	*planes;
+	int				numBrushSides;
+	cbrushside_t	*brushsides;
 
-	int			numNodes;
-	cNode_t		*nodes;
+	int				numPlanes;
+	cplane_t		*planes;
 
-	int			numLeafs;
-	cLeaf_t		*leafs;
+	int				numNodes;
+	cNode_t			*nodes;
 
-	int			numLeafBrushes;
-	int			*leafbrushes;
+	int				numLeafs;
+	cLeaf_t			*leafs;
 
-	int			numLeafSurfaces;
-	int			*leafsurfaces;
+	int				numLeafBrushes;
+	int				*leafbrushes;
 
-	int			numSubModels;
-	cmodel_t	*cmodels;
+	int				numLeafSurfaces;
+	int				*leafsurfaces;
 
-	int			numBrushes;
-	cbrush_t	*brushes;
+	int				numLeafTerrains;
+	cTerrain_t		**leafterrains;
 
-	int			numClusters;
-	int			clusterBytes;
-	byte		*visibility;
-	qboolean	vised;			// if false, visibility is just a single cluster of ffs
+	int				numSubModels;
+	cmodel_t		*cmodels;
 
-	int			numEntityChars;
-	char		*entityString;
+	int				numBrushes;
+	cbrush_t		*brushes;
 
-	int			numAreas;
-	cArea_t		*areas;
-	int			*areaPortals;	// [ numAreas*numAreas ] reference counts
+	int				numClusters;
+	int				clusterBytes;
+	byte			*visibility;
+	qboolean		vised;			// if false, visibility is just a single cluster of ffs
 
-	int			numSurfaces;
-	cPatch_t	**surfaces;			// non-patches will be NULL
+	int				numEntityChars;
+	char			*entityString;
+
+	int				numAreas;
+	cArea_t			*areas;
+	int				*areaPortals;	// [ numAreas*numAreas ] reference counts
+
+	int				numSurfaces;
+	cPatch_t		**surfaces;			// non-patches will be NULL
 
 	// IneQuation
-	int			numTerPatches;
-	cterPatch_t	*terPatches;
+	int				numTerrain;
+	cTerrain_t		*terrain;
 
-	int			floodvalid;
-	int			checkcount;					// incremented on each trace
+	int				floodvalid;
+	int				checkcount;					// incremented on each trace
 } clipMap_t;
 
 
 // keep 1/8 unit away to keep the position valid before network snapping
 // and to avoid various numeric issues
 #define	SURFACE_CLIP_EPSILON	(0.125)
-
-extern	clipMap_t	cm;
-extern	int			c_pointcontents;
-extern	int			c_traces, c_brush_traces, c_patch_traces, c_terrain_patch_traces;
-extern	cvar_t		*cm_noAreas;
-extern	cvar_t		*cm_noCurves;
-extern	cvar_t		*cm_playerCurveClip;
-extern	cvar_t		*cm_noTerrain;	// IneQuation
 
 // cm_test.c
 
@@ -169,7 +191,6 @@ typedef struct
 {
 	qboolean	use;
 	float		radius;
-	float		halfheight;
 	vec3_t		offset;
 } sphere_t;
 
@@ -181,11 +202,11 @@ typedef struct {
 	float		maxOffset;	// longest corner length from origin
 	vec3_t		extents;	// greatest of abs(size[0]) and abs(size[1])
 	vec3_t		bounds[2];	// enclosing box of start and end surrounding by size
-	vec3_t		modelOrigin;// origin of the model tracing through
+	float		height;
+	float		radius;
 	int			contents;	// ored contents of the model tracing through
 	qboolean	isPoint;	// optimized case
 	trace_t		trace;		// returned from trace call
-	sphere_t	sphere;		// sphere for oriendted capsule collision
 } traceWork_t;
 
 typedef struct leafList_s {
@@ -197,6 +218,17 @@ typedef struct leafList_s {
 	int		lastLeaf;		// for overflows where each leaf can't be stored individually
 	void	(*storeLeafs)( struct leafList_s *ll, int nodenum );
 } leafList_t;
+
+extern	clipMap_t	cm;
+extern	int			c_pointcontents;
+extern	int			c_traces, c_brush_traces, c_patch_traces, c_terrain_patch_traces;
+extern	cvar_t		*cm_noAreas;
+extern	cvar_t		*cm_noCurves;
+extern	cvar_t		*cm_playerCurveClip;
+extern	cvar_t		*cm_FCMcacheall;
+extern	cvar_t		*cm_FCMdebug;
+extern	cvar_t		*cm_ter_usesphere;
+extern	sphere_t	sphere;
 
 
 int CM_BoxBrushes( const vec3_t mins, const vec3_t maxs, cbrush_t **list, int listsize );
@@ -212,12 +244,19 @@ qboolean CM_BoundsIntersectPoint( const vec3_t mins, const vec3_t maxs, const ve
 
 // cm_patch.c
 
-struct patchCollide_s	*CM_GeneratePatchCollide( int width, int height, vec3_t *points );
+qboolean CM_PlaneFromPoints( vec4_t plane, vec3_t a, vec3_t b, vec3_t c );
+struct patchCollide_s	*CM_GeneratePatchCollide( int width, int height, vec3_t *points, float subdivisions );
 void CM_TraceThroughPatchCollide( traceWork_t *tw, const struct patchCollide_s *pc );
 qboolean CM_PositionTestInPatchCollide( traceWork_t *tw, const struct patchCollide_s *pc );
 void CM_ClearLevelPatches( void );
 
 // cm_terrain.c
-struct terPatchCollide_s *CM_GenerateTerPatchCollide(vec3_t origin, byte heightmap[9][9], dshader_t *shader);
-void CM_TraceThroughTerPatchCollide(traceWork_t *tw, const struct terPatchCollide_s *tc);
-void CM_PositionTestInTerPatchCollide(traceWork_t *tw, const struct terPatchCollide_s *tc);
+struct terPatchCollide_s *CM_GenerateTerPatchCollide(vec3_t origin, byte heightmap[9][9], baseshader_t *shader);
+void CM_TraceThroughTerrainCollide(traceWork_t *tw, terrainCollide_t *tc);
+qboolean CM_PositionTestInTerrainCollide( traceWork_t *tw, terrainCollide_t *tc );
+qboolean CM_SightTracePointThroughTerrainCollide( void );
+qboolean CM_SightTraceThroughTerrainCollide( traceWork_t *tw, terrainCollide_t *tc );
+
+// cm_fencemask.c
+cfencemask_t *CM_GetFenceMask( const char *szMaskName );
+qboolean CM_TraceThroughFence( traceWork_t *tw, cbrush_t *brush, cbrushside_t *side, float fTraceFraction );

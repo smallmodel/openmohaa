@@ -21,10 +21,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 // client.h -- primary header for client
 
+#ifndef __CLIENT_H__
+#define __CLIENT_H__
+
 #include "../qcommon/q_shared.h"
 #include "../qcommon/qcommon.h"
-#include "../renderer/tr_public.h"
-#include "../mohui/ui_public.h"
+#include "../renderercommon/tr_public.h"
 #include "keys.h"
 #include "snd_public.h"
 #include "../cgame/cg_public.h"
@@ -39,6 +41,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define QKEY_SIZE 2048
 
 #define	RETRANSMIT_TIMEOUT	3000	// time between connection packet retransmits
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 // snapshots are a view of the server at a given time
 typedef struct {
@@ -99,6 +105,7 @@ typedef struct {
 
 	int			serverTime;			// may be paused during play
 	int			oldServerTime;		// to prevent time from flowing bakcwards
+	int			serverStartTime;
 	int			oldFrameServerTime;	// to check tournament restarts
 	int			serverTimeDelta;	// cl.serverTime = cls.realtime + cl.serverTimeDelta
 									// this value changes as net lag varies
@@ -113,6 +120,10 @@ typedef struct {
 
 	int			mouseDx[2], mouseDy[2];	// added to by mouse events
 	int			mouseIndex;
+
+	int				mousex, mousey;
+	unsigned int	mouseButtons;
+
 	int			joystickAxis[MAX_JOYSTICK_AXIS];	// set by joystick events
 
 	// cgame communicates a few values to the client system
@@ -257,9 +268,10 @@ typedef struct {
 
 typedef struct {
 	netadr_t	adr;
-	char	  	hostName[MAX_NAME_LENGTH];
-	char	  	mapName[MAX_NAME_LENGTH];
-	char	  	game[MAX_NAME_LENGTH];
+	char	  	hostName[ MAX_NAME_LENGTH ];
+	char	  	mapName[ MAX_NAME_LENGTH ];
+	char	  	game[ MAX_NAME_LENGTH ];
+	char		gameTypeString[ MAX_NAME_LENGTH ];
 	int			netType;
 	int			gameType;
 	int		  	clients;
@@ -268,7 +280,6 @@ typedef struct {
 	int			maxPing;
 	int			ping;
 	qboolean	visible;
-	int			punkbuster;
 } serverInfo_t;
 
 typedef struct {
@@ -277,18 +288,21 @@ typedef struct {
 } serverAddress_t;
 
 typedef struct {
+	int			startStage;
 	connstate_t	state;				// connection status
-
+	int			loading;
+	int			keyCatchers;
+	qboolean	vid_restart;
 	qboolean	cddialog;			// bring up the cd needed dialog next frame
+	qboolean	no_menus;
 
 	char		servername[MAX_OSPATH];		// name of server from original connect (used by reconnect)
 
 	// when the server clears the hunk, all of these must be restarted
-	qboolean	rendererStarted;
-	qboolean	soundStarted;
-	qboolean	soundRegistered;
-	qboolean	uiStarted;
+	qboolean	rendererRegistered;
 	qboolean	cgameStarted;
+	qboolean	uiStarted;
+	qboolean	timeScaled;
 
 	int			framecount;
 	int			frametime;			// msec since last frame
@@ -296,8 +310,9 @@ typedef struct {
 	int			realtime;			// ignores pause
 	int			realFrametime;		// ignoring pause, so console always works
 
-	int			numlocalservers;
-	serverInfo_t	localServers[MAX_OTHER_SERVERS];
+	int				numlocalservers;
+	serverInfo_t	localServers[ MAX_OTHER_SERVERS ];
+	qboolean		bNewLocalServerInfo;
 
 	int			numglobalservers;
 	serverInfo_t  globalServers[MAX_GLOBAL_SERVERS];
@@ -324,18 +339,27 @@ typedef struct {
 
 	// rendering info
 	glconfig_t	glconfig;
+	int total_tris;
+	int total_verts;
+	int total_texels;
+	int world_tris;
+	int world_verts;
+	int character_lights;
+	hdelement_t HudDrawElements[ MAX_HUDDRAW_ELEMENTS ];
+	clientAnim_t anim;
+	stopwatch_t stopwatch;
 	qhandle_t	charSetShader;
 	qhandle_t	whiteShader;
 	qhandle_t	consoleShader;
 	fontInfo_t	consoleFont;
 } clientStatic_t;
 
-extern	clientStatic_t		cls;
+extern clientStatic_t	cls;
 
 //=============================================================================
 
-extern	vm_t			*cgvm;	// interface to cgame dll or vm
-extern	vm_t			*uivm;	// interface to ui dll or vm
+//extern	vm_t			*cgvm;	// interface to cgame dll or vm
+extern	clientGameExport_t	*cge;
 extern	refexport_t		re;		// interface to refresh .dll
 
 
@@ -346,6 +370,8 @@ extern	cvar_t	*cl_nodelta;
 extern	cvar_t	*cl_debugMove;
 extern	cvar_t	*cl_noprint;
 extern	cvar_t	*cl_timegraph;
+extern	cvar_t	*cl_timeout;
+extern	cvar_t	*cl_connect_timeout;
 extern	cvar_t	*cl_maxpackets;
 extern	cvar_t	*cl_packetdup;
 extern	cvar_t	*cl_shownet;
@@ -366,6 +392,9 @@ extern	cvar_t	*cl_freelook;
 extern	cvar_t	*cl_mouseAccel;
 extern	cvar_t	*cl_showMouseRate;
 
+extern	cvar_t	*cl_altbindings;
+extern	cvar_t	*cl_ctrlbindings;
+
 extern	cvar_t	*m_pitch;
 extern	cvar_t	*m_yaw;
 extern	cvar_t	*m_forward;
@@ -384,9 +413,14 @@ extern	cvar_t	*cl_conXOffset;
 extern	cvar_t	*cl_inGameVideo;
 
 extern	cvar_t	*cl_lanForcePackets;
+extern	cvar_t	*cl_langamerefreshstatus;
 extern	cvar_t	*cl_autoRecordDemo;
 
 extern	cvar_t	*cl_r_fullscreen;
+
+extern	cvar_t	*cl_consoleKeys;
+
+extern	cvar_t	*cg_gametype;
 
 //=================================================
 
@@ -395,16 +429,21 @@ extern	cvar_t	*cl_r_fullscreen;
 //
 
 void CL_Init (void);
+void CL_InitClientSavedData( void );
+void CL_InitRef( void );
 void CL_FlushMemory(void);
 void CL_ShutdownAll(void);
 void CL_AddReliableCommand( const char *cmd );
 
-void CL_StartHunkUsers( qboolean rendererOnly );
+void CL_StartHunkUsers( void );
+
+void CL_Connect( const char *server );
 
 void CL_Disconnect_f (void);
 void CL_GetChallengePacket (void);
 void CL_Vid_Restart_f( void );
 void CL_Snd_Restart_f (void);
+const char *CL_ConfigString( int index );
 void CL_StartDemoLoop( void );
 void CL_NextDemo( void );
 void CL_ReadDemoMessage( void );
@@ -421,7 +460,9 @@ int CL_GetPingQueueCount( void );
 void CL_ShutdownRef( void );
 void CL_InitRef( void );
 qboolean CL_CDKeyValidate( const char *key, const char *checksum );
-int CL_ServerStatus( char *serverAddress, char *serverStatusString, int maxLen );
+int CL_ServerStatus( const char *serverAddress, char *serverStatusString, int maxLen );
+void UI_ClearResource( void );
+void UI_LoadResource( const char *name );
 
 qboolean CL_CheckPaused(void);
 
@@ -439,6 +480,11 @@ typedef struct {
 extern	kbutton_t	in_mlook, in_klook;
 extern 	kbutton_t 	in_strafe;
 extern 	kbutton_t 	in_speed;
+extern	qboolean	in_guimouse;
+
+void IN_ToggleMouse( void );
+void IN_MouseOn( void );
+void IN_MouseOff( void );
 
 void CL_InitInput (void);
 void CL_SendCmd (void);
@@ -451,7 +497,9 @@ void IN_CenterView (void);
 void CL_VerifyCode( void );
 
 float CL_KeyState (kbutton_t *key);
-char *Key_KeynumToString (int keynum);
+const char *Key_KeynumToString( int keynum );
+const char *Key_KeynumToBindString( int keynum );
+void Key_GetKeysForCommand( const char *command, int *key1, int *key2 );
 int Key_GetCatcher( void );
 void Key_SetCatcher( int catcher );
 
@@ -468,6 +516,21 @@ extern msg_t *cl_currentMSG;
 void CL_SystemInfoChanged( void );
 void CL_ParseServerMessage( msg_t *msg );
 
+int		CL_MSG_ReadBits( int bits );
+int		CL_MSG_ReadChar( void );
+int		CL_MSG_ReadByte( void );
+int		CL_MSG_ReadSVC( void );
+int		CL_MSG_ReadShort( void );
+int		CL_MSG_ReadLong( void );
+float	CL_MSG_ReadFloat( void );
+char	*CL_MSG_ReadString( void );
+char	*CL_MSG_ReadStringLine( void );
+float	CL_MSG_ReadAngle8( void );
+float	CL_MSG_ReadAngle16( void );
+void	CL_MSG_ReadData( void *data, int len );
+float	CL_MSG_ReadCoord( void );
+void	CL_MSG_ReadDir( vec3_t dir );
+
 //====================================================================
 
 void	CL_ServerInfoPacket( netadr_t from, msg_t *msg );
@@ -475,6 +538,8 @@ void	CL_LocalServers_f( void );
 void	CL_GlobalServers_f( void );
 void	CL_FavoriteServers_f( void );
 void	CL_Ping_f( void );
+void	CL_SaveShot_f( void );
+void	CL_Dialog_f( void );
 qboolean CL_UpdateVisiblePings_f( int source );
 
 
@@ -521,6 +586,7 @@ void	SCR_DrawBigStringColor( int x, int y, const char *s, vec4_t color, qboolean
 void	SCR_DrawSmallStringExt( int x, int y, const char *string, float *setColor, qboolean forceColor, qboolean noColorEscape );
 void	SCR_DrawSmallChar( int x, int y, int ch );
 
+void	UpdateStereoSide( stereoFrame_t s );
 
 //
 // cl_cin.c
@@ -540,26 +606,31 @@ void CIN_UploadCinematic(int handle);
 void CIN_CloseAllVideos(void);
 
 //
-// cl_cgame.c
+// cl_cgame.cpp
 //
 void CL_InitCGame( void );
+void CL_InitCGameDLL( void );
 void CL_ShutdownCGame( void );
 qboolean CL_GameCommand( void );
 void CL_CGameRendering( stereoFrame_t stereo );
 void CL_CGame2D( stereoFrame_t stereo );
+void CL_UpdateSnapFlags( void );
 void CL_SetCGameTime( void );
 void CL_FirstSnapshot( void );
-void CL_ShaderStateChanged(void);
+void CL_ShaderStateChanged( void );
+baseshader_t *CL_GetShaderPointer( int iShaderNum );
 
 //
 // cl_ui.c
 //
-void CL_InitUI( void );
+/*
+void CL_InitializeUI( void );
 void CL_ShutdownUI( void );
 int Key_GetCatcher( void );
 void Key_SetCatcher( int catcher );
 void LAN_LoadCachedServers( void );
 void LAN_SaveServersToCache( void );
+*/
 
 
 //
@@ -578,3 +649,14 @@ void CL_WriteAVIVideoFrame( const byte *imageBuffer, int size );
 void CL_WriteAVIAudioFrame( const byte *pcmBuffer, int size );
 qboolean CL_CloseAVI( void );
 qboolean CL_VideoRecording( void );
+
+//
+// cl_consolecmds.cpp
+//
+void CL_InitConsoleCommands( void );
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif // __CLIENT_H__

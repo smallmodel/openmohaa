@@ -33,8 +33,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define AAS_DEBUG
 
 #define MAX_CLIENTS			64
-#define	MAX_MODELS			256		// these are sent over the net as 8 bits
-#define	MAX_SOUNDS			256		// so they cannot be blindly increased
 #define	MAX_CONFIGSTRINGS	2736
 
 #define	CS_SCORES			32

@@ -87,7 +87,7 @@ static void CG_PlayerFloatSprite( centity_t *cent, qhandle_t shader ) {
 	memset( &ent, 0, sizeof( ent ) );
 	// su44: try to get "eyes bone" bone position and use it to position the sprite
 	if(cent->bones && cgs.gameTIKIs[cent->currentState.modelindex] &&
-		(b = trap_TIKI_GetBoneIndex(cgs.gameTIKIs[cent->currentState.modelindex],"eyes bone")) != -1) {
+		(b = cgi.TIKI_GetBoneIndex(cgs.gameTIKIs[cent->currentState.modelindex],"eyes bone")) != -1) {
 		vec3_t dummy;
 		CG_BoneLocal2World(&cent->bones[b],cent->lerpOrigin,cent->lerpAngles,ent.origin,dummy);
 		ent.origin[2] += 24;
@@ -103,7 +103,7 @@ static void CG_PlayerFloatSprite( centity_t *cent, qhandle_t shader ) {
 	ent.shaderRGBA[1] = 255;
 	ent.shaderRGBA[2] = 255;
 	ent.shaderRGBA[3] = 255;
-	trap_R_AddRefEntityToScene( &ent );
+	cgi.R_AddRefEntityToScene( &ent );
 }
 
 /*
@@ -158,7 +158,7 @@ void CG_PlayerSprites( centity_t *cent ) {
 	//if ( !(cent->currentState.eFlags & EF_DEAD) &&
 	//	cg.snap->ps.stats[STAT_TEAM] == team &&
 	//	cgs.gametype >= GT_TEAM) {
-	//	if (cg_drawFriend.integer) {
+	//	if (cg_drawFriend->integer) {
 	//		//CG_PlayerFloatSprite( cent, cgs.media.friendShader );
 	//	}
 	//	return;
@@ -167,9 +167,9 @@ void CG_PlayerSprites( centity_t *cent ) {
 	// show team icons over friend heads
 	if(cgs.gametype >= GT_TEAM && !(cent->currentState.eFlags & EF_DEAD)) {
 		if(cent->currentState.eFlags & EF_AXIS && cg.snap->ps.stats[STAT_TEAM] == TEAM_AXIS) {
-			CG_PlayerFloatSprite(cent,trap_R_RegisterShader("textures/hud/axis.tga"));
+			CG_PlayerFloatSprite(cent,cgi.R_RegisterShader("textures/hud/axis.tga"));
 		} else if(cent->currentState.eFlags & EF_ALLIES && cg.snap->ps.stats[STAT_TEAM] == TEAM_ALLIES) {
-			CG_PlayerFloatSprite(cent,trap_R_RegisterShader("textures/hud/allies.tga"));
+			CG_PlayerFloatSprite(cent,cgi.R_RegisterShader("textures/hud/allies.tga"));
 		}
 	}
 }
@@ -191,7 +191,7 @@ static qboolean CG_PlayerShadow( centity_t *cent, float *shadowPlane ) {
 
 	*shadowPlane = 0;
 
-	if ( cg_shadows.integer == 0 ) {
+	if ( cg_shadows->integer == 0 ) {
 		return qfalse;
 	}
 
@@ -199,7 +199,7 @@ static qboolean CG_PlayerShadow( centity_t *cent, float *shadowPlane ) {
 	VectorCopy( cent->lerpOrigin, end );
 	end[2] -= SHADOW_DISTANCE;
 
-	trap_CM_BoxTrace( &trace, cent->lerpOrigin, end, mins, maxs, 0, MASK_PLAYERSOLID );
+	cgi.CM_BoxTrace( &trace, cent->lerpOrigin, end, mins, maxs, 0, MASK_PLAYERSOLID, qfalse );
 
 	// no shadow if too high
 	if ( trace.fraction == 1.0 || trace.startsolid || trace.allsolid ) {
@@ -208,7 +208,7 @@ static qboolean CG_PlayerShadow( centity_t *cent, float *shadowPlane ) {
 
 	*shadowPlane = trace.endpos[2] + 1;
 
-	if ( cg_shadows.integer != 1 ) {	// no mark for stencil or projection shadows
+	if ( cg_shadows->integer != 1 ) {	// no mark for stencil or projection shadows
 		return qtrue;
 	}
 
@@ -240,7 +240,7 @@ static void CG_PlayerSplash( centity_t *cent ) {
 	//int			contents;
 	//polyVert_t	verts[4];
 
-	//if ( !cg_shadows.integer ) {
+	//if ( !cg_shadows->integer ) {
 	//	return;
 	//}
 
@@ -249,7 +249,7 @@ static void CG_PlayerSplash( centity_t *cent ) {
 
 	//// if the feet aren't in liquid, don't make a mark
 	//// this won't handle moving water brushes, but they wouldn't draw right anyway...
-	//contents = trap_CM_PointContents( end, 0 );
+	//contents = cgi.CM_PointContents( end, 0 );
 	//if ( !( contents & ( CONTENTS_WATER | CONTENTS_SLIME | CONTENTS_LAVA ) ) ) {
 	//	return;
 	//}
@@ -258,13 +258,13 @@ static void CG_PlayerSplash( centity_t *cent ) {
 	//start[2] += 32;
 
 	//// if the head isn't out of liquid, don't make a mark
-	//contents = trap_CM_PointContents( start, 0 );
+	//contents = cgi.CM_PointContents( start, 0 );
 	//if ( contents & ( CONTENTS_SOLID | CONTENTS_WATER | CONTENTS_SLIME | CONTENTS_LAVA ) ) {
 	//	return;
 	//}
 
 	//// trace down to find the surface
-	//trap_CM_BoxTrace( &trace, start, end, NULL, NULL, 0, ( CONTENTS_WATER | CONTENTS_SLIME | CONTENTS_LAVA ) );
+	//cgi.CM_BoxTrace( &trace, start, end, NULL, NULL, 0, ( CONTENTS_WATER | CONTENTS_SLIME | CONTENTS_LAVA ) );
 
 	//if ( trace.fraction == 1.0 ) {
 	//	return;
@@ -311,7 +311,7 @@ static void CG_PlayerSplash( centity_t *cent ) {
 	//verts[3].modulate[2] = 255;
 	//verts[3].modulate[3] = 255;
 
-	//trap_R_AddPolyToScene( cgs.media.wakeMarkShader, 4, verts );
+	//cgi.R_AddPolyToScene( cgs.media.wakeMarkShader, 4, verts );
 }
 
 /*
@@ -321,13 +321,12 @@ CG_LightVerts
 */
 int CG_LightVerts( vec3_t normal, int numVerts, polyVert_t *verts )
 {
+#if 0
 	int				i, j;
 	float			incoming;
 	vec3_t			ambientLight;
 	vec3_t			lightDir;
 	vec3_t			directedLight;
-
-	trap_R_LightForPoint( verts[0].xyz, ambientLight, directedLight, lightDir );
 
 	for (i = 0; i < numVerts; i++) {
 		incoming = DotProduct (normal, lightDir);
@@ -358,6 +357,7 @@ int CG_LightVerts( vec3_t normal, int numVerts, polyVert_t *verts )
 
 		verts[i].modulate[3] = 255;
 	}
+#endif
 	return qtrue;
 }
 

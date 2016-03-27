@@ -214,19 +214,20 @@ VM_LoadSymbols
 ===============
 */
 void VM_LoadSymbols( vm_t *vm ) {
-	int		len;
-	char	*mapfile, *text_p, *token;
-	char	name[MAX_QPATH];
-	char	symbols[MAX_QPATH];
+	int			len;
+	const char	*token;
+	char		*mapfile, *text_p;
+	char		name[MAX_QPATH];
+	char		symbols[MAX_QPATH];
 	vmSymbol_t	**prev, *sym;
-	int		count;
-	int		value;
-	int		chars;
-	int		segment;
-	int		numInstructions;
+	int			count;
+	int			value;
+	int			chars;
+	int			segment;
+	int			numInstructions;
 
 	// don't load symbols if not developer
-	if ( !com_developer->integer ) {
+	if ( !developer->integer ) {
 		return;
 	}
 

@@ -613,8 +613,8 @@ static void NET_QueuePacket( int length, const void *data, netadr_t to,
 	if(offset > 999)
 		offset = 999;
 
-	new = S_Malloc(sizeof(packetQueue_t));
-	new->data = S_Malloc(length);
+	new = Z_Malloc( sizeof( packetQueue_t ) );
+	new->data = Z_Malloc( length );
 	Com_Memcpy(new->data, data, length);
 	new->length = length;
 	new->to = to;
@@ -656,7 +656,7 @@ void NET_SendPacket( netsrc_t sock, int length, const void *data, netadr_t to ) 
 
 	// sequenced packets are shown in netchan, so just show oob
 	if ( showpackets->integer && *(int *)data == -1 )	{
-		Com_Printf ("send packet %4i\n", length);
+		Com_Printf( "%s send OOB packet %4i\n", netsrcString[ sock ], length );
 	}
 
 	if ( to.type == NA_LOOPBACK ) {
@@ -670,13 +670,11 @@ void NET_SendPacket( netsrc_t sock, int length, const void *data, netadr_t to ) 
 		return;
 	}
 
-	if ( sock == NS_CLIENT && cl_packetdelay->integer > 0 ) {
+	if( sock == NS_CLIENT && cl_packetdelay->integer > 0 ) {
 		NET_QueuePacket( length, data, to, cl_packetdelay->integer );
-	}
-	else if ( sock == NS_SERVER && sv_packetdelay->integer > 0 ) {
+	} else if( sock == NS_SERVER && sv_packetdelay->integer > 0 ) {
 		NET_QueuePacket( length, data, to, sv_packetdelay->integer );
-	}
-	else {
+	} else {
 		Sys_SendPacket( length, data, to );
 	}
 }

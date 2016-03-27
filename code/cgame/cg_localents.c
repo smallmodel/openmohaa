@@ -204,7 +204,7 @@ void CG_ReflectVelocity( localEntity_t *le, trace_t *trace ) {
 
 	VectorScale( le->pos.trDelta, le->bounceFactor, le->pos.trDelta );
 
-	VectorCopy( trace->endpos, le->pos.trBase );
+	VectorCopy( trace->endpos, le->pos.trDelta );
 	le->pos.trTime = cg.time;
 
 
@@ -212,7 +212,6 @@ void CG_ReflectVelocity( localEntity_t *le, trace_t *trace ) {
 	if ( trace->allsolid || 
 		( trace->plane.normal[2] > 0 && 
 		( le->pos.trDelta[2] < 40 || le->pos.trDelta[2] < -cg.frametime * le->pos.trDelta[2] ) ) ) {
-		le->pos.trType = TR_STATIONARY;
 	} else {
 
 	}
@@ -235,33 +234,10 @@ void CG_AddFragment( localEntity_t *le ) {
 		int anim = 0;
 		e = &le->refEntity;
 		tiki = le->tiki;
-		e->bones = trap_TIKI_GetBones(tiki->numBones);
-		trap_TIKI_AppendFrameBoundsAndRadius(tiki,anim,time,&e->radius,e->bounds);
-		trap_TIKI_SetChannels(tiki,anim,time,1,e->bones);
-		trap_TIKI_Animate(tiki,e->bones);
-	}
-
-	if ( le->pos.trType == TR_STATIONARY ) {
-		// sink into the ground if near the removal time
-		int		t;
-		float	oldZ;
-		
-		t = le->endTime - cg.time;
-		if ( t < SINK_TIME ) {
-			// we must use an explicit lighting origin, otherwise the
-			// lighting would be lost as soon as the origin went
-			// into the ground
-			VectorCopy( le->refEntity.origin, le->refEntity.lightingOrigin );
-			le->refEntity.renderfx |= RF_LIGHTING_ORIGIN;
-			oldZ = le->refEntity.origin[2];
-			le->refEntity.origin[2] -= 16 * ( 1.0 - (float)t / SINK_TIME );
-			trap_R_AddRefEntityToScene( &le->refEntity );
-			le->refEntity.origin[2] = oldZ;
-		} else {
-			trap_R_AddRefEntityToScene( &le->refEntity );
-		}
-
-		return;
+		e->bones = cgi.TIKI_GetBones(tiki->numBones);
+		cgi.TIKI_AppendFrameBoundsAndRadius(tiki,anim,time,&e->radius,e->bounds);
+		cgi.TIKI_SetChannels(tiki,anim,time,1,e->bones);
+		cgi.TIKI_Animate(tiki,e->bones);
 	}
 
 	// calculate new position
@@ -279,7 +255,7 @@ void CG_AddFragment( localEntity_t *le ) {
 			BG_EvaluateTrajectory( &le->angles, cg.time, angles );
 			AnglesToAxis( angles, le->refEntity.axis );
 		}
-		trap_R_AddRefEntityToScene( &le->refEntity );
+		cgi.R_AddRefEntityToScene( &le->refEntity );
 
 		// add a blood trail
 		if ( le->leBounceSoundType == LEBS_BLOOD ) {
@@ -292,7 +268,7 @@ void CG_AddFragment( localEntity_t *le ) {
 	// if it is in a nodrop zone, remove it
 	// this keeps gibs from waiting at the bottom of pits of death
 	// and floating levels
-	if ( trap_CM_PointContents( trace.endpos, 0 ) & CONTENTS_NODROP ) {
+	if ( cgi.CM_PointContents( trace.endpos, 0 ) & CONTENTS_NODROP ) {
 		CG_FreeLocalEntity( le );
 		return;
 	}
@@ -306,7 +282,7 @@ void CG_AddFragment( localEntity_t *le ) {
 	// reflect the velocity on the trace plane
 	CG_ReflectVelocity( le, &trace );
 
-	trap_R_AddRefEntityToScene( &le->refEntity );
+	cgi.R_AddRefEntityToScene( &le->refEntity );
 }
 
 /*
@@ -337,7 +313,7 @@ void CG_AddFadeRGB( localEntity_t *le ) {
 	re->shaderRGBA[2] = le->color[2] * c;
 	re->shaderRGBA[3] = le->color[3] * c;
 
-	trap_R_AddRefEntityToScene( re );
+	cgi.R_AddRefEntityToScene( re );
 }
 
 /*
@@ -379,7 +355,7 @@ static void CG_AddMoveScaleFade( localEntity_t *le ) {
 		return;
 	}
 
-	trap_R_AddRefEntityToScene( re );
+	cgi.R_AddRefEntityToScene( re );
 }
 
 
@@ -415,7 +391,7 @@ static void CG_AddScaleFade( localEntity_t *le ) {
 		return;
 	}
 
-	trap_R_AddRefEntityToScene( re );
+	cgi.R_AddRefEntityToScene( re );
 }
 
 
@@ -442,7 +418,7 @@ static void CG_AddFallScaleFade( localEntity_t *le ) {
 
 	re->shaderRGBA[3] = 0xff * c * le->color[3];
 
-	re->origin[2] = le->pos.trBase[2] - ( 1.0 - c ) * le->pos.trDelta[2];
+	re->origin[ 2 ] = le->pos.trDelta[ 2 ] - ( 1.0 - c ) * le->pos.trDelta[ 2 ];
 
 	re->radius = le->radius * ( 1.0 - c ) + 16;
 
@@ -455,7 +431,7 @@ static void CG_AddFallScaleFade( localEntity_t *le ) {
 		return;
 	}
 
-	trap_R_AddRefEntityToScene( re );
+	cgi.R_AddRefEntityToScene( re );
 }
 
 
@@ -471,7 +447,7 @@ static void CG_AddExplosion( localEntity_t *ex ) {
 	ent = &ex->refEntity;
 
 	// add the entity
-	trap_R_AddRefEntityToScene(ent);
+	cgi.R_AddRefEntityToScene(ent);
 
 	// add the dlight
 	if ( ex->light ) {
@@ -484,7 +460,7 @@ static void CG_AddExplosion( localEntity_t *ex ) {
 			light = 1.0 - ( light - 0.5 ) * 2;
 		}
 		light = ex->light * light;
-		trap_R_AddLightToScene(ent->origin, light, ex->lightColor[0], ex->lightColor[1], ex->lightColor[2] );
+		cgi.R_AddLightToScene(ent->origin, light, ex->lightColor[0], ex->lightColor[1], ex->lightColor[2] );
 	}
 }
 
@@ -512,7 +488,7 @@ static void CG_AddSpriteExplosion( localEntity_t *le ) {
 	re.reType = RT_SPRITE;
 	re.radius = 42 * ( 1.0 - c ) + 30;
 
-	trap_R_AddRefEntityToScene( &re );
+	cgi.R_AddRefEntityToScene( &re );
 
 	// add the dlight
 	if ( le->light ) {
@@ -525,7 +501,7 @@ static void CG_AddSpriteExplosion( localEntity_t *le ) {
 			light = 1.0 - ( light - 0.5 ) * 2;
 		}
 		light = le->light * light;
-		trap_R_AddLightToScene(re.origin, light, le->lightColor[0], le->lightColor[1], le->lightColor[2] );
+		cgi.R_AddLightToScene(re.origin, light, le->lightColor[0], le->lightColor[1], le->lightColor[2] );
 	}
 }
 
@@ -612,7 +588,7 @@ void CG_AddScorePlum( localEntity_t *le ) {
 	//for (i = 0; i < numdigits; i++) {
 	//	VectorMA(origin, (float) (((float) numdigits / 2) - i) * NUMBER_SIZE, vec, re->origin);
 	//	re->customShader = cgs.media.numberShaders[digits[numdigits-1-i]];
-	//	trap_R_AddRefEntityToScene( re );
+	//	cgi.R_AddRefEntityToScene( re );
 	//}
 }
 

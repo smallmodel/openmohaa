@@ -28,15 +28,15 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 void CG_TargetCommand_f( void ) {
 	int		targetNum;
-	char	test[4];
+	char	*test;
 
 	targetNum = CG_CrosshairPlayer();
 	if (!targetNum ) {
 		return;
 	}
 
-	trap_Argv( 1, test, 4 );
-	trap_SendConsoleCommand( va( "gc %i %i", targetNum, atoi( test ) ) );
+	test = cgi.Argv( 1 );
+	cgi.SendConsoleCommand( va( "gc %i %i", targetNum, atoi( test ) ) );
 }
 
 
@@ -49,7 +49,7 @@ Keybinding command
 =================
 */
 static void CG_SizeUp_f (void) {
-	trap_Cvar_Set("cg_viewsize", va("%i",(int)(cg_viewsize.integer+10)));
+	cgi.Cvar_Set("cg_viewsize", va("%i",(int)(cg_viewsize->integer+10)));
 }
 
 
@@ -61,7 +61,7 @@ Keybinding command
 =================
 */
 static void CG_SizeDown_f (void) {
-	trap_Cvar_Set("cg_viewsize", va("%i",(int)(cg_viewsize.integer-10)));
+	cgi.Cvar_Set("cg_viewsize", va("%i",(int)(cg_viewsize->integer-10)));
 }
 
 
@@ -85,7 +85,7 @@ static void CG_ScoresDown_f( void ) {
 		// the scores are more than two seconds out of data,
 		// so request new ones
 		cg.scoresRequestTime = cg.time;
-		trap_SendClientCommand( "score" );
+		cgi.SendClientCommand( "score" );
 
 		// leave the current scores up if they were already
 		// displayed, but if this is the first hit, clear them out
@@ -99,7 +99,7 @@ static void CG_ScoresDown_f( void ) {
 		cg.showScores = qtrue;
 	}
 	cg.scoreBoardShowing = qtrue;
-	trap_Cvar_Set( "ui_showscores", "1" );
+	cgi.Cvar_Set( "ui_showscores", "1" );
 }
 
 static void CG_ScoresUp_f( void ) {
@@ -108,37 +108,37 @@ static void CG_ScoresUp_f( void ) {
 		cg.scoreFadeTime = cg.time;
 	}
 	cg.scoreBoardShowing = qfalse;
-	trap_Cvar_Set( "ui_showscores", "0" );
+	cgi.Cvar_Set( "ui_showscores", "0" );
 }
 
 static void CG_TellTarget_f( void ) {
 	int		clientNum;
 	char	command[128];
-	char	message[128];
+	char	*message;
 
 	clientNum = CG_CrosshairPlayer();
 	if ( clientNum == -1 ) {
 		return;
 	}
 
-	trap_Args( message, 128 );
+	message = cgi.Args();
 	Com_sprintf( command, 128, "tell %i %s", clientNum, message );
-	trap_SendClientCommand( command );
+	cgi.SendClientCommand( command );
 }
 
 static void CG_TellAttacker_f( void ) {
 	int		clientNum;
 	char	command[128];
-	char	message[128];
+	char	*message;
 
 	clientNum = CG_LastAttacker();
 	if ( clientNum == -1 ) {
 		return;
 	}
 
-	trap_Args( message, 128 );
+	message = cgi.Args();
 	Com_sprintf( command, 128, "tell %i %s", clientNum, message );
-	trap_SendClientCommand( command );
+	cgi.SendClientCommand( command );
 }
 
 /*
@@ -150,32 +150,32 @@ CG_StartOrbit_f
 static void CG_StartOrbit_f( void ) {
 	char var[MAX_TOKEN_CHARS];
 
-	trap_Cvar_VariableStringBuffer( "developer", var, sizeof( var ) );
+	cgi.Cvar_VariableStringBuffer( "developer", var, sizeof( var ) );
 	if ( !atoi(var) ) {
 		return;
 	}
-	if (cg_cameraOrbit.value != 0) {
-		trap_Cvar_Set ("cg_cameraOrbit", "0");
-		trap_Cvar_Set("cg_thirdPerson", "0");
+	if (cg_cameraOrbit->value != 0) {
+		cgi.Cvar_Set ("cg_cameraOrbit", "0");
+		cgi.Cvar_Set("cg_thirdPerson", "0");
 	} else {
-		trap_Cvar_Set("cg_cameraOrbit", "5");
-		trap_Cvar_Set("cg_thirdPerson", "1");
-		trap_Cvar_Set("cg_thirdPersonAngle", "0");
-		trap_Cvar_Set("cg_thirdPersonRange", "100");
+		cgi.Cvar_Set("cg_cameraOrbit", "5");
+		cgi.Cvar_Set("cg_thirdPerson", "1");
+		cgi.Cvar_Set("cg_thirdPersonAngle", "0");
+		cgi.Cvar_Set("cg_thirdPersonRange", "100");
 	}
 }
 
 static void CG_LocationPrint_f(void) {
-	char buffer[512];
+	char *buffer;
 	int x,y;
 
-	trap_Argv( 1, buffer, sizeof(buffer) );
+	buffer = cgi.Argv( 1 );
 	x = atoi(buffer);
-	trap_Argv( 2, buffer, sizeof(buffer) );
+	buffer = cgi.Argv( 2 );
 	y = atoi(buffer);
-	trap_Argv( 3, buffer, sizeof(buffer) );
+	buffer = cgi.Argv( 3 );
 	buffer[511] = 0;
-	CG_LocationPrint(buffer,x,y,SMALLCHAR_WIDTH);
+	CG_LocationPrint( buffer, x, y, SMALLCHAR_WIDTH );
 }
 
 // su44: in MoHAA, "useweaponclass pistol/rifle/etc" 
@@ -183,7 +183,7 @@ static void CG_LocationPrint_f(void) {
 static void CG_UseWeaponClass_f(void) {
 	const char *name;
 
-	if(trap_Argc() < 2) {
+	if(cgi.Argc() < 2) {
 		CG_Printf("usage: useweaponclass <weaponclassname>\n");
 		return;
 	}
@@ -292,7 +292,7 @@ void CG_InitConsoleCommands( void ) {
 	int		i;
 
 	for ( i = 0 ; i < sizeof( commands ) / sizeof( commands[0] ) ; i++ ) {
-		trap_AddCommand( commands[i].cmd );
+		cgi.AddCommand( commands[i].cmd, NULL );
 	}
 
 	//
@@ -300,37 +300,37 @@ void CG_InitConsoleCommands( void ) {
 	// forwarded to the server after they are not recognized locally
 	//
 	// wombat: mohaa servers understand the following
-	trap_AddCommand ("dog"); // Sets the god mode cheat or toggles it.
-	trap_AddCommand ("notarget"); // Toggles the notarget cheat.
-	trap_AddCommand ("noclip"); // Toggles the noclip cheat.
+	cgi.AddCommand( "dog", NULL ); // Sets the god mode cheat or toggles it.
+	cgi.AddCommand ("notarget", NULL ); // Toggles the notarget cheat.
+	cgi.AddCommand ("noclip", NULL ); // Toggles the noclip cheat.
 	
-	trap_AddCommand ("weapdrop"); // Drops the player's current weapon.
-	trap_AddCommand ("reload"); // Reloads the player's weapon
-	trap_AddCommand ("give"); // Gives the player the specified thing (weapon, ammo, item, etc.) and optionally the amount.
-	trap_AddCommand ("jump"); // Makes the player jump.
-	trap_AddCommand ("holster"); // Holsters all wielded weapons, or unholsters previously put away weapons
+	cgi.AddCommand ("weapdrop", NULL ); // Drops the player's current weapon.
+	cgi.AddCommand ("reload", NULL ); // Reloads the player's weapon
+	cgi.AddCommand ("give", NULL ); // Gives the player the specified thing (weapon, ammo, item, etc.) and optionally the amount.
+	cgi.AddCommand ("jump", NULL ); // Makes the player jump.
+	cgi.AddCommand ("holster", NULL ); // Holsters all wielded weapons, or unholsters previously put away weapons
 	// su44
-	trap_AddCommand ("join_team"); // Join the specified team (allies or axis)
-	trap_AddCommand ("auto_join_team"); // Join the team with fewer players
-	trap_AddCommand ("spectator"); // Become a spectator
+	cgi.AddCommand ("join_team", NULL ); // Join the specified team (allies or axis)
+	cgi.AddCommand ("auto_join_team", NULL ); // Join the team with fewer players
+	cgi.AddCommand ("spectator", NULL ); // Become a spectator
 
 	// wombat: mohaa arena what is that???
-	trap_AddCommand ("join_arena"); // Join the specified arena
-	trap_AddCommand ("leave_arena"); // Leave the current arena
-	trap_AddCommand ("create_team"); // Create a team in the current arena
-	trap_AddCommand ("leave_team"); // Leave the current team
-	trap_AddCommand ("arena_ui"); // Refresh the arena UI
+	cgi.AddCommand ("join_arena", NULL ); // Join the specified arena
+	cgi.AddCommand ("leave_arena", NULL ); // Leave the current arena
+	cgi.AddCommand ("create_team", NULL ); // Create a team in the current arena
+	cgi.AddCommand ("leave_team", NULL ); // Leave the current team
+	cgi.AddCommand ("arena_ui", NULL ); // Refresh the arena UI
 
-	trap_AddCommand ("callvote"); // Player calls a vote
-	trap_AddCommand ("vote"); // Player votes either yes or no
+	cgi.AddCommand ("callvote", NULL ); // Player calls a vote
+	cgi.AddCommand ("vote", NULL ); // Player votes either yes or no
 	
-	trap_AddCommand ("primarydmweapon"); // Sets the player's primary DM weapon
+	cgi.AddCommand ("primarydmweapon", NULL ); // Sets the player's primary DM weapon
 	// primarydmweapon rifle / smg / mg / heavy / shotgun
 
-	trap_AddCommand ("kill");
-	trap_AddCommand ("say");
-	trap_AddCommand ("sayone"); // talk to one client
-	trap_AddCommand ("sayprivate"); // same as sayone??
-	trap_AddCommand ("sayteam"); // talk to team
-	trap_AddCommand ("teamsay"); // talk to team
+	cgi.AddCommand ("kill", NULL );
+	cgi.AddCommand ("say", NULL );
+	cgi.AddCommand ("sayone", NULL ); // talk to one client
+	cgi.AddCommand ("sayprivate", NULL ); // same as sayone??
+	cgi.AddCommand ("sayteam", NULL ); // talk to team
+	cgi.AddCommand ("teamsay", NULL ); // talk to team
 }

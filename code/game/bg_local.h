@@ -24,8 +24,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #define	MIN_WALK_NORMAL	0.7f		// can't walk on very steep slopes
 
-#define	STEPSIZE		18
-
 #define	JUMP_VELOCITY	270
 
 #define	TIMER_LAND		130
@@ -33,11 +31,18 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #define	OVERCLIP		1.001f
 
+#define HEAD_TAG		0
+#define TORSO_TAG		1
+#define ARMS_TAG		2
+#define PELVIS_TAG		3
+#define MOUTH_TAG		4
+
 // all of the locals will be zeroed before each
 // pmove, just to make damn sure we don't have
 // any differences when running on client or server
 typedef struct {
-	vec3_t		forward, right, up;
+	vec3_t		forward, left, up;
+	vec3_t		flat_forward, flat_left, flat_up;
 	float		frametime;
 
 	int			msec;

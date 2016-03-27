@@ -47,13 +47,17 @@ void SNDDMA_Submit(void)
 {
 }
 
-sfxHandle_t S_RegisterSound( const char *name, qboolean compressed ) 
+sfxHandle_t S_RegisterSound( const char *sample, qboolean compressed, qboolean force_load )
 {
 	return 0;
 }
 
-void S_StartLocalSound( sfxHandle_t sfxHandle, int channelNum ) {
+void S_StartLocalSound( const char *sound_name, qboolean force_load ) {
 }
 
 void S_ClearSoundBuffer( void ) {
+}
+
+int S_IsSoundPlaying( int channel_number, const char *sfxName ){
+	return 0;
 }

@@ -20,8 +20,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ===========================================================================
 */
 
+#include "../client/client.h"
+#include "../client/snd_local.h"
 #include "server.h"
-#include "../qcommon/tiki_local.h"
 
 /*
 ===============================================================================
@@ -152,66 +153,128 @@ Restart the server on a different map
 ==================
 */
 static void SV_Map_f( void ) {
-	char		*cmd;
-	char		*map;
-	qboolean	killBots, cheat;
-	char		expanded[MAX_QPATH];
-	char		mapname[MAX_QPATH];
+	const char	*cmd;
+	char		expanded[ MAX_QPATH ];
+	char		map[ MAX_QPATH ];
+	char		mapname[ MAX_QPATH ];
+	const char	*spawnpos;
 
-	map = Cmd_Argv(1);
-	if ( !map ) {
+	if( Cmd_Argc() != 2 ) {
+		Com_Printf( "USAGE: map <map>\n" );
 		return;
+	}
+
+	if( developer->integer && *fs_mapdir->string )
+	{
+		Com_sprintf( mapname, sizeof( mapname ), "%s/%s", fs_mapdir->string, Cmd_Argv( 1 ) );
+	}
+	else
+	{
+		Com_sprintf( mapname, sizeof( mapname ), "%s", Cmd_Argv( 1 ) );
+	}
+
+	Com_BackslashToSlash( mapname );
+
+	spawnpos = strchr( mapname, '$' );
+	if( spawnpos )
+	{
+		Q_strncpyz( map, mapname, spawnpos - mapname + 1 );
+	}
+	else
+	{
+		strcpy( map, mapname );
 	}
 
 	// make sure the level exists before trying to change, so that
 	// a typo at the server console won't end the game
-	Com_sprintf (expanded, sizeof(expanded), "maps/%s.bsp", map);
-	if ( FS_ReadFile (expanded, NULL) == -1 ) {
-		Com_Printf ("Can't find map %s\n", expanded);
+	Com_sprintf( expanded, sizeof( expanded ), "maps/%s.bsp", map );
+	if( FS_ReadFile( expanded, NULL ) == -1 ) {
+		Com_Printf( "Can't find map %s\n", expanded );
 		return;
 	}
 
-	// force latched values to get set
-	Cvar_Get ("g_gametype", "0", CVAR_SERVERINFO | CVAR_USERINFO | CVAR_LATCH );
+	cmd = Cmd_Argv( 0 );
 
-	cmd = Cmd_Argv(0);
-	if( Q_stricmpn( cmd, "sp", 2 ) == 0 ) {
-		Cvar_SetValue( "g_gametype", GT_SINGLE_PLAYER );
-		Cvar_SetValue( "g_doWarmup", 0 );
-		// may not set sv_maxclients directly, always set latched
-		Cvar_SetLatched( "sv_maxclients", "8" );
-		cmd += 2;
-		cheat = qfalse;
-		killBots = qtrue;
-	}
-	else {
-		if ( !Q_stricmp( cmd, "devmap" ) || !Q_stricmp( cmd, "spdevmap" ) ) {
-			cheat = qtrue;
-			killBots = qtrue;
-		} else {
-			cheat = qfalse;
-			killBots = qfalse;
-		}
-		if( sv_gametype->integer == GT_SINGLE_PLAYER ) {
-			Cvar_SetValue( "g_gametype", GT_FFA );
-		}
+	if( !Q_stricmpn( cmd, "sp", 2 ) )
+	{
+		Cvar_Set( "g_gametype", "0" );
+		Cvar_Set( "sv_maxclients", "1" );
 	}
 
-	// save the map name here cause on a map restart we reload the q3config.cfg
-	// and thus nuke the arguments of the map command
-	Q_strncpyz(mapname, map, sizeof(mapname));
+	Cvar_Get( "g_gametype", "0", CVAR_LATCH | CVAR_SERVERINFO );
+	Cvar_Get( "sv_maxclients", "1", CVAR_LATCH | CVAR_SERVERINFO );
+
+	if( !strnicmp( map, "dm/", 3 ) && g_gametype->integer == GT_OBJECTIVE )
+	{
+		Com_Printf( "Can't load regular dm map in objective game type\n" );
+		return;
+	}
+
+	if( !strnicmp( map, "obj/", 4 ) && g_gametype->integer != GT_OBJECTIVE )
+	{
+		Com_Printf( "Can't load objective map in non-objective game type\n" );
+		return;
+	}
+
+	if( !developer->integer )
+	{
+		if( svs.iNumClients == 1 )
+		{
+			Cvar_Set( "cheats", "1" );
+		}
+		else if( strstr( cmd, "devmap" ) )
+		{
+			Cvar_Set( "cheats", " 1" );
+		}
+		else
+		{
+			Cvar_Set( "cheats", "0" );
+		}
+	}
+
+	Cvar_SaveGameRestart_f();
 
 	// start up the map
-	SV_SpawnServer( mapname, killBots );
+	SV_SpawnServer( mapname, qfalse, qfalse, qfalse );
 
-	// set the cheat value
-	// if the level was started with "map <levelname>", then
-	// cheats will not be allowed.  If started with "devmap <levelname>"
-	// then cheats will be allowed
-	if ( cheat ) {
-		Cvar_Set( "sv_cheats", "1" );
-	} else {
-		Cvar_Set( "sv_cheats", "0" );
+	if( !g_gametype->integer ) {
+		svs.autosave = qtrue;
+	}
+}
+
+/*
+==================
+SV_GameMap_f
+
+Restart the server on a different map
+==================
+*/
+static void SV_GameMap_f( void ) {
+	const char	*map;
+	qboolean	bTransition;
+
+	if( Cmd_Argc() != 2 ) {
+		Com_Printf( "USAGE: gamemap <map>\n" );
+		return;
+	}
+
+	map = Cmd_Argv( 1 );
+	Com_DPrintf( "SV_GameMap(%s)\n", map );
+
+	strcpy( svs.gameName, "current" );
+	Cvar_SaveGameRestart_f();
+
+	bTransition = sv.state == SS_GAME;
+
+	// save persistant data
+	if( bTransition ) {
+		SV_ArchivePersistantFile( qfalse );
+	}
+
+	SV_SpawnServer( map, qfalse, qfalse, bTransition );
+
+	if( !g_gametype->integer ) {
+		svs.autosave = qtrue;
 	}
 }
 
@@ -224,117 +287,17 @@ This allows fair starts with variable load times.
 ================
 */
 static void SV_MapRestart_f( void ) {
-	int			i;
-	client_t	*client;
-	char		*denied;
-	qboolean	isBot;
-	int			delay;
-
-	// make sure we aren't restarting twice in the same frame
-	if ( com_frameTime == sv.serverId ) {
+	if( com_frameTime == sv.serverId ) {
 		return;
 	}
 
-	// make sure server is running
-	if ( !com_sv_running->integer ) {
+	if( !com_sv_running->integer ) {
 		Com_Printf( "Server is not running.\n" );
 		return;
 	}
 
-	if ( sv.restartTime ) {
-		return;
-	}
-
-	if (Cmd_Argc() > 1 ) {
-		delay = atoi( Cmd_Argv(1) );
-	}
-	else {
-		delay = 5;
-	}
-	if( delay && !Cvar_VariableValue("g_doWarmup") ) {
-		sv.restartTime = sv.time + delay * 1000;
-		SV_SetConfigstring( CS_WARMUP, va("%i", sv.restartTime) );
-		return;
-	}
-
-	// check for changes in variables that can't just be restarted
-	// check for maxclients change
-	if ( sv_maxclients->modified || sv_gametype->modified ) {
-		char	mapname[MAX_QPATH];
-
-		Com_Printf( "variable change -- restarting.\n" );
-		// restart the map the slow way
-		Q_strncpyz( mapname, Cvar_VariableString( "mapname" ), sizeof( mapname ) );
-
-		SV_SpawnServer( mapname, qfalse );
-		return;
-	}
-
-	// toggle the server bit so clients can detect that a
-	// map_restart has happened
-	svs.snapFlagServerBit ^= SNAPFLAG_SERVERCOUNT;
-
-	// generate a new serverid	
-	// TTimo - don't update restartedserverId there, otherwise we won't deal correctly with multiple map_restart
-	sv.serverId = com_frameTime;
-	Cvar_Set( "sv_serverid", va("%i", sv.serverId ) );
-
-	// reset all the vm data in place without changing memory allocation
-	// note that we do NOT set sv.state = SS_LOADING, so configstrings that
-	// had been changed from their default values will generate broadcast updates
-	sv.state = SS_LOADING;
-	sv.restarting = qtrue;
-
-	SV_RestartGameProgs();
-
-	// run a few frames to allow everything to settle
-	for (i = 0; i < 3; i++)
-	{
-		VM_Call (gvm, GAME_RUN_FRAME, sv.time);
-		sv.time += 100;
-		svs.time += 100;
-	}
-
-	sv.state = SS_GAME;
-	sv.restarting = qfalse;
-
-	// connect and begin all the clients
-	for (i=0 ; i<sv_maxclients->integer ; i++) {
-		client = &svs.clients[i];
-
-		// send the new gamestate to all connected clients
-		if ( client->state < CS_CONNECTED) {
-			continue;
-		}
-
-		if ( client->netchan.remoteAddress.type == NA_BOT ) {
-			isBot = qtrue;
-		} else {
-			isBot = qfalse;
-		}
-
-		// add the map_restart command
-		SV_AddServerCommand( client, "map_restart\n" );
-
-		// connect the client again, without the firstTime flag
-		denied = VM_ExplicitArgPtr( gvm, VM_Call( gvm, GAME_CLIENT_CONNECT, i, qfalse, isBot ) );
-		if ( denied ) {
-			// this generally shouldn't happen, because the client
-			// was connected before the level change
-			SV_DropClient( client, denied );
-			Com_Printf( "SV_MapRestart_f(%d): dropped client %i - denied!\n", delay, i );
-			continue;
-		}
-
-		client->state = CS_ACTIVE;
-
-		SV_ClientEnterWorld( client, &client->lastUsercmd );
-	}	
-
-	// run another frame to allow things to look at all the players
-	VM_Call (gvm, GAME_RUN_FRAME, sv.time);
-	sv.time += 100;
-	svs.time += 100;
+	Cvar_SaveGameRestart_f();
+	SV_SpawnServer( svs.rawServerName, qfalse, qtrue, qfalse );
 }
 
 //===============================================================
@@ -721,6 +684,53 @@ static void SV_KillServer_f( void ) {
 	SV_Shutdown( "killserver" );
 }
 
+/*
+=================
+SV_EasyMode_f
+=================
+*/
+void SV_EasyMode_f( void )
+{
+	Cvar_Set( "g_maxplayerhealth", "1500" );
+	Cvar_Set( "skill", "0" );
+	Com_Printf( "You are now setup for easy mode.\n" );
+}
+
+/*
+=================
+SV_MediumMode_f
+=================
+*/
+void SV_MediumMode_f( void )
+{
+	Cvar_Set( "g_maxplayerhealth", "750" );
+	Cvar_Set( "skill", "1" );
+	Com_Printf( "You are now setup for medium mode.\n" );
+}
+
+/*
+=================
+SV_HardMode_f
+=================
+*/
+void SV_HardMode_f( void )
+{
+	Cvar_Set( "g_maxplayerhealth", "250" );
+	Cvar_Set( "skill", "2" );
+	Com_Printf( "You are now setup for hard mode.\n" );
+}
+
+/*
+=================
+SV_LoadLastGame_f
+=================
+*/
+void SV_LoadLastGame_f( void )
+{
+	Cbuf_AddText( va( "loadgame %s\n", Cvar_Get( "g_lastsave", "", 0 )->string ) );
+}
+
+#if 0
 
 /*
 =================
@@ -776,6 +786,8 @@ static void SV_TIKI_DumpBones_f( void ) {
 	}
 }
 
+#endif
+
 //===========================================================
 
 /*
@@ -786,33 +798,45 @@ SV_AddOperatorCommands
 void SV_AddOperatorCommands( void ) {
 	static qboolean	initialized;
 
-	if ( initialized ) {
+	if( initialized ) {
 		return;
 	}
 	initialized = qtrue;
 
-	Cmd_AddCommand ("heartbeat", SV_Heartbeat_f);
-	Cmd_AddCommand ("kick", SV_Kick_f);
-	Cmd_AddCommand ("banUser", SV_Ban_f);
-	Cmd_AddCommand ("banClient", SV_BanNum_f);
-	Cmd_AddCommand ("clientkick", SV_KickNum_f);
-	Cmd_AddCommand ("status", SV_Status_f);
-	Cmd_AddCommand ("serverinfo", SV_Serverinfo_f);
-	Cmd_AddCommand ("systeminfo", SV_Systeminfo_f);
-	Cmd_AddCommand ("dumpuser", SV_DumpUser_f);
-	Cmd_AddCommand ("map_restart", SV_MapRestart_f);
-	Cmd_AddCommand ("sectorlist", SV_SectorList_f);
-	Cmd_AddCommand ("map", SV_Map_f);
-#ifndef PRE_RELEASE_DEMO
-	Cmd_AddCommand ("devmap", SV_Map_f);
-	Cmd_AddCommand ("spmap", SV_Map_f);
-	Cmd_AddCommand ("spdevmap", SV_Map_f);
-#endif
-	Cmd_AddCommand ("killserver", SV_KillServer_f);
-	Cmd_AddCommand ("tiki", SV_TIKI_f); //su44
-	Cmd_AddCommand ("tiki_dumpbones", SV_TIKI_DumpBones_f); //su44
+	Cmd_AddCommand( "heartbeat", SV_Heartbeat_f );
+	Cmd_AddCommand( "kick", SV_Kick_f );
+	Cmd_AddCommand( "clientkick", SV_KickNum_f );
+	Cmd_AddCommand( "banUser", SV_Ban_f );
+	Cmd_AddCommand( "banClient", SV_BanNum_f );
+	Cmd_AddCommand( "status", SV_Status_f );
+	Cmd_AddCommand( "serverinfo", SV_Serverinfo_f );
+	Cmd_AddCommand( "systeminfo", SV_Systeminfo_f );
+	Cmd_AddCommand( "dumpuser", SV_DumpUser_f );
+	Cmd_AddCommand( "restart", SV_MapRestart_f );
+	Cmd_AddCommand( "sectorlist", SV_SectorList_f );
+	Cmd_AddCommand( "spmap", SV_Map_f );
+	Cmd_AddCommand( "spdevmap", SV_Map_f );
+	Cmd_AddCommand( "map", SV_Map_f );
+	Cmd_AddCommand( "devmap", SV_Map_f );
+	Cmd_AddCommand( "gamemap", SV_GameMap_f );
+
+	Cmd_AddCommand( "killserver", SV_KillServer_f );
+	Cmd_AddCommand( "savegame", SV_Savegame_f );
+	Cmd_AddCommand( "autosavegame", SV_Autosavegame_f );
+	Cmd_AddCommand( "loadgame", SV_Loadgame_f );
+	Cmd_AddCommand( "loadlastgame", SV_LoadLastGame_f );
+	Cmd_AddCommand( "difficultyEasy", SV_EasyMode_f );
+	Cmd_AddCommand( "difficultyMedium", SV_MediumMode_f );
+	Cmd_AddCommand( "difficultyHard", SV_HardMode_f );
+
 	if( com_dedicated->integer ) {
-		Cmd_AddCommand ("say", SV_ConSay_f);
+		Cmd_AddCommand( "say", SV_ConSay_f );
+	}
+
+	if( developer->integer ) {
+		SV_MediumMode_f();
+	} else {
+		SV_EasyMode_f();
 	}
 }
 
@@ -838,3 +862,665 @@ void SV_RemoveOperatorCommands( void ) {
 #endif
 }
 
+/*
+==================
+SV_ArchiveHudDrawElements
+==================
+*/
+void SV_ArchiveHudDrawElements( qboolean loading )
+{
+	int i;
+
+	for( i = 0; i < MAX_HUDDRAW_ELEMENTS; i++ )
+	{
+		ge->ArchiveString( cls.HudDrawElements[ i ].shaderName );
+		ge->ArchiveInteger( &cls.HudDrawElements[ i ].iX );
+		ge->ArchiveInteger( &cls.HudDrawElements[ i ].iY );
+		ge->ArchiveInteger( &cls.HudDrawElements[ i ].iWidth );
+		ge->ArchiveInteger( &cls.HudDrawElements[ i ].iVerticalAlign );
+		ge->ArchiveFloat( &cls.HudDrawElements[ i ].vColor[ 0 ] );
+		ge->ArchiveFloat( &cls.HudDrawElements[ i ].vColor[ 1 ] );
+		ge->ArchiveFloat( &cls.HudDrawElements[ i ].vColor[ 2 ] );
+		ge->ArchiveFloat( &cls.HudDrawElements[ i ].vColor[ 3 ] );
+		ge->ArchiveInteger( &cls.HudDrawElements[ i ].iHorizontalAlign );
+		ge->ArchiveInteger( &cls.HudDrawElements[ i ].iVerticalAlign );
+		ge->ArchiveInteger( &cls.HudDrawElements[ i ].bVirtualScreen );
+		ge->ArchiveString( cls.HudDrawElements[ i ].fontName );
+		ge->ArchiveString( cls.HudDrawElements[ i ].string );
+	}
+
+	if( loading ) {
+		if( cge ) {
+			cge->CG_RefreshHudDrawElements();
+		}
+	}
+}
+
+/*
+==================
+SV_HudDrawShader
+==================
+*/
+void SV_HudDrawShader( int iInfo, char *name )
+{
+	strcpy( cls.HudDrawElements[ iInfo ].shaderName, name );
+	cls.HudDrawElements[ iInfo ].string[ 0 ] = 0;
+	cls.HudDrawElements[ iInfo ].pFont = NULL;
+	cls.HudDrawElements[ iInfo ].fontName[ 0 ] = 0;
+
+	if( cge ) {
+		cge->CG_HudDrawShader( iInfo );
+	}
+}
+
+/*
+==================
+SV_HudDrawAlign
+==================
+*/
+void SV_HudDrawAlign( int iInfo, int iHorizontalAlign, int iVerticalAlign )
+{
+	cls.HudDrawElements[ iInfo ].iHorizontalAlign = iHorizontalAlign;
+	cls.HudDrawElements[ iInfo ].iVerticalAlign = iVerticalAlign;
+}
+
+/*
+==================
+SV_HudDrawRect
+==================
+*/
+void SV_HudDrawRect( int iInfo, int iX, int iY, int iWidth, int iHeight )
+{
+	cls.HudDrawElements[ iInfo ].iX = iX;
+	cls.HudDrawElements[ iInfo ].iY = iY;
+	cls.HudDrawElements[ iInfo ].iWidth = iWidth;
+	cls.HudDrawElements[ iInfo ].iHeight = iHeight;
+}
+
+/*
+==================
+SV_HudDrawVirtualSize
+==================
+*/
+void SV_HudDrawVirtualSize( int iInfo, qboolean bVirtualScreen )
+{
+	cls.HudDrawElements[ iInfo ].bVirtualScreen = bVirtualScreen;
+}
+
+/*
+==================
+SV_HudDrawColor
+==================
+*/
+void SV_HudDrawColor( int iInfo, vec3_t vColor )
+{
+	VectorCopy( vColor, cls.HudDrawElements[ iInfo ].vColor );
+}
+
+/*
+==================
+SV_HudDrawAlpha
+==================
+*/
+void SV_HudDrawAlpha( int iInfo, float alpha )
+{
+	cls.HudDrawElements[ iInfo ].vColor[ 3 ] = alpha;
+}
+
+/*
+==================
+SV_HudDrawString
+==================
+*/
+void SV_HudDrawString( int iInfo, const char *string )
+{
+	cls.HudDrawElements[ iInfo ].hShader = 0;
+	strcpy( cls.HudDrawElements[ iInfo ].string, string );
+}
+
+/*
+==================
+SV_HudDrawFont
+==================
+*/
+void SV_HudDrawFont( int iInfo, const char *name )
+{
+	strcpy( cls.HudDrawElements[ iInfo ].fontName, name );
+	cls.HudDrawElements[ iInfo ].hShader = 0;
+	cls.HudDrawElements[ iInfo ].shaderName[ 0 ] = 0;
+
+	if( cge ) {
+		cge->CG_HudDrawFont( iInfo );
+	}
+}
+
+/*
+==================
+SV_ArchiveViewModelAnimation
+==================
+*/
+void SV_ArchiveViewModelAnimation( qboolean loading )
+{
+#ifdef CLIENT
+	int i;
+
+	for( i = 0; i < MAX_FRAMEINFOS; i++ )
+	{
+		ge->ArchiveInteger( &cls.anim.vmFrameInfo[ i ].index );
+		ge->ArchiveFloat( &cls.anim.vmFrameInfo[ i ].time );
+		ge->ArchiveFloat( &cls.anim.vmFrameInfo[ i ].weight );
+	}
+
+	ge->ArchiveInteger( &cls.anim.lastVMAnim );
+	ge->ArchiveInteger( &cls.anim.lastVMAnimChanged );
+	ge->ArchiveInteger( &cls.anim.currentVMAnimSlot );
+	ge->ArchiveInteger( &cls.anim.currentVMDuration );
+	ge->ArchiveInteger( &cls.anim.crossBlending );
+	ge->ArchiveInteger( &cls.anim.lastEquippedWeaponStat );
+	ge->ArchiveString( cls.anim.lastActiveItem );
+	ge->ArchiveInteger( &cls.anim.lastAnimPrefixIndex );
+	ge->ArchiveFloat( &cls.anim.currentVMPosOffset[ 0 ] );
+	ge->ArchiveFloat( &cls.anim.currentVMPosOffset[ 1 ] );
+	ge->ArchiveFloat( &cls.anim.currentVMPosOffset[ 2 ] );
+#endif
+}
+
+/*
+==================
+SV_ArchiveStopwatch
+==================
+*/
+void SV_ArchiveStopwatch( qboolean loading )
+{
+#ifdef CLIENT
+	ge->ArchiveSvsTime( &cls.stopwatch.iStartTime );
+	ge->ArchiveSvsTime( &cls.stopwatch.iEndTime );
+#endif
+}
+
+/*
+==================
+SV_ArchivePersistantFile
+==================
+*/
+void SV_ArchivePersistantFile( qboolean loading )
+{
+	const char *name;
+
+	Com_DPrintf( "SV_ArchivePersistantFile()\n" );
+	name = Com_GetArchiveFileName( svs.gameName, "spv" );
+	ge->ArchivePersistant( name, loading );
+}
+
+/*
+==================
+SV_ArchiveLevel
+==================
+*/
+void SV_ArchiveLevel( qboolean loading )
+{
+	SV_ArchiveHudDrawElements( loading );
+	SV_ArchiveViewModelAnimation( loading );
+	SV_ArchiveStopwatch( loading );
+}
+
+/*
+==================
+SV_ArchiveLevelFile
+==================
+*/
+qboolean SV_ArchiveLevelFile( qboolean loading, qboolean autosave )
+{
+	const char *name;
+	qboolean success;
+	fileHandle_t f;
+	savegamestruct_t save;
+#ifdef CLIENT
+	soundsystemsavegame_t SSsave;
+#endif
+
+	Com_DPrintf( "SV_ArchiveLevelFile()\n" );
+	name = Com_GetArchiveFileName( svs.gameName, "sav" );
+	if( loading )
+	{
+		success = ge->ReadLevel( name );
+		if( success )
+		{
+			name = Com_GetArchiveFileName( svs.gameName, "ssv" );
+			FS_FOpenFileRead( name, &f, qfalse, qtrue );
+			if( f )
+			{
+				FS_Read( &save, sizeof( savegamestruct_t ), f );
+				if( save.version != 3 )
+				{
+					FS_FCloseFile( f );
+					return 0;
+				}
+
+#ifdef CLIENT
+				FS_Read( &SSsave, sizeof( soundsystemsavegame_t ), f );
+#endif
+				CM_ReadPortalState( f );
+				FS_FCloseFile( f );
+			}
+		}
+	}
+	else
+	{
+		ge->WriteLevel( name, autosave );
+		success = qtrue;
+	}
+
+	return success;
+}
+
+/*
+==================
+S_Save
+==================
+*/
+void S_Save( fileHandle_t f )
+{
+#ifdef CLIENT
+	soundsystemsavegame_t save;
+	S_SaveData( &save );
+	FS_Write( &save, sizeof( soundsystemsavegame_t ), f );
+#endif
+}
+
+/*
+==================
+S_Load
+==================
+*/
+void S_Load( fileHandle_t f )
+{
+	FS_Read( &svs, sizeof( serverStatic_t ), f );
+#ifdef CLIENT
+	// FIXME...
+	//S_InitBase( &svs.soundSystem );
+#endif
+}
+
+/*
+==================
+SV_ArchiveServerFile
+==================
+*/
+qboolean SV_ArchiveServerFile( qboolean loading, qboolean autosave )
+{
+	fileHandle_t f;
+	const char *name;
+	char comment[ 64 ];
+	savegamestruct_t save;
+	char cmdString[ 256 ];
+	time_t aclock;
+
+	Com_DPrintf( "SV_ArchiveServerFile(%s)\n", autosave ? "true" : "false" );
+	name = Com_GetArchiveFileName( svs.gameName, "ssv" );
+
+	if( !loading )
+	{
+		f = FS_FOpenFileWrite( name );
+		if( !f )
+		{
+			Com_Printf( "Couldn't write %s\n", name );
+			return qfalse;
+		}
+
+		time( &aclock );
+
+		if( autosave )
+		{
+			Com_sprintf( comment, sizeof( comment ), "%s - Starting", sv.configstrings[ CS_MESSAGE ] );
+		}
+		else if( sv.configstrings[ CS_SAVENAME ] && *sv.configstrings[ CS_SAVENAME ] )
+		{
+			Com_sprintf( comment, sizeof( comment ), "%s - %s", sv.configstrings[ CS_MESSAGE ], sv.configstrings[ CS_SAVENAME ] );
+		}
+		else
+		{
+			Com_sprintf( comment, sizeof( comment ), "%s", sv.configstrings[ CS_MESSAGE ] );
+		}
+
+		if( strstr( name, "quick.ssv" ) ) {
+			Com_sprintf( save.comment, sizeof( save.comment ), "QuickSave - %s", comment );
+		} else {
+			strcpy( save.comment, name );
+		}
+
+		SV_SetConfigstring( CS_SAVENAME, "" );
+
+		save.version = 3;
+		save.time = aclock;
+		strncpy( save.mapName, svs.mapName, sizeof( save.mapName ) );
+		strncpy( save.saveName, svs.gameName, sizeof( save.saveName ) );
+		save.mapTime = svs.time - svs.startTime;
+
+		FS_Write( &save, sizeof( savegamestruct_t ), f );
+		S_Save( f );
+		CM_WritePortalState( f );
+		FS_FCloseFile( f );
+
+		name = Com_GetArchiveFileName( svs.gameName, "tga" );
+		Com_sprintf( cmdString, sizeof( cmdString ), "saveshot %s 256 256\n", name );
+		Cbuf_ExecuteText( svs.autosave != qfalse, name );
+	}
+	else
+	{
+		FS_FOpenFileRead( name, &f, qfalse, qtrue );
+		if( !f )
+		{
+			Com_Printf( "Couldn't read %s\n", name );
+			return qfalse;
+		}
+
+		FS_Read( &save, sizeof( savegamestruct_t ), f );
+		if( save.version != 3 )
+		{
+			Com_Printf( "Invalid or Old Server SaveGame Version\n", name );
+			return qfalse;
+		}
+
+#ifdef CLIENT
+		S_StopAllSounds( qtrue );
+#endif
+		S_Load( f );
+		strncpy( svs.mapName, save.mapName, sizeof( svs.mapName ) );
+		svs.mapTime = save.mapTime;
+		svs.areabits_warning_time = 0;
+		strcpy( svs.tm_filename, save.tm_filename );
+		svs.tm_loopcount = save.tm_loopcount;
+		svs.tm_offset = save.tm_offset;
+		FS_FCloseFile( f );
+	}
+
+	return qtrue;
+}
+
+/*
+==================
+SV_Loadgame_f
+==================
+*/
+void SV_Loadgame_f( void )
+{
+	int length;
+	const char *name;
+	const char *archive_name;
+	qboolean bStartedGame;
+
+	if( com_cl_running && com_cl_running->integer &&
+#ifdef CLIENT
+		cls.state != CA_DISCONNECTED && cg_gametype->integer ||
+#endif
+		com_sv_running && com_sv_running->integer && g_gametype->integer )
+	{
+		Com_Printf( "Can't loadgame in a multiplayer game\n" );
+		return;
+	}
+
+	Cvar_Set( "g_gametype", "0" );
+	Cvar_Set( "sv_maxclients", "1" );
+	Cvar_Get( "g_gametype", "0", CVAR_LATCH | CVAR_SERVERINFO );
+	Cvar_Get( "sv_maxclients", "0", CVAR_LATCH | CVAR_SERVERINFO );
+
+	if( developer->integer )
+	{
+		if( svs.iNumClients == 1 )
+		{
+			Cvar_Set( "cheats", "1" );
+		}
+		else
+		{
+			Cvar_Set( "cheats", "0" );
+		}
+	}
+
+	if( sv.state == SS_LOADING || sv.state == SS_LOADING2 )
+	{
+		Com_Printf( "Can't load game when loading\n" );
+		return;
+	}
+
+	if( Cmd_Argc() != 2 )
+	{
+		Com_Printf( "USAGE: loadgame <name>\n" );
+		return;
+	}
+
+	name = Cmd_Argv( 1 );
+	Com_Printf( "Loading game...%s\n", name );
+	if( strstr( name, ".." ) || strchr( name, '/' ) || strchr( name, '\\' ) ) {
+		Com_Printf( "Bad savedir.\n" );
+	}
+
+	strcpy( svs.gameName, name );
+	archive_name = Com_GetArchiveFileName( name, "sav" );
+	Cvar_SaveGameRestart_f();
+
+	length = FS_ReadFileEx( archive_name, NULL, qtrue );
+	if( length == -1 )
+	{
+		Com_Printf( "Savegame not found.\n" );
+		return;
+	}
+
+	if( !ge )
+	{
+		SV_InitGameProgs();
+		bStartedGame = qtrue;
+	}
+
+	if( ge->LevelArchiveValid( archive_name ) && SV_ArchiveServerFile( qtrue, qfalse ) )
+	{
+		SV_SpawnServer( svs.mapName, qtrue, qfalse, qfalse );
+		svs.soundsNeedLoad = qtrue;
+	}
+	else if( bStartedGame )
+	{
+		SV_ShutdownGameProgs();
+	}
+}
+
+/*
+==================
+SV_SavegameFilename
+==================
+*/
+void SV_SavegameFilename( const char *name, char *fileName, int length )
+{
+	int num;
+	const char *fname;
+	int lastNumber;
+	int len;
+	int a;
+	int b;
+	int c;
+
+	for( num = 0; num < 10000; num++ )
+	{
+		a = num / 1000;
+		b = num % 1000 / 100;
+		c = num % 1000 % 100 / 10;
+		lastNumber = num % 1000 % 100 % 10;
+		Com_sprintf( fileName, length, "%s%i%i%i%i", name, a, b, c, lastNumber );
+		fname = Com_GetArchiveFileName( fileName, "ssv" );
+		len = FS_ReadFileEx( fname, NULL, qtrue );
+		if( len <= 0 ) {
+			break;
+		}
+	}
+}
+
+/*
+==================
+SV_AllowSaveGame
+==================
+*/
+qboolean SV_AllowSaveGame( void )
+{
+	if( !com_sv_running || !com_sv_running->integer )
+	{
+		Com_DPrintf( "You must be in a game with a server to save.\n" );
+	}
+	else if( !com_cl_running || !com_cl_running->integer )
+	{
+		Com_DPrintf( "You must be in a game with a client to save.\n" );
+	}
+	else if( sv.state != SS_GAME )
+	{
+		Com_DPrintf( "You must be in game to save.\n" );
+	}
+#ifdef CLIENT
+	else if( cls.state != CA_DISCONNECTED && cg_gametype->integer )
+	{
+		Com_DPrintf( "Can't savegame in a multiplayer game\n" );
+	}
+#endif
+	else if( g_gametype->integer )
+	{
+		Com_DPrintf( "Can't savegame in a multiplayer game\n" );
+	}
+	else if( !svs.clients || svs.clients->gentity == NULL || svs.clients->gentity->client == NULL || svs.clients->gentity->client->ps.stats[ 0 ] )
+	{
+		Com_DPrintf( "Can't savegame when dead\n" );
+	}
+	else if( sv.state == SS_LOADING || sv.state == SS_LOADING2 )
+	{
+		Com_DPrintf( "Can't save game when loading\n" );
+	}
+
+	return qtrue;
+}
+
+/*
+==================
+SV_DoSaveGame
+==================
+*/
+static qboolean bSavegame;
+
+qboolean SV_DoSaveGame()
+{
+	if( bSavegame )
+	{
+		if( SV_AllowSaveGame() ) {
+			return qtrue;
+		}
+		bSavegame = qfalse;
+	}
+	return qfalse;
+}
+
+/*
+==================
+SV_SaveGame
+==================
+*/
+void SV_SaveGame( const char *gamename, qboolean autosave )
+{
+	char *ptr;
+	char name[ 64 ];
+	char mname[ 64 ];
+
+	if( !SV_AllowSaveGame() ) {
+		return;
+	}
+
+	if( gamename )
+	{
+		strcpy( name, gamename );
+	}
+	else
+	{
+		strcpy( mname, svs.mapName );
+		for( ptr = strchr( mname, '/' ); ptr != NULL; ptr = strchr( mname, '/' ) )
+		{
+			*ptr = '_';
+		}
+		SV_SavegameFilename( mname, name, sizeof( name ) );
+	}
+
+	if( strstr( name, ".." ) || strchr( name, '/' ) || strchr( name, '\\' ) )
+	{
+		Com_DPrintf( "Bad savedir.\n" );
+		return;
+	}
+
+	Com_Printf( "Saving to %s", name );
+	if( autosave ) {
+		Com_DPrintf( " (autosave)...\n" );
+	} else {
+		Com_DPrintf( "...\n" );
+	}
+
+	strcpy( svs.gameName, name );
+	SV_ArchiveLevelFile( qfalse, autosave );
+	SV_ArchiveServerFile( qfalse, autosave );
+	Com_Printf( "Done.\n" );
+	strcpy( svs.gameName, "current" );
+
+#ifdef CLIENT
+	IN_MouseCancel();
+#endif
+}
+
+/*
+==================
+SV_Savegame_f
+==================
+*/
+static char savegame_name[ 64 ];
+
+void SV_Savegame_f( void )
+{
+	char *s;
+
+	if( !SV_AllowSaveGame() ) {
+		return;
+	}
+
+	if( Cmd_Argc() == 2 )
+	{
+
+		s = Cmd_Argv( 1 );
+		if( strlen( s ) >= sizeof( savegame_name ) ) {
+			return;
+		}
+
+		strcpy( savegame_name, s );
+	}
+	else
+	{
+		savegame_name[ 0 ] = 0;
+	}
+
+	bSavegame = qtrue;
+}
+
+/*
+==================
+SV_CheckSaveGame
+==================
+*/
+void SV_CheckSaveGame( void )
+{
+	if( !SV_DoSaveGame() ) {
+		return;
+	}
+
+	if( cl.serverTime >= svs.time )
+	{
+		bSavegame = qfalse;
+		SV_SaveGame( savegame_name[ 0 ] ? savegame_name : NULL, qfalse );
+#ifdef CLIENT
+		UI_SetupFiles();
+#endif
+	}
+}
+
+void SV_Autosavegame_f( void )
+{
+	SV_SaveGame( NULL, qtrue );
+}

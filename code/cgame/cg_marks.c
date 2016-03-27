@@ -140,7 +140,7 @@ void CG_ImpactMark( qhandle_t markShader, const vec3_t origin, const vec3_t dir,
 	vec3_t			markPoints[MAX_MARK_POINTS];
 	vec3_t			projection;
 
-	if ( !cg_addMarks.integer ) {
+	if ( !cg_addMarks->integer ) {
 		return;
 	}
 
@@ -170,7 +170,7 @@ void CG_ImpactMark( qhandle_t markShader, const vec3_t origin, const vec3_t dir,
 
 	// get the fragments
 	VectorScale( dir, -20, projection );
-	numFragments = trap_CM_MarkFragments( 4, (void *)originalPoints,
+	numFragments = cgi.CM_MarkFragments( 4, (void *)originalPoints,
 					projection, MAX_MARK_POINTS, markPoints[0],
 					MAX_MARK_FRAGMENTS, markFragments );
 
@@ -202,7 +202,7 @@ void CG_ImpactMark( qhandle_t markShader, const vec3_t origin, const vec3_t dir,
 
 		// if it is a temporary (shadow) mark, add it immediately and forget about it
 		if ( temporary ) {
-			trap_R_AddPolyToScene( markShader, mf->numPoints, verts );
+			cgi.R_AddPolyToScene( markShader, mf->numPoints, verts );
 			continue;
 		}
 
@@ -236,7 +236,7 @@ void CG_AddMarks( void ) {
 	int			t;
 	int			fade;
 
-	if ( !cg_addMarks.integer ) {
+	if ( !cg_addMarks->integer ) {
 		return;
 	}
 
@@ -270,7 +270,7 @@ void CG_AddMarks( void ) {
 		}
 
 
-		trap_R_AddPolyToScene( mp->markShader, mp->poly.numVerts, mp->verts );
+		cgi.R_AddPolyToScene( mp->markShader, mp->poly.numVerts, mp->verts );
 	}
 }
 
@@ -398,7 +398,7 @@ void CG_ClearParticles (void)
 		int j;
 
 		for (j=0; j<shaderAnimCounts[i]; j++) {
-			shaderAnims[i][j] = trap_R_RegisterShader( va("%s%i", shaderAnimNames[i], j+1) );
+			shaderAnims[i][j] = cgi.R_RegisterShader( va("%s%i", shaderAnimNames[i], j+1) );
 		}
 	}
 	numShaderAnims = i;
@@ -1050,9 +1050,9 @@ void CG_AddParticleToScene (cparticle_t *p, vec3_t org, float alpha)
 	}
 
 	if (p->type == P_WEATHER || p->type == P_WEATHER_TURBULENT || p->type == P_WEATHER_FLURRY)
-		trap_R_AddPolyToScene( p->pshader, 3, TRIverts );
+		cgi.R_AddPolyToScene( p->pshader, 3, TRIverts );
 	else
-		trap_R_AddPolyToScene( p->pshader, 4, verts );
+		cgi.R_AddPolyToScene( p->pshader, 4, verts );
 
 }
 
@@ -1219,9 +1219,6 @@ void CG_ParticleSnowFlurry (qhandle_t pshader, centity_t *cent)
 
 	p->start = cent->currentState.origin2[0];
 	p->end = cent->currentState.origin2[1];
-	
-	p->endtime = cg.time + cent->currentState.time;
-	p->startfade = cg.time + cent->currentState.time2;
 	
 	p->pshader = pshader;
 	
@@ -1665,77 +1662,18 @@ void CG_Particle_Bleed (qhandle_t pshader, vec3_t start, vec3_t dir, int fleshEn
 
 void CG_Particle_OilParticle (qhandle_t pshader, centity_t *cent)
 {
-	cparticle_t	*p;
-
-	int			time;
-	int			time2;
-	float		ratio;
-
-	float	duration = 1500;
-
-	time = cg.time;
-	time2 = cg.time + cent->currentState.time;
-
-	ratio =(float)1 - ((float)time / (float)time2);
-
-	if (!pshader)
-		CG_Printf ("CG_Particle_OilParticle == ZERO!\n");
-
-	if (!free_particles)
-		return;
-	p = free_particles;
-	free_particles = p->next;
-	p->next = active_particles;
-	active_particles = p;
-	p->time = cg.time;
-	p->alpha = 1.0;
-	p->alphavel = 0;
-	p->roll = 0;
-
-	p->pshader = pshader;
-
-	p->endtime = cg.time + duration;
-	
-	p->startfade = p->endtime;
-
-	p->width = 1;
-	p->height = 3;
-
-	p->endheight = 3;
-	p->endwidth = 1;
-
-	p->type = P_SMOKE;
-
-	VectorCopy(cent->currentState.origin, p->org );	
-	
-	p->vel[0] = (cent->currentState.origin2[0] * (16 * ratio));
-	p->vel[1] = (cent->currentState.origin2[1] * (16 * ratio));
-	p->vel[2] = (cent->currentState.origin2[2]);
-
-	p->snum = 1.0f;
-
-	VectorClear( p->accel );
-
-	p->accel[2] = -20;
-
-	p->rotate = qfalse;
-
-	p->roll = rand()%179;
-	
-	p->alpha = 0.75;
-
+	// FIXME: [delete] unused
 }
 
 
 void CG_Particle_OilSlick (qhandle_t pshader, centity_t *cent)
 {
-
-
+	// FIXME: [delete] unused
 }
 
 void CG_OilSlickRemove (centity_t *cent)
 {
-
+	// FIXME: [delete] unused
 }
 
 qboolean ValidBloodPool (vec3_t start)
