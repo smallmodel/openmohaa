@@ -852,6 +852,7 @@ public:
 	void EventDamage(Event *ev);
 	virtual void Think() override;
 	virtual void Postthink() override;
+	virtual void Killed(Event* ev) override;
 	virtual void CalculateOriginOffset() override;
 	virtual void UpdateSound();
 	virtual void AttachDriverSlot(Event* ev);

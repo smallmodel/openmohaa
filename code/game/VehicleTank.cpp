@@ -60,6 +60,11 @@ void VehicleTank::Postthink()
 	// FIXME: STUB
 }
 
+void VehicleTank::Killed(Event* ev)
+{
+	// FIXME: STUB
+}
+
 void VehicleTank::CalculateOriginOffset()
 {
 	// FIXME: STUB
