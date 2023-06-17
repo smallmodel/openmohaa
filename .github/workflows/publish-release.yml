@@ -7,10 +7,6 @@ name: Publish artifacts
 
 on: [push]
 
-env:
-  RELEASE_TYPE: ${{ vars.RELEASE_TYPE || "none" }}
-  RELEASE_IS_PRERELEASE: ${{ vars.RELEASE_IS_PRELEASE || true }}
-
 permissions:
   contents: write
 
@@ -44,7 +40,7 @@ jobs:
     - name: Release
       uses: softprops/action-gh-release@v1
       with:
-        name: ${{ github.ref_name }}-${{ env.RELEASE_TYPE }}
-        prerelease: ${{env.RELEASE_IS_PRERELEASE}}
+        name: ${{ github.ref_name }}-${{ vars.RELEASE_TYPE || "none" }}
+        prerelease: ${{ vars.RELEASE_IS_PRELEASE || true }}
         files: ${{github.workspace}}/windows-x64/test.txt
     
