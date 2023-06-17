@@ -7,16 +7,15 @@ env:
   RELEASE_IS_PRERELEASE: true
 
 jobs:
-  build-all:
-   uses: ./.github/workflows/cmake.yml
-
   deploy_windows:
     runs-on: ubuntu-22.04
-    needs: [build-all]
 
     steps:
-    - uses: actions/download-artifact@v3
+    - name: Download artifact
+      id: download-artifact
+      uses: dawidd6/action-download-artifact@v2
       with:
+        workflow: cmake.yml
         name: 'out-windows-x64'
         path: ${{github.workspace}}/windows-x64
 
