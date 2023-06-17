@@ -17,7 +17,7 @@ jobs:
 
   deploy_windows:
     runs-on: ubuntu-22.04
-    needs: [build-all]
+#    needs: [build-all]
 
     steps:
     - name: Build
