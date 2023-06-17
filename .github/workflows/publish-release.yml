@@ -2,11 +2,15 @@ name: Publish artifacts
 
 on: push
 
+env:
+  RELEASE_TYPE: alpha
+  RELEASE_IS_PRERELEASE: true
+
 jobs:
   build-all:
     uses: ./.github/workflows/cmake.yml
 
-  deploy:
+  deploy_windows:
     runs-on: ubuntu-22.04
     needs: [build-all]
 
@@ -18,7 +22,8 @@ jobs:
 
     - name: Release
       uses: softprops/action-gh-release@v1
-      if: startsWith(github.ref, 'refs/tags/')
       with:
-        files: Release.txt
+        name: ${{github.ref}}-${{env.RELEASE_TYPE}}
+        prerelease: ${{env.RELEASE_IS_PRERELEASE}}
+        files: ${{github.workspace}}/windows-x64
     
