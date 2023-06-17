@@ -16,7 +16,7 @@ jobs:
   build-all:
    uses: ./.github/workflows/cmake.yml
 
-  deploy_windows:
+  deploy_linux:
     runs-on: ubuntu-22.04
     environment: release
     needs: [build-all]
@@ -24,18 +24,44 @@ jobs:
     steps:
     - uses: actions/download-artifact@v3
       with:
-        name: 'out-windows-x64'
-        path: ${{github.workspace}}/windows-x64
+        name: 'out-linux-x64'
+        path: ${{github.workspace}}/linux-x64
 
     - name: Zip
-      working-directory: ${{github.workspace}}/windows-x64
-      run: zip -r ../windows-x64.zip .
+      working-directory: ${{github.workspace}}/linux-x64
+      run: zip -r ../linux-x64.zip .
 
     - name: Release
       uses: softprops/action-gh-release@v1
       with:
-        name: ${{github.ref_name}}-${{env.RELEASE_TYPE}}
+        name: '${{github.ref_name}}-${{env.RELEASE_TYPE}}'
         prerelease: ${{env.RELEASE_IS_PRERELEASE}}
-        files: ${{github.workspace}}/windows-x64
+        files: ${{github.workspace}}/linux-x64.zip
+
+  deploy_windows:
+    strategy:
+      matrix:
+        architecture: ['x64', 'x86']
+
+    runs-on: ubuntu-22.04
+    environment: release
+    needs: [build-all]
+
+    steps:
+    - uses: actions/download-artifact@v3
+      with:
+        name: 'out-windows-${{matrix.architecture}}'
+        path: ${{github.workspace}}/windows-${{matrix.architecture}}
+
+    - name: Zip
+      working-directory: ${{github.workspace}}/windows-${{matrix.architecture}}
+      run: zip -r ../windows-${{matrix.architecture}}.zip .
+
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      with:
+        name: '${{github.ref_name}}-${{env.RELEASE_TYPE}}'
+        prerelease: ${{env.RELEASE_IS_PRERELEASE}}
+        files: ${{github.workspace}}/windows-${{matrix.architecture}}.zip
 
     
