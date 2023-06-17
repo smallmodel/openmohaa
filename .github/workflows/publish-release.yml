@@ -1,0 +1,28 @@
+name: Publish artifacts
+
+on: push
+
+env:
+  RELEASE_TYPE: alpha
+  RELEASE_IS_PRERELEASE: true
+
+jobs:
+  deploy_windows:
+    runs-on: ubuntu-22.04
+
+    steps:
+    - name: Download artifact
+      id: download-artifact
+      uses: dawidd6/action-download-artifact@v2
+      with:
+        workflow: cmake.yml
+        name: 'out-windows-x64'
+        path: ${{github.workspace}}/windows-x64
+
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      with:
+        name: ${{github.ref}}-${{env.RELEASE_TYPE}}
+        prerelease: ${{env.RELEASE_IS_PRERELEASE}}
+        files: ${{github.workspace}}/windows-x64
+    
