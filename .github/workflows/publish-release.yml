@@ -11,6 +11,9 @@ env:
   RELEASE_TYPE: alpha
   RELEASE_IS_PRERELEASE: true
 
+permissions:
+  contents: write
+
 jobs:
 #  build-all:
 #   uses: ./.github/workflows/cmake.yml
