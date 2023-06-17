@@ -20,6 +20,7 @@ jobs:
 
   deploy_windows:
     runs-on: ubuntu-22.04
+    environment: release
 #    needs: [build-all]
 
     steps:
