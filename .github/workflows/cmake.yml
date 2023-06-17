@@ -39,7 +39,7 @@ jobs:
 
     - uses: actions/upload-artifact@v3
       with:
-        name: build_files_${{matrix.os}}
+        name: out-linux-x64
         if-no-files-found: error
         path: ${{github.workspace}}/install
   
@@ -79,6 +79,6 @@ jobs:
 
     - uses: actions/upload-artifact@v3
       with:
-        name: build_files_${{matrix.os}}
+        name: out-windows-x64
         if-no-files-found: error
         path: ${{github.workspace}}/install
