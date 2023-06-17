@@ -7,12 +7,12 @@ env:
   RELEASE_IS_PRERELEASE: true
 
 jobs:
-  build-all:
-    uses: ./.github/workflows/cmake.yml
+#  build-all:
+#   uses: ./.github/workflows/cmake.yml
 
   deploy_windows:
     runs-on: ubuntu-22.04
-    needs: [build-all]
+#    needs: [build-all]
 
     steps:
     - uses: actions/download-artifact@v3
