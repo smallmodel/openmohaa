@@ -42,7 +42,7 @@ jobs:
     - name: Install
       working-directory: ${{github.workspace}}/build
       # Install to the directory defined in CMAKE_INSTALL_PREFIX
-      run: cmake install .
+      run: cmake --install .
 
     - uses: actions/upload-artifact@v3
       with:
