@@ -45,6 +45,10 @@ jobs:
         path: ${{github.workspace}}/install
   
   build-platform-windows:
+    strategy:
+      matrix:
+        architecture: ['x64', 'x86']
+
     runs-on: windows-2022
 
     steps:
@@ -61,8 +65,13 @@ jobs:
         cmake --build . --config Release
         cmake --install . --config Release
 
-    - name: Configure CMake
-      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/install -DWITH_CLIENT=1
+    - name: Configure CMake (x86)
+      if: architecture == 'x86'
+      run: cmake -B ${{github.workspace}}/build -A Win32 ${{ matrix.architecture }} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/install -DWITH_CLIENT=1
+
+    - name: Configure CMake (x64)
+      if: architecture == 'x64'
+      run: cmake -B ${{github.workspace}}/build -A x64 ${{ matrix.architecture }} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/install -DWITH_CLIENT=1
 
     - name: Build
       # Build your program with the given configuration
@@ -80,7 +89,7 @@ jobs:
 
     - uses: actions/upload-artifact@v3
       with:
-        name: out-windows-x64
+        name: out-windows-${{matrix.architecture}}
         if-no-files-found: error
         path: |
           ${{github.workspace}}/install
@@ -88,7 +97,7 @@ jobs:
 
     - uses: actions/upload-artifact@v3
       with:
-        name: out-windows-x64-pdb
+        name: out-windows-${{matrix.architecture}}-pdb
         if-no-files-found: error
         path: |
           ${{github.workspace}}/install
