@@ -41,7 +41,7 @@ jobs:
   deploy_windows:
     strategy:
       matrix:
-        architecture: ['x64', 'x86']
+        architecture: ['x64', 'x86', 'x64-pdb', 'x86-pdb']
 
     runs-on: ubuntu-22.04
     environment: release
