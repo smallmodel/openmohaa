@@ -8,8 +8,8 @@ name: Publish artifacts
 on: [push]
 
 env:
-  RELEASE_TYPE: ${{ vars.RELEASE_TYPE || 'none' }}
-  RELEASE_IS_PRERELEASE: ${{ vars.RELEASE_IS_PRELEASE || true }}
+  RELEASE_TYPE: ${{ vars.RELEASE_TYPE || 'test' }}
+  RELEASE_IS_PRERELEASE: ${{ vars.RELEASE_IS_PRELEASE }}
 
 permissions:
   contents: write
