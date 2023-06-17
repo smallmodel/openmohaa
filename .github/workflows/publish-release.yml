@@ -8,7 +8,7 @@ name: Publish artifacts
 on: [push]
 
 env:
-  RELEASE_TYPE: ${{ vars.RELEASE_TYPE | "" }}
+  RELEASE_TYPE: ${{ vars.RELEASE_TYPE }}
   RELEASE_IS_PRERELEASE: true
 
 permissions:
