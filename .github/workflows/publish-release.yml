@@ -20,16 +20,23 @@ jobs:
 #    needs: [build-all]
 
     steps:
+#    - uses: actions/download-artifact@v3
+#      with:
+#        name: 'out-windows-x64'
+#        path: ${{github.workspace}}/windows-x64
+#
+#    - name: Release
+#      uses: softprops/action-gh-release@v1
+#      with:
+#        name: ${{github.ref}}-${{env.RELEASE_TYPE}}
+#        prerelease: ${{env.RELEASE_IS_PRERELEASE}}
+#        files: ${{github.workspace}}/windows-x64
+
     - name: Make
       run: mkdir -p ${{github.workspace}}/windows-x64
 
     - name: Build
       run: echo ${{ github.sha }} > ${{github.workspace}}/windows-x64/test.txt
-
-    - uses: actions/download-artifact@v3
-      with:
-        name: 'out-windows-x64'
-        path: ${{github.workspace}}/windows-x64
 
     - name: Release
       uses: softprops/action-gh-release@v1
