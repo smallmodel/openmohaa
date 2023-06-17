@@ -1,20 +1,28 @@
 name: Publish artifacts
 
-on: push
+#on:
+#  push:
+#    tags:
+#        - "v*.*.*"
+
+on: [push]
 
 env:
   RELEASE_TYPE: alpha
   RELEASE_IS_PRERELEASE: true
 
 jobs:
-  build-all:
-   uses: ./.github/workflows/cmake.yml
+#  build-all:
+#   uses: ./.github/workflows/cmake.yml
 
   deploy_windows:
     runs-on: ubuntu-22.04
     needs: [build-all]
 
     steps:
+    - name: Build
+      run: echo ${{ github.sha }} > ${{github.workspace}}/windows-x64/test.txt
+
     - uses: actions/download-artifact@v3
       with:
         name: 'out-windows-x64'
@@ -25,5 +33,5 @@ jobs:
       with:
         name: ${{github.ref}}-${{env.RELEASE_TYPE}}
         prerelease: ${{env.RELEASE_IS_PRERELEASE}}
-        files: ${{github.workspace}}/windows-x64
+        files: ${{github.workspace}}/windows-x64/test.txt
     
