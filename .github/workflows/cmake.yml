@@ -11,7 +11,7 @@ env:
   BUILD_TYPE: RelWithDebInfo
 
 jobs:
-  platform_linux:
+  build-platform-linux:
     runs-on: ubuntu-22.04
 
     steps:
@@ -43,7 +43,7 @@ jobs:
         if-no-files-found: error
         path: ${{github.workspace}}/install
   
-  platform_windows:
+  build-platform-windows:
     runs-on: windows-2022
 
     steps:
