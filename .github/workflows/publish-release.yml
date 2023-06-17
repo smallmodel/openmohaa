@@ -20,6 +20,9 @@ jobs:
 #    needs: [build-all]
 
     steps:
+    - name: Make
+      run: mkdir -p ${{github.workspace}}/windows-x64
+
     - name: Build
       run: echo ${{ github.sha }} > ${{github.workspace}}/windows-x64/test.txt
 
