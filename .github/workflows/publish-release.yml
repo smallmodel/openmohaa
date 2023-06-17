@@ -1,9 +1,11 @@
 name: Publish artifacts
 
-on:
-  push:
-    tags:
-        - "v*.*.*"
+#on:
+#  push:
+#    tags:
+#        - "v*.*.*"
+
+on: [push]
 
 env:
   RELEASE_TYPE: ${{ vars.RELEASE_TYPE || 'test' }}
@@ -13,25 +15,40 @@ permissions:
   contents: write
 
 jobs:
-  build-all:
-   uses: ./.github/workflows/cmake.yml
+#  build-all:
+#   uses: ./.github/workflows/cmake.yml
 
   deploy_windows:
     runs-on: ubuntu-22.04
     environment: release
-    needs: [build-all]
+#    needs: [build-all]
 
     steps:
-    - uses: actions/download-artifact@v3
-      with:
-        name: 'out-windows-x64'
-        path: ${{github.workspace}}/windows-x64
+#    - uses: actions/download-artifact@v3
+#      with:
+#        name: 'out-windows-x64'
+#        path: ${{github.workspace}}/windows-x64
+#
+#    - name: Release
+#      uses: softprops/action-gh-release@v1
+#      with:
+#        name: ${{github.ref}}-${{env.RELEASE_TYPE}}
+#        prerelease: ${{env.RELEASE_IS_PRERELEASE}}
+#        files: ${{github.workspace}}/windows-x64
+
+    - name: Make
+      run: mkdir -p ${{github.workspace}}/windows-x64/subfolder
+
+    - name: Build
+      run: echo ${{ github.sha }} > ${{github.workspace}}/windows-x64/test.txt
+
+    - name: Build 2
+      run: echo ${{ github.sha }} > ${{github.workspace}}/windows-x64/subfolder/test.txt
 
     - name: Release
       uses: softprops/action-gh-release@v1
       with:
-        name: ${{github.ref_name}}-${{env.RELEASE_TYPE}}
+        name: ${{ github.ref_name }}-${{ env.RELEASE_TYPE }}
         prerelease: ${{env.RELEASE_IS_PRERELEASE}}
-        files: ${{github.workspace}}/windows-x64
-
+        files: ${{github.workspace}}/windows-x64/*
     
