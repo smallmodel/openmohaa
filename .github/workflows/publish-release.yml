@@ -20,11 +20,18 @@ jobs:
     strategy:
       matrix:
         target_os: [
-          'linux-x64',
+          'linux-amd64',
+          'linux-i686',
+          'linux-aarch64',
+          'linux-armhf',
           'windows-x64',
           'windows-x86',
           'windows-x64-pdb',
-          'windows-x86-pdb'
+          'windows-x86-pdb',
+          'windows-arm64',
+          'windows-arm64',
+          'windows-arm64-pdb',
+          'windows-arm64-pdb'
         ]
 
     runs-on: ubuntu-22.04

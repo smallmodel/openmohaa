@@ -13,18 +13,83 @@ env:
 
 jobs:
   build-platform-linux:
+    strategy:
+      matrix:
+        #architecture: ['amd64', 'i686', 'aarch64', 'armhf']
+        architecture: ['amd64']
+
+    name: "Building for platform linux-${{matrix.architecture}}"
     runs-on: ubuntu-22.04
+
+    container:
+      image: ubuntu:22.04
+      volumes:
+        - ${{github.workspace}}:${{github.workspace}}
 
     steps:
     - uses: actions/checkout@v3
+      with:
+        path: 'source'
 
-    - name: Required packages
-      run: sudo apt update && sudo apt install -y flex bison ninja-build libsdl2-dev
+    - name: Install required packages
+      run: apt update && apt install -y clang-15 cmake ninja-build flex bison git
+
+    - name: Install required cross-platform packages (amd64)
+      if: matrix.architecture == 'amd64'
+      run: |
+        echo "CLANG_TARGET_TRIPLE=x86_64-linux-gnu" >> $GITHUB_ENV
+
+    - name: Install required cross-platform packages (i686)
+      if: matrix.architecture == 'i686'
+      run: |
+        apt install -y gcc-12-i686-linux-gnu g++-12-i686-linux-gnu
+        echo "CLANG_TARGET_TRIPLE=i686-linux-gnu" >> $GITHUB_ENV
+
+    - name: Install required cross-platform packages (aarch64)
+      if: matrix.architecture == 'aarch64'
+      run: |
+        apt install -y gcc-12-aarch64-linux-gnu g++-12-aarch64-linux-gnu
+        echo "CLANG_TARGET_TRIPLE=aarch64-linux-gnu" >> $GITHUB_ENV
+
+    - name: Install required cross-platform packages (armhf)
+      if: matrix.architecture == 'armhf'
+      run: |
+        apt install -y gcc-12-arm-linux-gnueabihf g++-12-arm-linux-gnueabihf
+        echo "CLANG_TARGET_TRIPLE=arm-linux-gnueabihf" >> $GITHUB_ENV
+
+    - name: Install dependencies
+      working-directory: ${{github.workspace}}
+      run: |
+        echo Using triple: $CLANG_TARGET_TRIPLE
+        mkdir -p thirdparties && cd thirdparties
+        git clone --depth 1 --single-branch --branch SDL2 https://github.com/libsdl-org/SDL.git
+        cmake -B SDL-build \
+          -DCMAKE_C_COMPILER=clang-15 \
+          -DCMAKE_CXX_COMPILER=clang++-15 \
+          -DCMAKE_C_FLAGS=--target=$CLANG_TARGET_TRIPLE \
+          -DCMAKE_CXX_FLAGS=--target=$CLANG_TARGET_TRIPLE \
+          -DCMAKE_INSTALL_PREFIX='./SDL-install' \
+          ./SDL
+        cmake --build SDL-build --config Release
+        cmake --install SDL-build
 
     - name: Configure CMake
-      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/install -DWITH_CLIENT=1 -G Ninja
+      working-directory: ${{github.workspace}}
+      run: |
+        cmake -B ./build \
+          -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
+          -DCMAKE_INSTALL_PREFIX='./install' \
+          -DCMAKE_C_COMPILER=clang-15 \
+          -DCMAKE_CXX_COMPILER=clang++-15 \
+          -DCMAKE_C_FLAGS=--target=$CLANG_TARGET_TRIPLE \
+          -DCMAKE_CXX_FLAGS=--target=$CLANG_TARGET_TRIPLE \
+          -DSDL2_DIR='${{github.workspace}}/thirdparties/SDL-install/lib/cmake/SDL2' \
+          -DWITH_CLIENT=1 \
+          -G Ninja \
+          ./source
 
     - name: Build
+      working-directory: ${{github.workspace}}
       # Build your program with the given configuration
       run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} -j4
 
@@ -35,47 +100,76 @@ jobs:
       run: ctest -C ${{env.BUILD_TYPE}}
 
     - name: Install
+      working-directory: ${{github.workspace}}
       # Install to the directory defined in CMAKE_INSTALL_PREFIX
       run: cmake --install ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
 
     - uses: actions/upload-artifact@v3
       with:
-        name: out-linux-x64
+        name: out-linux-${{matrix.architecture}}
         if-no-files-found: error
-        path: ${{github.workspace}}/install
-  
+        path:
+          ${{github.workspace}}/install
+          ${{github.workspace}}/thirdparties/SDL-install/lib/*.so
+
   build-platform-windows:
     strategy:
       matrix:
-        architecture: ['x64', 'x86']
+        #architecture: ['x64', 'x86', 'arm64']
+        architecture: ['arm64']
 
+    name: "Building for platform windows-${{matrix.architecture}}"
     runs-on: windows-2022
 
     steps:
     - uses: actions/checkout@v3
+      with:
+        path: 'source'
 
-    - name: Required packages
+    - name: Settings (win32 env)
+      if: matrix.architecture == 'x86'
+      run: |
+        echo "MSBUILD_PLATFORM_CONFIG=Win32" >> $env:GITHUB_ENV
+
+    - name: Settings (x64 env)
+      if: matrix.architecture == 'x64'
+      run: |
+        echo "MSBUILD_PLATFORM_CONFIG=x64" >> $env:GITHUB_ENV
+
+    - name: Settings (arm64 env)
+      if: matrix.architecture == 'arm64'
+      run: |
+        echo "MSBUILD_PLATFORM_CONFIG=ARM64" >> $env:GITHUB_ENV
+
+    - name: Install required packages
       working-directory: ${{github.workspace}}
       run: |
-        mkdir ${{github.workspace}}/others && cd ${{github.workspace}}/others
+        mkdir thirdparties && cd thirdparties
+        git clone --depth 1 --single-branch --branch SDL2 https://github.com/libsdl-org/SDL.git
+        cmake -B SDL-build -A $env:MSBUILD_PLATFORM_CONFIG -DCMAKE_INSTALL_PREFIX='./SDL-install' ./SDL
+        cmake --build SDL-build --config Release
+        cmake --install SDL-build
         git clone --depth 1 --single-branch --branch v2.5.25 https://github.com/lexxmark/winflexbison.git
-        mkdir ${{github.workspace}}/others/winflexbison/build
-        cd ${{github.workspace}}/others/winflexbison/build
-        cmake -DCMAKE_BUILD_TYPE=Release ..\
-        cmake --build . --config Release
-        cmake --install . --config Release
+        cmake -B winflexbison-build -DCMAKE_INSTALL_PREFIX='./winflexbison-install' ./winflexbison
+        cmake --build winflexbison-build --config Release
+        cmake --install winflexbison-build
 
-    - name: Configure CMake (Win32 config)
-      if: matrix.architecture == 'x86'
-      run: cmake -B ${{github.workspace}}/build -A Win32 -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/install -DWITH_CLIENT=1
-
-    - name: Configure CMake (x64 config)
-      if: matrix.architecture == 'x64'
-      run: cmake -B ${{github.workspace}}/build -A x64 -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/install -DWITH_CLIENT=1
+    - name: Configure CMake
+      working-directory: ${{github.workspace}}
+      run: |
+        cmake -B ./build -A $env:MSBUILD_PLATFORM_CONFIG `
+        -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} `
+        -DCMAKE_INSTALL_PREFIX='./install' `
+        -DSDL2_DIR='${{github.workspace}}/thirdparties/SDL-install/cmake' `
+        -DBISON_EXECUTABLE='${{github.workspace}}/thirdparties/winflexbison-install/win_bison.exe' `
+        -DFLEX_EXECUTABLE='${{github.workspace}}/thirdparties/winflexbison-install/win_flex.exe' `
+        -DWITH_CLIENT=1 `
+        ./source
 
     - name: Build
+      working-directory: ${{github.workspace}}
       # Build your program with the given configuration
-      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} -j4
+      run: cmake --build ./build --config ${{env.BUILD_TYPE}} -j4
 
     - name: Test
       working-directory: ${{github.workspace}}/build
@@ -84,8 +178,9 @@ jobs:
       run: ctest -C ${{env.BUILD_TYPE}}
 
     - name: Install
+      working-directory: ${{github.workspace}}
       # Install to the directory defined in CMAKE_INSTALL_PREFIX
-      run: cmake --install ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+      run: cmake --install ./build --config ${{env.BUILD_TYPE}}
 
     - uses: actions/upload-artifact@v3
       with:
@@ -93,6 +188,7 @@ jobs:
         if-no-files-found: error
         path: |
           ${{github.workspace}}/install
+          ${{github.workspace}}/thirdparties/SDL-install/bin/*.dll
           !${{github.workspace}}/install/**/*.pdb
 
     - uses: actions/upload-artifact@v3
