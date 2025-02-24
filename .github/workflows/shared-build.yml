@@ -39,7 +39,7 @@ jobs:
         ]
 
     name: "Building for platform linux-${{matrix.architecture.name}}"
-    runs-on: "ubuntu-22.04"
+    runs-on: "ubuntu-22.04-arm"
     environment: ${{ inputs.environment }}
     env:
         openssl-version: '3.4.1'
@@ -54,14 +54,14 @@ jobs:
       name: Install required packages
       with:
         packages: flex bison ninja-build cmake clang libpulse-dev portaudio19-dev libasound2-dev libjack-dev libpipewire-0.3-dev qtbase5-dev libdbus-1-dev
-        version: "0.1"
+        version: "0.1-${{ runner.arch }}"
 
     - uses: awalsh128/cache-apt-pkgs-action@latest
       name: Install required cross-platform packages (${{ matrix.architecture.triple }})
-      if: matrix.architecture.name != 'amd64'
+      if: matrix.architecture.name != 'arm64'
       with:
         packages: gcc-12-${{ matrix.architecture.triple }} g++-12-${{ matrix.architecture.triple }}
-        version: "0.1"
+        version: "0.1-${{ runner.arch }}"
 
     - name: Settings
       working-directory: ${{github.workspace}}
