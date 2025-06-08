@@ -3839,7 +3839,7 @@ void ScriptThread::EventCreateListener(Event *ev)
 
 void ScriptThread::EventTrace(Event *ev)
 {
-    int     content_mask = MASK_LINE;
+    int     content_mask = MASK_SOLID;
     Vector  start;
     Vector  mins;
     Vector  maxs;
@@ -3856,12 +3856,12 @@ void ScriptThread::EventTrace(Event *ev)
         mins = ev->GetVector(4);
     case 3:
         if (ev->GetInteger(3)) {
-            content_mask &= ~MASK_SCRIPT_SLAVE;
+            content_mask &= ~MASK_IGNORE_ENTS;
         }
     case 2:
-        end = ev->GetVector(2);
     case 1:
         start = ev->GetVector(1);
+        end   = ev->GetVector(2);
         break;
     default:
         throw ScriptException("Wrong number of arguments for trace.");
@@ -3875,11 +3875,12 @@ void ScriptThread::EventTrace(Event *ev)
 
 void ScriptThread::EventSightTrace(Event *ev)
 {
-    int    content_mask = MASK_SOLID;
-    Vector start;
-    Vector mins;
-    Vector maxs;
-    Vector end;
+    int      content_mask = MASK_SOLID;
+    Vector   start;
+    Vector   mins;
+    Vector   maxs;
+    Vector   end;
+    qboolean hit = qfalse;
 
     mins = vec_zero;
     maxs = vec_zero;
@@ -3894,16 +3895,16 @@ void ScriptThread::EventSightTrace(Event *ev)
             content_mask &= ~MASK_IGNORE_ENTS;
         }
     case 2:
-        end = ev->GetVector(2);
     case 1:
         start = ev->GetVector(1);
+        end   = ev->GetVector(2);
         break;
     default:
         throw ScriptException("Wrong number of arguments for sighttrace.");
     }
 
     // call trace
-    ev->AddInteger(G_SightTrace(
+    hit = G_SightTrace(
         start,
         mins,
         maxs,
@@ -3913,7 +3914,9 @@ void ScriptThread::EventSightTrace(Event *ev)
         content_mask,
         false,
         "ScriptThread::EventSightTrace"
-    ));
+    );
+
+    ev->AddInteger(hit);
 }
 
 void ScriptThread::EventPrint3D(Event *ev)
