@@ -282,13 +282,13 @@ extern cvar_t *g_bot_attack_burst_min_time;
  */
 extern cvar_t *g_bot_attack_burst_random_delay;
 /**
- * @brief Minimum duration of continous firing.
+ * @brief Minimum duration of continuous firing.
  */
-extern cvar_t *g_bot_attack_continousfire_min_firetime;
+extern cvar_t *g_bot_attack_continuousfire_min_firetime;
 /**
- * @brief Random time added to the continous firing duration.
+ * @brief Random time added to the continuous firing duration.
  */
-extern cvar_t *g_bot_attack_continousfire_random_firetime;
+extern cvar_t *g_bot_attack_continuousfire_random_firetime;
 /**
  * @brief The minimum time before the bot starts reacting.
  */

@@ -170,18 +170,18 @@ Even though there is no skill system yet, bots can be tweaked with the following
     g_bot_instamsg_chance        = gi.Cvar_Get("g_bot_instamsg_chance", "5", 0);
     g_bot_instamsg_delay         = gi.Cvar_Get("g_bot_instamsg_delay", "5.0", 0);
 
-|Name                                       | Description                                                                                               |
-|-------------------------------------------|-----------------------------------------------------------------------------------------------------------|
-|g_bot_attack_burst_min_time                | Minimum time to pause (bursting). |
-|g_bot_attack_burst_random_delay            | Random time added to pause (bursting). |
-|g_bot_attack_continousfire_min_firetime    | Minimum duration of continous firing. |
-|g_bot_attack_continousfire_random_firetime | Random time added to the continous firing duration. |
-|g_bot_attack_react_min_delay               | The minimum delay before the bot starts shooting to the enemy. |
-|g_bot_attack_react_random_delay            | Random delay added before starting to shoot to the enemy. |
-|g_bot_attack_spreadmult                    | The accuracy multiplier in sort. Default to 1.0, lower value = better accuracy |
-|g_bot_turn_maxchange                       | The degrees per second when the bot turns. |
-|g_bot_instamsg_chance                      | The chance at which the bot sends an instant message when shooting. 0 = disable, higher values = less frequent messages |
-|g_bot_instamsg_delay                       | The minimum delay between instant messages. |
+|Name                                        | Description                                                                                               |
+|--------------------------------------------|-----------------------------------------------------------------------------------------------------------|
+|g_bot_attack_burst_min_time                 | Minimum time to pause (bursting). |
+|g_bot_attack_burst_random_delay             | Random time added to pause (bursting). |
+|g_bot_attack_continuousfire_min_firetime    | Minimum duration of continous firing. |
+|g_bot_attack_continuousfire_random_firetime | Random time added to the continous firing duration. |
+|g_bot_attack_react_min_delay                | The minimum delay before the bot starts shooting to the enemy. |
+|g_bot_attack_react_random_delay             | Random delay added before starting to shoot to the enemy. |
+|g_bot_attack_spreadmult                     | The accuracy multiplier in sort. Default to 1.0, lower value = better accuracy |
+|g_bot_turn_speed                            | The degrees per second when the bot turns. |
+|g_bot_instamsg_chance                       | The chance at which the bot sends an instant message when shooting. 0 = disable, higher values = less frequent messages |
+|g_bot_instamsg_delay                        | The minimum delay between instant messages. |
 
 extern cvar_t *g_bot_attack_min_burst_time;
 extern cvar_t *g_bot_attack_random_burst_time;

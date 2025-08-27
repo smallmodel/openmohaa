@@ -283,8 +283,8 @@ cvar_t *sv_sharedbots;
 
 cvar_t *g_bot_attack_burst_min_time;
 cvar_t *g_bot_attack_burst_random_delay;
-cvar_t *g_bot_attack_continousfire_min_firetime;
-cvar_t *g_bot_attack_continousfire_random_firetime;
+cvar_t *g_bot_attack_continuousfire_min_firetime;
+cvar_t *g_bot_attack_continuousfire_random_firetime;
 cvar_t *g_bot_attack_react_min_delay;
 cvar_t *g_bot_attack_react_random_delay;
 cvar_t *g_bot_attack_spreadmult;
@@ -674,8 +674,8 @@ void CVAR_Init(void)
 
     g_bot_attack_burst_min_time                = gi.Cvar_Get("g_bot_attack_burst_min_time", "0.1", 0);
     g_bot_attack_burst_random_delay            = gi.Cvar_Get("g_bot_attack_burst_random_delay", "0.5", 0);
-    g_bot_attack_continousfire_min_firetime    = gi.Cvar_Get("g_bot_attack_continousfire_min_firetime", "0.5", 0);
-    g_bot_attack_continousfire_random_firetime = gi.Cvar_Get("g_bot_attack_continousfire_random_firetime", "1.5", 0);
+    g_bot_attack_continuousfire_min_firetime    = gi.Cvar_Get("g_bot_attack_continuousfire_min_firetime", "0.5", 0);
+    g_bot_attack_continuousfire_random_firetime = gi.Cvar_Get("g_bot_attack_continuousfire_random_firetime", "1.5", 0);
     g_bot_attack_react_min_delay               = gi.Cvar_Get("g_bot_attack_react_min_delay", "0.2", 0);
     g_bot_attack_react_random_delay            = gi.Cvar_Get("g_bot_attack_react_random_delay", "1.2", 0);
     g_bot_attack_spreadmult                    = gi.Cvar_Get("g_bot_attack_spreadmult", "1.0", 0);

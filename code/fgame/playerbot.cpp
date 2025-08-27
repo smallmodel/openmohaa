@@ -856,8 +856,8 @@ void BotController::State_Attack(void)
             float     fSecondaryBulletRangeSquared = fSecondaryBulletRange * fSecondaryBulletRange;
             float     fSpreadFactor                = pWeap->GetSpreadFactor(FIRE_PRIMARY);
 
-            const int maxContinousFireTime = fireDelay + g_bot_attack_continousfire_min_firetime->value * 1000
-                                           + G_Random(g_bot_attack_continousfire_random_firetime->value * 1000);
+            const int maxcontinuousFireTime = fireDelay + g_bot_attack_continuousfire_min_firetime->value * 1000
+                                           + G_Random(g_bot_attack_continuousfire_random_firetime->value * 1000);
             const int maxBurstTime = fireDelay + g_bot_attack_burst_min_time->value * 1000
                                    + G_Random(g_bot_attack_burst_random_delay->value * 1000);
 
@@ -938,7 +938,7 @@ void BotController::State_Attack(void)
                     m_iContinuousFireTime = 0;
                 }
 
-                if (!m_iLastBurstTime && m_iContinuousFireTime > maxContinousFireTime) {
+                if (!m_iLastBurstTime && m_iContinuousFireTime > maxcontinuousFireTime) {
                     m_iLastBurstTime      = level.inttime;
                     m_iContinuousFireTime = 0;
                 }
