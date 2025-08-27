@@ -274,18 +274,6 @@ extern cvar_t *sv_minPlayers;
 extern cvar_t *sv_sharedbots;
 
 /**
- * @brief The accuracy.
- */
-extern cvar_t *g_bot_attack_spreadmult;
-/**
- * @brief The minimum time before the bot starts reacting.
- */
-extern cvar_t *g_bot_attack_react_min_delay;
-/**
- * @brief A random value added with the reaction delay.
- */
-extern cvar_t *g_bot_attack_react_random_delay;
-/**
  * @brief Minimum time to pause (bursting).
  */
 extern cvar_t *g_bot_attack_burst_min_time;
@@ -302,6 +290,22 @@ extern cvar_t *g_bot_attack_continousfire_min_firetime;
  */
 extern cvar_t *g_bot_attack_continousfire_random_firetime;
 /**
+ * @brief The minimum time before the bot starts reacting.
+ */
+extern cvar_t *g_bot_attack_react_min_delay;
+/**
+ * @brief A random value added with the reaction delay.
+ */
+extern cvar_t *g_bot_attack_react_random_delay;
+/**
+ * @brief The accuracy.
+ */
+extern cvar_t *g_bot_attack_spreadmult;
+/**
+ * @brief The degrees per seconds when the bot turns.
+ */
+extern cvar_t *g_bot_turn_speed;
+/**
  * @brief A value that determines the chance of the bot sending an instant message on kill.
  * 0 = disable
  * The higher the value, the lower the frequency of instant messages.
@@ -311,10 +315,6 @@ extern cvar_t *g_bot_instamsg_chance;
  * @brief The delay at which the bot can send an instant message again.
  */
 extern cvar_t *g_bot_instamsg_delay;
-/**
- * @brief The degrees per seconds when the bot turns.
- */
-extern cvar_t *g_bot_turn_speed;
 
 extern cvar_t *g_rankedserver;
 extern cvar_t *g_spectatefollow_firstperson;
