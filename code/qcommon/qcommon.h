@@ -758,12 +758,11 @@ void	FS_FreeFileList( char **list );
 
 qboolean FS_FileExists( const char *file );
 
+void FS_CorrectCase(char* path);
 qboolean FS_CreatePath (const char *OSPath);
 
 char	*FS_BaseDir_BuildOSPath( const char *base, const char *qpath );
 char	*FS_BuildOSPath( const char *base, const char *game, const char *qpath );
-
-qboolean FS_CreatePath(char *OSPath);
 
 int		FS_LoadStack( void );
 
@@ -889,6 +888,8 @@ const char* FS_GetCurrentGameDir();
 void	FS_GetRelativeFilename( const char *currentDirectory, const char *absoluteFilename, char *out, size_t destlen );
 
 void FS_FileTime(const char* filename, char* date, char* size);
+
+void FS_CorrectCase(char* path);
 
 extern cvar_t* fs_debug;
 extern cvar_t* fs_mapdir;
