@@ -758,7 +758,7 @@ void	FS_FreeFileList( char **list );
 
 qboolean FS_FileExists( const char *file );
 
-void FS_CorrectCase(char* path);
+qboolean FS_CreatePath (const char *OSPath);
 
 char	*FS_BaseDir_BuildOSPath( const char *base, const char *qpath );
 char	*FS_BuildOSPath( const char *base, const char *game, const char *qpath );
