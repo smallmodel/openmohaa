@@ -760,7 +760,8 @@ qboolean FS_FileExists( const char *file );
 
 void FS_CorrectCase(char* path);
 
-char   *FS_BuildOSPath( const char *base, const char *game, const char *qpath );
+char	*FS_BaseDir_BuildOSPath( const char *base, const char *qpath );
+char	*FS_BuildOSPath( const char *base, const char *game, const char *qpath );
 
 qboolean FS_CreatePath(char *OSPath);
 
